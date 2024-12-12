@@ -7,16 +7,21 @@
     {
         private static IELogger _impl;
 
+        internal static IELogger Impl => _impl ??=
 #if UNITY_STANDALONE
-        internal static IELogger Impl => _impl ??= new EUnityLog();
+            new EUnityLog();
 #else
-        internal static IELogger Impl => _impl ??= new EConsoleLog();
+            new EConsoleLog();
 #endif
 
         /// <summary>
-        /// 注入log实现
+        /// 注入log实例
         /// </summary>
-        /// <param name="impl">实现类实例</param>
         public static void Inject(IELogger impl) => _impl = impl;
+
+        /// <summary>
+        /// 清空log实例
+        /// </summary>
+        public static void UnInject() => _impl = null;
     }
 }
