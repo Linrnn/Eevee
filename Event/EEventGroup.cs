@@ -9,90 +9,70 @@ namespace Eevee.Event
     /// </summary>
     public sealed class EEventGroup
     {
-        private bool _active;
-        private EEventModule _module;
-        private readonly Dictionary<Delegate, int> _listeners = new(32);
-
-        /// <summary>
-        /// 生命周期，需要外部调用
-        /// </summary>
-        public void Enable(EEventModule module)
+        private readonly struct Wrapper
         {
-            if (module == null)
+            internal readonly EEventModule Module;
+            internal readonly int EventId;
+            internal readonly Delegate Listener;
+
+            public Wrapper(EEventModule module, int eventId, Delegate listener)
             {
-                ELog.Error("[Event] module is null");
-            }
-            else if (_module != null)
-            {
-                ELog.Error("[Event] _module is exist");
-            }
-            else
-            {
-                _module = module;
-                _active = true;
+                Module = module;
+                EventId = eventId;
+                Listener = listener;
             }
         }
-        /// <summary>
-        /// 生命周期，需要外部调用
-        /// </summary>
-        public void Disable()
-        {
-            if (!CheckActive())
-                return;
 
-            UnAllRegister();
-            _module = null;
-            _active = false;
-        }
+        private readonly Dictionary<ulong, Wrapper> _listeners = new(32);
 
         /// <summary>
         /// 添加监听<br/>
         /// 可能无法收到延迟派发的事件<br/>
         /// 如果需要接收延迟事件，可以将TContext修改为IEEventContext
         /// </summary>
-        public void AddListener<TContext>(int eventId, Action<TContext> listener) where TContext : IEEventContext
+        public void AddListener<TContext>(EEventModule module, int eventId, Action<TContext> listener) where TContext : IEEventContext
         {
-            Register(eventId, listener);
+            Register(module, eventId, listener);
         }
         /// <summary>
         /// 添加监听<br/>
         /// 可以收到延迟派发的事件<br/>
-        /// context 不建议是 struct，因为会触发 InBox
+        /// context 不建议是 struct，因为会触发 Box
         /// </summary>
-        public void AddListener(int eventId, Action<IEEventContext> listener)
+        public void AddListener(EEventModule module, int eventId, Action<IEEventContext> listener)
         {
-            Register(eventId, listener);
+            Register(module, eventId, listener);
         }
         /// <summary>
         /// 添加监听<br/>
         /// 可以收到延迟派发的事件
         /// </summary>
-        public void AddListener(int eventId, Action listener)
+        public void AddListener(EEventModule module, int eventId, Action listener)
         {
-            Register(eventId, listener);
+            Register(module, eventId, listener);
         }
 
         /// <summary>
         /// 移除监听
         /// </summary>
-        public void RemoveListener<TContext>(int eventId, Action<TContext> listener) where TContext : IEEventContext
+        public void RemoveListener<TContext>(EEventModule module, int eventId, Action<TContext> listener) where TContext : IEEventContext
         {
-            UnRegister(eventId, listener);
+            UnRegister(module, eventId, listener);
         }
         /// <summary>
         /// 移除监听<br/>
-        /// context 不建议是 struct，因为会触发 InBox
+        /// context 不建议是 struct，因为会触发 Box
         /// </summary>
-        public void RemoveListener(int eventId, Action<IEEventContext> listener)
+        public void RemoveListener(EEventModule module, int eventId, Action<IEEventContext> listener)
         {
-            UnRegister(eventId, listener);
+            UnRegister(module, eventId, listener);
         }
         /// <summary>
         /// 移除监听
         /// </summary>
-        public void RemoveListener(int eventId, Action listener)
+        public void RemoveListener(EEventModule module, int eventId, Action listener)
         {
-            UnRegister(eventId, listener);
+            UnRegister(module, eventId, listener);
         }
 
         /// <summary>
@@ -100,46 +80,46 @@ namespace Eevee.Event
         /// </summary>
         public void RemoveAllListener()
         {
-            if (!CheckActive())
-                return;
-
             UnAllRegister();
         }
 
-        private void Register(int eventId, Delegate listener)
+        private ulong GetKey(EEventModule module, Delegate listener)
         {
-            if (!CheckActive())
-                return;
+            int hashCode1 = module.GetHashCode();
+            int hashCode2 = listener.GetHashCode();
+            ulong key = ((ulong)(uint)hashCode1 << 32) | (uint)hashCode2; // (ulong)-1 = 18446744073709551615，(uint)-1 = 4294967295，结果不一致
+            return key;
+        }
 
-            if (_listeners.TryAdd(listener, eventId))
-                _module.Register(eventId, listener);
+        private void Register(EEventModule module, int eventId, Delegate listener)
+        {
+            ulong key = GetKey(module, listener);
+            var wrapper = new Wrapper(module, eventId, listener);
+
+            if (_listeners.TryAdd(key, wrapper))
+                module.Register(eventId, listener);
             else
                 ELog.Warn($"[Event] listener is exist, EventId:{eventId}");
         }
-        private void UnRegister(int eventId, Delegate listener)
+        private void UnRegister(EEventModule module, int eventId, Delegate listener)
         {
-            if (!CheckActive())
-                return;
+            ulong key = GetKey(module, listener);
 
-            if (_listeners.Remove(listener))
-                _module.UnRegister(eventId, listener);
+            if (_listeners.Remove(key))
+                module.UnRegister(eventId, listener);
             else
                 ELog.Warn($"[Event] listener isn't exist, EventId:{eventId}");
         }
+
         private void UnAllRegister()
         {
             foreach (var pair in _listeners)
-                _module.UnRegister(pair.Value, pair.Key);
+            {
+                var wrapper = pair.Value;
+                wrapper.Module.UnRegister(wrapper.EventId, wrapper.Listener);
+            }
+
             _listeners.Clear();
-        }
-
-        private bool CheckActive()
-        {
-            if (_active)
-                return true;
-
-            ELog.Error("[Event] _active is false, please call \"EEventGroup.Enable()\"");
-            return false;
         }
     }
 }

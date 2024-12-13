@@ -1,4 +1,5 @@
-﻿using Eevee.Log;
+﻿using Eevee.Define;
+using Eevee.Log;
 using System;
 using System.Collections.Generic;
 
@@ -43,7 +44,7 @@ namespace Eevee.Event
             _waitWrappers.Clear();
 
             foreach (var wrapper in _invokeWrappers)
-                Invoke(wrapper.EventId, wrapper.Context);
+                Invokes(wrapper.EventId, wrapper.Context);
 
             _invokeWrappers.Clear(); // Wrapper.Context 是引用类型，不Clear会导致 _invokeWrappers 一直持有 Context
         }
@@ -65,11 +66,11 @@ namespace Eevee.Event
         /// </summary>
         internal void Register(int eventId, Delegate listener)
         {
-            if (!_listeners.TryGetValue(eventId, out var contexts))
-                _listeners.Add(eventId, contexts = new List<Delegate>());
+            if (!_listeners.TryGetValue(eventId, out var listeners))
+                _listeners.Add(eventId, listeners = new List<Delegate>());
 
-            if (!contexts.Contains(listener))
-                contexts.Add(listener);
+            if (!listeners.Contains(listener))
+                listeners.Add(listener);
         }
         /// <summary>
         /// 移除监听
@@ -83,21 +84,21 @@ namespace Eevee.Event
         /// <summary>
         /// 实时派发事件
         /// </summary>
-        public void Dispatch<TContext>(int eventId, TContext context = default) where TContext : IEEventContext
+        public void Dispatch<TContext>(int eventId, TContext context) where TContext : IEEventContext
         {
-            Invoke(eventId, context);
+            Invokes(eventId, context);
         }
         /// <summary>
         /// 实时派发事件
         /// </summary>
         public void Dispatch(int eventId)
         {
-            Invoke<IEEventContext>(eventId, null);
+            Invokes<IEEventContext>(eventId, null);
         }
 
         /// <summary>
         /// 延迟派发事件<br/>
-        /// context 不建议是 struct，因为会触发 InBox
+        /// context 不建议是 struct，因为会触发 Box
         /// </summary>
         public void Enqueue(int eventId, IEEventContext context = null, bool allowRepeat = true)
         {
@@ -108,27 +109,63 @@ namespace Eevee.Event
                 ELog.Warn($"[Event] EventId:{eventId} is repeat");
         }
 
-        private void Invoke<TContext>(int eventId, TContext context) where TContext : IEEventContext
+        private void Invokes<TContext>(int eventId, TContext context) where TContext : IEEventContext
         {
             if (_listeners.TryGetValue(eventId, out var listeners))
             {
                 foreach (var listener in listeners)
                 {
-                    switch (listener)
+                    bool success = true;
+
+                    if (Macro.HasTryCatch)
                     {
-                        case Action<TContext> action1: action1(context); break;
-                        case Action<IEEventContext> action2: action2(context); break;
-                        case Action action: action(); break;
-                        default: ELog.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}"); break;
+                        try
+                        {
+                            success = Invoke(listener, in context);
+                        }
+                        catch (Exception exception)
+                        {
+                            ELog.Fail($"[Event] Invokes fail, EventId:{eventId}\n{exception}");
+                        }
+                    }
+                    else
+                    {
+                        success = Invoke(listener, in context);
+                    }
+
+                    if (!success)
+                    {
+                        ELog.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
                     }
                 }
             }
         }
+        private bool Invoke<TContext>(Delegate listener, in TContext context) where TContext : IEEventContext
+        {
+            switch (listener)
+            {
+                case Action<TContext> action1:
+                    action1(context);
+                    return true;
+
+                case Action<IEEventContext> action2:
+                    action2(context);
+                    return true;
+
+                case Action action3:
+                    action3();
+                    return true;
+
+                default: return false;
+            }
+        }
+
         private bool ExistWait(Wrapper wrapper)
         {
             foreach (var other in _waitWrappers)
                 if (wrapper.IsEqual(in other))
                     return true;
+
             return false;
         }
     }
