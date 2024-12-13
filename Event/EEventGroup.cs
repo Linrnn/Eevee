@@ -94,12 +94,16 @@ namespace Eevee.Event
         private void Register(EEventModule module, int eventId, Delegate listener)
         {
             ulong key = GetKey(module, listener);
-            var wrapper = new Wrapper(module, eventId, listener);
 
-            if (_listeners.TryAdd(key, wrapper))
-                module.Register(eventId, listener);
+            if (_listeners.ContainsKey(key))
+            {
+                ELog.Error($"[Event] listener is exist, EventId:{eventId}");
+            }
             else
-                ELog.Warn($"[Event] listener is exist, EventId:{eventId}");
+            {
+                _listeners.Add(key, new Wrapper(module, eventId, listener));
+                module.Register(eventId, listener);
+            }
         }
         private void UnRegister(EEventModule module, int eventId, Delegate listener)
         {
