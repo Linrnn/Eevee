@@ -2,6 +2,7 @@
 using Eevee.Log;
 using System;
 using System.Collections.Generic;
+using Eevee.Collection;
 
 namespace Eevee.Event
 {
@@ -26,6 +27,7 @@ namespace Eevee.Event
             }
         }
 
+        // todo lrn 未接入 EPool
         private readonly Dictionary<int, List<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为需要保证listener的有序性
         private readonly List<Wrapper> _waitWrappers = new(32); // 等待执行的事件
         private readonly List<Wrapper> _invokeWrappers = new(32); // 执行中的事件
@@ -39,8 +41,7 @@ namespace Eevee.Event
             if (_waitWrappers.Count == 0)
                 return;
 
-            _invokeWrappers.Clear();
-            _invokeWrappers.AddRange(_waitWrappers); // 中转一层 _invokeWrappers，可以防止 Dispatch 的过程中，_waitWrappers 被添加
+            _invokeWrappers.Update(_waitWrappers); // 中转一层 _invokeWrappers，可以防止 Dispatch 的过程中，_waitWrappers 被添加
             _waitWrappers.Clear();
 
             foreach (var wrapper in _invokeWrappers)
