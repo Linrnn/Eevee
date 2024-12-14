@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Eevee.Collection
 {
-    public static class EEnumerable
+    public static class IEnumerableExt
     {
         public static T GetFirst<T>(this IEnumerable<T> source)
         {
@@ -30,7 +30,7 @@ namespace Eevee.Collection
                     break;
 
                 case HashSet<T> hashSet:
-                    ELog.Error("[Collection] HashSet<T>无序，GetFirst()无法保证结果的一致性");
+                    LogRelay.Error("[Collection] HashSet<T>无序，GetFirst()无法保证结果的一致性");
                     foreach (var item in hashSet)
                         return item;
                     break;

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Eevee.Collection
 {
-    public static class EDictionary
+    public static class DictionaryExt
     {
         public static bool IsEmpty<TKey, TValue>(this IDictionary<TKey, TValue> source)
         {

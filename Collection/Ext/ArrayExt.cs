@@ -2,7 +2,7 @@ using System;
 
 namespace Eevee.Collection
 {
-    public static class EArray
+    public static class ArrayExt
     {
         public static void Clean(this Array source)
         {

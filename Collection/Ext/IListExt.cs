@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Eevee.Collection
 {
-    public static class EList
+    public static class IListExt
     {
         // todo lrn 未接入 ERandom
         //public static T GetRandomItem<T>(this IList<T> source)

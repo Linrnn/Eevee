@@ -1,22 +1,22 @@
-﻿using Eevee.Define;
+﻿using Eevee.Collection;
+using Eevee.Define;
 using Eevee.Log;
 using System;
 using System.Collections.Generic;
-using Eevee.Collection;
 
 namespace Eevee.Event
 {
     /// <summary>
     /// 事件模块，事件的生效域，不同的域之间的事件不会相互影响
     /// </summary>
-    public sealed class EEventModule
+    public sealed class EventModule
     {
         private readonly struct Wrapper
         {
             internal readonly int EventId;
-            internal readonly IEEventContext Context;
+            internal readonly IEventContext Context;
 
-            internal Wrapper(int eventId, IEEventContext context)
+            internal Wrapper(int eventId, IEventContext context)
             {
                 EventId = eventId;
                 Context = context;
@@ -85,7 +85,7 @@ namespace Eevee.Event
         /// <summary>
         /// 实时派发事件
         /// </summary>
-        public void Dispatch<TContext>(int eventId, TContext context) where TContext : IEEventContext
+        public void Dispatch<TContext>(int eventId, TContext context) where TContext : IEventContext
         {
             Invokes(eventId, context);
         }
@@ -94,23 +94,23 @@ namespace Eevee.Event
         /// </summary>
         public void Dispatch(int eventId)
         {
-            Invokes<IEEventContext>(eventId, null);
+            Invokes<IEventContext>(eventId, null);
         }
 
         /// <summary>
         /// 延迟派发事件<br/>
         /// context 不建议是 struct，因为会触发 Box
         /// </summary>
-        public void Enqueue(int eventId, IEEventContext context = null, bool allowRepeat = true)
+        public void Enqueue(int eventId, IEventContext context = null, bool allowRepeat = true)
         {
             var wrapper = new Wrapper(eventId, context);
             if (allowRepeat || !ExistWait(wrapper))
                 _waitWrappers.Add(wrapper);
             else
-                ELog.Warn($"[Event] EventId:{eventId} is repeat");
+                LogRelay.Warn($"[Event] EventId:{eventId} is repeat");
         }
 
-        private void Invokes<TContext>(int eventId, TContext context) where TContext : IEEventContext
+        private void Invokes<TContext>(int eventId, TContext context) where TContext : IEventContext
         {
             if (_listeners.TryGetValue(eventId, out var listeners))
             {
@@ -126,7 +126,7 @@ namespace Eevee.Event
                         }
                         catch (Exception exception)
                         {
-                            ELog.Fail($"[Event] Invokes fail, EventId:{eventId}\n{exception}");
+                            LogRelay.Fail($"[Event] Invokes fail, EventId:{eventId}\n{exception}");
                         }
                     }
                     else
@@ -136,12 +136,12 @@ namespace Eevee.Event
 
                     if (!success)
                     {
-                        ELog.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
+                        LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
                     }
                 }
             }
         }
-        private bool Invoke<TContext>(Delegate listener, in TContext context) where TContext : IEEventContext
+        private bool Invoke<TContext>(Delegate listener, in TContext context) where TContext : IEventContext
         {
             switch (listener)
             {
@@ -149,7 +149,7 @@ namespace Eevee.Event
                     action1(context);
                     return true;
 
-                case Action<IEEventContext> action2:
+                case Action<IEventContext> action2:
                     action2(context);
                     return true;
 

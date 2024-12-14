@@ -3,7 +3,7 @@
     /// <summary>
     /// 事件参数约束
     /// </summary>
-    public interface IEEventContext
+    public interface IEventContext
     {
     }
 }

@@ -3,21 +3,21 @@
     /// <summary>
     /// Log代理
     /// </summary>
-    public struct ELogProxy
+    public readonly struct LogProxy
     {
-        private static IELogger _impl;
+        private static ILog _impl;
 
-        internal static IELogger Impl => _impl ??=
+        internal static ILog Impl => _impl ??=
 #if UNITY_STANDALONE
-            new EUnityLog();
+            new UnityLog();
 #else
-            new EConsoleLog();
+            new SystemLog();
 #endif
 
         /// <summary>
         /// 注入log实例
         /// </summary>
-        public static void Inject(IELogger impl) => _impl = impl;
+        public static void Inject(ILog impl) => _impl = impl;
 
         /// <summary>
         /// 清空log实例

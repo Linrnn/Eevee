@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Eevee.Collection
 {
-    public static class ESet
+    public static class ISetExt
     {
         /// <summary>
         /// IEnumerable`1.GetEnumerator() 的实现导致 ISet`1.UnionWith() 出现GC，所以重写接口

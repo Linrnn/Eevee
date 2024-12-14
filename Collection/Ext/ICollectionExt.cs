@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Eevee.Collection
 {
-    public static class ECollection
+    public static class ICollectionExt
     {
         public static bool IsEmpty<T>(this ICollection<T> source)
         {

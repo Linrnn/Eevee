@@ -7,15 +7,15 @@ namespace Eevee.Event
     /// <summary>
     /// 事件组，可以包含多个事件
     /// </summary>
-    public sealed class EEventGroup
+    public sealed class EventGroup
     {
         private readonly struct Wrapper
         {
-            internal readonly EEventModule Module;
+            internal readonly EventModule Module;
             internal readonly int EventId;
             internal readonly Delegate Listener;
 
-            public Wrapper(EEventModule module, int eventId, Delegate listener)
+            public Wrapper(EventModule module, int eventId, Delegate listener)
             {
                 Module = module;
                 EventId = eventId;
@@ -31,7 +31,7 @@ namespace Eevee.Event
         /// 可能无法收到延迟派发的事件<br/>
         /// 如果需要接收延迟事件，可以将TContext修改为IEEventContext
         /// </summary>
-        public void AddListener<TContext>(EEventModule module, int eventId, Action<TContext> listener) where TContext : IEEventContext
+        public void AddListener<TContext>(EventModule module, int eventId, Action<TContext> listener) where TContext : IEventContext
         {
             Register(module, eventId, listener);
         }
@@ -40,7 +40,7 @@ namespace Eevee.Event
         /// 可以收到延迟派发的事件<br/>
         /// context 不建议是 struct，因为会触发 Box
         /// </summary>
-        public void AddListener(EEventModule module, int eventId, Action<IEEventContext> listener)
+        public void AddListener(EventModule module, int eventId, Action<IEventContext> listener)
         {
             Register(module, eventId, listener);
         }
@@ -48,7 +48,7 @@ namespace Eevee.Event
         /// 添加监听<br/>
         /// 可以收到延迟派发的事件
         /// </summary>
-        public void AddListener(EEventModule module, int eventId, Action listener)
+        public void AddListener(EventModule module, int eventId, Action listener)
         {
             Register(module, eventId, listener);
         }
@@ -56,7 +56,7 @@ namespace Eevee.Event
         /// <summary>
         /// 移除监听
         /// </summary>
-        public void RemoveListener<TContext>(EEventModule module, int eventId, Action<TContext> listener) where TContext : IEEventContext
+        public void RemoveListener<TContext>(EventModule module, int eventId, Action<TContext> listener) where TContext : IEventContext
         {
             UnRegister(module, eventId, listener);
         }
@@ -64,14 +64,14 @@ namespace Eevee.Event
         /// 移除监听<br/>
         /// context 不建议是 struct，因为会触发 Box
         /// </summary>
-        public void RemoveListener(EEventModule module, int eventId, Action<IEEventContext> listener)
+        public void RemoveListener(EventModule module, int eventId, Action<IEventContext> listener)
         {
             UnRegister(module, eventId, listener);
         }
         /// <summary>
         /// 移除监听
         /// </summary>
-        public void RemoveListener(EEventModule module, int eventId, Action listener)
+        public void RemoveListener(EventModule module, int eventId, Action listener)
         {
             UnRegister(module, eventId, listener);
         }
@@ -84,7 +84,7 @@ namespace Eevee.Event
             UnAllRegister();
         }
 
-        private ulong GetKey(EEventModule module, Delegate listener)
+        private ulong GetKey(EventModule module, Delegate listener)
         {
             int hashCode1 = module.GetHashCode();
             int hashCode2 = listener.GetHashCode();
@@ -92,13 +92,13 @@ namespace Eevee.Event
             return key;
         }
 
-        private void Register(EEventModule module, int eventId, Delegate listener)
+        private void Register(EventModule module, int eventId, Delegate listener)
         {
             ulong key = GetKey(module, listener);
 
             if (_listeners.ContainsKey(key))
             {
-                ELog.Error($"[Event] listener is exist, EventId:{eventId}");
+                LogRelay.Error($"[Event] listener is exist, EventId:{eventId}");
             }
             else
             {
@@ -106,14 +106,14 @@ namespace Eevee.Event
                 module.Register(eventId, listener);
             }
         }
-        private void UnRegister(EEventModule module, int eventId, Delegate listener)
+        private void UnRegister(EventModule module, int eventId, Delegate listener)
         {
             ulong key = GetKey(module, listener);
 
             if (_listeners.Remove(key))
                 module.UnRegister(eventId, listener);
             else
-                ELog.Warn($"[Event] listener isn't exist, EventId:{eventId}");
+                LogRelay.Warn($"[Event] listener isn't exist, EventId:{eventId}");
         }
 
         private void UnAllRegister()
