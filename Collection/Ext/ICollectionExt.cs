@@ -91,6 +91,11 @@ namespace Eevee.Collection
                         source.Add(item);
                     break;
 
+                case SortedSet<T> sortedSet:
+                    foreach (var item in sortedSet)
+                        source.Add(item);
+                    break;
+
                 case WeakList<T> weakList:
                     foreach (var item in weakList)
                         source.Add(item);
@@ -132,6 +137,11 @@ namespace Eevee.Collection
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
+                        source.Remove(item);
+                    break;
+
+                case SortedSet<T> sortedSet:
+                    foreach (var item in sortedSet)
                         source.Remove(item);
                     break;
 

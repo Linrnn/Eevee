@@ -179,6 +179,11 @@ namespace Eevee.Collection
                         source.Insert(index++, item);
                     break;
 
+                case SortedSet<T> sortedSet:
+                    foreach (var item in sortedSet)
+                        source.Insert(index++, item);
+                    break;
+
                 case WeakList<T> weakList:
                     foreach (var item in weakList)
                         source.Insert(index++, item);

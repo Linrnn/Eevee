@@ -12,7 +12,7 @@ namespace Eevee.Collection
     /// 缺点：Insert()，Remove() 会打乱元素的相对位置
     /// </summary>
     [Serializable]
-    public sealed class WeakList<T> : IList<T>, IReadOnlyList<T>
+    public sealed class WeakList<T> : IList<T>, IReadOnlyList<T> //, IList
     {
         #region Type
         [Serializable]
@@ -62,7 +62,7 @@ namespace Eevee.Collection
             private bool MoveNextRare()
             {
                 if (_version != _list._version)
-                    LogRelay.Error("[]");
+                    LogRelay.Fail($"[Collection] MoveNextRare fail, _version != _list._version, _version:{_version},  _list._version:{_list._version}");
 
                 _index = _list._size + 1;
                 _current = default;
@@ -127,7 +127,7 @@ namespace Eevee.Collection
         }
         #endregion
 
-        #region IList<>
+        #region IList`1
         public int IndexOf(T item) => Array.IndexOf(_items, item, 0, _size);
 
         public void Insert(int index, T item)
@@ -154,7 +154,7 @@ namespace Eevee.Collection
         }
         #endregion
 
-        #region ICollection<>
+        #region ICollection`1
         public int Count => _size;
         public bool IsReadOnly => false;
 
@@ -190,6 +190,46 @@ namespace Eevee.Collection
         public void CopyTo(T[] array, int arrayIndex = 0) => Array.Copy(_items, 0, array, arrayIndex, _size);
         #endregion
 
+        //#region IList
+        //bool IList.IsFixedSize => false;
+        //object IList.this[int index]
+        //{
+        //    get => this[index];
+        //    set => this[index] = (T)value;
+        //}
+
+        //bool IList.Contains(object value) => Contains((T)value);
+        //int IList.IndexOf(object value) => IndexOf((T)value);
+
+        //int IList.Add(object value)
+        //{
+        //    Add((T)value);
+        //    return _size - 1;
+        //}
+        //void IList.Insert(int index, object value) => Insert(index, (T)value);
+        //void IList.Remove(object value) => Remove((T)value);
+        //#endregion
+
+        //#region ICollection
+        //[NonSerialized] private object _syncRoot;
+
+        //bool ICollection.IsSynchronized => false;
+        //object ICollection.SyncRoot
+        //{
+        //    get
+        //    {
+        //        if (_syncRoot == null)
+        //            Interlocked.CompareExchange<object>(ref _syncRoot, new object(), null);
+        //        return _syncRoot;
+        //    }
+        //}
+
+        //void ICollection.CopyTo(Array array, int index)
+        //{
+        //    Array.Copy((Array)_items, 0, array, index, _size);
+        //}
+        //#endregion
+
         #region Enumerator
         public Enumerator GetEnumerator() => new(this);
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this);
@@ -205,6 +245,12 @@ namespace Eevee.Collection
             if (enumerable is ICollection<T> collection)
             {
                 int count = collection.Count;
+                if (index > count)
+                {
+                    LogRelay.Fail($"[Collection] InsertRange fail, index > count, index:{index}, count:{count}");
+                    return;
+                }
+
                 if (count > 0)
                 {
                     int end = Math.Max(_size, index + count);
@@ -232,7 +278,7 @@ namespace Eevee.Collection
             int end = _size - count;
             int length = Math.Min(count, end - index);
 
-            Array.Copy(_items, index + count, _items, index, length);
+            Array.Copy(_items, _size - length, _items, index, length);
             Array.Clear(_items, end, count);
 
             _size = end;

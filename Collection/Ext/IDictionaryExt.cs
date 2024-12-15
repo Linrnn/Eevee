@@ -32,6 +32,11 @@ namespace Eevee.Collection
                         source[pair.Key] = pair.Value;
                     break;
 
+                case SortedDictionary<TKey, TValue> sortedDictionary:
+                    foreach (var pair in sortedDictionary)
+                        source[pair.Key] = pair.Value;
+                    break;
+
                 default: // 存在GC，慎重调用
                     foreach (var pair in input)
                         source[pair.Key] = pair.Value;

@@ -38,6 +38,11 @@ namespace Eevee.Collection
                         return item;
                     break;
 
+                case SortedSet<T> sortedSet:
+                    foreach (var item in sortedSet)
+                        return item;
+                    break;
+
                 default: // 存在GC，慎重调用
                     foreach (var item in source)
                         return item;
