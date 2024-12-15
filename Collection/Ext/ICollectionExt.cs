@@ -1,3 +1,4 @@
+using Eevee.Log;
 using System.Collections.Generic;
 
 namespace Eevee.Collection
@@ -14,28 +15,54 @@ namespace Eevee.Collection
             return source == null || source.Count == 0;
         }
 
-        public static void Update<T>(this ICollection<T> source, IEnumerable<T> input)
+        public static void Update<T>(this ICollection<T> source, IList<T> input, int inputIndex, int inputCount)
         {
+            int end = inputIndex + inputCount;
+            if (end > input.Count)
+            {
+                LogRelay.Error($"[Collection] Update fail, index + count > end, index:{inputIndex}, count:{inputCount}, length:{input.Count}");
+                return;
+            }
+
             source.Clear();
-            AddRange_0GC(source, input);
+            for (int i = inputIndex; i < end; ++i)
+            {
+                source.Add(input[i]);
+            }
         }
 
         /// <summary>
-        /// IEnumerable`1.GetEnumerator() 的实现导致 List`1.AddRange() 出现GC，所以重写接口
+        /// foreach ICollection`1.GetEnumerator() 会引发GC，故封装 0GC 方法
         /// </summary>
-        public static void AddRange_0GC<T>(this ICollection<T> source, IEnumerable<T> input)
+        public static void Update0GC<T>(this ICollection<T> source, IEnumerable<T> input)
+        {
+            source.Clear();
+            AddRange0GC(source, input);
+        }
+
+        /// <summary>
+        /// foreach ICollection`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// </summary>
+        public static void AddRange0GC<T>(this ICollection<T> source, IEnumerable<T> input)
         {
             if (input == null)
+            {
                 return;
+            }
 
-            if (input is ICollection<T> collection)
+            if (input is ICollection<T>)
+            {
                 switch (source)
                 {
                     case List<T> list:
-                        if (collection.Count + collection.Count > list.Capacity)
-                            list.Capacity <<= 1;
-                        break;
+                        list.AddRange(input);
+                        return;
+
+                    case WeakList<T> weakList:
+                        weakList.InsertRange(source.Count, input);
+                        return;
                 }
+            }
 
             switch (input)
             {
@@ -61,6 +88,11 @@ namespace Eevee.Collection
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
+                        source.Add(item);
+                    break;
+
+                case WeakList<T> weakList:
+                    foreach (var item in weakList)
                         source.Add(item);
                     break;
 
@@ -71,7 +103,10 @@ namespace Eevee.Collection
             }
         }
 
-        public static void RemoveRange<T>(this ICollection<T> source, in IEnumerable<T> input)
+        /// <summary>
+        /// foreach ICollection`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// </summary>
+        public static void RemoveRange0GC<T>(this ICollection<T> source, in IEnumerable<T> input)
         {
             switch (input)
             {
@@ -97,6 +132,11 @@ namespace Eevee.Collection
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
+                        source.Remove(item);
+                    break;
+
+                case WeakList<T> weakList:
+                    foreach (var item in weakList)
                         source.Remove(item);
                     break;
 

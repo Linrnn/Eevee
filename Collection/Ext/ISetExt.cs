@@ -5,9 +5,9 @@ namespace Eevee.Collection
     public static class ISetExt
     {
         /// <summary>
-        /// IEnumerable`1.GetEnumerator() 的实现导致 ISet`1.UnionWith() 出现GC，所以重写接口
+        /// foreach ISet`1.GetEnumerator() 会引发GC，故封装 0GC 方法
         /// </summary>
-        public static void Union_0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static void Union0GC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (input == null)
                 return;
@@ -36,6 +36,11 @@ namespace Eevee.Collection
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
+                        source.Add(item);
+                    break;
+
+                case WeakList<T> weakList:
+                    foreach (var item in weakList)
                         source.Add(item);
                     break;
 

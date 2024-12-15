@@ -11,6 +11,7 @@ namespace Eevee.Event
     /// </summary>
     public sealed class EventModule
     {
+        #region Type
         private readonly struct Wrapper
         {
             internal readonly int EventId;
@@ -21,11 +22,20 @@ namespace Eevee.Event
                 EventId = eventId;
                 Context = context;
             }
-            internal bool IsEqual(in Wrapper other)
+            internal bool BeContain(List<Wrapper> wrappers)
+            {
+                foreach (var other in wrappers)
+                    if (IsEqual(in other))
+                        return true;
+
+                return false;
+            }
+            private bool IsEqual(in Wrapper other)
             {
                 return EventId == other.EventId && Context == other.Context;
             }
         }
+        #endregion
 
         // todo lrn 未接入 EPool
         private readonly Dictionary<int, List<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为需要保证listener的有序性
@@ -41,7 +51,7 @@ namespace Eevee.Event
             if (_waitWrappers.Count == 0)
                 return;
 
-            _invokeWrappers.Update(_waitWrappers); // 中转一层 _invokeWrappers，可以防止 Dispatch 的过程中，_waitWrappers 被添加
+            _invokeWrappers.Update0GC(_waitWrappers); // 中转一层 _invokeWrappers，可以防止 Dispatch 的过程中，_waitWrappers 被添加
             _waitWrappers.Clear();
 
             foreach (var wrapper in _invokeWrappers)
@@ -104,7 +114,7 @@ namespace Eevee.Event
         public void Enqueue(int eventId, IEventContext context = null, bool allowRepeat = true)
         {
             var wrapper = new Wrapper(eventId, context);
-            if (allowRepeat || !ExistWait(wrapper))
+            if (allowRepeat || !wrapper.BeContain(_waitWrappers))
                 _waitWrappers.Add(wrapper);
             else
                 LogRelay.Warn($"[Event] EventId:{eventId} is repeat");
@@ -159,15 +169,6 @@ namespace Eevee.Event
 
                 default: return false;
             }
-        }
-
-        private bool ExistWait(Wrapper wrapper)
-        {
-            foreach (var other in _waitWrappers)
-                if (wrapper.IsEqual(in other))
-                    return true;
-
-            return false;
         }
     }
 }

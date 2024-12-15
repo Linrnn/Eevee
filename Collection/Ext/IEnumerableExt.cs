@@ -1,23 +1,26 @@
 using Eevee.Log;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Eevee.Collection
 {
     public static class IEnumerableExt
     {
-        public static T GetFirst<T>(this IEnumerable<T> source)
+        public static bool Has<T>(this IEnumerable<T> source, T item)
+        {
+            return source.Contains(item);
+        }
+
+        /// <summary>
+        /// foreach IEnumerable`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// </summary>
+        public static T GetFirst0GC<T>(this IEnumerable<T> source)
         {
             switch (source)
             {
-                case T[] array:
-                    foreach (var item in array)
-                        return item;
-                    break;
-
-                case List<T> list:
-                    foreach (var item in list)
-                        return item;
-                    break;
+                case IReadOnlyList<T> readOnlyList: return readOnlyList[0];
+                case IList<T> list: return list[0];
 
                 case Stack<T> stack:
                     foreach (var item in stack)
@@ -38,20 +41,31 @@ namespace Eevee.Collection
                 default: // 存在GC，慎重调用
                     foreach (var item in source)
                         return item;
-
                     break;
             }
 
             return default;
         }
 
-        public static List<T> DeepCopy2List<T>(this IEnumerable<T> source)
+        /// <summary>
+        /// foreach IEnumerable`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// </summary>
+        public static T[] ToArray0GC<T>(this IEnumerable<T> source)
         {
-            var collection = source as ICollection<T>;
-            // todo lrn 未接入 EPool
-            var output = collection == null ? new List<T>() : new List<T>(collection.Count);
-            output.AddRange_0GC(source);
-            return output;
+            switch (source)
+            {
+                case ICollection<T> collection:
+                    if (collection.IsNullOrEmpty())
+                        return Array.Empty<T>();
+
+                    var output = new T[collection.Count];
+                    collection.CopyTo(output, 0);
+                    return output;
+
+                case Stack<T> stack: return stack.ToArray();
+                case Queue<T> queue: return queue.ToArray();
+                default: return source.ToArray(); // 存在GC，慎重调用
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Eevee.Event
     /// </summary>
     public sealed class EventGroup
     {
+        #region Type
         private readonly struct Wrapper
         {
             internal readonly EventModule Module;
@@ -22,6 +23,7 @@ namespace Eevee.Event
                 Listener = listener;
             }
         }
+        #endregion
 
         // todo lrn 未接入 EPool
         private readonly Dictionary<ulong, Wrapper> _listeners = new(32);
