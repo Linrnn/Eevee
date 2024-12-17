@@ -15,6 +15,8 @@ namespace Eevee.Collection
             return source == null || source.Count == 0;
         }
 
+        public static void Clean<T>(this ICollection<T> source) => source.Clear();
+
         public static void Update<T>(this ICollection<T> source, IList<T> input, int inputIndex, int inputCount)
         {
             int end = inputIndex + inputCount;

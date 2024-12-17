@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Eevee.Log
 {
+    /// <summary>
+    /// 使用 UnityEngine.Debug 实现 ILog
+    /// </summary>
     public sealed class UnityLog : ILog
     {
         public void Trace(string message) => Debug.Log(message);

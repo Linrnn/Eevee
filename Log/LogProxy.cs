@@ -15,12 +15,11 @@
 #endif
 
         /// <summary>
-        /// 注入log实例
+        /// 注入Log实例
         /// </summary>
         public static void Inject(ILog impl) => _impl = impl;
-
         /// <summary>
-        /// 清空log实例
+        /// 清空Log实例
         /// </summary>
         public static void UnInject() => _impl = null;
     }

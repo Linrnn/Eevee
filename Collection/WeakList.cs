@@ -1,4 +1,3 @@
-using Eevee.Define;
 using Eevee.Log;
 using System;
 using System.Collections;
@@ -306,7 +305,7 @@ namespace Eevee.Collection
                 return;
 
             int size = _items.Length == 0 ? DefaultCapacity : _items.Length << 1;
-            int clamp = Maths.Clamp(size, capacity, 2146435071);
+            int clamp = Math.Clamp(size, capacity, 2146435071);
             SetCapacity(clamp);
         }
         private void SetCapacity(int capacity)

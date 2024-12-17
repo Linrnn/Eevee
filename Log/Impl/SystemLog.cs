@@ -2,6 +2,9 @@
 
 namespace Eevee.Log
 {
+    /// <summary>
+    /// 使用 Console.WriteLine 实现 ILog
+    /// </summary>
     public sealed class SystemLog : ILog
     {
         public void Trace(string message) => Console.WriteLine(message);
