@@ -1,3 +1,4 @@
+using Eevee.Fixed;
 using Eevee.Log;
 using System.Collections.Generic;
 
@@ -5,31 +6,34 @@ namespace Eevee.Collection
 {
     public static class IListExt
     {
-        // todo lrn 未接入 ERandom
-        //public static T GetRandomItem<T>(this IList<T> source)
-        //{
-        //    if (source.IsNullOrEmpty())
-        //        return default;
+        public static int? GetRandomIndex<T>(this IList<T> source)
+        {
+            if (source.IsNullOrEmpty())
+                return null;
 
-        //    int index = RandomManager.Instance.Range(0, source.Count);
-        //    return source[index];
-        //}
-        //public static int GetRandomIndex<T>(this IList<T> source)
-        //{
-        //    if (source.IsNullOrEmpty())
-        //        return -1;
+            int index = RandomRelay.Get(0, source.Count);
+            return index;
+        }
+        public static T GetRandomItem<T>(this IList<T> source)
+        {
+            if (source.IsNullOrEmpty())
+                return default;
 
-        //    int index = RandomManager.Instance.Range(0, source.Count);
-        //    return index;
-        //}
-        //public static (int index, T item) GetRandomItemAndIndex<T>(this IList<T> source)
-        //{
-        //    if (source.IsNullOrEmpty())
-        //        return (-1, default);
+            int index = RandomRelay.Get(0, source.Count);
+            return source[index];
+        }
+        public static void GetRandomIndexAndItem<T>(this IList<T> source, out int? index, out T item)
+        {
+            if (source.IsNullOrEmpty())
+            {
+                item = default;
+                index = null;
+            }
 
-        //    int index = RandomManager.Instance.Range(0, source.Count);
-        //    return (index, source[index]);
-        //}
+            int idx = RandomRelay.Get(0, source.Count);
+            index = idx;
+            item = source[idx];
+        }
 
         public static int? LastIndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null)
         {
