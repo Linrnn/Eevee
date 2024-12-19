@@ -10,7 +10,6 @@ namespace Eevee.Fixed
     {
         private readonly Random _random;
 
-        public SystemRandom() => _random = new Random();
         public SystemRandom(int seed) => _random = new Random(seed);
 
         protected override int Get(int minInclusive, int maxExclusive) => _random.Next(minInclusive, maxExclusive);

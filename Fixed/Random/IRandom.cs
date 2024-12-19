@@ -14,6 +14,6 @@ namespace Eevee.Fixed
         long GetInt64(long min, long max);
         ulong GetUInt64(ulong min, ulong max);
 
-        // todo lrn 缺少：FixNum，InCircle，OnCircle，InSphere，OnSphere
+        // todo Eevee 缺少：FixNumber，InCircle，OnCircle，InSphere，OnSphere
     }
 }

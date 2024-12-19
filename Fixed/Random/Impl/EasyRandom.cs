@@ -7,6 +7,12 @@ namespace Eevee.Fixed
     /// </summary>
     public abstract class EasyRandom : IRandom
     {
+        /// <summary>
+        /// 随机获取Int32，随机数的核心接口
+        /// </summary>
+        /// <param name="minInclusive">包括最小值</param>
+        /// <param name="maxExclusive">不包括最大值</param>
+        /// <returns></returns>
         protected abstract int Get(int minInclusive, int maxExclusive);
 
         public virtual sbyte GetSbyte(sbyte min, sbyte max)
@@ -44,27 +50,28 @@ namespace Eevee.Fixed
             return (uint)(value - (long)int.MinValue);
         }
 
-        public long GetInt64(long min, long max)
+        public virtual long GetInt64(long min, long max)
         {
             int left = Get(int.MinValue, int.MaxValue);
             uint right = GetUInt32(uint.MinValue, uint.MaxValue);
             long number = ((long)left << 32) + right;
-            var value = SquashNumber(min, max, long.MinValue, long.MaxValue, number);
+            var value = SquashNumber(number, min, max, long.MinValue, long.MaxValue);
             return (long)value;
         }
-        public ulong GetUInt64(ulong min, ulong max)
+        public virtual ulong GetUInt64(ulong min, ulong max)
         {
             uint left = GetUInt32(uint.MinValue, uint.MaxValue);
             uint right = GetUInt32(uint.MinValue, uint.MaxValue);
             ulong number = ((ulong)left << 32) + right;
-            var value = SquashNumber(min, max, ulong.MinValue, ulong.MaxValue, number);
+            var value = SquashNumber(number, min, max, ulong.MinValue, ulong.MaxValue);
             return (ulong)value;
         }
 
         /// <summary>
-        /// 高GC实现，慎重调用
+        /// 压缩数字
+        /// 高GC实现，慎重调用<br/>
         /// </summary>
-        private BigInteger SquashNumber(BigInteger inputMin, BigInteger inputMax, BigInteger limitMin, BigInteger limitMax, BigInteger number)
+        private BigInteger SquashNumber(BigInteger number, BigInteger inputMin, BigInteger inputMax, BigInteger limitMin, BigInteger limitMax)
         {
             var slope = inputMax - inputMin;
             var suffix = inputMin * limitMax - inputMax * limitMin;

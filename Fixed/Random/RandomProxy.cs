@@ -7,7 +7,7 @@ namespace Eevee.Fixed
     {
         private static IRandom _impl;
 
-        internal static IRandom Impl => _impl ??= new FixRandom();
+        internal static IRandom Impl => _impl ??= new ArrayRandom();
 
         /// <summary>
         /// 注入Random实例
