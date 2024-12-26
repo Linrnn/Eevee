@@ -11,7 +11,7 @@ namespace Eevee.Fixed
     {
         public UnityRandom(int seed) => Random.InitState(seed);
 
-        protected override int Get(int minInclusive, int maxExclusive) => Random.Range(minInclusive, maxExclusive);
+        protected override int GetInt(int minInclusive, int maxExclusive) => Random.Range(minInclusive, maxExclusive);
     }
 }
 #endif

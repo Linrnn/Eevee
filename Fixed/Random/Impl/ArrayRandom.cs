@@ -24,7 +24,7 @@ namespace Eevee.Fixed
             _offset = (uint)Math.Abs((long)seed);
         }
 
-        protected override int Get(int minInclusive, int maxExclusive)
+        protected override int GetInt(int minInclusive, int maxExclusive)
         {
             int number = GetAndOffset();
             long value = SquashNumber(number, minInclusive, maxExclusive);

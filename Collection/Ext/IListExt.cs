@@ -6,23 +6,23 @@ namespace Eevee.Collection
 {
     public static class IListExt
     {
-        public static int? GetRandomIndex<T>(this IList<T> source)
+        public static int? GetRandomIndex<T>(this IList<T> source, IRandom random)
         {
             if (source.IsNullOrEmpty())
                 return null;
 
-            int index = RandomRelay.Get(0, source.Count);
+            int index = random.GetInt32(0, source.Count);
             return index;
         }
-        public static T GetRandomItem<T>(this IList<T> source)
+        public static T GetRandomItem<T>(this IList<T> source, IRandom random)
         {
             if (source.IsNullOrEmpty())
                 return default;
 
-            int index = RandomRelay.Get(0, source.Count);
+            int index = random.GetInt32(0, source.Count);
             return source[index];
         }
-        public static void GetRandomIndexAndItem<T>(this IList<T> source, out int? index, out T item)
+        public static void GetRandomIndexAndItem<T>(this IList<T> source, out int? index, IRandom random, out T item)
         {
             if (source.IsNullOrEmpty())
             {
@@ -30,7 +30,7 @@ namespace Eevee.Collection
                 index = null;
             }
 
-            int idx = RandomRelay.Get(0, source.Count);
+            int idx = random.GetInt32(0, source.Count);
             index = idx;
             item = source[idx];
         }

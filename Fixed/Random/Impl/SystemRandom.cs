@@ -12,6 +12,6 @@ namespace Eevee.Fixed
 
         public SystemRandom(int seed) => _random = new Random(seed);
 
-        protected override int Get(int minInclusive, int maxExclusive) => _random.Next(minInclusive, maxExclusive);
+        protected override int GetInt(int minInclusive, int maxExclusive) => _random.Next(minInclusive, maxExclusive);
     }
 }
