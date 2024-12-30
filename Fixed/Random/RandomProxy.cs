@@ -7,7 +7,7 @@ namespace Eevee.Fixed
     {
         private static IRandom _impl;
 
-        internal static IRandom Impl => _impl ??= new MersenneTwisterRandom();
+        internal static IRandom Impl => _impl ??= new MersenneTwisterRandom(0);
 
         /// <summary>
         /// 注入Random实例

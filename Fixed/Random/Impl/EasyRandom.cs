@@ -7,39 +7,60 @@ namespace Eevee.Fixed
     {
         public virtual sbyte GetSbyte(sbyte minInclusive, sbyte maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             int value = GetInt(minInclusive, maxExclusive);
             return (sbyte)value;
         }
         public virtual byte GetByte(byte minInclusive, byte maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             int value = GetInt(minInclusive, maxExclusive);
             return (byte)value;
         }
 
         public virtual short GetInt16(short minInclusive, short maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             int value = GetInt(minInclusive, maxExclusive);
             return (short)value;
         }
         public virtual ushort GetUInt16(ushort minInclusive, ushort maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             int value = GetInt(minInclusive, maxExclusive);
             return (ushort)value;
         }
 
         public virtual int GetInt32(int minInclusive, int maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             int value = GetInt(minInclusive, maxExclusive);
             return value;
         }
         public virtual uint GetUInt32(uint minInclusive, uint maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             uint value = GetUInt(minInclusive, maxExclusive);
             return value;
         }
 
         public virtual long GetInt64(long minInclusive, long maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             ulong min = L2Ul(minInclusive);
             ulong max = L2Ul(maxExclusive);
             ulong value = GetULong(min, max);
@@ -47,6 +68,9 @@ namespace Eevee.Fixed
         }
         public virtual ulong GetUInt64(ulong minInclusive, ulong maxExclusive)
         {
+            if (minInclusive == maxExclusive)
+                return minInclusive;
+
             ulong value = GetULong(minInclusive, maxExclusive);
             return value;
         }

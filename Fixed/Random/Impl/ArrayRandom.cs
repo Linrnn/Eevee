@@ -12,16 +12,19 @@ namespace Eevee.Fixed
 
         private long _index;
         private readonly uint _offset;
+        private readonly int[] _array;
 
-        public ArrayRandom()
-        {
-            _index = 0;
-            _offset = 1;
-        }
         public ArrayRandom(int seed)
         {
             _index = seed;
             _offset = (uint)Math.Abs((long)seed);
+            _array = _pool;
+        }
+        public ArrayRandom(int[] pool)
+        {
+            _index = 0;
+            _offset = 1;
+            _array = pool;
         }
 
         protected override int GetInt(int minInclusive, int maxExclusive)
@@ -34,14 +37,14 @@ namespace Eevee.Fixed
         private int GetAndOffset()
         {
             int index = GetIndex();
-            int value = _pool[index];
+            int value = _array[index];
             _index = index + _offset;
             return value;
         }
         private int GetIndex()
         {
             long dividend = _index; // 被除数
-            int divisor = _pool.Length; // 除数
+            int divisor = _array.Length; // 除数
 
             if (dividend >= 0)
                 return (int)(dividend % divisor);
