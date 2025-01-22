@@ -1,5 +1,8 @@
 ﻿namespace Eevee.Fixed
 {
+    /// <summary>
+    /// 三角函数，sin
+    /// </summary>
     internal readonly struct Sine
     {
         private static readonly long[] _table = new[]

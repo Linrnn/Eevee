@@ -1,5 +1,8 @@
 ﻿namespace Eevee.Fixed
 {
+    /// <summary>
+    /// 三角函数，acos
+    /// </summary>
     internal readonly struct ArcCosine
     {
         private static readonly long[] _table = new[]

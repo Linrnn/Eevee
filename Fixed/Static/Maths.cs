@@ -254,9 +254,9 @@ namespace Eevee.Fixed
         {
             if (Sign(value) < 1)
                 return false;
-            if (value.RawValue << Const.FractionalPlaces != 0)
+            if (value.RawValue << Const.FractionalBits != 0)
                 return false;
-            var result = value.RawValue >> Const.FractionalPlaces;
+            var result = value.RawValue >> Const.FractionalBits;
             return (result & result - 1) == 0;
         }
 
@@ -538,7 +538,7 @@ namespace Eevee.Fixed
             // algorithm (C. S. Turner,  "A Fast Binary Logarithm Algorithm", IEEE Signal
             //     Processing Mag., pp. 124,140, Sep. 2010.)
 
-            long b = 1U << (Const.FractionalPlaces - 1);
+            long b = 1U << (Const.FractionalBits - 1);
             long y = 0;
 
             long rawX = x.RawValue;
@@ -556,7 +556,7 @@ namespace Eevee.Fixed
 
             var z = Fixed64.FromRaw(rawX);
 
-            for (int i = 0; i < Const.FractionalPlaces; i++)
+            for (int i = 0; i < Const.FractionalBits; i++)
             {
                 z = Fixed64.FastMul(z, z);
                 if (z.RawValue >= (Const.One << 1))

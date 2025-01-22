@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Eevee.Log;
+using System;
 
 namespace Eevee.Fixed
 {
@@ -12,14 +13,14 @@ namespace Eevee.Fixed
     {
         private long _rawValue; // 当前值
 
-        public static readonly Fixed64 MaxValue = new(Const.MaxValue - 1);
-        public static readonly Fixed64 MinValue = new(Const.MinValue + 2);
+        public static readonly Fixed64 MaxValue = new(Const.MaxPeak - 1);
+        public static readonly Fixed64 MinValue = new(Const.MinPeak + 2);
         public static readonly Fixed64 Zero = new();
         public static readonly Fixed64 One = new(Const.One);
         public static readonly Fixed64 Half = new(Const.Half);
-        public static readonly Fixed64 NegativeInfinity = new(Const.MinValue + 1); // 负无穷大
-        public static readonly Fixed64 Infinity = new(Const.MaxValue); // 无穷大
-        public static readonly Fixed64 NaN = new(Const.MinValue);
+        public static readonly Fixed64 NegativeInfinity = new(Const.MinPeak + 1); // 负无穷大
+        public static readonly Fixed64 Infinity = new(Const.MaxPeak); // 无穷大
+        public static readonly Fixed64 NaN = new(Const.MinPeak);
 
         private static readonly Fixed64 _en1 = One / 10;
         private static readonly Fixed64 _en2 = One / 100;
@@ -36,69 +37,35 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Log2Min = new(Const.Log2Min);
         public static readonly Fixed64 Ln2 = new(Const.LogE2);
 
-        #region Constructor
-        internal long RawValue => _rawValue;
+        #region 构造函数
+        internal readonly long RawValue => _rawValue;
 
-        public Fixed64(long rawValue)
-        {
-            _rawValue = rawValue;
-        }
-        public Fixed64(int value)
-        {
-            _rawValue = (long)value << Const.FractionalPlaces;
-        }
+        internal Fixed64(long rawValue) => _rawValue = rawValue;
+        public Fixed64(int value)=> _rawValue = (long)value << Const.FractionalBits;
         #endregion
 
         #region override Math Func
         /// <summary>
-        /// 返回一个数字，指示一个FixFloat数字的符号。
-        /// 如果值为正，返回1;如果值为0，返回0;如果值为负，返回-1。
+        /// value大于0，返回1<br/>
+        /// value等于0，返回0<br/>
+        /// value小于0，返回-1
         /// </summary>
-        public static int Sign(Fixed64 value)
-        {
-            return value._rawValue < 0 ? -1 : value._rawValue > 0 ? 1 : 0;
-        }
+        public static int Sign(Fixed64 value) => Math.Sign(value._rawValue);
 
         /// <summary>
-        /// 绝对值。
-        /// Note: Abs(FixFloat.MinValue) == FixFloat.MaxValue.
+        /// 绝对值<br/>
+        /// 参考链接：http://www.strchr.com/optimized_abs_function
         /// </summary>
-        public static Fixed64 Abs(Fixed64 value)
-        {
-            if (value._rawValue == MinValue._rawValue)
-            {
-                return MaxValue;
-            }
-
-            // branchless implementation, see http://www.strchr.com/optimized_abs_function
-            var mask = value._rawValue >> 63;
-            Fixed64 result;
-            result._rawValue = (value._rawValue + mask) ^ mask;
-            return result;
-        }
+        public static Fixed64 Abs(Fixed64 value) => value._rawValue == MinValue._rawValue ? MaxValue : FastAbs(value);
 
         /// <summary>
-        /// 绝对值
-        /// FastAbs(Fix64.MinValue) is undefined.
+        /// 绝对值<br/>
+        /// 参考链接：http://www.strchr.com/optimized_abs_function
         /// </summary>
         public static Fixed64 FastAbs(Fixed64 value)
         {
-            // branchless implementation, see http://www.strchr.com/optimized_abs_function
-            var mask = value._rawValue >> 63;
-            Fixed64 result;
-            result._rawValue = (value._rawValue + mask) ^ mask;
-            return result;
-        }
-
-        /// <summary>
-        /// 向下取整
-        /// </summary>
-        public static Fixed64 Floor(Fixed64 value)
-        {
-            // 分数化0
-            Fixed64 result;
-            result._rawValue = (long)((ulong)value._rawValue & 0xFFFFFFFF00000000);
-            return result;
+            long mask = value._rawValue >> Const.TotalBits - 1;
+            return new Fixed64(value._rawValue + mask ^ mask);
         }
 
         /// <summary>
@@ -106,109 +73,57 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Ceiling(Fixed64 value)
         {
-            var hasFractionalPart = (value._rawValue & 0x00000000FFFFFFFF) != 0;
+            var hasFractionalPart = (value._rawValue & Const.FractionalPart) != 0;
             return hasFractionalPart ? Floor(value) + One : value;
         }
 
         /// <summary>
-        /// 四舍五入到最接近的整数值。
-        /// 如果一个数在偶数和奇数中间，则返回最近的偶数（如3.5 -> 4， 4.5 -> 4）
+        /// 向下取整
+        /// </summary>
+        public static Fixed64 Floor(Fixed64 value) => new((long)((ulong)value._rawValue & Const.IntegerPart));
+
+        /// <summary>
+        /// 四舍五入到最接近的整数值<br/>
+        /// 如果一个数在偶数和奇数中间，则返回最近的偶数（如3.5 -> 4，4.5 -> 4）
         /// </summary>
         public static Fixed64 Round(Fixed64 value)
         {
-            var fractionalPart = value._rawValue & 0x00000000FFFFFFFF;
+            var fractionalPart = value._rawValue & Const.FractionalPart;
             var integralPart = Floor(value);
-            if (fractionalPart < 0x80000000)
-            {
+            if (fractionalPart < Const.Half)
                 return integralPart;
-            }
 
-            if (fractionalPart > 0x80000000)
-            {
+            if (fractionalPart > Const.Half)
                 return integralPart + One;
-            }
 
             // 在偶数和奇数中间，则返回最近的偶数 
             return (integralPart._rawValue & Const.One) == 0 ? integralPart : integralPart + One;
         }
 
         /// <summary>
-        /// 平方根
+        /// 平方根，即开方
         /// </summary>
-        public static Fixed64 Sqrt(Fixed64 x)
+        public static Fixed64 Sqrt(Fixed64 value)
         {
-            var xl = x._rawValue;
-            if (xl < 0)
+            long rawValue = value._rawValue;
+            if (rawValue < 0L)
             {
-                //无法用单倍和双倍来表示无穷大，当x为负数时抛出异常。
-                throw new ArgumentOutOfRangeException("Negative value passed to Sqrt", $"{x}");
+                LogRelay.Error($"[Fixed] Fixed64.Sqrt()，value：{value}是负数，无法开方");
+                return Zero;
             }
 
-            var num = (ulong)xl;
-            var result = 0UL;
-
-            // second-to-top bit
-            var bit = 1UL << Const.NumBits - 2;
-
-            while (bit > num)
+            if (rawValue <= 1L << Const.FractionalBits - 1) // 存在符号位，需要-1；先偏移，开方后，精度会比后偏移高
             {
-                bit >>= 2;
+                long offsetRawValue = rawValue << Const.FractionalBits;
+                long sqrtRawValue = SquareRoot.Sqrt(offsetRawValue);
+                return new Fixed64(sqrtRawValue);
             }
-
-            // The main part is executed twice, in order to avoid
-            // using 128 bit values in computations.
-            for (var i = 0; i < 2; ++i)
+            else
             {
-                // First we get the top 48 bits of the answer.
-                while (bit != 0)
-                {
-                    if (num >= result + bit)
-                    {
-                        num -= result + bit;
-                        result = (result >> 1) + bit;
-                    }
-                    else
-                    {
-                        result >>= 1;
-                    }
-
-                    bit >>= 2;
-                }
-
-                if (i == 0)
-                {
-                    // Then process it again to get the lowest 16 bits.
-                    if (num > (1UL << (Const.NumBits >> 1)) - 1)
-                    {
-                        // The remainder 'num' is too large to be shifted left
-                        // by 32, so we have to add 1 to result manually and
-                        // adjust 'num' accordingly.
-                        // num = a - (result + 0.5)^2
-                        //       = num + result^2 - (result + 0.5)^2
-                        //       = num - result - 0.5
-                        num -= result;
-                        num = (num << (Const.NumBits >> 1)) - 0x80000000UL;
-                        result = (result << (Const.NumBits >> 1)) + 0x80000000UL;
-                    }
-                    else
-                    {
-                        num <<= (Const.NumBits >> 1);
-                        result <<= (Const.NumBits >> 1);
-                    }
-
-                    bit = 1UL << (Const.NumBits >> 1) - 2;
-                }
+                long sqrtRawValue = SquareRoot.Sqrt(rawValue);
+                long offsetRawValue = sqrtRawValue << (Const.FractionalBits >> 1);
+                return new Fixed64(offsetRawValue);
             }
-
-            // Finally, if next bit would have been 1, round the result upwards.
-            if (num > result)
-            {
-                ++result;
-            }
-
-            Fixed64 r;
-            r._rawValue = (long)result;
-            return r;
         }
 
         /// <summary>
@@ -528,20 +443,20 @@ namespace Eevee.Fixed
             var xl = x._rawValue;
             var yl = y._rawValue;
 
-            var xlo = (ulong)(xl & 0x00000000FFFFFFFF);
-            var xhi = xl >> Const.FractionalPlaces;
-            var ylo = (ulong)(yl & 0x00000000FFFFFFFF);
-            var yhi = yl >> Const.FractionalPlaces;
+            var xlo = (ulong)(xl & Const.FractionalPart);
+            var xhi = xl >> Const.FractionalBits;
+            var ylo = (ulong)(yl & Const.FractionalPart);
+            var yhi = yl >> Const.FractionalBits;
 
             var lolo = xlo * ylo;
             var lohi = (long)xlo * yhi;
             var hilo = xhi * (long)ylo;
             var hihi = xhi * yhi;
 
-            var loResult = lolo >> Const.FractionalPlaces;
+            var loResult = lolo >> Const.FractionalBits;
             var midResult1 = lohi;
             var midResult2 = hilo;
-            var hiResult = hihi << Const.FractionalPlaces;
+            var hiResult = hihi << Const.FractionalBits;
 
             var sum = (long)loResult + midResult1 + midResult2 + hiResult;
             Fixed64 result;
@@ -559,13 +474,13 @@ namespace Eevee.Fixed
 
             if (yl == 0)
             {
-                return Const.MaxValue;
+                return Const.MaxPeak;
             }
 
             var remainder = (ulong)(xl >= 0 ? xl : -xl);
             var divider = (ulong)(yl >= 0 ? yl : -yl);
             var quotient = 0UL;
-            var bitPos = (Const.NumBits >> 1) + 1;
+            var bitPos = (Const.TotalBits >> 1) + 1;
 
             // 除数可被2^n整除
             while ((divider & 0xF) == 0 && bitPos >= 4)
@@ -592,7 +507,7 @@ namespace Eevee.Fixed
                 // 溢出检测
                 if ((div & ~(0xFFFFFFFFFFFFFFFF >> bitPos)) != 0)
                 {
-                    return ((xl ^ yl) & Const.MinValue) == 0 ? MaxValue : MinValue;
+                    return ((xl ^ yl) & Const.MinPeak) == 0 ? MaxValue : MinValue;
                 }
 
                 remainder <<= 1;
@@ -602,7 +517,7 @@ namespace Eevee.Fixed
             // 四舍五入
             ++quotient;
             var result = (long)(quotient >> 1);
-            if (((xl ^ yl) & Const.MinValue) != 0)
+            if (((xl ^ yl) & Const.MinPeak) != 0)
             {
                 result = -result;
             }
@@ -618,13 +533,13 @@ namespace Eevee.Fixed
         public static Fixed64 operator %(Fixed64 x, Fixed64 y)
         {
             Fixed64 result;
-            result._rawValue = x._rawValue == Const.MinValue & y._rawValue == -1 ? 0 : x._rawValue % y._rawValue;
+            result._rawValue = x._rawValue == Const.MinPeak & y._rawValue == -1 ? 0 : x._rawValue % y._rawValue;
             return result;
         }
 
         public static Fixed64 operator -(Fixed64 x)
         {
-            return x._rawValue == Const.MinValue ? MaxValue : new Fixed64(-x._rawValue);
+            return x._rawValue == Const.MinPeak ? MaxValue : new Fixed64(-x._rawValue);
         }
 
         public static bool operator ==(Fixed64 x, Fixed64 y)
@@ -669,9 +584,9 @@ namespace Eevee.Fixed
             var yl = y._rawValue;
             var sum = xl + yl;
             // if signs of operands are equal and signs of sum and x are different
-            if (((~(xl ^ yl) & (xl ^ sum)) & Const.MinValue) != 0)
+            if (((~(xl ^ yl) & (xl ^ sum)) & Const.MinPeak) != 0)
             {
-                sum = xl > 0 ? Const.MaxValue : Const.MinValue;
+                sum = xl > 0 ? Const.MaxPeak : Const.MinPeak;
             }
 
             Fixed64 result;
@@ -700,9 +615,9 @@ namespace Eevee.Fixed
             var yl = y._rawValue;
             var diff = xl - yl;
             // if signs of operands are different and signs of sum and x are different
-            if ((((xl ^ yl) & (xl ^ diff)) & Const.MinValue) != 0)
+            if ((((xl ^ yl) & (xl ^ diff)) & Const.MinPeak) != 0)
             {
-                diff = xl < 0 ? Const.MinValue : Const.MaxValue;
+                diff = xl < 0 ? Const.MinPeak : Const.MaxPeak;
             }
 
             Fixed64 result;
@@ -723,7 +638,7 @@ namespace Eevee.Fixed
         {
             var sum = x + y;
             // x + y overflows if sign(x) ^ sign(y) != sign(sum)
-            overflow |= ((x ^ y ^ sum) & Const.MinValue) != 0;
+            overflow |= ((x ^ y ^ sum) & Const.MinPeak) != 0;
             return sum;
         }
 
@@ -736,27 +651,27 @@ namespace Eevee.Fixed
             var xl = x._rawValue;
             var yl = y._rawValue;
 
-            var xlo = (ulong)(xl & 0x00000000FFFFFFFF);
-            var xhi = xl >> Const.FractionalPlaces;
-            var ylo = (ulong)(yl & 0x00000000FFFFFFFF);
-            var yhi = yl >> Const.FractionalPlaces;
+            var xlo = (ulong)(xl & Const.FractionalPart);
+            var xhi = xl >> Const.FractionalBits;
+            var ylo = (ulong)(yl & Const.FractionalPart);
+            var yhi = yl >> Const.FractionalBits;
 
             var lolo = xlo * ylo;
             var lohi = (long)xlo * yhi;
             var hilo = xhi * (long)ylo;
             var hihi = xhi * yhi;
 
-            var loResult = lolo >> Const.FractionalPlaces;
+            var loResult = lolo >> Const.FractionalBits;
             var midResult1 = lohi;
             var midResult2 = hilo;
-            var hiResult = hihi << Const.FractionalPlaces;
+            var hiResult = hihi << Const.FractionalBits;
 
             bool overflow = false;
             var sum = AddOverflowHelper((long)loResult, midResult1, ref overflow);
             sum = AddOverflowHelper(sum, midResult2, ref overflow);
             sum = AddOverflowHelper(sum, hiResult, ref overflow);
 
-            bool opSignsEqual = ((xl ^ yl) & Const.MinValue) == 0;
+            bool opSignsEqual = ((xl ^ yl) & Const.MinPeak) == 0;
 
             // 如果操作数的符号相等而结果的符号为负，则乘法溢出为正，反之亦然
             if (opSignsEqual)
@@ -775,7 +690,7 @@ namespace Eevee.Fixed
             }
 
             // 如果hihi（高32位乘积）的前32位(未在结果中使用)不是全0或全1，那么这意味着结果溢出。
-            var topCarry = hihi >> Const.FractionalPlaces;
+            var topCarry = hihi >> Const.FractionalBits;
             if (topCarry != 0 && topCarry != -1)
             {
                 return opSignsEqual ? MaxValue : MinValue;
@@ -816,20 +731,20 @@ namespace Eevee.Fixed
             var xl = x._rawValue;
             var yl = y._rawValue;
 
-            var xlo = (ulong)(xl & 0x00000000FFFFFFFF);
-            var xhi = xl >> Const.FractionalPlaces;
-            var ylo = (ulong)(yl & 0x00000000FFFFFFFF);
-            var yhi = yl >> Const.FractionalPlaces;
+            var xlo = (ulong)(xl & Const.FractionalPart);
+            var xhi = xl >> Const.FractionalBits;
+            var ylo = (ulong)(yl & Const.FractionalPart);
+            var yhi = yl >> Const.FractionalBits;
 
             var lolo = xlo * ylo;
             var lohi = (long)xlo * yhi;
             var hilo = xhi * (long)ylo;
             var hihi = xhi * yhi;
 
-            var loResult = lolo >> Const.FractionalPlaces;
+            var loResult = lolo >> Const.FractionalBits;
             var midResult1 = lohi;
             var midResult2 = hilo;
-            var hiResult = hihi << Const.FractionalPlaces;
+            var hiResult = hihi << Const.FractionalBits;
 
             var sum = (long)loResult + midResult1 + midResult2 + hiResult;
             Fixed64 result; // = default(FP);
@@ -866,7 +781,7 @@ namespace Eevee.Fixed
 
         public static explicit operator long(Fixed64 value)
         {
-            return value._rawValue >> Const.FractionalPlaces;
+            return value._rawValue >> Const.FractionalBits;
         }
 
         public static implicit operator Fixed64(float value)

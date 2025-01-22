@@ -1,5 +1,8 @@
 ﻿namespace Eevee.Fixed
 {
+    /// <summary>
+    /// 三角函数，tan
+    /// </summary>
     internal readonly struct Tangent
     {
         private static readonly long[] _table = new[]
