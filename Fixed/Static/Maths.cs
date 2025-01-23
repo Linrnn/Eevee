@@ -35,11 +35,11 @@ namespace Eevee.Fixed
         /// <summary>
         /// 单位弧度对应的角度
         /// </summary>
-        public static Fixed64 Deg2Rad = PI / new Fixed64(180);
+        public static Fixed64 Deg2Rad = PI / 180;
         /// <summary>
         /// 单位角度对应的弧度
         /// </summary>
-        public static Fixed64 Rad2Deg = new Fixed64(180) / PI;
+        public static Fixed64 Rad2Deg = 180 / PI;
         #endregion
 
         #region Func

@@ -1,7 +1,8 @@
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 根据“梅森旋转算法”实现的随机数
+    /// 根据“梅森旋转算法”实现的随机数<br/>
+    /// 参考链接：http://www.codeproject.com/Articles/164087/Random-Number-Generation
     /// </summary>
     public sealed class MersenneTwisterRandom : EasyRandom
     {

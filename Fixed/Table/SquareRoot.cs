@@ -7,14 +7,15 @@ namespace Eevee.Fixed
     /// </summary>
     internal readonly struct SquareRoot
     {
-        // Math.Sqrt()，调用10000次，0.06s
-        // Mathf.Sqrt()，调用10000次，0.22s
-        // TableSqrt()，调用10000次，0.22s
-        // NewtonSqrt()，调用10000次，0.69s
-        // BitBinarySqrt()，调用10000次，1.18s
-        // BinarySqrt()，调用10000次，1.43s
+        // 方法调用10000次，测试耗时
+        // System.Math.Sqrt(): 0.06s
+        // UnityEngine.Mathf.Sqrt(): 0.22s
+        // Eevee.Fixed.SquareRoot.UseTable(): 0.22s
+        // Eevee.Fixed.SquareRoot.UseNewton(): 0.69s
+        // Eevee.Fixed.SquareRoot.UseBitBinary(): 1.18s
+        // Eevee.Fixed.SquareRoot.UseBinary(): 1.43s
 
-        #region 参考文档：https: //www.conerlius.cn/%E7%AE%97%E6%B3%95/2019/09/26/%E5%AE%9A%E7%82%B9%E6%95%B0%E5%BC%80%E6%A0%B9%E5%8F%B7%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98.html
+        #region 参考链接：https: //www.conerlius.cn/%E7%AE%97%E6%B3%95/2019/09/26/%E5%AE%9A%E7%82%B9%E6%95%B0%E5%BC%80%E6%A0%B9%E5%8F%B7%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98.html
         private static readonly byte[] _table =
         {
             000, 016, 022, 027, 032, 035, 039, 042, 045, 048, 050, 053, 055, 057, 059, 061,
@@ -36,38 +37,42 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        internal static long Sqrt(long value)
+        internal static long Count(long value)
         {
             if (value < 0L)
             {
-                LogRelay.Error($"[Fixed] SquareRoot.Sqrt()，value：{value}是负数，无法开方");
+                LogRelay.Fail($"[Fixed] SquareRoot.Count()，value：{value}是负数，无法开方");
                 return 0;
             }
 
             if (value <= int.MaxValue)
             {
-                return TableSqrt((int)value);
+                return UseTable((int)value);
             }
 
-            return NewtonSqrt(value);
+            return UseNewton(value);
         }
-        private static long TableSqrt(int value) => value switch
+
+        private static long UseTable(int value) // 查表法
         {
-            >= 1 << 30 => From24(value, 24, 8),
-            >= 1 << 28 => From24(value, 22, 7),
-            >= 1 << 26 => From24(value, 20, 6),
-            >= 1 << 24 => From24(value, 18, 5),
-            >= 1 << 22 => From16(value, 16, 4),
-            >= 1 << 20 => From16(value, 14, 3),
-            >= 1 << 18 => From16(value, 12, 2),
-            >= 1 << 16 => From16(value, 10, 1),
-            >= 1 << 14 => From08(value, 8, 0, 1),
-            >= 1 << 12 => From08(value, 6, 1, 1),
-            >= 1 << 10 => From08(value, 4, 2, 1),
-            >= 1 << 08 => From08(value, 2, 3, 1),
-            _ => _table[value] >> 4,
-        };
-        private static long NewtonSqrt(long value) // 牛顿迭代法
+            return value switch
+            {
+                >= 1 << 30 => BitFrom24To30(value, 24, 8),
+                >= 1 << 28 => BitFrom24To30(value, 22, 7),
+                >= 1 << 26 => BitFrom24To30(value, 20, 6),
+                >= 1 << 24 => BitFrom24To30(value, 18, 5),
+                >= 1 << 22 => BitFrom16To22(value, 16, 4),
+                >= 1 << 20 => BitFrom16To22(value, 14, 3),
+                >= 1 << 18 => BitFrom16To22(value, 12, 2),
+                >= 1 << 16 => BitFrom16To22(value, 10, 1),
+                >= 1 << 14 => BitFrom08To14(value, 8, 0, 1),
+                >= 1 << 12 => BitFrom08To14(value, 6, 1, 1),
+                >= 1 << 10 => BitFrom08To14(value, 4, 2, 1),
+                >= 1 << 08 => BitFrom08To14(value, 2, 3, 1),
+                _ => _table[value] >> 4
+            };
+        }
+        private static long UseNewton(long value) // 牛顿迭代法
         {
             long x0 = 1L;
 
@@ -83,7 +88,7 @@ namespace Eevee.Fixed
 
             return x0;
         }
-        private static long BitBinarySqrt(long value) // 二分法（先计算大致区间）
+        private static long UseBitBinary(long value) // 二分法，先计算大致区间
         {
             int midBit = Const.TotalBits >> 2;
             for (int startBit = 0, endBit = Const.TotalBits >> 1; startBit <= endBit;)
@@ -111,7 +116,7 @@ namespace Eevee.Fixed
 
             return mid;
         }
-        private static long BinarySqrt(long value) // 二分法
+        private static long UseBinary(long value) // 二分法
         {
             long start = 0;
             long end = 3037000499;
@@ -130,20 +135,20 @@ namespace Eevee.Fixed
             return mid;
         }
 
-        private static long From24(int x, byte i, byte o)
+        private static long BitFrom24To30(int x, byte i, byte o)
         {
             long x0 = _table[x >> i] << o;
             long x1 = x0 + 1 + x / x0 >> 1;
             long x2 = x1 + 1 + x / x1 >> 1;
             return x2 * x2 > x ? x2 - 1 : x2;
         }
-        private static long From16(int x, byte i, byte o)
+        private static long BitFrom16To22(int x, byte i, byte o)
         {
             long x0 = _table[x >> i] << o;
             long x1 = x0 + 1 + x / x0 >> 1;
             return x1 * x1 > x ? x1 - 1 : x1;
         }
-        private static long From08(int x, byte i, byte o, byte l)
+        private static long BitFrom08To14(int x, byte i, byte o, byte l)
         {
             long x0 = (_table[x >> i] >> o) + l;
             return x0 * x0 > x ? x0 - 1 : x0;
