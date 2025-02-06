@@ -150,7 +150,7 @@ namespace Eevee.Fixed
 
             Fixed64 halfTheta = Fixed64.Acos(dot);
 
-            return Multiply(Multiply(from, Fixed64.Sin((1 - t) * halfTheta)) + Multiply(to, Fixed64.Sin(t * halfTheta)), 1 / Fixed64.Sin(halfTheta));
+            return Multiply(Multiply(from, Fixed64.SinRad((1 - t) * halfTheta)) + Multiply(to, Fixed64.SinRad(t * halfTheta)), 1 / Fixed64.SinRad(halfTheta));
         }
 
         public static Quaternions RotateTowards(Quaternions from, Quaternions to, Fixed64 maxDegreesDelta)
@@ -175,7 +175,7 @@ namespace Eevee.Fixed
 
             maxDegreesDelta /= theta;
 
-            return Multiply(Multiply(from, Fixed64.Sin((1 - maxDegreesDelta) * halfTheta)) + Multiply(to, Fixed64.Sin(maxDegreesDelta * halfTheta)), 1 / Fixed64.Sin(halfTheta));
+            return Multiply(Multiply(from, Fixed64.SinRad((1 - maxDegreesDelta) * halfTheta)) + Multiply(to, Fixed64.SinRad(maxDegreesDelta * halfTheta)), 1 / Fixed64.SinRad(halfTheta));
         }
 
         public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z)
@@ -203,7 +203,7 @@ namespace Eevee.Fixed
             Fixed64 halfAngle = angle * Maths.Deg2Rad * Fixed64.Half;
 
             Quaternions rotation;
-            Fixed64 sin = Fixed64.Sin(halfAngle);
+            Fixed64 sin = Fixed64.SinRad(halfAngle);
 
             rotation.X = axis.X * sin;
             rotation.Y = axis.Y * sin;
@@ -216,13 +216,13 @@ namespace Eevee.Fixed
         public static void CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll, out Quaternions result)
         {
             Fixed64 num9 = roll * Fixed64.Half;
-            Fixed64 num6 = Fixed64.Sin(num9);
+            Fixed64 num6 = Fixed64.SinRad(num9);
             Fixed64 num5 = Fixed64.Cos(num9);
             Fixed64 num8 = pitch * Fixed64.Half;
-            Fixed64 num4 = Fixed64.Sin(num8);
+            Fixed64 num4 = Fixed64.SinRad(num8);
             Fixed64 num3 = Fixed64.Cos(num8);
             Fixed64 num7 = yaw * Fixed64.Half;
-            Fixed64 num2 = Fixed64.Sin(num7);
+            Fixed64 num2 = Fixed64.SinRad(num7);
             Fixed64 num = Fixed64.Cos(num7);
             result.X = ((num * num4) * num5) + ((num2 * num3) * num6);
             result.Y = ((num2 * num3) * num5) - ((num * num4) * num6);

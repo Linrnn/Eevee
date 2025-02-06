@@ -111,7 +111,7 @@ namespace Eevee.Fixed
         {
             Matrix3X3 matrix;
             Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.Sin(radians);
+            Fixed64 num = Fixed64.SinRad(radians);
             matrix.M11 = Fixed64.One;
             matrix.M12 = Fixed64.Zero;
             matrix.M13 = Fixed64.Zero;
@@ -127,7 +127,7 @@ namespace Eevee.Fixed
         public static void CreateRotationX(Fixed64 radians, out Matrix3X3 result)
         {
             Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.Sin(radians);
+            Fixed64 num = Fixed64.SinRad(radians);
             result.M11 = Fixed64.One;
             result.M12 = Fixed64.Zero;
             result.M13 = Fixed64.Zero;
@@ -143,7 +143,7 @@ namespace Eevee.Fixed
         {
             Matrix3X3 matrix;
             Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.Sin(radians);
+            Fixed64 num = Fixed64.SinRad(radians);
             matrix.M11 = num2;
             matrix.M12 = Fixed64.Zero;
             matrix.M13 = -num;
@@ -159,7 +159,7 @@ namespace Eevee.Fixed
         public static void CreateRotationY(Fixed64 radians, out Matrix3X3 result)
         {
             Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.Sin(radians);
+            Fixed64 num = Fixed64.SinRad(radians);
             result.M11 = num2;
             result.M12 = Fixed64.Zero;
             result.M13 = -num;
@@ -175,7 +175,7 @@ namespace Eevee.Fixed
         {
             Matrix3X3 matrix;
             Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.Sin(radians);
+            Fixed64 num = Fixed64.SinRad(radians);
             matrix.M11 = num2;
             matrix.M12 = num;
             matrix.M13 = Fixed64.Zero;
@@ -191,7 +191,7 @@ namespace Eevee.Fixed
         public static void CreateRotationZ(Fixed64 radians, out Matrix3X3 result)
         {
             Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.Sin(radians);
+            Fixed64 num = Fixed64.SinRad(radians);
             result.M11 = num2;
             result.M12 = num;
             result.M13 = Fixed64.Zero;
@@ -662,7 +662,7 @@ namespace Eevee.Fixed
             Fixed64 x = axis.X;
             Fixed64 y = axis.Y;
             Fixed64 z = axis.Z;
-            Fixed64 num2 = Fixed64.Sin(angle);
+            Fixed64 num2 = Fixed64.SinRad(angle);
             Fixed64 num = Fixed64.Cos(angle);
             Fixed64 num11 = x * x;
             Fixed64 num10 = y * y;

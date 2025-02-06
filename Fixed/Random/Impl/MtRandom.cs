@@ -1,10 +1,10 @@
-namespace Eevee.Fixed
+﻿namespace Eevee.Fixed
 {
     /// <summary>
     /// 根据“梅森旋转算法”实现的随机数<br/>
     /// 参考链接：http://www.codeproject.com/Articles/164087/Random-Number-Generation
     /// </summary>
-    public sealed class MersenneTwisterRandom : EasyRandom
+    public sealed class MtRandom : EasyRandom
     {
         private const int N = 624;
         private const int M = 397;
@@ -16,7 +16,7 @@ namespace Eevee.Fixed
         private readonly uint[] _mt = new uint[N];
         private int _mti = N + 1;
 
-        public MersenneTwisterRandom(int seed) => Initialize((uint)seed);
+        public MtRandom(int seed) => Initialize((uint)seed);
         protected override int GetInt(int minInclusive, int maxExclusive)
         {
             int range = RangeInt32();

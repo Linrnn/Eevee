@@ -1,4 +1,4 @@
-namespace Eevee.Fixed
+﻿namespace Eevee.Fixed
 {
     /// <summary>
     /// Random代理
@@ -7,7 +7,7 @@ namespace Eevee.Fixed
     {
         private static IRandom _impl;
 
-        internal static IRandom Impl => _impl ??= new MersenneTwisterRandom(0);
+        internal static IRandom Impl => _impl ??= new MtRandom(0);
 
         /// <summary>
         /// 注入Random实例

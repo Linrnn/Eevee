@@ -1,4 +1,4 @@
-#if UNITY_STANDALONE
+﻿#if UNITY_STANDALONE
 using UnityEngine;
 
 namespace Eevee.Fixed

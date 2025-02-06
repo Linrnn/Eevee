@@ -1,4 +1,4 @@
-using Eevee.Log;
+﻿using Eevee.Log;
 
 namespace Eevee.Fixed
 {
@@ -7,7 +7,7 @@ namespace Eevee.Fixed
     /// </summary>
     internal readonly struct SquareRoot
     {
-        // 方法调用10000次，测试耗时
+        // 方法调用10000次，Editor，X64，测试耗时
         // System.Math.Sqrt(): 0.06s
         // UnityEngine.Mathf.Sqrt(): 0.22s
         // Eevee.Fixed.SquareRoot.UseTable(): 0.22s
@@ -15,7 +15,8 @@ namespace Eevee.Fixed
         // Eevee.Fixed.SquareRoot.UseBitBinary(): 1.18s
         // Eevee.Fixed.SquareRoot.UseBinary(): 1.43s
 
-        #region 参考链接：https: //www.conerlius.cn/%E7%AE%97%E6%B3%95/2019/09/26/%E5%AE%9A%E7%82%B9%E6%95%B0%E5%BC%80%E6%A0%B9%E5%8F%B7%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98.html
+        #region 32位小数精度
+        // 参考链接：https://www.conerlius.cn/%E7%AE%97%E6%B3%95/2019/09/26/%E5%AE%9A%E7%82%B9%E6%95%B0%E5%BC%80%E6%A0%B9%E5%8F%B7%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98.html
         private static readonly byte[] _table =
         {
             000, 016, 022, 027, 032, 035, 039, 042, 045, 048, 050, 053, 055, 057, 059, 061,
@@ -39,18 +40,11 @@ namespace Eevee.Fixed
 
         internal static long Count(long value)
         {
-            if (value < 0L)
-            {
-                LogRelay.Fail($"[Fixed] SquareRoot.Count()，value：{value}是负数，无法开方");
-                return 0;
-            }
+            if (value >= 0L)
+                return value <= int.MaxValue ? UseTable((int)value) : UseNewton(value);
 
-            if (value <= int.MaxValue)
-            {
-                return UseTable((int)value);
-            }
-
-            return UseNewton(value);
+            LogRelay.Fail($"[Fixed] SquareRoot.Count()，value：{value}是负数，无法开方");
+            return 0;
         }
 
         private static long UseTable(int value) // 查表法
@@ -69,7 +63,7 @@ namespace Eevee.Fixed
                 >= 1 << 12 => BitFrom08To14(value, 6, 1, 1),
                 >= 1 << 10 => BitFrom08To14(value, 4, 2, 1),
                 >= 1 << 08 => BitFrom08To14(value, 2, 3, 1),
-                _ => _table[value] >> 4
+                _ => _table[value] >> 4,
             };
         }
         private static long UseNewton(long value) // 牛顿迭代法
@@ -90,8 +84,8 @@ namespace Eevee.Fixed
         }
         private static long UseBitBinary(long value) // 二分法，先计算大致区间
         {
-            int midBit = Const.TotalBits >> 2;
-            for (int startBit = 0, endBit = Const.TotalBits >> 1; startBit <= endBit;)
+            int midBit = Const.FullBits >> 2;
+            for (int startBit = 0, endBit = Const.FullBits >> 1; startBit <= endBit;)
             {
                 midBit = startBit + endBit >> 1;
                 if (1L << (midBit << 1) > value)

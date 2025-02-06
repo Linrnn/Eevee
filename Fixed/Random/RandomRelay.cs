@@ -1,4 +1,4 @@
-namespace Eevee.Fixed
+﻿namespace Eevee.Fixed
 {
     /// <summary>
     /// Random转发

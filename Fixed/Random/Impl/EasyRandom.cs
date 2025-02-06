@@ -1,4 +1,4 @@
-namespace Eevee.Fixed
+﻿namespace Eevee.Fixed
 {
     /// <summary>
     /// 便捷实现，子类需要实现 EasyRandom.GetInt()

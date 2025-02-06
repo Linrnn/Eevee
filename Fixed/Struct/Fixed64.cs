@@ -13,13 +13,13 @@ namespace Eevee.Fixed
     {
         private long _rawValue; // 当前值
 
-        public static readonly Fixed64 MaxValue = new(Const.MaxPeak - 1);
+        public static readonly Fixed64 MaxValue = new(Const.MaxPeak - 2);
         public static readonly Fixed64 MinValue = new(Const.MinPeak + 2);
         public static readonly Fixed64 Zero = new();
         public static readonly Fixed64 One = new(Const.One);
         public static readonly Fixed64 Half = new(Const.Half);
         public static readonly Fixed64 NegativeInfinity = new(Const.MinPeak + 1); // 负无穷大
-        public static readonly Fixed64 Infinity = new(Const.MaxPeak); // 无穷大
+        public static readonly Fixed64 Infinity = new(Const.MaxPeak - 1); // 无穷大
         public static readonly Fixed64 NaN = new(Const.MinPeak);
 
         private static readonly Fixed64 _en1 = One / 10;
@@ -41,7 +41,6 @@ namespace Eevee.Fixed
         internal readonly long RawValue => _rawValue;
 
         internal Fixed64(long rawValue) => _rawValue = rawValue;
-        public Fixed64(int value)=> _rawValue = (long)value << Const.FractionalBits;
         #endregion
 
         #region override Math Func
@@ -56,15 +55,9 @@ namespace Eevee.Fixed
         /// 绝对值<br/>
         /// 参考链接：http://www.strchr.com/optimized_abs_function
         /// </summary>
-        public static Fixed64 Abs(Fixed64 value) => value._rawValue == MinValue._rawValue ? MaxValue : FastAbs(value);
-
-        /// <summary>
-        /// 绝对值<br/>
-        /// 参考链接：http://www.strchr.com/optimized_abs_function
-        /// </summary>
-        public static Fixed64 FastAbs(Fixed64 value)
+        public static Fixed64 Abs(Fixed64 value)
         {
-            long mask = value._rawValue >> Const.TotalBits - 1;
+            long mask = value._rawValue >> Const.FullBits - 1;
             return new Fixed64(value._rawValue + mask ^ mask);
         }
 
@@ -108,105 +101,63 @@ namespace Eevee.Fixed
             long rawValue = value._rawValue;
             if (rawValue < 0L)
             {
-                LogRelay.Error($"[Fixed] Fixed64.Sqrt()，value：{value}是负数，无法开方");
+                LogRelay.Fail($"[Fixed] Fixed64.Sqrt()，value：{value}是负数，无法开方");
                 return Zero;
             }
 
             if (rawValue <= 1L << Const.FractionalBits - 1) // 存在符号位，需要-1；先偏移，开方后，精度会比后偏移高
             {
                 long offsetRawValue = rawValue << Const.FractionalBits;
-                long sqrtRawValue = SquareRoot.Sqrt(offsetRawValue);
+                long sqrtRawValue = SquareRoot.Count(offsetRawValue);
                 return new Fixed64(sqrtRawValue);
             }
             else
             {
-                long sqrtRawValue = SquareRoot.Sqrt(rawValue);
+                long sqrtRawValue = SquareRoot.Count(rawValue);
                 long offsetRawValue = sqrtRawValue << (Const.FractionalBits >> 1);
                 return new Fixed64(offsetRawValue);
             }
         }
 
         /// <summary>
-        /// Returns the Sine of x.
-        /// This function has about 9 decimals of accuracy for small values of x.
-        /// It may lose accuracy as the value of x grows.
-        /// Performance: about 25% slower than Math.Sin() in x64, and 200% slower in x86.
+        /// 返回正弦值<br/>
+        /// 弧度角输入
         /// </summary>
-        public static Fixed64 Sin(Fixed64 x)
-        {
-            var clampedL = ClampSinValue(x._rawValue, out var flipHorizontal, out var flipVertical);
-            var clamped = new Fixed64(clampedL);
-
-            // Find the two closest values in the LUT and perform linear interpolation
-            // This is what kills the performance of this function on x86 - x64 is fine though
-            var rawIndex = FastMul(clamped, LutInterval);
-            var roundedIndex = Round(rawIndex);
-            var indexError = 0; //FastSub(rawIndex, roundedIndex);
-
-            var nearestValue = new Fixed64(Sine.Get(flipHorizontal ? Sine.Length - 1 - (int)roundedIndex : (int)roundedIndex));
-            var secondNearestValue = new Fixed64(Sine.Get(flipHorizontal ? Sine.Length - 1 - (int)roundedIndex - Sign(indexError) : (int)roundedIndex + Sign(indexError)));
-
-            var delta = FastMul(indexError, FastAbs(FastSub(nearestValue, secondNearestValue)))._rawValue;
-            var interpolatedValue = nearestValue._rawValue + (flipHorizontal ? -delta : delta);
-            var finalValue = flipVertical ? -interpolatedValue : interpolatedValue;
-
-            Fixed64 a2;
-            a2._rawValue = finalValue;
-            return a2;
-        }
+        public static Fixed64 SinRad(Fixed64 value) => SinDeg(value * Maths.Deg2Rad);
 
         /// <summary>
-        /// Returns a rough approximation of the Sine of x.
-        /// This is at least 3 times faster than Sin() on x86 and slightly faster than Math.Sin(),
-        /// however its accuracy is limited to 4-5 decimals, for small enough values of x.
+        /// 返回正弦值<br/>
+        /// 角度角输入
         /// </summary>
-        public static Fixed64 FastSin(Fixed64 x)
+        public static Fixed64 SinDeg(Fixed64 value)
         {
-            var clampedL = ClampSinValue(x._rawValue, out var flipHorizontal, out var flipVertical);
+            var deg = value % Const.FullAngle;
+            if (deg < 0)
+                deg += Const.FullAngle;
 
-            // Here we use the fact that the LUTSin.table table has a number of entries
-            // equal to (PiOver2 >> 15) to use the angle to index directly into it
-            var rawIndex = (uint)(clampedL >> 15);
-            if (rawIndex >= Const.TableSize)
+            long rawValue = (int)deg._rawValue switch
             {
-                rawIndex = Const.TableSize - 1;
-            }
+                <= 90 => SinFrom0To90(deg),
+                <= 180 => SinFrom0To90(180 - deg),
+                <= 270 => -SinFrom0To90(deg - 180),
+                _ => -SinFrom0To90(360 - deg),
+            };
 
-            var nearestValue = Sine.Get(flipHorizontal ? Sine.Length - 1 - (int)rawIndex : (int)rawIndex);
-
-            Fixed64 result;
-            result._rawValue = flipVertical ? -nearestValue : nearestValue;
-            return result;
+            return new Fixed64(rawValue >> Const.OffsetFractionalBits);
         }
 
-        public static long ClampSinValue(long angle, out bool flipHorizontal, out bool flipVertical)
+        private static long SinFrom0To90(Fixed64 value)
         {
-            // Clamp value to 0 - 2*Pi using modulo; this is very slow but there's no better way AFAIK
-            var clamped2Pi = angle % Const.PiTimes2;
-            if (angle < 0)
-            {
-                clamped2Pi += Const.PiTimes2;
-            }
+            int integer = (int)Floor(value);
+            int fractional = (int)Round((value - integer) * Sine.Table2Scale);
+            if (fractional == 0)
+                return Sine.CountInteger(integer);
 
-            // The LUT contains values for 0 - Math.PIOver2; every other value must be obtained by
-            // vertical or horizontal mirroring
-            flipVertical = clamped2Pi >= Const.Pi;
-            // obtain (angle % Pi) from (angle % 2PI) - much faster than doing another modulo
-            var clampedPi = clamped2Pi;
-            while (clampedPi >= Const.Pi)
-            {
-                clampedPi -= Const.Pi;
-            }
-
-            flipHorizontal = clampedPi >= Const.PiOver2;
-            // obtain (angle % PiOver2) from (angle % Pi) - much faster than doing another modulo
-            var clampedPiOver2 = clampedPi;
-            if (clampedPiOver2 >= Const.PiOver2)
-            {
-                clampedPiOver2 -= Const.PiOver2;
-            }
-
-            return clampedPiOver2;
+            long sinCosInteger = Sine.CountInteger(integer);
+            long sinFractional = Sine.CountFractional(fractional);
+            long cosInteger = Sine.CountInteger(90 - integer);
+            long cosFractional = Sine.CountFractional(fractional);
+            return 0;
         }
 
         /// <summary>
@@ -217,19 +168,8 @@ namespace Eevee.Fixed
         {
             var xl = x._rawValue;
             var rawAngle = xl + (xl > 0 ? -Const.Pi - Const.PiOver2 : Const.PiOver2);
-            Fixed64 a2 = Sin(new Fixed64(rawAngle));
+            Fixed64 a2 = SinRad(new Fixed64(rawAngle));
             return a2;
-        }
-
-        /// <summary>
-        /// Returns a rough approximation of the cosine of x.
-        /// See FastSin for more details.
-        /// </summary>
-        public static Fixed64 FastCos(Fixed64 x)
-        {
-            var xl = x._rawValue;
-            var rawAngle = xl + (xl > 0 ? -Const.Pi - Const.PiOver2 : Const.PiOver2);
-            return FastSin(new Fixed64(rawAngle));
         }
 
         /// <summary>
@@ -264,7 +204,7 @@ namespace Eevee.Fixed
             var nearestValue = new Fixed64(Tangent.Get(roundedIndex));
             var secondNearestValue = new Fixed64(Tangent.Get((int)roundedIndex + Sign(indexError)));
 
-            var delta = FastMul(indexError, FastAbs(FastSub(nearestValue, secondNearestValue)))._rawValue;
+            var delta = FastMul(indexError, Abs(FastSub(nearestValue, secondNearestValue)))._rawValue;
             var interpolatedValue = nearestValue._rawValue + delta;
             var finalValue = flip ? -interpolatedValue : interpolatedValue;
             Fixed64 a2 = new Fixed64(finalValue);
@@ -480,7 +420,7 @@ namespace Eevee.Fixed
             var remainder = (ulong)(xl >= 0 ? xl : -xl);
             var divider = (ulong)(yl >= 0 ? yl : -yl);
             var quotient = 0UL;
-            var bitPos = (Const.TotalBits >> 1) + 1;
+            var bitPos = (Const.FullBits >> 1) + 1;
 
             // 除数可被2^n整除
             while ((divider & 0xF) == 0 && bitPos >= 4)

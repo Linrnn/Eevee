@@ -1,4 +1,4 @@
-using Eevee.Log;
+﻿using Eevee.Log;
 using System.Collections.Generic;
 
 namespace Eevee.Collection

@@ -393,7 +393,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Sin(Fixed64 value)
         {
-            return Fixed64.Sin(value);
+            return Fixed64.SinRad(value);
         }
 
         /// <summary>
