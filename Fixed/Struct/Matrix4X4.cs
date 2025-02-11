@@ -437,7 +437,7 @@ namespace Eevee.Fixed
             }
             else
             {
-                Fixed64 invDet = Fixed64.One / det;
+                var invDet = det.Reciprocal;
 
                 result.M11 = a11 * invDet;
                 result.M21 = a12 * invDet;
@@ -860,32 +860,30 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateX(Fixed64 radians)
         {
-            Matrix4X4 result;
-
-            Fixed64 c = Maths.Cos(radians);
-            Fixed64 s = Maths.Sin(radians);
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
 
             // [  1  0  0  0 ]
             // [  0  c  s  0 ]
             // [  0 -s  c  0 ]
             // [  0  0  0  1 ]
+            Matrix4X4 result;
             result.M11 = Fixed64.One;
             result.M12 = Fixed64.Zero;
             result.M13 = Fixed64.Zero;
             result.M14 = Fixed64.Zero;
             result.M21 = Fixed64.Zero;
-            result.M22 = c;
-            result.M23 = s;
+            result.M22 = cos;
+            result.M23 = sin;
             result.M24 = Fixed64.Zero;
             result.M31 = Fixed64.Zero;
-            result.M32 = -s;
-            result.M33 = c;
+            result.M32 = -sin;
+            result.M33 = cos;
             result.M34 = Fixed64.Zero;
             result.M41 = Fixed64.Zero;
             result.M42 = Fixed64.Zero;
             result.M43 = Fixed64.Zero;
             result.M44 = Fixed64.One;
-
             return result;
         }
 
@@ -897,35 +895,32 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateX(Fixed64 radians, Vector3D centerPoint)
         {
-            Matrix4X4 result;
-
-            Fixed64 c = Maths.Cos(radians);
-            Fixed64 s = Maths.Sin(radians);
-
-            Fixed64 y = centerPoint.Y * (Fixed64.One - c) + centerPoint.Z * s;
-            Fixed64 z = centerPoint.Z * (Fixed64.One - c) - centerPoint.Y * s;
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+            var y = centerPoint.Y * (Fixed64.One - cos) + centerPoint.Z * sin;
+            var z = centerPoint.Z * (Fixed64.One - cos) - centerPoint.Y * sin;
 
             // [  1  0  0  0 ]
             // [  0  c  s  0 ]
             // [  0 -s  c  0 ]
             // [  0  y  z  1 ]
+            Matrix4X4 result;
             result.M11 = Fixed64.One;
             result.M12 = Fixed64.Zero;
             result.M13 = Fixed64.Zero;
             result.M14 = Fixed64.Zero;
             result.M21 = Fixed64.Zero;
-            result.M22 = c;
-            result.M23 = s;
+            result.M22 = cos;
+            result.M23 = sin;
             result.M24 = Fixed64.Zero;
             result.M31 = Fixed64.Zero;
-            result.M32 = -s;
-            result.M33 = c;
+            result.M32 = -sin;
+            result.M33 = cos;
             result.M34 = Fixed64.Zero;
             result.M41 = Fixed64.Zero;
             result.M42 = y;
             result.M43 = z;
             result.M44 = Fixed64.One;
-
             return result;
         }
 
@@ -936,32 +931,30 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateY(Fixed64 radians)
         {
-            Matrix4X4 result;
-
-            Fixed64 c = Maths.Cos(radians);
-            Fixed64 s = Maths.Sin(radians);
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
 
             // [  c  0 -s  0 ]
             // [  0  1  0  0 ]
             // [  s  0  c  0 ]
             // [  0  0  0  1 ]
-            result.M11 = c;
+            Matrix4X4 result;
+            result.M11 = cos;
             result.M12 = Fixed64.Zero;
-            result.M13 = -s;
+            result.M13 = -sin;
             result.M14 = Fixed64.Zero;
             result.M21 = Fixed64.Zero;
             result.M22 = Fixed64.One;
             result.M23 = Fixed64.Zero;
             result.M24 = Fixed64.Zero;
-            result.M31 = s;
+            result.M31 = sin;
             result.M32 = Fixed64.Zero;
-            result.M33 = c;
+            result.M33 = cos;
             result.M34 = Fixed64.Zero;
             result.M41 = Fixed64.Zero;
             result.M42 = Fixed64.Zero;
             result.M43 = Fixed64.Zero;
             result.M44 = Fixed64.One;
-
             return result;
         }
 
@@ -973,35 +966,32 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateY(Fixed64 radians, Vector3D centerPoint)
         {
-            Matrix4X4 result;
-
-            Fixed64 c = Maths.Cos(radians);
-            Fixed64 s = Maths.Sin(radians);
-
-            Fixed64 x = centerPoint.X * (Fixed64.One - c) - centerPoint.Z * s;
-            Fixed64 z = centerPoint.X * (Fixed64.One - c) + centerPoint.X * s;
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+            var x = centerPoint.X * (Fixed64.One - cos) - centerPoint.Z * sin;
+            var z = centerPoint.X * (Fixed64.One - cos) + centerPoint.X * sin;
 
             // [  c  0 -s  0 ]
             // [  0  1  0  0 ]
             // [  s  0  c  0 ]
             // [  x  0  z  1 ]
-            result.M11 = c;
+            Matrix4X4 result;
+            result.M11 = cos;
             result.M12 = Fixed64.Zero;
-            result.M13 = -s;
+            result.M13 = -sin;
             result.M14 = Fixed64.Zero;
             result.M21 = Fixed64.Zero;
             result.M22 = Fixed64.One;
             result.M23 = Fixed64.Zero;
             result.M24 = Fixed64.Zero;
-            result.M31 = s;
+            result.M31 = sin;
             result.M32 = Fixed64.Zero;
-            result.M33 = c;
+            result.M33 = cos;
             result.M34 = Fixed64.Zero;
             result.M41 = x;
             result.M42 = Fixed64.Zero;
             result.M43 = z;
             result.M44 = Fixed64.One;
-
             return result;
         }
 
@@ -1012,21 +1002,20 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateZ(Fixed64 radians)
         {
-            Matrix4X4 result;
-
-            Fixed64 c = Maths.Cos(radians);
-            Fixed64 s = Maths.Sin(radians);
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
 
             // [  c  s  0  0 ]
             // [ -s  c  0  0 ]
             // [  0  0  1  0 ]
             // [  0  0  0  1 ]
-            result.M11 = c;
-            result.M12 = s;
+            Matrix4X4 result;
+            result.M11 = cos;
+            result.M12 = sin;
             result.M13 = Fixed64.Zero;
             result.M14 = Fixed64.Zero;
-            result.M21 = -s;
-            result.M22 = c;
+            result.M21 = -sin;
+            result.M22 = cos;
             result.M23 = Fixed64.Zero;
             result.M24 = Fixed64.Zero;
             result.M31 = Fixed64.Zero;
@@ -1037,7 +1026,6 @@ namespace Eevee.Fixed
             result.M42 = Fixed64.Zero;
             result.M43 = Fixed64.Zero;
             result.M44 = Fixed64.One;
-
             return result;
         }
 
@@ -1049,18 +1037,14 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateZ(Fixed64 radians, Vector3D centerPoint)
         {
-            Matrix4X4 result;
-
-            Fixed64 c = Maths.Cos(radians);
-            Fixed64 s = Maths.Sin(radians);
-
-            Fixed64 x = centerPoint.X * (1 - c) + centerPoint.Y * s;
-            Fixed64 y = centerPoint.Y * (1 - c) - centerPoint.X * s;
+            var c = Maths.CosRad(radians);
+            var s = Maths.SinRad(radians);
 
             // [  c  s  0  0 ]
             // [ -s  c  0  0 ]
             // [  0  0  1  0 ]
             // [  x  y  0  1 ]
+            Matrix4X4 result;
             result.M11 = c;
             result.M12 = s;
             result.M13 = Fixed64.Zero;
@@ -1077,7 +1061,6 @@ namespace Eevee.Fixed
             result.M42 = Fixed64.Zero;
             result.M43 = Fixed64.Zero;
             result.M44 = Fixed64.One;
-
             return result;
         }
 
@@ -1115,7 +1098,7 @@ namespace Eevee.Fixed
             //     [ zx-cosa*zx-sina*y zy-cosa*zy+sina*x   zz+cosa*(1-zz)  ]
             //
             Fixed64 x = axis.X, y = axis.Y, z = axis.Z;
-            Fixed64 sa = Maths.Sin(angle), ca = Maths.Cos(angle);
+            Fixed64 sa = Maths.SinRad(angle), ca = Maths.CosRad(angle);
             Fixed64 xx = x * x, yy = y * y, zz = z * z;
             Fixed64 xy = x * y, xz = x * z, yz = y * z;
 
@@ -1145,25 +1128,23 @@ namespace Eevee.Fixed
         /// <returns>The resulting rotation matrix</returns>
         public static Matrix4X4 AngleAxis(Fixed64 angle, Vector3D axis)
         {
-            Matrix4X4 result;
-            AxisAngle(ref axis, angle, out result);
+            AxisAngle(ref axis, angle, out var result);
             return result;
         }
 
         public override string ToString()
         {
-            return string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}|{9}|{10}|{11}|{12}|{13}|{14}|{15}", M11.RawValue, M12.RawValue, M13.RawValue, M14.RawValue, M21.RawValue, M22.RawValue, M23.RawValue, M24.RawValue, M31.RawValue, M32.RawValue, M33.RawValue, M34.RawValue, M41.RawValue, M42.RawValue, M43.RawValue, M44.RawValue);
+            return $"{M11.RawValue}|{M12.RawValue}|{M13.RawValue}|{M14.RawValue}|{M21.RawValue}|{M22.RawValue}|{M23.RawValue}|{M24.RawValue}|{M31.RawValue}|{M32.RawValue}|{M33.RawValue}|{M34.RawValue}|{M41.RawValue}|{M42.RawValue}|{M43.RawValue}|{M44.RawValue}";
         }
 
         public static void TRS(Vector3D translation, Quaternions rotation, Vector3D scale, out Matrix4X4 matrix)
         {
-            matrix = Matrix4X4.Translate(translation) * Matrix4X4.Rotate(rotation) * Matrix4X4.Scale(scale);
+            matrix = Translate(translation) * Rotate(rotation) * Scale(scale);
         }
 
         public static Matrix4X4 TRS(Vector3D translation, Quaternions rotation, Vector3D scale)
         {
-            Matrix4X4 result;
-            TRS(translation, rotation, scale, out result);
+            TRS(translation, rotation, scale, out var result);
             return result;
         }
 

@@ -88,99 +88,102 @@ namespace Eevee.Fixed
         {
             get
             {
-                Vector3D result = new Vector3D();
+                var result = new Vector3D();
 
-                result.X = Maths.Atan2(M32, M33) * Maths.Rad2Deg;
-                result.Y = Maths.Atan2(-M31, Maths.Sqrt(M32 * M32 + M33 * M33)) * Maths.Rad2Deg;
-                result.Z = Maths.Atan2(M21, M11) * Maths.Rad2Deg;
+                result.X = -Maths.Rad2Deg * Maths.Atan2(M32, M33);
+                result.Y = -Maths.Rad2Deg * Maths.Atan2(-M31, (M32 * M32 + M33 * M33).Sqrt);
+                result.Z = -Maths.Rad2Deg * Maths.Atan2(M21, M11);
 
-                return result * -1;
+                return result;
             }
         }
 
         public static Matrix3X3 CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
-            Matrix3X3 matrix;
-            Quaternions quaternion;
-            Quaternions.CreateFromYawPitchRoll(yaw, pitch, roll, out quaternion);
-            CreateFromQuaternion(ref quaternion, out matrix);
+            Quaternions.CreateFromYawPitchRoll(yaw, pitch, roll, out var quaternion);
+            CreateFromQuaternion(ref quaternion, out var matrix);
             return matrix;
         }
 
         public static Matrix3X3 CreateRotationX(Fixed64 radians)
         {
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+
             Matrix3X3 matrix;
-            Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.SinRad(radians);
             matrix.M11 = Fixed64.One;
             matrix.M12 = Fixed64.Zero;
             matrix.M13 = Fixed64.Zero;
             matrix.M21 = Fixed64.Zero;
-            matrix.M22 = num2;
-            matrix.M23 = num;
+            matrix.M22 = cos;
+            matrix.M23 = sin;
             matrix.M31 = Fixed64.Zero;
-            matrix.M32 = -num;
-            matrix.M33 = num2;
+            matrix.M32 = -sin;
+            matrix.M33 = cos;
             return matrix;
         }
 
         public static void CreateRotationX(Fixed64 radians, out Matrix3X3 result)
         {
-            Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.SinRad(radians);
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+
             result.M11 = Fixed64.One;
             result.M12 = Fixed64.Zero;
             result.M13 = Fixed64.Zero;
             result.M21 = Fixed64.Zero;
-            result.M22 = num2;
-            result.M23 = num;
+            result.M22 = cos;
+            result.M23 = sin;
             result.M31 = Fixed64.Zero;
-            result.M32 = -num;
-            result.M33 = num2;
+            result.M32 = -sin;
+            result.M33 = cos;
         }
 
         public static Matrix3X3 CreateRotationY(Fixed64 radians)
         {
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+
             Matrix3X3 matrix;
-            Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.SinRad(radians);
-            matrix.M11 = num2;
+            matrix.M11 = cos;
             matrix.M12 = Fixed64.Zero;
-            matrix.M13 = -num;
+            matrix.M13 = -sin;
             matrix.M21 = Fixed64.Zero;
             matrix.M22 = Fixed64.One;
             matrix.M23 = Fixed64.Zero;
-            matrix.M31 = num;
+            matrix.M31 = sin;
             matrix.M32 = Fixed64.Zero;
-            matrix.M33 = num2;
+            matrix.M33 = cos;
             return matrix;
         }
 
         public static void CreateRotationY(Fixed64 radians, out Matrix3X3 result)
         {
-            Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.SinRad(radians);
-            result.M11 = num2;
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+
+            result.M11 = cos;
             result.M12 = Fixed64.Zero;
-            result.M13 = -num;
+            result.M13 = -sin;
             result.M21 = Fixed64.Zero;
             result.M22 = Fixed64.One;
             result.M23 = Fixed64.Zero;
-            result.M31 = num;
+            result.M31 = sin;
             result.M32 = Fixed64.Zero;
-            result.M33 = num2;
+            result.M33 = cos;
         }
 
         public static Matrix3X3 CreateRotationZ(Fixed64 radians)
         {
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+
             Matrix3X3 matrix;
-            Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.SinRad(radians);
-            matrix.M11 = num2;
-            matrix.M12 = num;
+            matrix.M11 = cos;
+            matrix.M12 = sin;
             matrix.M13 = Fixed64.Zero;
-            matrix.M21 = -num;
-            matrix.M22 = num2;
+            matrix.M21 = -sin;
+            matrix.M22 = cos;
             matrix.M23 = Fixed64.Zero;
             matrix.M31 = Fixed64.Zero;
             matrix.M32 = Fixed64.Zero;
@@ -190,13 +193,14 @@ namespace Eevee.Fixed
 
         public static void CreateRotationZ(Fixed64 radians, out Matrix3X3 result)
         {
-            Fixed64 num2 = Fixed64.Cos(radians);
-            Fixed64 num = Fixed64.SinRad(radians);
-            result.M11 = num2;
-            result.M12 = num;
+            var cos = Maths.CosRad(radians);
+            var sin = Maths.SinRad(radians);
+
+            result.M11 = cos;
+            result.M12 = sin;
             result.M13 = Fixed64.Zero;
-            result.M21 = -num;
-            result.M22 = num2;
+            result.M21 = -sin;
+            result.M22 = cos;
             result.M23 = Fixed64.Zero;
             result.M31 = Fixed64.Zero;
             result.M32 = Fixed64.Zero;
@@ -659,26 +663,27 @@ namespace Eevee.Fixed
         #region public static void CreateFromAxisAngle(ref JVector axis, FP angle, out JMatrix result)
         public static void CreateFromAxisAngle(ref Vector3D axis, Fixed64 angle, out Matrix3X3 result)
         {
-            Fixed64 x = axis.X;
-            Fixed64 y = axis.Y;
-            Fixed64 z = axis.Z;
-            Fixed64 num2 = Fixed64.SinRad(angle);
-            Fixed64 num = Fixed64.Cos(angle);
-            Fixed64 num11 = x * x;
-            Fixed64 num10 = y * y;
-            Fixed64 num9 = z * z;
-            Fixed64 num8 = x * y;
-            Fixed64 num7 = x * z;
-            Fixed64 num6 = y * z;
-            result.M11 = num11 + (num * (Fixed64.One - num11));
-            result.M12 = (num8 - (num * num8)) + (num2 * z);
-            result.M13 = (num7 - (num * num7)) - (num2 * y);
-            result.M21 = (num8 - (num * num8)) - (num2 * z);
-            result.M22 = num10 + (num * (Fixed64.One - num10));
-            result.M23 = (num6 - (num * num6)) + (num2 * x);
-            result.M31 = (num7 - (num * num7)) + (num2 * y);
-            result.M32 = (num6 - (num * num6)) - (num2 * x);
-            result.M33 = num9 + (num * (Fixed64.One - num9));
+            var x = axis.X;
+            var y = axis.Y;
+            var z = axis.Z;
+            var num2 = Maths.SinRad(angle);
+            var num = Maths.CosRad(angle);
+            var num11 = x * x;
+            var num10 = y * y;
+            var num9 = z * z;
+            var num8 = x * y;
+            var num7 = x * z;
+            var num6 = y * z;
+
+            result.M11 = num11 + num * (Fixed64.One - num11);
+            result.M12 = num8 - num * num8 + num2 * z;
+            result.M13 = num7 - num * num7 - num2 * y;
+            result.M21 = num8 - num * num8 - num2 * z;
+            result.M22 = num10 + num * (Fixed64.One - num10);
+            result.M23 = num6 - num * num6 + num2 * x;
+            result.M31 = num7 - num * num7 + num2 * y;
+            result.M32 = num6 - num * num6 - num2 * x;
+            result.M33 = num9 + num * (Fixed64.One - num9);
         }
 
         /// <summary>
@@ -697,7 +702,7 @@ namespace Eevee.Fixed
 
         public override string ToString()
         {
-            return string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}|{8}", M11.RawValue, M12.RawValue, M13.RawValue, M21.RawValue, M22.RawValue, M23.RawValue, M31.RawValue, M32.RawValue, M33.RawValue);
+            return $"{M11.RawValue}|{M12.RawValue}|{M13.RawValue}|{M21.RawValue}|{M22.RawValue}|{M23.RawValue}|{M31.RawValue}|{M32.RawValue}|{M33.RawValue}";
         }
     }
 }

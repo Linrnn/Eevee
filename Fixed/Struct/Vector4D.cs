@@ -18,6 +18,7 @@
  */
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -71,37 +72,24 @@ namespace Eevee.Fixed
         }
         #endregion
 
-        public static Vector4D Abs(Vector4D other)
-        {
-            return new Vector4D(Fixed64.Abs(other.X), Fixed64.Abs(other.Y), Fixed64.Abs(other.Z), Fixed64.Abs(other.Z));
-        }
+        public static Vector4D Abs(Vector4D other) => new(other.X.Abs, other.Y.Abs, other.Z.Abs, other.Z.Abs);
 
         /// <summary>
         /// Gets the squared length of the vector.
         /// </summary>
         /// <returns>Returns the squared length of the vector.</returns>
-        public Fixed64 sqrMagnitude
-        {
-            get { return (((this.X * this.X) + (this.Y * this.Y)) + (this.Z * this.Z) + (this.W * this.W)); }
-        }
+        public Fixed64 sqrMagnitude => GetSqrMagnitude();
 
         /// <summary>
         /// Gets the length of the vector.
         /// </summary>
         /// <returns>Returns the length of the vector.</returns>
-        public Fixed64 magnitude
-        {
-            get
-            {
-                Fixed64 num = sqrMagnitude;
-                return Fixed64.Sqrt(num);
-            }
-        }
+        public Fixed64 magnitude => GetSqrMagnitude().Sqrt;
 
-        public static Vector4D ClampMagnitude(Vector4D vector, Fixed64 maxLength)
-        {
-            return Normalize(vector) * maxLength;
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Fixed64 GetSqrMagnitude() => X * X + Y * Y + Z * Z + W * W;
+
+        public static Vector4D ClampMagnitude(Vector4D vector, Fixed64 maxLength) => Normalize(vector) * maxLength;
 
         /// <summary>
         /// Gets a normalized version of the vector.
@@ -111,9 +99,8 @@ namespace Eevee.Fixed
         {
             get
             {
-                Vector4D result = new Vector4D(this.X, this.Y, this.Z, this.W);
+                var result = this;
                 result.Normalize();
-
                 return result;
             }
         }
@@ -313,10 +300,7 @@ namespace Eevee.Fixed
             return result;
         }
 
-        public static Fixed64 Distance(Vector4D v1, Vector4D v2)
-        {
-            return Fixed64.Sqrt((v1.X - v2.X) * (v1.X - v2.X) + (v1.Y - v2.Y) * (v1.Y - v2.Y) + (v1.Z - v2.Z) * (v1.Z - v2.Z) + (v1.W - v2.W) * (v1.W - v2.W));
-        }
+        public static Fixed64 Distance(Vector4D v1, Vector4D v2) => (v1 - v2).magnitude;
 
         /// <summary>
         /// Gets a vector with the maximum x,y and z values of both vectors.
@@ -585,8 +569,7 @@ namespace Eevee.Fixed
         #region public static JVector Normalize(JVector value)
         public static Vector4D Normalize(Vector4D value)
         {
-            Vector4D result;
-            Vector4D.Normalize(ref value, out result);
+            Normalize(ref value, out var result);
             return result;
         }
 
@@ -595,12 +578,12 @@ namespace Eevee.Fixed
         /// </summary>
         public void Normalize()
         {
-            Fixed64 num2 = ((this.X * this.X) + (this.Y * this.Y)) + (this.Z * this.Z) + (this.W * this.W);
-            Fixed64 num = Fixed64.One / Fixed64.Sqrt(num2);
-            this.X *= num;
-            this.Y *= num;
-            this.Z *= num;
-            this.W *= num;
+            var num = magnitude.Reciprocal;
+
+            X *= num;
+            Y *= num;
+            Z *= num;
+            W *= num;
         }
 
         /// <summary>
@@ -610,12 +593,8 @@ namespace Eevee.Fixed
         /// <param name="result">A normalized vector.</param>
         public static void Normalize(ref Vector4D value, out Vector4D result)
         {
-            Fixed64 num2 = ((value.X * value.X) + (value.Y * value.Y)) + (value.Z * value.Z) + (value.W * value.W);
-            Fixed64 num = Fixed64.One / Fixed64.Sqrt(num2);
-            result.X = value.X * num;
-            result.Y = value.Y * num;
-            result.Z = value.Z * num;
-            result.W = value.W * num;
+            result = value;
+            result.Normalize();
         }
         #endregion
 
@@ -627,9 +606,7 @@ namespace Eevee.Fixed
         /// <param name="vector2">The second vector to swap with the first.</param>
         public static void Swap(ref Vector4D vector1, ref Vector4D vector2)
         {
-            Fixed64 temp;
-
-            temp = vector1.X;
+            var temp = vector1.X;
             vector1.X = vector2.X;
             vector2.X = temp;
 

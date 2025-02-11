@@ -3,7 +3,8 @@
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 平方根
+    /// 平方根<br/>
+    /// 参考链接：https://www.conerlius.cn/%E7%AE%97%E6%B3%95/2019/09/26/%E5%AE%9A%E7%82%B9%E6%95%B0%E5%BC%80%E6%A0%B9%E5%8F%B7%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98.html
     /// </summary>
     internal readonly struct SquareRoot
     {
@@ -16,7 +17,6 @@ namespace Eevee.Fixed
         // Eevee.Fixed.SquareRoot.UseBinary(): 1.43s
 
         #region 32位小数精度
-        // 参考链接：https://www.conerlius.cn/%E7%AE%97%E6%B3%95/2019/09/26/%E5%AE%9A%E7%82%B9%E6%95%B0%E5%BC%80%E6%A0%B9%E5%8F%B7%E7%9A%84%E6%80%A7%E8%83%BD%E9%97%AE%E9%A2%98.html
         private static readonly byte[] _table =
         {
             000, 016, 022, 027, 032, 035, 039, 042, 045, 048, 050, 053, 055, 057, 059, 061,
@@ -38,7 +38,7 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        internal static long Count(long value)
+        internal static long Count(long value) // 计算
         {
             if (value >= 0L)
                 return value <= int.MaxValue ? UseTable((int)value) : UseNewton(value);

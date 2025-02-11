@@ -5,41 +5,156 @@ namespace Eevee.Fixed
     /// <summary>
     /// 包含常见的数学操作
     /// </summary>
-    public sealed class Maths
+    public readonly struct Maths
     {
-        #region Static Variable
+        #region 字段
+        public static readonly Fixed64 Pi = new(Const.Pi);
+        public static readonly Fixed64 PiTimes2 = new(Const.PiTimes2);
+        public static readonly Fixed64 PiOver2 = new(Const.PiOver2);
+
+        public static readonly Fixed64 Deg2Rad = Pi / 180;
+        public static readonly Fixed64 Rad2Deg = 180 / Pi;
+
+        internal static readonly Fixed64 Deg090 = 090;
+        internal static readonly Fixed64 Deg180 = 180;
+        internal static readonly Fixed64 Deg360 = 360;
+
+        public static readonly Fixed64 Epsilon = Fixed64.Epsilon;
+        #endregion
+
+        #region 基础方法
         /// <summary>
-        /// Pi
+        /// value大于0，返回1<br/>
+        /// value等于0，返回0<br/>
+        /// value小于0，返回-1
         /// </summary>
-        public static Fixed64 PI = new(Const.Pi);
+        public static int Sign(Fixed64 value) => value.Sign;
         /// <summary>
-        /// 无穷大
+        /// 绝对值
         /// </summary>
-        public static Fixed64 Infinity = Fixed64.Infinity;
+        public static Fixed64 Abs(Fixed64 value) => value.Abs;
+
         /// <summary>
-        /// 无穷小
+        /// 向上取整
         /// </summary>
-        public static Fixed64 NegativeInfinity = Fixed64.NegativeInfinity;
+        public static Fixed64 Ceiling(Fixed64 value) => value.Ceiling;
         /// <summary>
-        /// Pi ^ 2
+        /// 向下取整
         /// </summary>
-        public static Fixed64 PIOver2 = new(Const.PiOver2);
+        public static Fixed64 Floor(Fixed64 value) => value.Floor;
         /// <summary>
-        /// 2 * Pi
+        /// 四舍五入到最接近的整数值<br/>
         /// </summary>
-        public static Fixed64 PITime2 = new(Const.PiTimes2);
+        public static Fixed64 Round(Fixed64 value) => value.Round;
+
         /// <summary>
-        /// 精度
+        /// 开平方
         /// </summary>
-        public static Fixed64 Epsilon = Fixed64.Epsilon;
+        public static Fixed64 Sqrt(Fixed64 fixed64) => fixed64.Sqrt;
+        #endregion
+
+        #region 三角函数
+        #region 正弦
         /// <summary>
-        /// 单位弧度对应的角度
+        /// 输入角度角，计算正弦
         /// </summary>
-        public static Fixed64 Deg2Rad = PI / 180;
+        public static Fixed64 SinDeg(Fixed64 deg)
+        {
+            var value = ClampDeg(deg);
+            return Sin0To360(value);
+        }
+        private static Fixed64 Sin0To360(Fixed64 deg) => deg.RawValue switch
+        {
+            <= 090L << Const.FractionalBits => Sin0To90(deg),
+            <= 180L << Const.FractionalBits => Sin0To90(Deg180 - deg),
+            <= 270L << Const.FractionalBits => -Sin0To90(deg - Deg180),
+            _ => -Sin0To90(Deg360 - deg),
+        };
+        private static Fixed64 Sin0To90(Fixed64 deg) => deg.RawValue switch
+        {
+            0L => Fixed64.Zero,
+            30L << Const.FractionalBits => Fixed64.Half,
+            90L << Const.FractionalBits => Fixed64.One,
+            _ => TaylorExpansion.Sine(deg * Deg2Rad),
+        };
+
         /// <summary>
-        /// 单位角度对应的弧度
+        /// 输入弧度角，计算正弦
         /// </summary>
-        public static Fixed64 Rad2Deg = 180 / PI;
+        public static Fixed64 SinRad(Fixed64 rad)
+        {
+            var value = ClampRad(rad);
+            return Sin0To2Pi(value);
+        }
+        private static Fixed64 Sin0To2Pi(Fixed64 rad) => rad.RawValue switch
+        {
+            <= Const.Pi >> 1 => Sin0ToPi2(rad),
+            <= Const.Pi => Sin0ToPi2(Pi - rad),
+            <= Const.Pi + (Const.Pi >> 1) => -Sin0ToPi2(rad - Pi),
+            _ => -Sin0ToPi2(PiTimes2 - rad),
+        };
+        private static Fixed64 Sin0ToPi2(Fixed64 rad) => rad.RawValue switch
+        {
+            0L => Fixed64.Zero,
+            Const.Pi / 6 => Fixed64.Half,
+            Const.Pi >> 1 => Fixed64.One,
+            _ => TaylorExpansion.Sine(rad),
+        };
+        #endregion
+
+        #region 余弦
+        /// <summary>
+        /// 输入角度角，计算余弦
+        /// </summary>
+        public static Fixed64 CosDeg(Fixed64 deg)
+        {
+            var value = ClampDeg(deg + Deg090);
+            return Sin0To360(value);
+        }
+
+        /// <summary>
+        /// 输入弧度角，计算余弦
+        /// </summary>
+        public static Fixed64 CosRad(Fixed64 rad)
+        {
+            var value = ClampRad(rad);
+            return Cos0To2Pi(value);
+        }
+        private static Fixed64 Cos0To2Pi(Fixed64 rad) => rad.RawValue switch
+        {
+            <= Const.Pi >> 1 => Cos0ToPi2(rad),
+            <= Const.Pi => -Cos0ToPi2(Pi - rad),
+            <= Const.Pi + (Const.Pi >> 1) => -Cos0ToPi2(rad - Pi),
+            _ => Cos0ToPi2(PiTimes2 - rad),
+        };
+        private static Fixed64 Cos0ToPi2(Fixed64 rad) => rad.RawValue switch
+        {
+            0L => Fixed64.One,
+            Const.Pi / 3 => Fixed64.Half,
+            Const.Pi >> 1 => Fixed64.Zero,
+            _ => TaylorExpansion.Cosine(rad),
+        };
+        #endregion
+
+        #region 工具
+        /// <summary>
+        /// 将角度限制在0-360度之间
+        /// </summary>
+        public static Fixed64 ClampDeg(Fixed64 deg) => ModDegOrRad(deg, Deg360);
+
+        /// <summary>
+        /// 将弧度限制在0-2PI之间
+        /// </summary>
+        public static Fixed64 ClampRad(Fixed64 rad) => ModDegOrRad(rad, PiTimes2);
+
+        private static Fixed64 ModDegOrRad(Fixed64 rad, Fixed64 mod)
+        {
+            var value = rad % mod;
+            if (value < Fixed64.Zero)
+                value += mod;
+            return value;
+        }
+        #endregion
         #endregion
 
         #region Func
@@ -48,24 +163,15 @@ namespace Eevee.Fixed
         /// </summary>
         public static void Absolute(ref Matrix3X3 matrix, out Matrix3X3 result)
         {
-            result.M11 = Fixed64.Abs(matrix.M11);
-            result.M12 = Fixed64.Abs(matrix.M12);
-            result.M13 = Fixed64.Abs(matrix.M13);
-            result.M21 = Fixed64.Abs(matrix.M21);
-            result.M22 = Fixed64.Abs(matrix.M22);
-            result.M23 = Fixed64.Abs(matrix.M23);
-            result.M31 = Fixed64.Abs(matrix.M31);
-            result.M32 = Fixed64.Abs(matrix.M32);
-            result.M33 = Fixed64.Abs(matrix.M33);
-        }
-
-        /// <summary>
-        /// 绝对值。
-        /// Note: Abs(FixFloat.MinValue) == FixFloat.MaxValue.
-        /// </summary>
-        public static Fixed64 Abs(Fixed64 value)
-        {
-            return Fixed64.Abs(value);
+            result.M11 = matrix.M11.Abs;
+            result.M12 = matrix.M12.Abs;
+            result.M13 = matrix.M13.Abs;
+            result.M21 = matrix.M21.Abs;
+            result.M22 = matrix.M22.Abs;
+            result.M23 = matrix.M23.Abs;
+            result.M31 = matrix.M31.Abs;
+            result.M32 = matrix.M32.Abs;
+            result.M33 = matrix.M33.Abs;
         }
 
         /// <summary>
@@ -114,14 +220,6 @@ namespace Eevee.Fixed
         }
 
         /// <summary>
-        /// 向上取整
-        /// </summary>
-        public static Fixed64 Ceiling(Fixed64 value)
-        {
-            return Fixed64.Ceiling(value);
-        }
-
-        /// <summary>
         /// 区间值更正（如果出区间，值取最近）
         /// </summary>
         public static Fixed64 Clamp(Fixed64 value, Fixed64 min, Fixed64 max)
@@ -147,14 +245,6 @@ namespace Eevee.Fixed
                 return Fixed64.One;
 
             return value;
-        }
-
-        /// <summary>
-        /// 余弦
-        /// </summary>
-        public static Fixed64 Cos(Fixed64 value)
-        {
-            return Fixed64.Cos(value);
         }
 
         /// <summary>
@@ -191,18 +281,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 两点间距
         /// </summary>
-        public static Fixed64 Distance(Fixed64 value1, Fixed64 value2)
-        {
-            return Fixed64.Abs(value1 - value2);
-        }
-
-        /// <summary>
-        /// 向下取整
-        /// </summary>
-        public static Fixed64 Floor(Fixed64 value)
-        {
-            return Fixed64.Floor(value);
-        }
+        public static Fixed64 Distance(Fixed64 value1, Fixed64 value2) => value1 > value2 ? value1 - value2 : value2 - value1;
 
         /// <summary>
         /// Hermite插值
@@ -252,7 +331,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static bool IsPowerOfTwo(Fixed64 value)
         {
-            if (Sign(value) < 1)
+            if (value.Sign < 1)
                 return false;
             if (value.RawValue << Const.FractionalBits != 0)
                 return false;
@@ -317,12 +396,7 @@ namespace Eevee.Fixed
         /// <param name="current">当前值</param>
         /// <param name="target">目标值</param>
         /// <param name="maxDelta">最大改变值（负值将远离目标）</param>
-        public static Fixed64 MoveTowards(Fixed64 current, Fixed64 target, Fixed64 maxDelta)
-        {
-            if (Abs(target - current) <= maxDelta)
-                return target;
-            return (current + Sign(target - current) * maxDelta);
-        }
+        public static Fixed64 MoveTowards(Fixed64 current, Fixed64 target, Fixed64 maxDelta) => (target - current).Abs <= maxDelta ? target : current + (target - current).Sign * maxDelta;
 
         /// <summary>
         /// 与MoveTowards相同，相对于角度
@@ -366,44 +440,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 循环值（类似于取模操作）
         /// </summary>
-        public static Fixed64 Repeat(Fixed64 t, Fixed64 length)
-        {
-            return (t - Floor(t / length) * length);
-        }
-
-        /// <summary>
-        /// 四舍五入到最接近的整数值<br/>
-        /// 如果一个数在偶数和奇数中间，则返回最近的偶数（如3.5 -> 4， 4.5 -> 4）
-        /// </summary>
-        public static Fixed64 Round(Fixed64 value)
-        {
-            return Fixed64.Round(value);
-        }
-
-        /// <summary>
-        /// 开平方
-        /// </summary>
-        public static Fixed64 Sqrt(Fixed64 fixed64)
-        {
-            return Fixed64.Sqrt(fixed64);
-        }
-
-        /// <summary>
-        /// 正弦
-        /// </summary>
-        public static Fixed64 Sin(Fixed64 value)
-        {
-            return Fixed64.SinRad(value);
-        }
-
-        /// <summary>
-        /// 返回一个数字，指示一个FixFloat数字的符号。
-        /// 如果值为正，返回1;如果值为0，返回0;如果值为负，返回-1。
-        /// </summary>
-        public static int Sign(Fixed64 value)
-        {
-            return Fixed64.Sign(value);
-        }
+        public static Fixed64 Repeat(Fixed64 t, Fixed64 length) => (t - (t / length).Floor * length);
 
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
@@ -434,7 +471,7 @@ namespace Eevee.Fixed
         {
             var num = 2f / smoothTime;
             var num2 = num * deltaTime;
-            var num3 = Fixed64.One / ((Fixed64.One + num2 + 0.48f * num2 * num2) + (0.235f * num2 * num2) * num2);
+            var num3 = (Fixed64.One + num2 + 0.48f * num2 * num2 + 0.235f * num2 * num2 * num2).Reciprocal;
             var num4 = current - target;
             var num5 = target;
             var max = maxSpeed * smoothTime;
@@ -482,12 +519,12 @@ namespace Eevee.Fixed
 
             if (x == Fixed64.One)
             {
-                return neg ? Fixed64.One / (Fixed64)2 : (Fixed64)2;
+                return neg ? Fixed64.Half : 2;
             }
 
             if (x >= Fixed64.Log2Max)
             {
-                return neg ? Fixed64.One / Fixed64.MaxValue : Fixed64.MaxValue;
+                return neg ? Fixed64.MaxValue.Reciprocal : Fixed64.MaxValue;
             }
 
             if (x <= Fixed64.Log2Min)
@@ -500,7 +537,7 @@ namespace Eevee.Fixed
             // From term n, we get term n + 1 by multiplying with x / n.
             // When the sum term drops to zero, we can stop summing.
 
-            int integerPart = (int)Floor(x);
+            int integerPart = (int)x.Floor;
             // Take fractional part of exponent
             x = Fixed64.FromRaw(x.RawValue & 0x00000000FFFFFFFF);
 
@@ -517,7 +554,7 @@ namespace Eevee.Fixed
             result = Fixed64.FromRaw(result.RawValue << integerPart);
             if (neg)
             {
-                result = Fixed64.One / result;
+                result = result.Reciprocal;
             }
 
             return result;

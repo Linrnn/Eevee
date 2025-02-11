@@ -150,7 +150,7 @@ namespace Eevee.Fixed
 
             Fixed64 halfTheta = Fixed64.Acos(dot);
 
-            return Multiply(Multiply(from, Fixed64.SinRad((1 - t) * halfTheta)) + Multiply(to, Fixed64.SinRad(t * halfTheta)), 1 / Fixed64.SinRad(halfTheta));
+            return Multiply(Multiply(from, Maths.SinRad((1 - t) * halfTheta)) + Multiply(to, Maths.SinRad(t * halfTheta)), 1 / Maths.SinRad(halfTheta));
         }
 
         public static Quaternions RotateTowards(Quaternions from, Quaternions to, Fixed64 maxDegreesDelta)
@@ -175,7 +175,7 @@ namespace Eevee.Fixed
 
             maxDegreesDelta /= theta;
 
-            return Multiply(Multiply(from, Fixed64.SinRad((1 - maxDegreesDelta) * halfTheta)) + Multiply(to, Fixed64.SinRad(maxDegreesDelta * halfTheta)), 1 / Fixed64.SinRad(halfTheta));
+            return Multiply(Multiply(from, Maths.SinRad((1 - maxDegreesDelta) * halfTheta)) + Multiply(to, Maths.SinRad(maxDegreesDelta * halfTheta)), 1 / Maths.SinRad(halfTheta));
         }
 
         public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z)
@@ -197,37 +197,36 @@ namespace Eevee.Fixed
 
         public static Quaternions AngleAxis(Fixed64 angle, Vector3D axis)
         {
-            axis = axis * Maths.Deg2Rad;
+            axis *= Maths.Deg2Rad;
             axis.Normalize();
 
-            Fixed64 halfAngle = angle * Maths.Deg2Rad * Fixed64.Half;
+            var halfAngle = angle * Maths.Deg2Rad * Fixed64.Half;
+            var sin = Maths.SinRad(halfAngle);
 
             Quaternions rotation;
-            Fixed64 sin = Fixed64.SinRad(halfAngle);
-
             rotation.X = axis.X * sin;
             rotation.Y = axis.Y * sin;
             rotation.Z = axis.Z * sin;
-            rotation.W = Fixed64.Cos(halfAngle);
-
+            rotation.W = Maths.CosRad(halfAngle);
             return rotation;
         }
 
         public static void CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll, out Quaternions result)
         {
-            Fixed64 num9 = roll * Fixed64.Half;
-            Fixed64 num6 = Fixed64.SinRad(num9);
-            Fixed64 num5 = Fixed64.Cos(num9);
-            Fixed64 num8 = pitch * Fixed64.Half;
-            Fixed64 num4 = Fixed64.SinRad(num8);
-            Fixed64 num3 = Fixed64.Cos(num8);
-            Fixed64 num7 = yaw * Fixed64.Half;
-            Fixed64 num2 = Fixed64.SinRad(num7);
-            Fixed64 num = Fixed64.Cos(num7);
-            result.X = ((num * num4) * num5) + ((num2 * num3) * num6);
-            result.Y = ((num2 * num3) * num5) - ((num * num4) * num6);
-            result.Z = ((num * num3) * num6) - ((num2 * num4) * num5);
-            result.W = ((num * num3) * num5) + ((num2 * num4) * num6);
+            var num9 = roll * Fixed64.Half;
+            var num6 = Maths.SinRad(num9);
+            var num5 = Maths.CosRad(num9);
+            var num8 = pitch * Fixed64.Half;
+            var num4 = Maths.SinRad(num8);
+            var num3 = Maths.CosRad(num8);
+            var num7 = yaw * Fixed64.Half;
+            var num2 = Maths.SinRad(num7);
+            var num = Maths.CosRad(num7);
+
+            result.X = num * num4 * num5 + num2 * num3 * num6;
+            result.Y = num2 * num3 * num5 - num * num4 * num6;
+            result.Z = num * num3 * num6 - num2 * num4 * num5;
+            result.W = num * num3 * num5 + num2 * num4 * num6;
         }
 
         /// <summary>
@@ -262,15 +261,15 @@ namespace Eevee.Fixed
 
         public static Quaternions Inverse(Quaternions rotation)
         {
-            Fixed64 invNorm = Fixed64.One / ((rotation.X * rotation.X) + (rotation.Y * rotation.Y) + (rotation.Z * rotation.Z) + (rotation.W * rotation.W));
-            return Quaternions.Multiply(Quaternions.Conjugate(rotation), invNorm);
+            var invNorm = (rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W).Reciprocal;
+            return Multiply(Conjugate(rotation), invNorm);
         }
 
         public static Quaternions FromToRotation(Vector3D fromVector, Vector3D toVector)
         {
-            Vector3D w = Vector3D.Cross(fromVector, toVector);
+            var w = Vector3D.Cross(fromVector, toVector);
             Quaternions q = new Quaternions(w.X, w.Y, w.Z, Vector3D.Dot(fromVector, toVector));
-            q.W += Fixed64.Sqrt(fromVector.sqrMagnitude * toVector.sqrMagnitude);
+            q.W += (fromVector.sqrMagnitude * toVector.sqrMagnitude).Sqrt;
             q.Normalize();
 
             return q;
@@ -400,12 +399,13 @@ namespace Eevee.Fixed
         #region public void Normalize()
         public void Normalize()
         {
-            Fixed64 num2 = (((this.X * this.X) + (this.Y * this.Y)) + (this.Z * this.Z)) + (this.W * this.W);
-            Fixed64 num = 1 / (Fixed64.Sqrt(num2));
-            this.X *= num;
-            this.Y *= num;
-            this.Z *= num;
-            this.W *= num;
+            var num2 = X * X + Y * Y + Z * Z + W * W;
+            var num = num2.Sqrt.Reciprocal;
+
+            X *= num;
+            Y *= num;
+            Z *= num;
+            W *= num;
         }
         #endregion
 
@@ -418,8 +418,7 @@ namespace Eevee.Fixed
         #region public static JQuaternion CreateFromMatrix(JMatrix matrix)
         public static Quaternions CreateFromMatrix(Matrix3X3 matrix)
         {
-            Quaternions result;
-            Quaternions.CreateFromMatrix(ref matrix, out result);
+            CreateFromMatrix(ref matrix, out var result);
             return result;
         }
 
@@ -433,7 +432,7 @@ namespace Eevee.Fixed
             Fixed64 num8 = (matrix.M11 + matrix.M22) + matrix.M33;
             if (num8 > Fixed64.Zero)
             {
-                Fixed64 num = Fixed64.Sqrt((num8 + Fixed64.One));
+                var num = (num8 + Fixed64.One).Sqrt;
                 result.W = num * Fixed64.Half;
                 num = Fixed64.Half / num;
                 result.X = (matrix.M23 - matrix.M32) * num;
@@ -442,8 +441,8 @@ namespace Eevee.Fixed
             }
             else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
             {
-                Fixed64 num7 = Fixed64.Sqrt((((Fixed64.One + matrix.M11) - matrix.M22) - matrix.M33));
-                Fixed64 num4 = Fixed64.Half / num7;
+                var num7 = (Fixed64.One + matrix.M11 - matrix.M22 - matrix.M33).Sqrt;
+                var num4 = Fixed64.Half / num7;
                 result.X = Fixed64.Half * num7;
                 result.Y = (matrix.M12 + matrix.M21) * num4;
                 result.Z = (matrix.M13 + matrix.M31) * num4;
@@ -451,8 +450,8 @@ namespace Eevee.Fixed
             }
             else if (matrix.M22 > matrix.M33)
             {
-                Fixed64 num6 = Fixed64.Sqrt((((Fixed64.One + matrix.M22) - matrix.M11) - matrix.M33));
-                Fixed64 num3 = Fixed64.Half / num6;
+                var num6 = (Fixed64.One + matrix.M22 - matrix.M11 - matrix.M33).Sqrt;
+                var num3 = Fixed64.Half / num6;
                 result.X = (matrix.M21 + matrix.M12) * num3;
                 result.Y = Fixed64.Half * num6;
                 result.Z = (matrix.M32 + matrix.M23) * num3;
@@ -460,8 +459,8 @@ namespace Eevee.Fixed
             }
             else
             {
-                Fixed64 num5 = Fixed64.Sqrt((((Fixed64.One + matrix.M33) - matrix.M11) - matrix.M22));
-                Fixed64 num2 = Fixed64.Half / num5;
+                var num5 = (Fixed64.One + matrix.M33 - matrix.M11 - matrix.M22).Sqrt;
+                var num2 = Fixed64.Half / num5;
                 result.X = (matrix.M31 + matrix.M13) * num2;
                 result.Y = (matrix.M32 + matrix.M23) * num2;
                 result.Z = Fixed64.Half * num5;

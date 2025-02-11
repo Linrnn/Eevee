@@ -57,32 +57,17 @@
         public const long FractionalPart = (1L << FractionalBits) - 1;
         #endregion
 
-        #region 角度
-        /// <summary>
-        /// 90°
-        /// </summary>
-        internal const short RightAngle = 90;
-        /// <summary>
-        /// 180°
-        /// </summary>
-        internal const short FlatAngle = 180;
-        /// <summary>
-        /// 360°
-        /// </summary>
-        internal const short FullAngle = 360;
-        #endregion
-
         #region 圆周率
         /// <summary>
         /// π
         /// </summary>
         internal const long Pi = 0x3243F6A88 >> OffsetFractionalBits;
         /// <summary>
-        /// π*2
+        /// 2π
         /// </summary>
         internal const long PiTimes2 = 0x6487ED511 >> OffsetFractionalBits;
         /// <summary>
-        /// π^2
+        /// π*π
         /// </summary>
         internal const long PiOver2 = 0x1921FB544 >> OffsetFractionalBits;
         #endregion

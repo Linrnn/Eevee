@@ -18,6 +18,7 @@
  */
 
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -101,32 +102,22 @@ namespace Eevee.Fixed
         }
         #endregion
 
-        public static Vector3D Abs(Vector3D other)
-        {
-            return new Vector3D(Fixed64.Abs(other.X), Fixed64.Abs(other.Y), Fixed64.Abs(other.Z));
-        }
+        public static Vector3D Abs(Vector3D other) => new(other.X.Abs, other.Y.Abs, other.Z.Abs);
 
         /// <summary>
         /// Gets the squared length of the vector.
         /// </summary>
         /// <returns>Returns the squared length of the vector.</returns>
-        public Fixed64 sqrMagnitude
-        {
-            get { return (((this.X * this.X) + (this.Y * this.Y)) + (this.Z * this.Z)); }
-        }
+        public Fixed64 sqrMagnitude => GetSqrMagnitude();
 
         /// <summary>
         /// Gets the length of the vector.
         /// </summary>
         /// <returns>Returns the length of the vector.</returns>
-        public Fixed64 magnitude
-        {
-            get
-            {
-                Fixed64 num = ((this.X * this.X) + (this.Y * this.Y)) + (this.Z * this.Z);
-                return Fixed64.Sqrt(num);
-            }
-        }
+        public Fixed64 magnitude => GetSqrMagnitude().Sqrt;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Fixed64 GetSqrMagnitude() => X * X + Y * Y + Z * Z;
 
         public static Vector3D ClampMagnitude(Vector3D vector, Fixed64 maxLength)
         {
@@ -329,15 +320,11 @@ namespace Eevee.Fixed
         #region public static JVector Max(JVector value1, JVector value2)
         public static Vector3D Max(Vector3D value1, Vector3D value2)
         {
-            Vector3D result;
-            Vector3D.Max(ref value1, ref value2, out result);
+            Max(ref value1, ref value2, out var result);
             return result;
         }
 
-        public static Fixed64 Distance(Vector3D v1, Vector3D v2)
-        {
-            return Fixed64.Sqrt((v1.X - v2.X) * (v1.X - v2.X) + (v1.Y - v2.Y) * (v1.Y - v2.Y) + (v1.Z - v2.Z) * (v1.Z - v2.Z));
-        }
+        public static Fixed64 Distance(Vector3D v1, Vector3D v2) => (v1 - v2).magnitude;
 
         /// <summary>
         /// Gets a vector with the maximum x,y and z values of both vectors.
@@ -347,9 +334,9 @@ namespace Eevee.Fixed
         /// <param name="result">A vector with the maximum x,y and z values of both vectors.</param>
         public static void Max(ref Vector3D value1, ref Vector3D value2, out Vector3D result)
         {
-            result.X = (value1.X > value2.X) ? value1.X : value2.X;
-            result.Y = (value1.Y > value2.Y) ? value1.Y : value2.Y;
-            result.Z = (value1.Z > value2.Z) ? value1.Z : value2.Z;
+            result.X = value1.X > value2.X ? value1.X : value2.X;
+            result.Y = value1.Y > value2.Y ? value1.Y : value2.Y;
+            result.Z = value1.Z > value2.Z ? value1.Z : value2.Z;
         }
         #endregion
 
@@ -489,9 +476,10 @@ namespace Eevee.Fixed
         // The measured angle between the two vectors would be positive in a clockwise direction and negative in an anti-clockwise direction.
         public static Fixed64 SignedAngle(Vector3D from, Vector3D to, Vector3D axis)
         {
-            Vector3D fromNorm = from.normalized, toNorm = to.normalized;
-            Fixed64 unsignedAngle = Maths.Acos(Maths.Clamp(Dot(fromNorm, toNorm), -Const.One, Const.One)) * Maths.Rad2Deg;
-            Fixed64 sign = Maths.Sign(Dot(axis, Cross(fromNorm, toNorm)));
+            var fromNorm = from.normalized;
+            var toNorm = to.normalized;
+            var unsignedAngle = Maths.Acos(Maths.Clamp(Dot(fromNorm, toNorm), -Const.One, Const.One)) * Maths.Rad2Deg;
+            var sign = Dot(axis, Cross(fromNorm, toNorm)).Sign;
             return unsignedAngle * sign;
         }
 
@@ -702,15 +690,10 @@ namespace Eevee.Fixed
         /// </summary>
         public void Normalize()
         {
-            Fixed64 num2 = ((this.X * this.X) + (this.Y * this.Y)) + (this.Z * this.Z);
-            Fixed64 num;
-            if (num2 < 0)
-                num = Fixed64.Zero;
-            else
-                num = Fixed64.One / Fixed64.Sqrt(num2);
-            this.X *= num;
-            this.Y *= num;
-            this.Z *= num;
+            var num = magnitude.Reciprocal;
+            X *= num;
+            Y *= num;
+            Z *= num;
         }
 
         /// <summary>
@@ -720,11 +703,8 @@ namespace Eevee.Fixed
         /// <param name="result">A normalized vector.</param>
         public static void Normalize(ref Vector3D value, out Vector3D result)
         {
-            Fixed64 num2 = ((value.X * value.X) + (value.Y * value.Y)) + (value.Z * value.Z);
-            Fixed64 num = Fixed64.One / Fixed64.Sqrt(num2);
-            result.X = value.X * num;
-            result.Y = value.Y * num;
-            result.Z = value.Z * num;
+            result = value;
+            result.Normalize();
         }
         #endregion
 

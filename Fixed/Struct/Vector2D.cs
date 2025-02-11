@@ -179,38 +179,28 @@ namespace Eevee.Fixed
         /// <summary>
         /// Returns FP precison distanve between two vectors
         /// </summary>
-        /// <param name="value1">
-        /// A <see cref="Vector2D"/>
-        /// </param>
-        /// <param name="value2">
-        /// A <see cref="Vector2D"/>
-        /// </param>
-        /// <returns>
-        /// A <see cref="System.Single"/>
-        /// </returns>
         public static Fixed64 Distance(Vector2D value1, Vector2D value2)
         {
-            Fixed64 result;
-            DistanceSquared(ref value1, ref value2, out result);
-            return (Fixed64)Fixed64.Sqrt(result);
+            DistanceSquared(ref value1, ref value2, out var result);
+            return result.Sqrt;
         }
 
         public static void Distance(ref Vector2D value1, ref Vector2D value2, out Fixed64 result)
         {
             DistanceSquared(ref value1, ref value2, out result);
-            result = (Fixed64)Fixed64.Sqrt(result);
+            result = result.Sqrt;
         }
 
         public static Fixed64 DistanceSquared(Vector2D value1, Vector2D value2)
         {
-            Fixed64 result;
-            DistanceSquared(ref value1, ref value2, out result);
+            DistanceSquared(ref value1, ref value2, out var result);
             return result;
         }
 
         public static void DistanceSquared(ref Vector2D value1, ref Vector2D value2, out Fixed64 result)
         {
-            result = (value1.X - value2.X) * (value1.X - value2.X) + (value1.Y - value2.Y) * (value1.Y - value2.Y);
+            var delta = value1 - value2;
+            result = delta.X * delta.X + delta.Y * delta.Y;
         }
 
         /// <summary>
@@ -312,9 +302,8 @@ namespace Eevee.Fixed
         {
             get
             {
-                Fixed64 result;
-                DistanceSquared(ref this, ref zeroVector, out result);
-                return Fixed64.Sqrt(result);
+                DistanceSquared(ref this, ref zeroVector, out var result);
+                return result.Sqrt;
             }
         }
 
@@ -325,8 +314,7 @@ namespace Eevee.Fixed
 
         public Fixed64 LengthSquared()
         {
-            Fixed64 result;
-            DistanceSquared(ref this, ref zeroVector, out result);
+            DistanceSquared(ref this, ref zeroVector, out var result);
             return result;
         }
 
@@ -438,23 +426,17 @@ namespace Eevee.Fixed
         {
             get
             {
-                Vector2D result;
-                Vector2D.Normalize(ref this, out result);
-
+                Normalize(ref this, out var result);
                 return result;
             }
         }
 
         public static void Normalize(ref Vector2D value, out Vector2D result)
         {
-            Fixed64 factor;
-            DistanceSquared(ref value, ref zeroVector, out factor);
+            DistanceSquared(ref value, ref zeroVector, out var factor);
 
             // 溢出  小于0  当做0计算
-            if (factor < 0)
-                factor = Fixed64.Zero;
-            else
-                factor = 1f / (Fixed64)Fixed64.Sqrt(factor);
+            factor = factor < 0 ? Fixed64.Zero : factor.Sqrt.Reciprocal;
             result.X = value.X * factor;
             result.Y = value.Y * factor;
         }
@@ -494,7 +476,7 @@ namespace Eevee.Fixed
 
         public override string ToString()
         {
-            return string.Format("({0:f1}, {1:f1})", X.AsFloat(), Y.AsFloat());
+            return $"({X.AsFloat():f1}, {Y.AsFloat():f1})";
         }
         #endregion Public Methods
 

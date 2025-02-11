@@ -9,7 +9,7 @@ namespace Eevee.Fixed
     /// 通过 “Const.FractionalPlaces” 修改小数位数
     /// </summary>
     [Serializable]
-    public struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>
+    public struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
     {
         private long _rawValue; // 当前值
 
@@ -22,14 +22,8 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Infinity = new(Const.MaxPeak - 1); // 无穷大
         public static readonly Fixed64 NaN = new(Const.MinPeak);
 
-        private static readonly Fixed64 _en1 = One / 10;
         private static readonly Fixed64 _en2 = One / 100;
         private static readonly Fixed64 _en3 = One / 1000;
-        private static readonly Fixed64 _en4 = One / 10000;
-        private static readonly Fixed64 _en5 = One / 100000;
-        private static readonly Fixed64 _en6 = One / 1000000;
-        private static readonly Fixed64 _en7 = One / 10000000;
-        private static readonly Fixed64 _en8 = One / 100000000;
         public static readonly Fixed64 Epsilon = _en3;
 
         public static readonly Fixed64 LutInterval = (Const.TableSize - 1) / new Fixed64(Const.PiOver2);
@@ -43,135 +37,107 @@ namespace Eevee.Fixed
         internal Fixed64(long rawValue) => _rawValue = rawValue;
         #endregion
 
-        #region override Math Func
+        #region 数字操作
         /// <summary>
         /// value大于0，返回1<br/>
         /// value等于0，返回0<br/>
         /// value小于0，返回-1
         /// </summary>
-        public static int Sign(Fixed64 value) => Math.Sign(value._rawValue);
+        public readonly int Sign => _rawValue switch
+        {
+            < 0L => -1,
+            > 0L => 1,
+            _ => 0,
+        };
 
         /// <summary>
         /// 绝对值<br/>
         /// 参考链接：http://www.strchr.com/optimized_abs_function
         /// </summary>
-        public static Fixed64 Abs(Fixed64 value)
-        {
-            long mask = value._rawValue >> Const.FullBits - 1;
-            return new Fixed64(value._rawValue + mask ^ mask);
-        }
+        public readonly Fixed64 Abs => _rawValue >= 0L ? this : -this;
 
         /// <summary>
         /// 向上取整
         /// </summary>
-        public static Fixed64 Ceiling(Fixed64 value)
+        public readonly Fixed64 Ceiling
         {
-            var hasFractionalPart = (value._rawValue & Const.FractionalPart) != 0;
-            return hasFractionalPart ? Floor(value) + One : value;
+            get
+            {
+                bool hasFractionalPart = (_rawValue & Const.FractionalPart) != 0;
+                return hasFractionalPart ? Floor + One : this;
+            }
         }
 
         /// <summary>
         /// 向下取整
         /// </summary>
-        public static Fixed64 Floor(Fixed64 value) => new((long)((ulong)value._rawValue & Const.IntegerPart));
+        public readonly Fixed64 Floor => new((long)((ulong)_rawValue & Const.IntegerPart));
 
         /// <summary>
         /// 四舍五入到最接近的整数值<br/>
         /// 如果一个数在偶数和奇数中间，则返回最近的偶数（如3.5 -> 4，4.5 -> 4）
         /// </summary>
-        public static Fixed64 Round(Fixed64 value)
+        public readonly Fixed64 Round
         {
-            var fractionalPart = value._rawValue & Const.FractionalPart;
-            var integralPart = Floor(value);
-            if (fractionalPart < Const.Half)
-                return integralPart;
-
-            if (fractionalPart > Const.Half)
-                return integralPart + One;
-
-            // 在偶数和奇数中间，则返回最近的偶数 
-            return (integralPart._rawValue & Const.One) == 0 ? integralPart : integralPart + One;
-        }
-
-        /// <summary>
-        /// 平方根，即开方
-        /// </summary>
-        public static Fixed64 Sqrt(Fixed64 value)
-        {
-            long rawValue = value._rawValue;
-            if (rawValue < 0L)
+            get
             {
-                LogRelay.Fail($"[Fixed] Fixed64.Sqrt()，value：{value}是负数，无法开方");
-                return Zero;
-            }
+                var fractionalPart = _rawValue & Const.FractionalPart;
+                var integralPart = Floor;
+                if (fractionalPart < Const.Half)
+                    return integralPart;
 
-            if (rawValue <= 1L << Const.FractionalBits - 1) // 存在符号位，需要-1；先偏移，开方后，精度会比后偏移高
-            {
-                long offsetRawValue = rawValue << Const.FractionalBits;
-                long sqrtRawValue = SquareRoot.Count(offsetRawValue);
-                return new Fixed64(sqrtRawValue);
-            }
-            else
-            {
-                long sqrtRawValue = SquareRoot.Count(rawValue);
-                long offsetRawValue = sqrtRawValue << (Const.FractionalBits >> 1);
-                return new Fixed64(offsetRawValue);
+                if (fractionalPart > Const.Half)
+                    return integralPart + One;
+
+                // 在偶数和奇数中间，则返回最近的偶数 
+                return (integralPart._rawValue & Const.One) == 0 ? integralPart : integralPart + One;
             }
         }
 
         /// <summary>
-        /// 返回正弦值<br/>
-        /// 弧度角输入
+        /// 倒数，-1次方
         /// </summary>
-        public static Fixed64 SinRad(Fixed64 value) => SinDeg(value * Maths.Deg2Rad);
+        public readonly Fixed64 Reciprocal => One / this;
 
         /// <summary>
-        /// 返回正弦值<br/>
-        /// 角度角输入
+        /// 平方根，即开方，1/2次方
         /// </summary>
-        public static Fixed64 SinDeg(Fixed64 value)
+        public readonly Fixed64 Sqrt
         {
-            var deg = value % Const.FullAngle;
-            if (deg < 0)
-                deg += Const.FullAngle;
-
-            long rawValue = (int)deg._rawValue switch
+            get
             {
-                <= 90 => SinFrom0To90(deg),
-                <= 180 => SinFrom0To90(180 - deg),
-                <= 270 => -SinFrom0To90(deg - 180),
-                _ => -SinFrom0To90(360 - deg),
-            };
+                switch (_rawValue)
+                {
+                    case < 0L:
+                    {
+                        LogRelay.Fail($"[Fixed] Fixed64.Sqrt()，value：{_rawValue}是负数，无法开方");
+                        return Zero;
+                    }
 
-            return new Fixed64(rawValue >> Const.OffsetFractionalBits);
-        }
+                    case <= 1L << Const.FractionalBits - 1: // 存在符号位，需要-1；先偏移，开方后，精度更高
+                    {
+                        long offsetRawValue = _rawValue << Const.FractionalBits;
+                        long sqrtRawValue = SquareRoot.Count(offsetRawValue);
+                        return new Fixed64(sqrtRawValue);
+                    }
 
-        private static long SinFrom0To90(Fixed64 value)
-        {
-            int integer = (int)Floor(value);
-            int fractional = (int)Round((value - integer) * Sine.Table2Scale);
-            if (fractional == 0)
-                return Sine.CountInteger(integer);
-
-            long sinCosInteger = Sine.CountInteger(integer);
-            long sinFractional = Sine.CountFractional(fractional);
-            long cosInteger = Sine.CountInteger(90 - integer);
-            long cosFractional = Sine.CountFractional(fractional);
-            return 0;
+                    default:
+                    {
+                        long sqrtRawValue = SquareRoot.Count(_rawValue);
+                        long offsetRawValue = sqrtRawValue << (Const.FractionalBits >> 1);
+                        return new Fixed64(offsetRawValue);
+                    }
+                }
+            }
         }
 
         /// <summary>
-        /// Returns the cosine of x.
-        /// See Sin() for more details.
+        /// 平方，2次方
         /// </summary>
-        public static Fixed64 Cos(Fixed64 x)
-        {
-            var xl = x._rawValue;
-            var rawAngle = xl + (xl > 0 ? -Const.Pi - Const.PiOver2 : Const.PiOver2);
-            Fixed64 a2 = SinRad(new Fixed64(rawAngle));
-            return a2;
-        }
+        public readonly Fixed64 Sqr => this * this;
+        #endregion
 
+        #region 三角函数
         /// <summary>
         /// Returns the tangent of x.
         /// </summary>
@@ -198,13 +164,13 @@ namespace Eevee.Fixed
 
             // Find the two closest values in the LUT and perform linear interpolation
             var rawIndex = FastMul(clamped, LutInterval);
-            var roundedIndex = Round(rawIndex);
+            var roundedIndex = rawIndex.Round;
             var indexError = FastSub(rawIndex, roundedIndex);
 
             var nearestValue = new Fixed64(Tangent.Get(roundedIndex));
-            var secondNearestValue = new Fixed64(Tangent.Get((int)roundedIndex + Sign(indexError)));
+            var secondNearestValue = new Fixed64(Tangent.Get((int)roundedIndex + indexError.Sign));
 
-            var delta = FastMul(indexError, Abs(FastSub(nearestValue, secondNearestValue)))._rawValue;
+            var delta = FastMul(indexError, FastSub(nearestValue, secondNearestValue)).Abs._rawValue;
             var interpolatedValue = nearestValue._rawValue + delta;
             var finalValue = flip ? -interpolatedValue : interpolatedValue;
             Fixed64 a2 = new Fixed64(finalValue);
@@ -228,15 +194,14 @@ namespace Eevee.Fixed
                 z = -z;
             }
 
-            Fixed64 result;
             var two = (Fixed64)2;
             var three = (Fixed64)3;
 
             bool invert = z > One;
             if (invert)
-                z = One / z;
+                z = z.Reciprocal;
 
-            result = One;
+            var result = One;
             var term = One;
 
             var zSq = z * z;
@@ -262,7 +227,7 @@ namespace Eevee.Fixed
 
             if (invert)
             {
-                result = Maths.PIOver2 - result;
+                result = Maths.PiOver2 - result;
             }
 
             if (neg)
@@ -281,7 +246,7 @@ namespace Eevee.Fixed
             {
                 if (yl > 0)
                 {
-                    return Maths.PIOver2;
+                    return Maths.PiOver2;
                 }
 
                 if (yl == 0)
@@ -289,38 +254,38 @@ namespace Eevee.Fixed
                     return Zero;
                 }
 
-                return -Maths.PIOver2;
+                return -Maths.PiOver2;
             }
 
             Fixed64 atan;
             var z = y / x;
 
-            Fixed64 sm = Fixed64._en2 * 28;
+            Fixed64 sm = _en2 * 28;
             // Deal with overflow
             if (One + sm * z * z == MaxValue)
             {
-                return y < Zero ? -Maths.PIOver2 : Maths.PIOver2;
+                return y < Zero ? -Maths.PiOver2 : Maths.PiOver2;
             }
 
-            if (Abs(z) < One)
+            if (z.Abs < One)
             {
                 atan = z / (One + sm * z * z);
                 if (xl < 0)
                 {
                     if (yl < 0)
                     {
-                        return atan - Maths.PI;
+                        return atan - Maths.Pi;
                     }
 
-                    return atan + Maths.PI;
+                    return atan + Maths.Pi;
                 }
             }
             else
             {
-                atan = Maths.PIOver2 - z / (z * z + sm);
+                atan = Maths.PiOver2 - z / (z * z + sm);
                 if (yl < 0)
                 {
-                    return atan - Maths.PI;
+                    return atan - Maths.Pi;
                 }
             }
 
@@ -329,7 +294,7 @@ namespace Eevee.Fixed
 
         public static Fixed64 Asin(Fixed64 value)
         {
-            return FastSub(Maths.PIOver2, Acos(value));
+            return FastSub(Maths.PiOver2, Acos(value));
         }
 
         /// <summary>
@@ -344,10 +309,10 @@ namespace Eevee.Fixed
             }
 
             if (x.RawValue == 0)
-                return Maths.PIOver2;
+                return Maths.PiOver2;
 
-            var result = Atan(Sqrt(One - x * x) / x);
-            return x.RawValue < 0 ? result + Maths.PI : result;
+            var result = Atan((One - x * x).Sqrt / x);
+            return x.RawValue < 0 ? result + Maths.Pi : result;
         }
         #endregion
 
@@ -356,12 +321,7 @@ namespace Eevee.Fixed
         /// 相加。
         /// 无溢出检测
         /// </summary>
-        public static Fixed64 operator +(Fixed64 x, Fixed64 y)
-        {
-            Fixed64 result;
-            result._rawValue = x._rawValue + y._rawValue;
-            return result;
-        }
+        public static Fixed64 operator +(Fixed64 x, Fixed64 y) => new(x._rawValue + y._rawValue);
 
         /// <summary>
         /// 相减。
@@ -466,6 +426,7 @@ namespace Eevee.Fixed
             r._rawValue = result;
             return r;
         }
+        public static Fixed64 operator /(Fixed64 x, long y) => new(x._rawValue / y);
 
         /// <summary>
         /// 取余
@@ -821,7 +782,6 @@ namespace Eevee.Fixed
         {
             return obj is Fixed64 && ((Fixed64)obj)._rawValue == _rawValue;
         }
-
         public override int GetHashCode()
         {
             return _rawValue.GetHashCode();
@@ -831,7 +791,6 @@ namespace Eevee.Fixed
         {
             return _rawValue == other._rawValue;
         }
-
         public int CompareTo(Fixed64 other)
         {
             return _rawValue.CompareTo(other._rawValue);
@@ -841,25 +800,20 @@ namespace Eevee.Fixed
         {
             return ((float)this).ToString();
         }
-
-        public string ToString(IFormatProvider provider)
-        {
-            return ((float)this).ToString(provider);
-        }
         public string ToString(string format)
         {
             return ((float)this).ToString(format);
         }
-
+        public string ToString(IFormatProvider provider)
+        {
+            return ((float)this).ToString(provider);
+        }
         public string ToString(string format, IFormatProvider provider)
         {
             return ((float)this).ToString(format, provider);
         }
 
-        public static Fixed64 FromRaw(long rawValue)
-        {
-            return new Fixed64(rawValue);
-        }
+        public static Fixed64 FromRaw(long rawValue) => new(rawValue);
         #endregion
     }
 }
