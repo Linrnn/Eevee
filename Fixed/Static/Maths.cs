@@ -15,10 +15,6 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Deg2Rad = Pi / 180;
         public static readonly Fixed64 Rad2Deg = 180 / Pi;
 
-        internal static readonly Fixed64 Deg090 = 090;
-        internal static readonly Fixed64 Deg180 = 180;
-        internal static readonly Fixed64 Deg360 = 360;
-
         public static readonly Fixed64 Epsilon = Fixed64.Epsilon;
         #endregion
 
@@ -56,32 +52,9 @@ namespace Eevee.Fixed
         #region 三角函数
         #region 正弦
         /// <summary>
-        /// 输入角度角，计算正弦
+        /// 输入弧度，计算正弦
         /// </summary>
-        public static Fixed64 SinDeg(Fixed64 deg)
-        {
-            var value = ClampDeg(deg);
-            return Sin0To360(value);
-        }
-        private static Fixed64 Sin0To360(Fixed64 deg) => deg.RawValue switch
-        {
-            <= 090L << Const.FractionalBits => Sin0To90(deg),
-            <= 180L << Const.FractionalBits => Sin0To90(Deg180 - deg),
-            <= 270L << Const.FractionalBits => -Sin0To90(deg - Deg180),
-            _ => -Sin0To90(Deg360 - deg),
-        };
-        private static Fixed64 Sin0To90(Fixed64 deg) => deg.RawValue switch
-        {
-            0L => Fixed64.Zero,
-            30L << Const.FractionalBits => Fixed64.Half,
-            90L << Const.FractionalBits => Fixed64.One,
-            _ => TaylorExpansion.Sine(deg * Deg2Rad),
-        };
-
-        /// <summary>
-        /// 输入弧度角，计算正弦
-        /// </summary>
-        public static Fixed64 SinRad(Fixed64 rad)
+        public static Fixed64 Sin(Fixed64 rad)
         {
             var value = ClampRad(rad);
             return Sin0To2Pi(value);
@@ -100,22 +73,36 @@ namespace Eevee.Fixed
             Const.Pi >> 1 => Fixed64.One,
             _ => TaylorExpansion.Sine(rad),
         };
+
+        /// <summary>
+        /// 输入角度，计算正弦
+        /// </summary>
+        public static Fixed64 SinDeg(Fixed64 deg)
+        {
+            var value = ClampDeg(deg);
+            return Sin0To360(value);
+        }
+        private static Fixed64 Sin0To360(Fixed64 deg) => deg.RawValue switch
+        {
+            <= 090L << Const.FractionalBits => Sin0To90(deg),
+            <= 180L << Const.FractionalBits => Sin0To90(180L - deg),
+            <= 270L << Const.FractionalBits => -Sin0To90(deg - 180L),
+            _ => -Sin0To90(360L - deg),
+        };
+        private static Fixed64 Sin0To90(Fixed64 deg) => deg.RawValue switch
+        {
+            0L => Fixed64.Zero,
+            30L << Const.FractionalBits => Fixed64.Half,
+            90L << Const.FractionalBits => Fixed64.One,
+            _ => TaylorExpansion.Sine(deg * Deg2Rad),
+        };
         #endregion
 
         #region 余弦
         /// <summary>
-        /// 输入角度角，计算余弦
+        /// 输入弧度，计算余弦
         /// </summary>
-        public static Fixed64 CosDeg(Fixed64 deg)
-        {
-            var value = ClampDeg(deg + Deg090);
-            return Sin0To360(value);
-        }
-
-        /// <summary>
-        /// 输入弧度角，计算余弦
-        /// </summary>
-        public static Fixed64 CosRad(Fixed64 rad)
+        public static Fixed64 Cos(Fixed64 rad)
         {
             var value = ClampRad(rad);
             return Cos0To2Pi(value);
@@ -132,26 +119,41 @@ namespace Eevee.Fixed
             0L => Fixed64.One,
             Const.Pi / 3 => Fixed64.Half,
             Const.Pi >> 1 => Fixed64.Zero,
-            _ => TaylorExpansion.Cosine(rad),
+            _ => TaylorExpansion.Cos(rad),
         };
+
+        /// <summary>
+        /// 输入角度，计算余弦
+        /// </summary>
+        public static Fixed64 CosDeg(Fixed64 deg)
+        {
+            var value = ClampDeg(deg + 90L);
+            return Sin0To360(value);
+        }
+        #endregion
+
+        #region 正切
         #endregion
 
         #region 工具
         /// <summary>
-        /// 将角度限制在0-360度之间
+        /// 将角度限制在0~360度之间
         /// </summary>
-        public static Fixed64 ClampDeg(Fixed64 deg) => ModDegOrRad(deg, Deg360);
-
-        /// <summary>
-        /// 将弧度限制在0-2PI之间
-        /// </summary>
-        public static Fixed64 ClampRad(Fixed64 rad) => ModDegOrRad(rad, PiTimes2);
-
-        private static Fixed64 ModDegOrRad(Fixed64 rad, Fixed64 mod)
+        public static Fixed64 ClampDeg(Fixed64 deg)
         {
-            var value = rad % mod;
+            var value = deg % 360L;
+            if (value < 0L)
+                value += 360L;
+            return value;
+        }
+        /// <summary>
+        /// 将弧度限制在0~2π之间
+        /// </summary>
+        public static Fixed64 ClampRad(Fixed64 rad)
+        {
+            var value = rad % PiTimes2;
             if (value < Fixed64.Zero)
-                value += mod;
+                value += PiTimes2;
             return value;
         }
         #endregion

@@ -17,7 +17,7 @@ namespace Eevee.Fixed
         // Eevee.Fixed.SquareRoot.UseBinary(): 1.43s
 
         #region 32位小数精度
-        private static readonly byte[] _table =
+        private static readonly int[] _table =
         {
             000, 016, 022, 027, 032, 035, 039, 042, 045, 048, 050, 053, 055, 057, 059, 061,
             064, 065, 067, 069, 071, 073, 075, 076, 078, 080, 081, 083, 084, 086, 087, 089,

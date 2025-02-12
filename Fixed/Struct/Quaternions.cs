@@ -150,7 +150,7 @@ namespace Eevee.Fixed
 
             Fixed64 halfTheta = Fixed64.Acos(dot);
 
-            return Multiply(Multiply(from, Maths.SinRad((1 - t) * halfTheta)) + Multiply(to, Maths.SinRad(t * halfTheta)), 1 / Maths.SinRad(halfTheta));
+            return Multiply(Multiply(from, Maths.Sin((1 - t) * halfTheta)) + Multiply(to, Maths.Sin(t * halfTheta)), 1 / Maths.Sin(halfTheta));
         }
 
         public static Quaternions RotateTowards(Quaternions from, Quaternions to, Fixed64 maxDegreesDelta)
@@ -175,7 +175,7 @@ namespace Eevee.Fixed
 
             maxDegreesDelta /= theta;
 
-            return Multiply(Multiply(from, Maths.SinRad((1 - maxDegreesDelta) * halfTheta)) + Multiply(to, Maths.SinRad(maxDegreesDelta * halfTheta)), 1 / Maths.SinRad(halfTheta));
+            return Multiply(Multiply(from, Maths.Sin((1 - maxDegreesDelta) * halfTheta)) + Multiply(to, Maths.Sin(maxDegreesDelta * halfTheta)), 1 / Maths.Sin(halfTheta));
         }
 
         public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z)
@@ -201,27 +201,27 @@ namespace Eevee.Fixed
             axis.Normalize();
 
             var halfAngle = angle * Maths.Deg2Rad * Fixed64.Half;
-            var sin = Maths.SinRad(halfAngle);
+            var sin = Maths.Sin(halfAngle);
 
             Quaternions rotation;
             rotation.X = axis.X * sin;
             rotation.Y = axis.Y * sin;
             rotation.Z = axis.Z * sin;
-            rotation.W = Maths.CosRad(halfAngle);
+            rotation.W = Maths.Cos(halfAngle);
             return rotation;
         }
 
         public static void CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll, out Quaternions result)
         {
             var num9 = roll * Fixed64.Half;
-            var num6 = Maths.SinRad(num9);
-            var num5 = Maths.CosRad(num9);
+            var num6 = Maths.Sin(num9);
+            var num5 = Maths.Cos(num9);
             var num8 = pitch * Fixed64.Half;
-            var num4 = Maths.SinRad(num8);
-            var num3 = Maths.CosRad(num8);
+            var num4 = Maths.Sin(num8);
+            var num3 = Maths.Cos(num8);
             var num7 = yaw * Fixed64.Half;
-            var num2 = Maths.SinRad(num7);
-            var num = Maths.CosRad(num7);
+            var num2 = Maths.Sin(num7);
+            var num = Maths.Cos(num7);
 
             result.X = num * num4 * num5 + num2 * num3 * num6;
             result.Y = num2 * num3 * num5 - num * num4 * num6;

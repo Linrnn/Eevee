@@ -107,8 +107,8 @@ namespace Eevee.Fixed
 
         public static Matrix3X3 CreateRotationX(Fixed64 radians)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             Matrix3X3 matrix;
             matrix.M11 = Fixed64.One;
@@ -125,8 +125,8 @@ namespace Eevee.Fixed
 
         public static void CreateRotationX(Fixed64 radians, out Matrix3X3 result)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             result.M11 = Fixed64.One;
             result.M12 = Fixed64.Zero;
@@ -141,8 +141,8 @@ namespace Eevee.Fixed
 
         public static Matrix3X3 CreateRotationY(Fixed64 radians)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             Matrix3X3 matrix;
             matrix.M11 = cos;
@@ -159,8 +159,8 @@ namespace Eevee.Fixed
 
         public static void CreateRotationY(Fixed64 radians, out Matrix3X3 result)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             result.M11 = cos;
             result.M12 = Fixed64.Zero;
@@ -175,8 +175,8 @@ namespace Eevee.Fixed
 
         public static Matrix3X3 CreateRotationZ(Fixed64 radians)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             Matrix3X3 matrix;
             matrix.M11 = cos;
@@ -193,8 +193,8 @@ namespace Eevee.Fixed
 
         public static void CreateRotationZ(Fixed64 radians, out Matrix3X3 result)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             result.M11 = cos;
             result.M12 = sin;
@@ -666,8 +666,8 @@ namespace Eevee.Fixed
             var x = axis.X;
             var y = axis.Y;
             var z = axis.Z;
-            var num2 = Maths.SinRad(angle);
-            var num = Maths.CosRad(angle);
+            var num2 = Maths.Sin(angle);
+            var num = Maths.Cos(angle);
             var num11 = x * x;
             var num10 = y * y;
             var num9 = z * z;

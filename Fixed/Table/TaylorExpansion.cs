@@ -2,15 +2,13 @@
 {
     /// <summary>
     /// 泰勒展开<br/>
-    /// 参考链接：https://www.cnblogs.com/Carrawayang/p/14545043.html
+    /// 参考链接：https://www.cnblogs.com/Carrawayang/p/14545043.html<br/>
     /// 参考链接：https://zh.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E5%87%BD%E6%95%B0
     /// </summary>
     internal readonly struct TaylorExpansion
     {
-        private const byte Times = 5;
-
         #region Sin的泰勒展开
-        private static readonly long[] _sinFactorials =
+        private static readonly long[] _sinDenominators =
         {
             1, // 1! = 1
             -6, // 3! = 6
@@ -24,16 +22,16 @@
             -121645100408832000, // 19! = 121645100408832000
         };
 
-        internal static Fixed64 Sine(Fixed64 value, byte times = Times)
+        internal static Fixed64 Sine(Fixed64 rad, int times = 5)
         {
-            var sum = value;
-            var pow = value;
-            var sqr = value * value;
+            var sum = rad;
+            var pow = rad;
+            var sqr = rad * rad;
 
-            for (byte i = 1; i < times; ++i)
+            for (int i = 1; i < times; ++i)
             {
                 pow *= sqr;
-                sum += pow / _sinFactorials[i];
+                sum += pow / _sinDenominators[i];
             }
 
             return sum;
@@ -41,7 +39,7 @@
         #endregion
 
         #region Cos的泰勒展开
-        private static readonly long[] _cosFactorials =
+        private static readonly long[] _cosDenominators =
         {
             1, // 0! = 1
             -2, // 2! = 2
@@ -56,16 +54,16 @@
             2432902008176640000, // 20! = 2432902008176640000
         };
 
-        internal static Fixed64 Cosine(Fixed64 value, byte times = Times)
+        internal static Fixed64 Cos(Fixed64 rad, int times = 5)
         {
             var sum = Fixed64.One;
             var pow = Fixed64.One;
-            var sqr = value * value;
+            var sqr = rad * rad;
 
-            for (byte i = 1; i < times; ++i)
+            for (int i = 1; i < times; ++i)
             {
                 pow *= sqr;
-                sum += pow / _cosFactorials[i];
+                sum += pow / _cosDenominators[i];
             }
 
             return sum;

@@ -860,8 +860,8 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateX(Fixed64 radians)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             // [  1  0  0  0 ]
             // [  0  c  s  0 ]
@@ -895,8 +895,8 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateX(Fixed64 radians, Vector3D centerPoint)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
             var y = centerPoint.Y * (Fixed64.One - cos) + centerPoint.Z * sin;
             var z = centerPoint.Z * (Fixed64.One - cos) - centerPoint.Y * sin;
 
@@ -931,8 +931,8 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateY(Fixed64 radians)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             // [  c  0 -s  0 ]
             // [  0  1  0  0 ]
@@ -966,8 +966,8 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateY(Fixed64 radians, Vector3D centerPoint)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
             var x = centerPoint.X * (Fixed64.One - cos) - centerPoint.Z * sin;
             var z = centerPoint.X * (Fixed64.One - cos) + centerPoint.X * sin;
 
@@ -1002,8 +1002,8 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateZ(Fixed64 radians)
         {
-            var cos = Maths.CosRad(radians);
-            var sin = Maths.SinRad(radians);
+            var cos = Maths.Cos(radians);
+            var sin = Maths.Sin(radians);
 
             // [  c  s  0  0 ]
             // [ -s  c  0  0 ]
@@ -1037,8 +1037,8 @@ namespace Eevee.Fixed
         /// <returns>The rotation matrix.</returns>
         public static Matrix4X4 RotateZ(Fixed64 radians, Vector3D centerPoint)
         {
-            var c = Maths.CosRad(radians);
-            var s = Maths.SinRad(radians);
+            var c = Maths.Cos(radians);
+            var s = Maths.Sin(radians);
 
             // [  c  s  0  0 ]
             // [ -s  c  0  0 ]
@@ -1098,7 +1098,7 @@ namespace Eevee.Fixed
             //     [ zx-cosa*zx-sina*y zy-cosa*zy+sina*x   zz+cosa*(1-zz)  ]
             //
             Fixed64 x = axis.X, y = axis.Y, z = axis.Z;
-            Fixed64 sa = Maths.SinRad(angle), ca = Maths.CosRad(angle);
+            Fixed64 sa = Maths.Sin(angle), ca = Maths.Cos(angle);
             Fixed64 xx = x * x, yy = y * y, zz = z * z;
             Fixed64 xy = x * y, xz = x * z, yz = y * z;
 

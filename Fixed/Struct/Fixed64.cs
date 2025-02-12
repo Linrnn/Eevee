@@ -9,9 +9,9 @@ namespace Eevee.Fixed
     /// 通过 “Const.FractionalPlaces” 修改小数位数
     /// </summary>
     [Serializable]
-    public struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
+    public readonly struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
     {
-        private long _rawValue; // 当前值
+        internal readonly long RawValue; // 当前值
 
         public static readonly Fixed64 MaxValue = new(Const.MaxPeak - 2);
         public static readonly Fixed64 MinValue = new(Const.MinPeak + 2);
@@ -32,9 +32,7 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Ln2 = new(Const.LogE2);
 
         #region 构造函数
-        internal readonly long RawValue => _rawValue;
-
-        internal Fixed64(long rawValue) => _rawValue = rawValue;
+        internal Fixed64(long rawValue) => RawValue = rawValue;
         #endregion
 
         #region 数字操作
@@ -43,7 +41,7 @@ namespace Eevee.Fixed
         /// value等于0，返回0<br/>
         /// value小于0，返回-1
         /// </summary>
-        public readonly int Sign => _rawValue switch
+        public readonly int Sign => RawValue switch
         {
             < 0L => -1,
             > 0L => 1,
@@ -54,7 +52,7 @@ namespace Eevee.Fixed
         /// 绝对值<br/>
         /// 参考链接：http://www.strchr.com/optimized_abs_function
         /// </summary>
-        public readonly Fixed64 Abs => _rawValue >= 0L ? this : -this;
+        public readonly Fixed64 Abs => RawValue >= 0L ? this : -this;
 
         /// <summary>
         /// 向上取整
@@ -63,7 +61,7 @@ namespace Eevee.Fixed
         {
             get
             {
-                bool hasFractionalPart = (_rawValue & Const.FractionalPart) != 0;
+                bool hasFractionalPart = (RawValue & Const.FractionalPart) != 0;
                 return hasFractionalPart ? Floor + One : this;
             }
         }
@@ -71,7 +69,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 向下取整
         /// </summary>
-        public readonly Fixed64 Floor => new((long)((ulong)_rawValue & Const.IntegerPart));
+        public readonly Fixed64 Floor => new((long)((ulong)RawValue & Const.IntegerPart));
 
         /// <summary>
         /// 四舍五入到最接近的整数值<br/>
@@ -81,7 +79,7 @@ namespace Eevee.Fixed
         {
             get
             {
-                var fractionalPart = _rawValue & Const.FractionalPart;
+                var fractionalPart = RawValue & Const.FractionalPart;
                 var integralPart = Floor;
                 if (fractionalPart < Const.Half)
                     return integralPart;
@@ -90,7 +88,7 @@ namespace Eevee.Fixed
                     return integralPart + One;
 
                 // 在偶数和奇数中间，则返回最近的偶数 
-                return (integralPart._rawValue & Const.One) == 0 ? integralPart : integralPart + One;
+                return (integralPart.RawValue & Const.One) == 0 ? integralPart : integralPart + One;
             }
         }
 
@@ -106,24 +104,24 @@ namespace Eevee.Fixed
         {
             get
             {
-                switch (_rawValue)
+                switch (RawValue)
                 {
                     case < 0L:
                     {
-                        LogRelay.Fail($"[Fixed] Fixed64.Sqrt()，value：{_rawValue}是负数，无法开方");
+                        LogRelay.Fail($"[Fixed] Fixed64.Sqrt()，value：{RawValue}是负数，无法开方");
                         return Zero;
                     }
 
                     case <= 1L << Const.FractionalBits - 1: // 存在符号位，需要-1；先偏移，开方后，精度更高
                     {
-                        long offsetRawValue = _rawValue << Const.FractionalBits;
+                        long offsetRawValue = RawValue << Const.FractionalBits;
                         long sqrtRawValue = SquareRoot.Count(offsetRawValue);
                         return new Fixed64(sqrtRawValue);
                     }
 
                     default:
                     {
-                        long sqrtRawValue = SquareRoot.Count(_rawValue);
+                        long sqrtRawValue = SquareRoot.Count(RawValue);
                         long offsetRawValue = sqrtRawValue << (Const.FractionalBits >> 1);
                         return new Fixed64(offsetRawValue);
                     }
@@ -146,7 +144,7 @@ namespace Eevee.Fixed
         /// </remarks>
         public static Fixed64 Tan(Fixed64 x)
         {
-            var clampedPi = x._rawValue % Const.Pi;
+            var clampedPi = x.RawValue % Const.Pi;
             var flip = false;
             if (clampedPi < 0)
             {
@@ -170,8 +168,8 @@ namespace Eevee.Fixed
             var nearestValue = new Fixed64(Tangent.Get(roundedIndex));
             var secondNearestValue = new Fixed64(Tangent.Get((int)roundedIndex + indexError.Sign));
 
-            var delta = FastMul(indexError, FastSub(nearestValue, secondNearestValue)).Abs._rawValue;
-            var interpolatedValue = nearestValue._rawValue + delta;
+            var delta = FastMul(indexError, FastSub(nearestValue, secondNearestValue)).Abs.RawValue;
+            var interpolatedValue = nearestValue.RawValue + delta;
             var finalValue = flip ? -interpolatedValue : interpolatedValue;
             Fixed64 a2 = new Fixed64(finalValue);
             return a2;
@@ -240,8 +238,8 @@ namespace Eevee.Fixed
 
         public static Fixed64 Atan2(Fixed64 y, Fixed64 x)
         {
-            var yl = y._rawValue;
-            var xl = x._rawValue;
+            var yl = y.RawValue;
+            var xl = x.RawValue;
             if (xl == 0)
             {
                 if (yl > 0)
@@ -317,60 +315,39 @@ namespace Eevee.Fixed
         #endregion
 
         #region override operator
-        /// <summary>
-        /// 相加。
-        /// 无溢出检测
-        /// </summary>
-        public static Fixed64 operator +(Fixed64 x, Fixed64 y) => new(x._rawValue + y._rawValue);
+        public static Fixed64 operator +(Fixed64 x, Fixed64 y) => new(x.RawValue + y.RawValue);
+        public static Fixed64 operator +(Fixed64 x, long y) => new(x.RawValue + (y << Const.FractionalBits));
 
-        /// <summary>
-        /// 相减。
-        /// 无溢出检测
-        /// </summary>
-        public static Fixed64 operator -(Fixed64 x, Fixed64 y)
-        {
-            Fixed64 result;
-            result._rawValue = x._rawValue - y._rawValue;
-            return result;
-        }
+        public static Fixed64 operator -(Fixed64 x, Fixed64 y) => new(x.RawValue - y.RawValue);
+        public static Fixed64 operator -(long x, Fixed64 y) => new((x << Const.FractionalBits) - y.RawValue);
 
-        /// <summary>
-        /// 相乘
-        /// 无溢出检测
-        /// </summary>
         public static Fixed64 operator *(Fixed64 x, Fixed64 y)
         {
-            var xl = x._rawValue;
-            var yl = y._rawValue;
+            long xl = x.RawValue;
+            long yl = y.RawValue;
 
-            var xlo = (ulong)(xl & Const.FractionalPart);
-            var xhi = xl >> Const.FractionalBits;
-            var ylo = (ulong)(yl & Const.FractionalPart);
-            var yhi = yl >> Const.FractionalBits;
+            ulong xlo = (ulong)(xl & Const.FractionalPart);
+            long xhi = xl >> Const.FractionalBits;
+            ulong ylo = (ulong)(yl & Const.FractionalPart);
+            long yhi = yl >> Const.FractionalBits;
 
-            var lolo = xlo * ylo;
-            var lohi = (long)xlo * yhi;
-            var hilo = xhi * (long)ylo;
-            var hihi = xhi * yhi;
+            ulong lolo = xlo * ylo;
+            long lohi = (long)xlo * yhi;
+            long hilo = xhi * (long)ylo;
+            long hihi = xhi * yhi;
 
-            var loResult = lolo >> Const.FractionalBits;
-            var midResult1 = lohi;
-            var midResult2 = hilo;
-            var hiResult = hihi << Const.FractionalBits;
+            ulong loResult = lolo >> Const.FractionalBits;
+            long midResult1 = lohi;
+            long midResult2 = hilo;
+            long hiResult = hihi << Const.FractionalBits;
 
-            var sum = (long)loResult + midResult1 + midResult2 + hiResult;
-            Fixed64 result;
-            result._rawValue = sum;
-            return result;
+            return new Fixed64((long)loResult + midResult1 + midResult2 + hiResult);
         }
 
-        /// <summary>
-        /// 溢出检测相除
-        /// </summary>
         public static Fixed64 operator /(Fixed64 x, Fixed64 y)
         {
-            var xl = x._rawValue;
-            var yl = y._rawValue;
+            var xl = x.RawValue;
+            var yl = y.RawValue;
 
             if (yl == 0)
             {
@@ -416,62 +393,32 @@ namespace Eevee.Fixed
 
             // 四舍五入
             ++quotient;
-            var result = (long)(quotient >> 1);
+            long result = (long)(quotient >> 1);
             if (((xl ^ yl) & Const.MinPeak) != 0)
-            {
-                result = -result;
-            }
+                return new Fixed64(-result);
 
-            Fixed64 r;
-            r._rawValue = result;
-            return r;
+            return new Fixed64(result);
         }
-        public static Fixed64 operator /(Fixed64 x, long y) => new(x._rawValue / y);
+        public static Fixed64 operator /(Fixed64 x, long y) => new(x.RawValue / y);
 
-        /// <summary>
-        /// 取余
-        /// </summary>
-        public static Fixed64 operator %(Fixed64 x, Fixed64 y)
-        {
-            Fixed64 result;
-            result._rawValue = x._rawValue == Const.MinPeak & y._rawValue == -1 ? 0 : x._rawValue % y._rawValue;
-            return result;
-        }
+        public static Fixed64 operator %(Fixed64 x, Fixed64 y) => new(x.RawValue % y.RawValue);
+        public static Fixed64 operator %(Fixed64 x, long y) => new(x.RawValue % (y << Const.FractionalBits));
 
-        public static Fixed64 operator -(Fixed64 x)
-        {
-            return x._rawValue == Const.MinPeak ? MaxValue : new Fixed64(-x._rawValue);
-        }
+        public static Fixed64 operator -(Fixed64 x) => new(-x.RawValue);
 
-        public static bool operator ==(Fixed64 x, Fixed64 y)
-        {
-            return x._rawValue == y._rawValue;
-        }
+        public static bool operator ==(Fixed64 x, Fixed64 y) => x.RawValue == y.RawValue;
 
-        public static bool operator !=(Fixed64 x, Fixed64 y)
-        {
-            return x._rawValue != y._rawValue;
-        }
+        public static bool operator !=(Fixed64 x, Fixed64 y) => x.RawValue != y.RawValue;
 
-        public static bool operator >(Fixed64 x, Fixed64 y)
-        {
-            return x._rawValue > y._rawValue;
-        }
+        public static bool operator >(Fixed64 x, Fixed64 y) => x.RawValue > y.RawValue;
+        public static bool operator >(Fixed64 x, long y) => x.RawValue > y << Const.FractionalBits;
 
-        public static bool operator <(Fixed64 x, Fixed64 y)
-        {
-            return x._rawValue < y._rawValue;
-        }
+        public static bool operator <(Fixed64 x, Fixed64 y) => x.RawValue < y.RawValue;
+        public static bool operator <(Fixed64 x, long y) => x.RawValue < y << Const.FractionalBits;
 
-        public static bool operator >=(Fixed64 x, Fixed64 y)
-        {
-            return x._rawValue >= y._rawValue;
-        }
+        public static bool operator >=(Fixed64 x, Fixed64 y) => x.RawValue >= y.RawValue;
 
-        public static bool operator <=(Fixed64 x, Fixed64 y)
-        {
-            return x._rawValue <= y._rawValue;
-        }
+        public static bool operator <=(Fixed64 x, Fixed64 y) => x.RawValue <= y.RawValue;
         #endregion
 
         #region override object func
@@ -481,8 +428,8 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 OverflowAdd(Fixed64 x, Fixed64 y)
         {
-            var xl = x._rawValue;
-            var yl = y._rawValue;
+            var xl = x.RawValue;
+            var yl = y.RawValue;
             var sum = xl + yl;
             // if signs of operands are equal and signs of sum and x are different
             if (((~(xl ^ yl) & (xl ^ sum)) & Const.MinPeak) != 0)
@@ -490,21 +437,14 @@ namespace Eevee.Fixed
                 sum = xl > 0 ? Const.MaxPeak : Const.MinPeak;
             }
 
-            Fixed64 result;
-            result._rawValue = sum;
-            return result;
+            return new Fixed64(sum);
         }
 
         /// <summary>
         /// 相加。
         /// 无溢出检测
         /// </summary>
-        public static Fixed64 FastAdd(Fixed64 x, Fixed64 y)
-        {
-            Fixed64 result;
-            result._rawValue = x._rawValue + y._rawValue;
-            return result;
-        }
+        public static Fixed64 FastAdd(Fixed64 x, Fixed64 y) => new(x.RawValue + y.RawValue);
 
         /// <summary>
         /// 溢出检测相减
@@ -512,18 +452,16 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 OverflowSub(Fixed64 x, Fixed64 y)
         {
-            var xl = x._rawValue;
-            var yl = y._rawValue;
+            var xl = x.RawValue;
+            var yl = y.RawValue;
             var diff = xl - yl;
             // if signs of operands are different and signs of sum and x are different
-            if ((((xl ^ yl) & (xl ^ diff)) & Const.MinPeak) != 0)
+            if (((xl ^ yl) & (xl ^ diff) & Const.MinPeak) != 0)
             {
                 diff = xl < 0 ? Const.MinPeak : Const.MaxPeak;
             }
 
-            Fixed64 result;
-            result._rawValue = diff;
-            return result;
+            return new Fixed64(diff);
         }
 
         /// <summary>
@@ -532,7 +470,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 FastSub(Fixed64 x, Fixed64 y)
         {
-            return new Fixed64(x._rawValue - y._rawValue);
+            return new Fixed64(x.RawValue - y.RawValue);
         }
 
         static long AddOverflowHelper(long x, long y, ref bool overflow)
@@ -549,8 +487,8 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 OverflowMul(Fixed64 x, Fixed64 y)
         {
-            var xl = x._rawValue;
-            var yl = y._rawValue;
+            var xl = x.RawValue;
+            var yl = y.RawValue;
 
             var xlo = (ulong)(xl & Const.FractionalPart);
             var xhi = xl >> Const.FractionalBits;
@@ -618,9 +556,7 @@ namespace Eevee.Fixed
                 }
             }
 
-            Fixed64 result;
-            result._rawValue = sum;
-            return result;
+            return new Fixed64(sum);
         }
 
         /// <summary>
@@ -629,28 +565,25 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 FastMul(Fixed64 x, Fixed64 y)
         {
-            var xl = x._rawValue;
-            var yl = y._rawValue;
+            long xl = x.RawValue;
+            long yl = y.RawValue;
 
-            var xlo = (ulong)(xl & Const.FractionalPart);
-            var xhi = xl >> Const.FractionalBits;
-            var ylo = (ulong)(yl & Const.FractionalPart);
-            var yhi = yl >> Const.FractionalBits;
+            ulong xlo = (ulong)(xl & Const.FractionalPart);
+            long xhi = xl >> Const.FractionalBits;
+            ulong ylo = (ulong)(yl & Const.FractionalPart);
+            long yhi = yl >> Const.FractionalBits;
 
-            var lolo = xlo * ylo;
-            var lohi = (long)xlo * yhi;
-            var hilo = xhi * (long)ylo;
-            var hihi = xhi * yhi;
+            ulong lolo = xlo * ylo;
+            long lohi = (long)xlo * yhi;
+            long hilo = xhi * (long)ylo;
+            long hihi = xhi * yhi;
 
-            var loResult = lolo >> Const.FractionalBits;
-            var midResult1 = lohi;
-            var midResult2 = hilo;
-            var hiResult = hihi << Const.FractionalBits;
+            ulong loResult = lolo >> Const.FractionalBits;
+            long midResult1 = lohi;
+            long midResult2 = hilo;
+            long hiResult = hihi << Const.FractionalBits;
 
-            var sum = (long)loResult + midResult1 + midResult2 + hiResult;
-            Fixed64 result; // = default(FP);
-            result._rawValue = sum;
-            return result;
+            return new Fixed64((long)loResult + midResult1 + midResult2 + hiResult);
         }
 
         static int CountLeadingZeroes(ulong x)
@@ -673,127 +606,45 @@ namespace Eevee.Fixed
         #endregion
 
         #region override type convert
-        public static implicit operator Fixed64(long value)
-        {
-            Fixed64 result;
-            result._rawValue = value * Const.One;
-            return result;
-        }
+        public static implicit operator Fixed64(float value) => new((long)(value * Const.One));
+        public static implicit operator Fixed64(long value) => new(value << Const.FractionalBits);
+        public static implicit operator Fixed64(double value) => new((long)(value * Const.One));
+        public static implicit operator Fixed64(decimal value) => new((long)(value * Const.One));
 
-        public static explicit operator long(Fixed64 value)
-        {
-            return value._rawValue >> Const.FractionalBits;
-        }
+        public static explicit operator int(Fixed64 value) => (int)(value.RawValue >> Const.FractionalBits);
+        public static explicit operator float(Fixed64 value) => (float)value.RawValue / Const.One;
+        public static explicit operator long(Fixed64 value) => value.RawValue >> Const.FractionalBits;
+        public static explicit operator double(Fixed64 value) => (double)value.RawValue / Const.One;
+        public static explicit operator decimal(Fixed64 value) => (decimal)value.RawValue / Const.One;
 
-        public static implicit operator Fixed64(float value)
-        {
-            Fixed64 result;
-            result._rawValue = (long)(value * Const.One);
-            return result;
-        }
+        public int AsInt() => (int)this;
+        public float AsFloat() => (float)this;
+        public long AsLong() => (long)this;
+        public double AsDouble() => (double)this;
+        public decimal AsDecimal() => (decimal)this;
 
-        public static explicit operator float(Fixed64 value)
-        {
-            return (float)value._rawValue / Const.One;
-        }
+        public static Fixed64 FromFloat(float value) => value;
+        public static Fixed64 FromRaw(long rawValue) => new(rawValue);
 
-        public static implicit operator Fixed64(double value)
-        {
-            Fixed64 result;
-            result._rawValue = (long)(value * Const.One);
-            return result;
-        }
-
-        public static explicit operator double(Fixed64 value)
-        {
-            return (double)value._rawValue / Const.One;
-        }
-
-        public static explicit operator Fixed64(decimal value)
-        {
-            Fixed64 result;
-            result._rawValue = (long)(value * Const.One);
-            return result;
-        }
-
-        public static implicit operator Fixed64(int value)
-        {
-            Fixed64 result;
-            result._rawValue = value * Const.One;
-            return result;
-        }
-
-        public static explicit operator decimal(Fixed64 value)
-        {
-            return (decimal)value._rawValue / Const.One;
-        }
-
-        public float AsFloat()
-        {
-            return (float)this;
-        }
-
-        public int AsInt()
-        {
-            return (int)this;
-        }
-
-        public long AsLong()
-        {
-            return (long)this;
-        }
-
-        public double AsDouble()
-        {
-            return (double)this;
-        }
-
-        public decimal AsDecimal()
-        {
-            return (decimal)this;
-        }
-
-        public static float ToFloat(Fixed64 value)
-        {
-            return (float)value;
-        }
-
-        public static int ToInt(Fixed64 value)
-        {
-            return (int)value;
-        }
-
-        public static Fixed64 FromFloat(float value)
-        {
-            return (Fixed64)value;
-        }
-
-        public static bool IsInfinity(Fixed64 value)
-        {
-            return value == NegativeInfinity || value == Infinity;
-        }
-
-        public static bool IsNaN(Fixed64 value)
-        {
-            return value == NaN;
-        }
+        public bool IsInfinity() => RawValue == NegativeInfinity.RawValue || RawValue == Infinity.RawValue;
+        public bool IsNaN() => RawValue == NaN.RawValue;
 
         public override bool Equals(object obj)
         {
-            return obj is Fixed64 && ((Fixed64)obj)._rawValue == _rawValue;
+            return obj is Fixed64 && ((Fixed64)obj).RawValue == RawValue;
         }
         public override int GetHashCode()
         {
-            return _rawValue.GetHashCode();
+            return RawValue.GetHashCode();
         }
 
         public bool Equals(Fixed64 other)
         {
-            return _rawValue == other._rawValue;
+            return RawValue == other.RawValue;
         }
         public int CompareTo(Fixed64 other)
         {
-            return _rawValue.CompareTo(other._rawValue);
+            return RawValue.CompareTo(other.RawValue);
         }
 
         public override string ToString()
@@ -812,8 +663,6 @@ namespace Eevee.Fixed
         {
             return ((float)this).ToString(format, provider);
         }
-
-        public static Fixed64 FromRaw(long rawValue) => new(rawValue);
         #endregion
     }
 }
