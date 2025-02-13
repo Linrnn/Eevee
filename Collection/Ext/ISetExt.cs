@@ -44,8 +44,8 @@ namespace Eevee.Collection
                         source.Add(item);
                     break;
 
-                case WeakList<T> weakList:
-                    foreach (var item in weakList)
+                case WeakOrderList<T> weakOrderList:
+                    foreach (var item in weakOrderList)
                         source.Add(item);
                     break;
 

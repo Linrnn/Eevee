@@ -51,8 +51,8 @@ namespace Eevee.Collection
                     int listIndex = list.LastIndexOf(item, index, count);
                     return listIndex >= 0 ? listIndex : null;
 
-                case WeakList<T> weakList when comparer == null:
-                    int weakListIndex = weakList.LastIndexOf(item, index, count);
+                case WeakOrderList<T> weakOrderList when comparer == null:
+                    int weakListIndex = weakOrderList.LastIndexOf(item, index, count);
                     return weakListIndex >= 0 ? weakListIndex : null;
 
                 default:
@@ -80,8 +80,8 @@ namespace Eevee.Collection
                     int listIndex = list.BinarySearch(index, count, item, comparer);
                     return listIndex >= 0 ? listIndex : null;
 
-                case WeakList<T> weakList:
-                    int weakListIndex = weakList.BinarySearch(index, count, item, comparer);
+                case WeakOrderList<T> weakOrderList:
+                    int weakListIndex = weakOrderList.BinarySearch(index, count, item, comparer);
                     return weakListIndex >= 0 ? weakListIndex : null;
 
                 default:
@@ -116,8 +116,8 @@ namespace Eevee.Collection
                     list.Reverse(index, count);
                     return;
 
-                case WeakList<T> weakList:
-                    weakList.Reverse(index, count);
+                case WeakOrderList<T> weakOrderList:
+                    weakOrderList.Reverse(index, count);
                     return;
 
                 default:
@@ -149,8 +149,8 @@ namespace Eevee.Collection
                         list.InsertRange(sourceIndex, input);
                         return;
 
-                    case WeakList<T> weakList:
-                        weakList.InsertRange(sourceIndex, input);
+                    case WeakOrderList<T> weakOrderList:
+                        weakOrderList.InsertRange(sourceIndex, input);
                         return;
                 }
             }
@@ -188,8 +188,8 @@ namespace Eevee.Collection
                         source.Insert(index++, item);
                     break;
 
-                case WeakList<T> weakList:
-                    foreach (var item in weakList)
+                case WeakOrderList<T> weakOrderList:
+                    foreach (var item in weakOrderList)
                         source.Insert(index++, item);
                     break;
 
@@ -217,7 +217,7 @@ namespace Eevee.Collection
             switch (source)
             {
                 case List<T> list: list.RemoveRange(index, count); break;
-                case WeakList<T> weakList: weakList.RemoveRange(index, count); break;
+                case WeakOrderList<T> weakOrderList: weakOrderList.RemoveRange(index, count); break;
 
                 default:
                     for (int i = index, j = end; i < end && j <= count; ++i, ++j)
@@ -234,7 +234,7 @@ namespace Eevee.Collection
             switch (source)
             {
                 case List<T> list: list.Sort(index, count, comparer); break;
-                case WeakList<T> weakList: weakList.Sort(index, count, comparer); break;
+                case WeakOrderList<T> weakOrderList: weakOrderList.Sort(index, count, comparer); break;
                 default: LogRelay.Error("[Collection] Sort() 未实现"); break;
             }
         }

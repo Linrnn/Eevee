@@ -12,18 +12,18 @@ namespace Eevee.Collection
     /// 缺点：Insert()，Remove() 会打乱元素的相对位置
     /// </summary>
     [Serializable]
-    public sealed class WeakList<T> : IList<T>, IReadOnlyList<T> //, IList
+    public sealed class WeakOrderList<T> : IList<T>, IReadOnlyList<T> //, IList
     {
         #region Type
         [Serializable]
         public struct Enumerator : IEnumerator<T>
         {
-            private WeakList<T> _list;
+            private WeakOrderList<T> _list;
             private int _index;
             private int _version;
             private T _current;
 
-            internal Enumerator(WeakList<T> list)
+            internal Enumerator(WeakOrderList<T> list)
             {
                 _list = list;
                 _index = 0;
@@ -79,15 +79,15 @@ namespace Eevee.Collection
         #endregion
 
         #region Constructor
-        public WeakList()
+        public WeakOrderList()
         {
             _items = Array.Empty<T>();
         }
-        public WeakList(int capacity)
+        public WeakOrderList(int capacity)
         {
             _items = ArrayExt.Create<T>(capacity);
         }
-        public WeakList(IEnumerable<T> enumerable)
+        public WeakOrderList(IEnumerable<T> enumerable)
         {
             if (enumerable is ICollection<T> collection)
             {
