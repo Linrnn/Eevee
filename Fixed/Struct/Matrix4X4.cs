@@ -437,7 +437,7 @@ namespace Eevee.Fixed
             }
             else
             {
-                var invDet = det.Reciprocal;
+                var invDet = det.Reciprocal();
 
                 result.M11 = a11 * invDet;
                 result.M21 = a12 * invDet;

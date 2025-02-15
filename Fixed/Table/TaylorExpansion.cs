@@ -26,7 +26,7 @@
         {
             var sum = rad;
             var pow = rad;
-            var sqr = rad * rad;
+            var sqr = rad.Sqr();
 
             for (int i = 1; i < times; ++i)
             {
@@ -58,7 +58,7 @@
         {
             var sum = Fixed64.One;
             var pow = Fixed64.One;
-            var sqr = rad * rad;
+            var sqr = rad.Sqr();
 
             for (int i = 1; i < times; ++i)
             {

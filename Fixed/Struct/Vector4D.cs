@@ -72,7 +72,7 @@ namespace Eevee.Fixed
         }
         #endregion
 
-        public static Vector4D Abs(Vector4D other) => new(other.X.Abs, other.Y.Abs, other.Z.Abs, other.Z.Abs);
+        public static Vector4D Abs(Vector4D other) => new(other.X.Abs(), other.Y.Abs(), other.Z.Abs(), other.Z.Abs());
 
         /// <summary>
         /// Gets the squared length of the vector.
@@ -84,7 +84,7 @@ namespace Eevee.Fixed
         /// Gets the length of the vector.
         /// </summary>
         /// <returns>Returns the length of the vector.</returns>
-        public Fixed64 magnitude => GetSqrMagnitude().Sqrt;
+        public Fixed64 magnitude => GetSqrMagnitude().Sqrt();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Fixed64 GetSqrMagnitude() => X * X + Y * Y + Z * Z + W * W;
@@ -177,10 +177,7 @@ namespace Eevee.Fixed
         /// <returns>A string containing all three components.</returns>
 
         #region public override string ToString()
-        public override string ToString()
-        {
-            return string.Format("({0:f1}, {1:f1}, {2:f1}, {3:f1})", X.AsFloat(), Y.AsFloat(), Z.AsFloat(), W.AsFloat());
-        }
+        public override string ToString() => $"({X:f1}, {Y:f1}, {Z:f1}, {W:f1})";
         #endregion
 
         public bool Equals(Vector4D other)
@@ -578,8 +575,7 @@ namespace Eevee.Fixed
         /// </summary>
         public void Normalize()
         {
-            var num = magnitude.Reciprocal;
-
+            var num = magnitude.Reciprocal();
             X *= num;
             Y *= num;
             Z *= num;

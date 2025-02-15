@@ -102,7 +102,7 @@ namespace Eevee.Fixed
         }
         #endregion
 
-        public static Vector3D Abs(Vector3D other) => new(other.X.Abs, other.Y.Abs, other.Z.Abs);
+        public static Vector3D Abs(Vector3D other) => new(other.X.Abs(), other.Y.Abs(), other.Z.Abs());
 
         /// <summary>
         /// Gets the squared length of the vector.
@@ -114,7 +114,7 @@ namespace Eevee.Fixed
         /// Gets the length of the vector.
         /// </summary>
         /// <returns>Returns the length of the vector.</returns>
-        public Fixed64 magnitude => GetSqrMagnitude().Sqrt;
+        public Fixed64 magnitude => GetSqrMagnitude().Sqrt();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Fixed64 GetSqrMagnitude() => X * X + Y * Y + Z * Z;
@@ -204,10 +204,7 @@ namespace Eevee.Fixed
         /// <returns>A string containing all three components.</returns>
 
         #region public override string ToString()
-        public override string ToString()
-        {
-            return string.Format("({0:f1}, {1:f1}, {2:f1})", X.AsFloat(), Y.AsFloat(), Z.AsFloat());
-        }
+        public override string ToString() => $"({X:f1}, {Y:f1}, {Z:f1})";
         #endregion
 
         public bool Equals(Vector3D other)
@@ -479,7 +476,7 @@ namespace Eevee.Fixed
             var fromNorm = from.normalized;
             var toNorm = to.normalized;
             var unsignedAngle = Maths.Acos(Maths.Clamp(Dot(fromNorm, toNorm), -Const.One, Const.One)) * Maths.Rad2Deg;
-            var sign = Dot(axis, Cross(fromNorm, toNorm)).Sign;
+            var sign = Dot(axis, Cross(fromNorm, toNorm)).Sign();
             return unsignedAngle * sign;
         }
 
@@ -690,7 +687,7 @@ namespace Eevee.Fixed
         /// </summary>
         public void Normalize()
         {
-            var num = magnitude.Reciprocal;
+            var num = magnitude.Reciprocal();
             X *= num;
             Y *= num;
             Z *= num;

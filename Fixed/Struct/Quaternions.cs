@@ -261,7 +261,7 @@ namespace Eevee.Fixed
 
         public static Quaternions Inverse(Quaternions rotation)
         {
-            var invNorm = (rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W).Reciprocal;
+            var invNorm = (rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W).Reciprocal();
             return Multiply(Conjugate(rotation), invNorm);
         }
 
@@ -269,7 +269,7 @@ namespace Eevee.Fixed
         {
             var w = Vector3D.Cross(fromVector, toVector);
             Quaternions q = new Quaternions(w.X, w.Y, w.Z, Vector3D.Dot(fromVector, toVector));
-            q.W += (fromVector.sqrMagnitude * toVector.sqrMagnitude).Sqrt;
+            q.W += (fromVector.sqrMagnitude * toVector.sqrMagnitude).Sqrt();
             q.Normalize();
 
             return q;
@@ -400,7 +400,7 @@ namespace Eevee.Fixed
         public void Normalize()
         {
             var num2 = X * X + Y * Y + Z * Z + W * W;
-            var num = num2.Sqrt.Reciprocal;
+            var num = num2.Sqrt().Reciprocal();
 
             X *= num;
             Y *= num;
@@ -432,7 +432,7 @@ namespace Eevee.Fixed
             Fixed64 num8 = (matrix.M11 + matrix.M22) + matrix.M33;
             if (num8 > Fixed64.Zero)
             {
-                var num = (num8 + Fixed64.One).Sqrt;
+                var num = (num8 + Fixed64.One).Sqrt();
                 result.W = num * Fixed64.Half;
                 num = Fixed64.Half / num;
                 result.X = (matrix.M23 - matrix.M32) * num;
@@ -441,7 +441,7 @@ namespace Eevee.Fixed
             }
             else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
             {
-                var num7 = (Fixed64.One + matrix.M11 - matrix.M22 - matrix.M33).Sqrt;
+                var num7 = (Fixed64.One + matrix.M11 - matrix.M22 - matrix.M33).Sqrt();
                 var num4 = Fixed64.Half / num7;
                 result.X = Fixed64.Half * num7;
                 result.Y = (matrix.M12 + matrix.M21) * num4;
@@ -450,7 +450,7 @@ namespace Eevee.Fixed
             }
             else if (matrix.M22 > matrix.M33)
             {
-                var num6 = (Fixed64.One + matrix.M22 - matrix.M11 - matrix.M33).Sqrt;
+                var num6 = (Fixed64.One + matrix.M22 - matrix.M11 - matrix.M33).Sqrt();
                 var num3 = Fixed64.Half / num6;
                 result.X = (matrix.M21 + matrix.M12) * num3;
                 result.Y = Fixed64.Half * num6;
@@ -459,7 +459,7 @@ namespace Eevee.Fixed
             }
             else
             {
-                var num5 = (Fixed64.One + matrix.M33 - matrix.M11 - matrix.M22).Sqrt;
+                var num5 = (Fixed64.One + matrix.M33 - matrix.M11 - matrix.M22).Sqrt();
                 var num2 = Fixed64.Half / num5;
                 result.X = (matrix.M31 + matrix.M13) * num2;
                 result.Y = (matrix.M32 + matrix.M23) * num2;
@@ -572,9 +572,6 @@ namespace Eevee.Fixed
             throw new NotImplementedException();
         }
 
-        public override string ToString()
-        {
-            return string.Format("({0:f1}, {1:f1}, {2:f1}, {3:f1})", X.AsFloat(), Y.AsFloat(), Z.AsFloat(), W.AsFloat());
-        }
+        public override string ToString() => $"({X:f1}, {Y:f1}, {Z:f1}, {W:f1})";
     }
 }

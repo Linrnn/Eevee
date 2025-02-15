@@ -182,13 +182,13 @@ namespace Eevee.Fixed
         public static Fixed64 Distance(Vector2D value1, Vector2D value2)
         {
             DistanceSquared(ref value1, ref value2, out var result);
-            return result.Sqrt;
+            return result.Sqrt();
         }
 
         public static void Distance(ref Vector2D value1, ref Vector2D value2, out Fixed64 result)
         {
             DistanceSquared(ref value1, ref value2, out result);
-            result = result.Sqrt;
+            result = result.Sqrt();
         }
 
         public static Fixed64 DistanceSquared(Vector2D value1, Vector2D value2)
@@ -303,7 +303,7 @@ namespace Eevee.Fixed
             get
             {
                 DistanceSquared(ref this, ref zeroVector, out var result);
-                return result.Sqrt;
+                return result.Sqrt();
             }
         }
 
@@ -436,7 +436,7 @@ namespace Eevee.Fixed
             DistanceSquared(ref value, ref zeroVector, out var factor);
 
             // 溢出  小于0  当做0计算
-            factor = factor < 0 ? Fixed64.Zero : factor.Sqrt.Reciprocal;
+            factor = factor < 0 ? Fixed64.Zero : factor.Sqrt().Reciprocal();
             result.X = value.X * factor;
             result.Y = value.Y * factor;
         }
@@ -474,10 +474,7 @@ namespace Eevee.Fixed
             return new Vector3D(this.X, this.Y, 0);
         }
 
-        public override string ToString()
-        {
-            return $"({X.AsFloat():f1}, {Y.AsFloat():f1})";
-        }
+        public override string ToString() => $"({X:f1}, {Y:f1})";
         #endregion Public Methods
 
         #region Operators
