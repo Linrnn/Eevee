@@ -54,7 +54,7 @@
             2432902008176640000, // 20! = 2432902008176640000
         };
 
-        internal static Fixed64 Cos(Fixed64 rad, int times = 5)
+        internal static Fixed64 Cosine(Fixed64 rad, int times = 5)
         {
             var sum = Fixed64.One;
             var pow = Fixed64.One;

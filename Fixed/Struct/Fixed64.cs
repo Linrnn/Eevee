@@ -12,7 +12,7 @@ namespace Eevee.Fixed
     public readonly struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
     {
         #region 字段
-        internal readonly long RawValue;
+        public readonly long RawValue;
 
         public static readonly Fixed64 MinValue = new(Const.MinValue);
         public static readonly Fixed64 MaxValue = new(Const.MaxValue);
@@ -44,12 +44,7 @@ namespace Eevee.Fixed
         /// 等于0，返回0<br/>
         /// 小于0，返回-1
         /// </summary>
-        public int Sign() => RawValue switch
-        {
-            < 0L => -1,
-            > 0L => 1,
-            _ => 0,
-        };
+        public int Sign() => Math.Sign(RawValue);
         /// <summary>
         /// 绝对值
         /// </summary>
@@ -113,45 +108,6 @@ namespace Eevee.Fixed
         #endregion
 
         #region 三角函数
-        /// <summary>
-        /// Returns the tangent of x.
-        /// </summary>
-        /// <remarks>
-        /// This function is not well-tested. It may be wildly inaccurate.
-        /// </remarks>
-        public static Fixed64 Tan(Fixed64 x)
-        {
-            var clampedPi = x.RawValue % Const.Rad180;
-            var flip = false;
-            if (clampedPi < 0)
-            {
-                clampedPi = -clampedPi;
-                flip = true;
-            }
-
-            if (clampedPi > Const.PiOver2)
-            {
-                flip = !flip;
-                clampedPi = Const.PiOver2 - (clampedPi - Const.PiOver2);
-            }
-
-            var clamped = new Fixed64(clampedPi);
-
-            // Find the two closest values in the LUT and perform linear interpolation
-            var rawIndex = FastMul(clamped, LutInterval);
-            var roundedIndex = rawIndex.Round();
-            var indexError = FastSub(rawIndex, roundedIndex);
-
-            var nearestValue = new Fixed64(Tangent.Get(roundedIndex));
-            var secondNearestValue = new Fixed64(Tangent.Get((int)roundedIndex + indexError.Sign()));
-
-            var delta = FastMul(indexError, FastSub(nearestValue, secondNearestValue)).Abs().RawValue;
-            var interpolatedValue = nearestValue.RawValue + delta;
-            var finalValue = flip ? -interpolatedValue : interpolatedValue;
-            Fixed64 a2 = new Fixed64(finalValue);
-            return a2;
-        }
-
         /// <summary>
         /// Returns the arctan of of the specified number, calculated using Euler series
         /// This function has at least 7 decimals of accuracy.
@@ -319,6 +275,7 @@ namespace Eevee.Fixed
         #endregion
 
         #region 运算符重载
+        public static Fixed64 operator +(Fixed64 value) => value;
         public static Fixed64 operator -(Fixed64 value) => new(-value.RawValue);
         public static Fixed64 operator ++(Fixed64 value) => new(value.RawValue + Const.One);
         public static Fixed64 operator --(Fixed64 value) => new(value.RawValue - Const.One);
@@ -346,11 +303,90 @@ namespace Eevee.Fixed
         public static Fixed64 operator /(Fixed64 left, Fixed64 right)
         {
             if (left.RawValue is >= Const.MinPeak >> Const.FractionalBits and <= Const.MaxPeak >> Const.FractionalBits)
+            {
                 return new Fixed64((left.RawValue << Const.FractionalBits) / right.RawValue);
+            }
 
-            long div = (left.RawValue / right.RawValue << Const.FractionalBits);
-            long mod = (left.RawValue % right.RawValue << Const.FractionalBits) / right.RawValue;
-            return new Fixed64(div + mod);
+            long remainder = left.RawValue % right.RawValue;
+            if (remainder is >= Const.MinPeak >> Const.FractionalBits and <= Const.MaxPeak >> Const.FractionalBits)
+            {
+                long div = left.RawValue / right.RawValue << Const.FractionalBits;
+                long mod = (remainder << Const.FractionalBits) / right.RawValue;
+                return new Fixed64(div + mod);
+            }
+
+            long dividend = Math.Abs(left.RawValue); // 被除数
+            long divisor = Math.Abs(right.RawValue); // 除数
+            long quotient = 0L; // 商
+            for (int remainBits = Const.FractionalBits, moveBits = Const.FractionalBits >> 1;;)
+            {
+                #region 检测
+                if (remainBits > 0 && remainBits < moveBits)
+                    moveBits = remainBits;
+                bool inRange = dividend >= Const.MinPeak >> moveBits && dividend <= Const.MaxPeak >> moveBits;
+                bool canMove;
+                int movBit;
+
+                if (inRange)
+                {
+                    canMove = true;
+                    movBit = moveBits;
+                }
+                else if (dividend >= divisor)
+                {
+                    canMove = true;
+                    movBit = 0;
+                }
+                else if (moveBits > 1)
+                {
+                    moveBits >>= 1;
+                    continue;
+                }
+                else
+                {
+                    canMove = false;
+                    movBit = 0;
+                }
+                #endregion
+
+                #region 计算
+                if (canMove)
+                {
+                    long div = dividend << movBit;
+                    dividend = div % divisor;
+                    remainBits -= movBit;
+
+                    if (remainBits >= 0)
+                    {
+                        quotient += div / divisor << remainBits;
+                    }
+                    else
+                    {
+                        long quot = div / divisor >> -remainBits;
+                        if (quot == 0L)
+                            break;
+
+                        quotient += quot;
+                    }
+                    if (dividend == 0L)
+                        break;
+                }
+                else // dividend同时满足下列条件：小于divisor，小于Const.MinPeak/2，大于Const.MaxPeak/2
+                {
+                    dividend += dividend - divisor;
+                    --remainBits;
+
+                    if (remainBits >= 0)
+                        quotient += 1L << remainBits;
+                    else
+                        break;
+                    if (dividend == 0L)
+                        break;
+                }
+                #endregion
+            }
+            bool sameSign = Math.Sign(left.RawValue) == Math.Sign(right.RawValue);
+            return new Fixed64(sameSign ? quotient : -quotient);
         }
         public static Fixed64 operator /(Fixed64 left, long right) => new(left.RawValue / right);
 

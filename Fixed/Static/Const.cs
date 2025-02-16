@@ -82,6 +82,10 @@
         /// </summary>
         internal const long Rad30 = 0x860A91C1 >> OffsetBits;
         /// <summary>
+        /// π/4
+        /// </summary>
+        internal const long Rad45 = 0xC90FDAA2 >> OffsetBits;
+        /// <summary>
         /// π/3
         /// </summary>
         internal const long Rad60 = 0x10C152382 >> OffsetBits;
@@ -93,6 +97,10 @@
         /// 2/3*π
         /// </summary>
         internal const long Rad120 = 0x2182A4705 >> OffsetBits;
+        /// <summary>
+        /// 3/4*π
+        /// </summary>
+        internal const long Rad135 = 0x25B2F8FE6 >> OffsetBits;
         /// <summary>
         /// 5/6*π
         /// </summary>
@@ -106,6 +114,10 @@
         /// </summary>
         internal const long Rad210 = 0x3AA49FC49 >> OffsetBits;
         /// <summary>
+        /// 5/4*π
+        /// </summary>
+        internal const long Rad225 = 0x3ED4F452A >> OffsetBits;
+        /// <summary>
         /// 4/3*π
         /// </summary>
         internal const long Rad240 = 0x430548E0B >> OffsetBits;
@@ -118,6 +130,10 @@
         /// </summary>
         internal const long Rad300 = 0x53C69B18E >> OffsetBits;
         /// <summary>
+        /// 7/4*π
+        /// </summary>
+        internal const long Rad315 = 0x57F6EFA6E >> OffsetBits;
+        /// <summary>
         /// 11/6*π
         /// </summary>
         internal const long Rad330 = 0x5C274434F >> OffsetBits;
@@ -125,6 +141,71 @@
         /// 2*π
         /// </summary>
         internal const long Rad360 = 0x6487ED511 >> OffsetBits;
+
+        /// <summary>
+        /// π/6
+        /// </summary>
+        internal const long Deg30 = 30L << FractionalBits;
+        /// <summary>
+        /// π/4
+        /// </summary>
+        internal const long Deg45 = 45L << FractionalBits;
+        /// <summary>
+        /// π/3
+        /// </summary>
+        internal const long Deg60 = 60L << FractionalBits;
+        /// <summary>
+        /// π/2
+        /// </summary>
+        internal const long Deg90 = 90L << FractionalBits;
+        /// <summary>
+        /// 2/3*π
+        /// </summary>
+        internal const long Deg120 = 120L << FractionalBits;
+        /// <summary>
+        /// 3/4*π
+        /// </summary>
+        internal const long Deg135 = 135L << FractionalBits;
+        /// <summary>
+        /// 5/6*π
+        /// </summary>
+        internal const long Deg150 = 150L << FractionalBits;
+        /// <summary>
+        /// π
+        /// </summary>
+        internal const long Deg180 = 180L << FractionalBits;
+        /// <summary>
+        /// 7/6*π
+        /// </summary>
+        internal const long Deg210 = 210L << FractionalBits;
+        /// <summary>
+        /// 5/4*π
+        /// </summary>
+        internal const long Deg225 = 225L << FractionalBits;
+        /// <summary>
+        /// 4/3*π
+        /// </summary>
+        internal const long Deg240 = 240L << FractionalBits;
+        /// <summary>
+        /// 3/2*π
+        /// </summary>
+        internal const long Deg270 = 270L << FractionalBits;
+        /// <summary>
+        /// 5/3*π
+        /// </summary>
+        internal const long Deg300 = 300L << FractionalBits;
+        /// <summary>
+        /// 7/4*π
+        /// </summary>
+        internal const long Deg315 = 315L << FractionalBits;
+        /// <summary>
+        /// 11/6*π
+        /// </summary>
+        internal const long Deg330 = 330L << FractionalBits;
+        /// <summary>
+        /// 2*π
+        /// </summary>
+        internal const long Deg360 = 360L << FractionalBits;
 
         /// <summary>
         /// π*π

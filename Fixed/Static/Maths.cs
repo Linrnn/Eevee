@@ -13,6 +13,7 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Pi = new(Const.Rad180);
         public static readonly Fixed64 PiOver2 = new(Const.PiOver2);
 
+        public static readonly Fixed64 Rad90 = new(Const.Rad90);
         public static readonly Fixed64 Rad180 = new(Const.Rad180);
         public static readonly Fixed64 Rad360 = new(Const.Rad360);
         public static readonly Fixed64 Deg90 = 90;
@@ -88,16 +89,16 @@ namespace Eevee.Fixed
         public static Fixed64 SinDeg(Fixed64 deg) => Sin0To360(ClampDeg(deg));
         private static Fixed64 Sin0To360(Fixed64 deg) => deg.RawValue switch
         {
-            <= 090L << Const.FractionalBits => Sin0To90(deg),
-            <= 180L << Const.FractionalBits => Sin0To90(Deg180 - deg),
-            <= 270L << Const.FractionalBits => -Sin0To90(deg - Deg180),
+            <= Const.Deg90 => Sin0To90(deg),
+            <= Const.Deg180 => Sin0To90(Deg180 - deg),
+            <= Const.Deg270 => -Sin0To90(deg - Deg180),
             _ => -Sin0To90(Deg360 - deg),
         };
         private static Fixed64 Sin0To90(Fixed64 deg) => deg.RawValue switch
         {
             0L => Fixed64.Zero,
-            30L << Const.FractionalBits => Fixed64.Half,
-            90L << Const.FractionalBits => Fixed64.One,
+            Const.Deg30 => Fixed64.Half,
+            Const.Deg90 => Fixed64.One,
             _ => TaylorExpansion.Sine(deg * Deg2Rad),
         };
         #endregion
@@ -124,10 +125,10 @@ namespace Eevee.Fixed
         }
         private static Fixed64 Cos0To2Pi(Fixed64 rad) => rad.RawValue switch
         {
-            <= Const.Rad90 => TaylorExpansion.Cos(rad),
-            <= Const.Rad180 => -TaylorExpansion.Cos(Rad180 - rad),
-            <= Const.Rad270 => -TaylorExpansion.Cos(rad - Rad180),
-            _ => TaylorExpansion.Cos(Rad360 - rad),
+            <= Const.Rad90 => TaylorExpansion.Cosine(rad),
+            <= Const.Rad180 => -TaylorExpansion.Cosine(Rad180 - rad),
+            <= Const.Rad270 => -TaylorExpansion.Cosine(rad - Rad180),
+            _ => TaylorExpansion.Cosine(Rad360 - rad),
         };
 
         /// <summary>
@@ -137,6 +138,49 @@ namespace Eevee.Fixed
         #endregion
 
         #region 正切
+        /// <summary>
+        /// 输入弧度，计算正切
+        /// </summary>
+        public static Fixed64 Tan(Fixed64 rad)
+        {
+            var value = ClampRad(rad);
+            return value.RawValue switch
+            {
+                0L => Fixed64.Zero,
+                Const.Rad45 => Fixed64.One,
+                Const.Rad135 => -Fixed64.One,
+                Const.Rad180 => Fixed64.Zero,
+                Const.Rad225 => Fixed64.One,
+                Const.Rad315 => -Fixed64.One,
+                _ => Tan0To2Pi(value),
+            };
+        }
+        private static Fixed64 Tan0To2Pi(Fixed64 rad) => rad.RawValue switch
+        {
+            <= Const.Rad90 => Tan0ToPi2(rad),
+            <= Const.Rad180 => -Tan0ToPi2(rad - Rad90),
+            <= Const.Rad270 => Tan0ToPi2(rad - Rad180),
+            _ => -Tan0ToPi2(Rad360 - rad),
+        };
+        private static Fixed64 Tan0ToPi2(Fixed64 rad) => Sin(rad) / Cos(rad);
+
+        /// <summary>
+        /// 输入角度，计算正切
+        /// </summary>
+        public static Fixed64 TanDeg(Fixed64 deg) => Tan0To360(ClampDeg(deg));
+        private static Fixed64 Tan0To360(Fixed64 deg) => deg.RawValue switch
+        {
+            <= Const.Deg90 => Tan0To90(deg),
+            <= Const.Deg180 => -Tan0To90(Deg180 - deg),
+            <= Const.Deg270 => Tan0To90(deg - Deg180),
+            _ => -Tan0To90(Deg360 - deg),
+        };
+        private static Fixed64 Tan0To90(Fixed64 deg) => deg.RawValue switch
+        {
+            0L => Fixed64.Zero,
+            Const.Deg45 => Fixed64.One,
+            _ => SinDeg(deg) / CosDeg(deg),
+        };
         #endregion
 
         #region 工具
@@ -145,7 +189,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 ClampDeg(Fixed64 deg)
         {
-            var value = deg % Deg360;
+            var value = deg % 360L;
             return value.RawValue < 0L ? value + Deg360 : value;
         }
         /// <summary>
@@ -489,14 +533,6 @@ namespace Eevee.Fixed
             }
 
             return num8;
-        }
-
-        /// <summary>
-        /// 正切
-        /// </summary>
-        public static Fixed64 Tan(Fixed64 value)
-        {
-            return Fixed64.Tan(value);
         }
         #endregion
 
