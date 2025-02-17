@@ -1,14 +1,14 @@
 ﻿namespace Eevee.Fixed
 {
     /// <summary>
-    /// 泰勒展开<br/>
+    /// 三角函数<br/>
     /// 参考链接：https://www.cnblogs.com/Carrawayang/p/14545043.html<br/>
     /// 参考链接：https://zh.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E5%87%BD%E6%95%B0
     /// </summary>
-    internal readonly struct TaylorExpansion
+    internal readonly struct Trigonometric
     {
-        #region Sin的泰勒展开
-        private static readonly long[] _sinDenominators =
+        #region 正弦的泰勒展开
+        private static readonly long[] _sinDenominator =
         {
             1, // 1! = 1
             -6, // 3! = 6
@@ -31,15 +31,15 @@
             for (int i = 1; i < times; ++i)
             {
                 pow *= sqr;
-                sum += pow / _sinDenominators[i];
+                sum += pow / _sinDenominator[i];
             }
 
             return sum;
         }
         #endregion
 
-        #region Cos的泰勒展开
-        private static readonly long[] _cosDenominators =
+        #region 余弦的泰勒展开
+        private static readonly long[] _cosDenominator =
         {
             1, // 0! = 1
             -2, // 2! = 2
@@ -63,7 +63,54 @@
             for (int i = 1; i < times; ++i)
             {
                 pow *= sqr;
-                sum += pow / _cosDenominators[i];
+                sum += pow / _cosDenominator[i];
+            }
+
+            return sum;
+        }
+        #endregion
+
+        #region 余切的泰勒展开
+        private static readonly long[] _cotNumerator =
+        {
+            1,
+            1,
+            1,
+            2,
+            1,
+            2,
+            1382,
+            4,
+            3617,
+            87734,
+            174611,
+        };
+        private static readonly long[] _cotDenominator =
+        {
+            1,
+            3,
+            45,
+            945,
+            4725,
+            93555,
+            638512875,
+            18243225,
+            325641566250,
+            38979295480125,
+            1531329465290625,
+        };
+
+        internal static Fixed64 Cotangent(Fixed64 rad, int times = 7)
+        {
+            var reciprocal = rad.Reciprocal();
+            var sum = reciprocal;
+            var pow = reciprocal;
+            var sqr = rad.Sqr();
+
+            for (int i = 1; i < times; ++i)
+            {
+                pow *= sqr;
+                sum -= pow * _cotNumerator[i] / _cotDenominator[i];
             }
 
             return sum;

@@ -83,7 +83,7 @@ namespace Eevee.Fixed
                 case < 0L:
                 {
                     LogRelay.Fail($"[Fixed] Fixed64.Sqrt()，value：{RawValue}是负数，无法开方");
-                    return Zero;
+                    return NaN;
                 }
 
                 case <= Const.MaxValue >> Const.FractionalBits: // 先偏移，后开方，精度更高

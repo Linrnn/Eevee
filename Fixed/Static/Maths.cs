@@ -8,9 +8,9 @@ namespace Eevee.Fixed
     public readonly struct Maths
     {
         #region 字段
-        public static readonly Fixed64 Deg2Rad = new Fixed64(Const.Rad180) / 180;
-        public static readonly Fixed64 Rad2Deg = 180 / new Fixed64(Const.Rad180);
         public static readonly Fixed64 Pi = new(Const.Rad180);
+        public static readonly Fixed64 Deg2Rad = new(Const.Deg2Rad);
+        public static readonly Fixed64 Rad2Deg = new(Const.Rad2Deg);
         public static readonly Fixed64 PiOver2 = new(Const.PiOver2);
 
         public static readonly Fixed64 Rad90 = new(Const.Rad90);
@@ -55,7 +55,6 @@ namespace Eevee.Fixed
         #endregion
 
         #region 三角函数
-        #region 正弦
         /// <summary>
         /// 输入弧度，计算正弦
         /// </summary>
@@ -72,38 +71,35 @@ namespace Eevee.Fixed
                 Const.Rad210 => -Fixed64.Half,
                 Const.Rad270 => -Fixed64.One,
                 Const.Rad330 => -Fixed64.Half,
-                _ => Sin0To2Pi(value),
+                <= Const.Rad90 => Trigonometric.Sine(value),
+                <= Const.Rad180 => Trigonometric.Sine(Rad180 - value),
+                <= Const.Rad270 => -Trigonometric.Sine(value - Rad180),
+                _ => -Trigonometric.Sine(Rad360 - value),
             };
         }
-        private static Fixed64 Sin0To2Pi(Fixed64 rad) => rad.RawValue switch
-        {
-            <= Const.Rad90 => TaylorExpansion.Sine(rad),
-            <= Const.Rad180 => TaylorExpansion.Sine(Rad180 - rad),
-            <= Const.Rad270 => -TaylorExpansion.Sine(rad - Rad180),
-            _ => -TaylorExpansion.Sine(Rad360 - rad),
-        };
-
         /// <summary>
         /// 输入角度，计算正弦
         /// </summary>
-        public static Fixed64 SinDeg(Fixed64 deg) => Sin0To360(ClampDeg(deg));
-        private static Fixed64 Sin0To360(Fixed64 deg) => deg.RawValue switch
+        public static Fixed64 SinDeg(Fixed64 deg)
         {
-            <= Const.Deg90 => Sin0To90(deg),
-            <= Const.Deg180 => Sin0To90(Deg180 - deg),
-            <= Const.Deg270 => -Sin0To90(deg - Deg180),
-            _ => -Sin0To90(Deg360 - deg),
-        };
-        private static Fixed64 Sin0To90(Fixed64 deg) => deg.RawValue switch
-        {
-            0L => Fixed64.Zero,
-            Const.Deg30 => Fixed64.Half,
-            Const.Deg90 => Fixed64.One,
-            _ => TaylorExpansion.Sine(deg * Deg2Rad),
-        };
-        #endregion
+            var value = ClampDeg(deg);
+            return value.RawValue switch
+            {
+                0L => Fixed64.Zero,
+                Const.Deg30 => Fixed64.Half,
+                Const.Deg90 => Fixed64.One,
+                Const.Deg150 => Fixed64.Half,
+                Const.Deg180 => Fixed64.Zero,
+                Const.Deg210 => -Fixed64.Half,
+                Const.Deg270 => -Fixed64.One,
+                Const.Deg330 => -Fixed64.Half,
+                <= Const.Deg90 => Trigonometric.Sine(value * Deg2Rad),
+                <= Const.Deg180 => Trigonometric.Sine((Deg180 - value) * Deg2Rad),
+                <= Const.Deg270 => -Trigonometric.Sine((value - Deg180) * Deg2Rad),
+                _ => -Trigonometric.Sine((Deg360 - value) * Deg2Rad),
+            };
+        }
 
-        #region 余弦
         /// <summary>
         /// 输入弧度，计算余弦
         /// </summary>
@@ -120,87 +116,102 @@ namespace Eevee.Fixed
                 Const.Rad240 => -Fixed64.Half,
                 Const.Rad270 => Fixed64.Zero,
                 Const.Rad300 => Fixed64.Half,
-                _ => Cos0To2Pi(value),
+                <= Const.Rad90 => Trigonometric.Cosine(value),
+                <= Const.Rad180 => -Trigonometric.Cosine(Rad180 - value),
+                <= Const.Rad270 => -Trigonometric.Cosine(value - Rad180),
+                _ => Trigonometric.Cosine(Rad360 - value),
             };
         }
-        private static Fixed64 Cos0To2Pi(Fixed64 rad) => rad.RawValue switch
-        {
-            <= Const.Rad90 => TaylorExpansion.Cosine(rad),
-            <= Const.Rad180 => -TaylorExpansion.Cosine(Rad180 - rad),
-            <= Const.Rad270 => -TaylorExpansion.Cosine(rad - Rad180),
-            _ => TaylorExpansion.Cosine(Rad360 - rad),
-        };
-
         /// <summary>
         /// 输入角度，计算余弦
         /// </summary>
-        public static Fixed64 CosDeg(Fixed64 deg) => Sin0To360(ClampDeg(deg + Deg90));
-        #endregion
+        public static Fixed64 CosDeg(Fixed64 deg) => SinDeg(deg + Deg90);
 
-        #region 正切
         /// <summary>
         /// 输入弧度，计算正切
         /// </summary>
         public static Fixed64 Tan(Fixed64 rad)
         {
-            var value = ClampRad(rad);
+            var value = ClampAngle(rad, Rad180);
             return value.RawValue switch
             {
                 0L => Fixed64.Zero,
                 Const.Rad45 => Fixed64.One,
+                Const.Rad90 => throw new DivideByZeroException("[Fixed] Tan无法计算90°，因为是无穷大"),
                 Const.Rad135 => -Fixed64.One,
-                Const.Rad180 => Fixed64.Zero,
-                Const.Rad225 => Fixed64.One,
-                Const.Rad315 => -Fixed64.One,
-                _ => Tan0To2Pi(value),
+                < Const.Rad90 => Trigonometric.Cotangent(Rad90 - value),
+                _ => -Trigonometric.Cotangent(value - Rad90),
             };
         }
-        private static Fixed64 Tan0To2Pi(Fixed64 rad) => rad.RawValue switch
-        {
-            <= Const.Rad90 => Tan0ToPi2(rad),
-            <= Const.Rad180 => -Tan0ToPi2(rad - Rad90),
-            <= Const.Rad270 => Tan0ToPi2(rad - Rad180),
-            _ => -Tan0ToPi2(Rad360 - rad),
-        };
-        private static Fixed64 Tan0ToPi2(Fixed64 rad) => Sin(rad) / Cos(rad);
-
         /// <summary>
         /// 输入角度，计算正切
         /// </summary>
-        public static Fixed64 TanDeg(Fixed64 deg) => Tan0To360(ClampDeg(deg));
-        private static Fixed64 Tan0To360(Fixed64 deg) => deg.RawValue switch
+        public static Fixed64 TanDeg(Fixed64 deg)
         {
-            <= Const.Deg90 => Tan0To90(deg),
-            <= Const.Deg180 => -Tan0To90(Deg180 - deg),
-            <= Const.Deg270 => Tan0To90(deg - Deg180),
-            _ => -Tan0To90(Deg360 - deg),
-        };
-        private static Fixed64 Tan0To90(Fixed64 deg) => deg.RawValue switch
-        {
-            0L => Fixed64.Zero,
-            Const.Deg45 => Fixed64.One,
-            _ => SinDeg(deg) / CosDeg(deg),
-        };
-        #endregion
-
-        #region 工具
-        /// <summary>
-        /// 将角度限制在0~360度之间
-        /// </summary>
-        public static Fixed64 ClampDeg(Fixed64 deg)
-        {
-            var value = deg % 360L;
-            return value.RawValue < 0L ? value + Deg360 : value;
+            var value = ClampAngle(deg, 180);
+            return value.RawValue switch
+            {
+                0L => Fixed64.Zero,
+                Const.Deg45 => Fixed64.One,
+                Const.Deg90 => throw new DivideByZeroException("[Fixed] Tan无法计算90°，因为是无穷大"),
+                Const.Deg135 => -Fixed64.One,
+                < Const.Deg90 => Trigonometric.Cotangent((Deg90 - value) * Deg2Rad),
+                _ => -Trigonometric.Cotangent((value - Deg90) * Deg2Rad),
+            };
         }
+
+        /// <summary>
+        /// 输入弧度，计算余切
+        /// </summary>
+        public static Fixed64 Cot(Fixed64 rad)
+        {
+            var value = ClampAngle(rad, Rad180);
+            return value.RawValue switch
+            {
+                0L => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
+                Const.Rad45 => Fixed64.One,
+                Const.Rad90 => Fixed64.Zero,
+                Const.Rad135 => -Fixed64.One,
+                < Const.Rad90 => Trigonometric.Cotangent(value),
+                _ => -Trigonometric.Cotangent(Rad180 - value),
+            };
+        }
+        /// <summary>
+        /// 输入角度，计算余切
+        /// </summary>
+        public static Fixed64 CotDeg(Fixed64 deg)
+        {
+            var value = ClampAngle(deg, 180);
+            return value.RawValue switch
+            {
+                0L => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
+                Const.Deg45 => Fixed64.One,
+                Const.Deg90 => Fixed64.Zero,
+                Const.Deg135 => -Fixed64.One,
+                < Const.Deg90 => Trigonometric.Cotangent(value * Deg2Rad),
+                _ => -Trigonometric.Cotangent((Deg180 - value) * Deg2Rad),
+            };
+        }
+
         /// <summary>
         /// 将弧度限制在0~2π之间
         /// </summary>
-        public static Fixed64 ClampRad(Fixed64 rad)
+        public static Fixed64 ClampRad(Fixed64 rad) => ClampAngle(rad, Rad360);
+        /// <summary>
+        /// 将角度限制在0~360度之间
+        /// </summary>
+        public static Fixed64 ClampDeg(Fixed64 deg) => ClampAngle(deg, 360);
+
+        private static Fixed64 ClampAngle(Fixed64 rad, Fixed64 mod)
         {
-            var value = rad % Rad360;
-            return value.RawValue < 0L ? value + Rad360 : value;
+            var value = rad % mod;
+            return value.RawValue < 0L ? value + mod : value;
         }
-        #endregion
+        private static Fixed64 ClampAngle(Fixed64 deg, int mod)
+        {
+            var value = deg % mod;
+            return value.RawValue < 0L ? value + mod : value;
+        }
         #endregion
 
         #region Func

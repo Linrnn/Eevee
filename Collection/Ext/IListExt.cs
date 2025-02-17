@@ -28,6 +28,7 @@ namespace Eevee.Collection
             {
                 item = default;
                 index = null;
+                return;
             }
 
             int idx = random.GetInt32(0, source.Count);
