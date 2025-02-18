@@ -13,14 +13,18 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Rad2Deg = new(Const.Rad2Deg);
         public static readonly Fixed64 PiOver2 = new(Const.PiOver2);
 
+        public static readonly Fixed64 Rad30 = new(Const.Rad30);
+        public static readonly Fixed64 Rad60 = new(Const.Rad60);
         public static readonly Fixed64 Rad90 = new(Const.Rad90);
+        public static readonly Fixed64 Rad120 = new(Const.Rad120);
         public static readonly Fixed64 Rad180 = new(Const.Rad180);
         public static readonly Fixed64 Rad360 = new(Const.Rad360);
-        public static readonly Fixed64 Deg90 = 90;
-        public static readonly Fixed64 Deg180 = 180;
-        public static readonly Fixed64 Deg360 = 360;
 
-        public static readonly Fixed64 Epsilon = Fixed64.Epsilon;
+        public static readonly Fixed64 Deg90 = 90L;
+        public static readonly Fixed64 Deg180 = 180L;
+        public static readonly Fixed64 Deg360 = 360L;
+
+        public static readonly Fixed64 Epsilon = Fixed64.One / 1000L;
         #endregion
 
         #region 基础方法
@@ -194,6 +198,35 @@ namespace Eevee.Fixed
         }
 
         /// <summary>
+        /// 计算反正弦
+        /// </summary>
+        public static Fixed64 Asin(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => -Rad90,
+            -Const.Half => -Rad30,
+            0L => Fixed64.Zero,
+            Const.Half => Rad30,
+            Const.One => Rad90,
+            < -Const.One => Fixed64.NaN,
+            > Const.One => Fixed64.NaN,
+            _ => Trigonometric.ArcSine(value),
+        };
+        /// <summary>
+        /// 计算反余弦
+        /// </summary>
+        public static Fixed64 Acos(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => Rad180,
+            -Const.Half => Rad120,
+            0L => Rad90,
+            Const.Half => Rad60,
+            Const.One => Fixed64.Zero,
+            < -Const.One => Fixed64.NaN,
+            > Const.One => Fixed64.NaN,
+            _ => Rad90 - Trigonometric.ArcSine(value),
+        };
+
+        /// <summary>
         /// 将弧度限制在0~2π之间
         /// </summary>
         public static Fixed64 ClampRad(Fixed64 rad) => ClampAngle(rad, Rad360);
@@ -229,22 +262,6 @@ namespace Eevee.Fixed
             result.M31 = matrix.M31.Abs();
             result.M32 = matrix.M32.Abs();
             result.M33 = matrix.M33.Abs();
-        }
-
-        /// <summary>
-        /// 反正弦
-        /// </summary>
-        public static Fixed64 Asin(Fixed64 value)
-        {
-            return Fixed64.Asin(value);
-        }
-
-        /// <summary>
-        /// 反余弦
-        /// </summary>
-        public static Fixed64 Acos(Fixed64 value)
-        {
-            return Fixed64.Acos(value);
         }
 
         /// <summary>

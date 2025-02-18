@@ -89,7 +89,7 @@ namespace Eevee.Fixed
                 t2 = t2 < -1.0f ? -1.0f : t2;
 
                 result.X = Fixed64.Atan2(t3, t4) * Maths.Rad2Deg;
-                result.Y = Fixed64.Asin(t2) * Maths.Rad2Deg;
+                result.Y = Maths.Asin(t2) * Maths.Rad2Deg;
                 result.Z = Fixed64.Atan2(t1, t0) * Maths.Rad2Deg;
 
                 return result * -1;
@@ -98,10 +98,10 @@ namespace Eevee.Fixed
 
         public static Fixed64 Angle(Quaternions a, Quaternions b)
         {
-            Quaternions aInv = Quaternions.Inverse(a);
+            Quaternions aInv = Inverse(a);
             Quaternions f = b * aInv;
 
-            Fixed64 angle = Fixed64.Acos(f.W) * 2 * Maths.Rad2Deg;
+            Fixed64 angle = Maths.Acos(f.W) * 2 * Maths.Rad2Deg;
 
             if (angle > 180)
             {
@@ -140,7 +140,7 @@ namespace Eevee.Fixed
         {
             t = Maths.Clamp(t, 0, 1);
 
-            Fixed64 dot = Dot(from, to);
+            var dot = Dot(from, to);
 
             if (dot < 0.0f)
             {
@@ -148,14 +148,14 @@ namespace Eevee.Fixed
                 dot = -dot;
             }
 
-            Fixed64 halfTheta = Fixed64.Acos(dot);
+            var halfTheta = Maths.Acos(dot);
 
             return Multiply(Multiply(from, Maths.Sin((1 - t) * halfTheta)) + Multiply(to, Maths.Sin(t * halfTheta)), 1 / Maths.Sin(halfTheta));
         }
 
         public static Quaternions RotateTowards(Quaternions from, Quaternions to, Fixed64 maxDegreesDelta)
         {
-            Fixed64 dot = Dot(from, to);
+            var dot = Dot(from, to);
 
             if (dot < 0.0f)
             {
@@ -163,8 +163,8 @@ namespace Eevee.Fixed
                 dot = -dot;
             }
 
-            Fixed64 halfTheta = Fixed64.Acos(dot);
-            Fixed64 theta = halfTheta * 2;
+            var halfTheta = Maths.Acos(dot);
+            var theta = halfTheta * 2;
 
             maxDegreesDelta *= Maths.Deg2Rad;
 

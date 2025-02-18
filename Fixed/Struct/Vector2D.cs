@@ -466,7 +466,7 @@ namespace Eevee.Fixed
 
         public static Fixed64 Angle(Vector2D a, Vector2D b)
         {
-            return Fixed64.Acos(a.normalized * b.normalized) * Maths.Rad2Deg;
+            return Maths.Acos(a.normalized * b.normalized) * Maths.Rad2Deg;
         }
 
         public Vector3D ToTSVector()

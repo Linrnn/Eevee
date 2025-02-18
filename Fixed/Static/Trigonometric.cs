@@ -2,13 +2,14 @@
 {
     /// <summary>
     /// 三角函数<br/>
-    /// 参考链接：https://www.cnblogs.com/Carrawayang/p/14545043.html<br/>
-    /// 参考链接：https://zh.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E5%87%BD%E6%95%B0
+    /// 参考链接：https://zh.wikipedia.org/wiki/%E4%B8%89%E8%A7%92%E5%87%BD%E6%95%B0<br/>
+    /// 参考链接：https://zh.wikipedia.org/wiki/%E5%8F%8D%E4%B8%89%E8%A7%92%E5%87%BD%E6%95%B0<br/>
+    /// 参考链接：https://www.cnblogs.com/Carrawayang/p/14545043.html
     /// </summary>
     internal readonly struct Trigonometric
     {
         #region 正弦的泰勒展开
-        private static readonly long[] _sinDenominator =
+        private static readonly long[] _sinDen =
         {
             1, // 1! = 1
             -6, // 3! = 6
@@ -31,7 +32,7 @@
             for (int i = 1; i < times; ++i)
             {
                 pow *= sqr;
-                sum += pow / _sinDenominator[i];
+                sum += pow / _sinDen[i];
             }
 
             return sum;
@@ -39,7 +40,7 @@
         #endregion
 
         #region 余弦的泰勒展开
-        private static readonly long[] _cosDenominator =
+        private static readonly long[] _cosDen =
         {
             1, // 0! = 1
             -2, // 2! = 2
@@ -63,7 +64,7 @@
             for (int i = 1; i < times; ++i)
             {
                 pow *= sqr;
-                sum += pow / _cosDenominator[i];
+                sum += pow / _cosDen[i];
             }
 
             return sum;
@@ -71,7 +72,7 @@
         #endregion
 
         #region 余切的泰勒展开
-        private static readonly long[] _cotNumerator =
+        private static readonly long[] _cotNum =
         {
             1,
             1,
@@ -85,7 +86,7 @@
             87734,
             174611,
         };
-        private static readonly long[] _cotDenominator =
+        private static readonly long[] _cotDen =
         {
             1,
             3,
@@ -110,7 +111,63 @@
             for (int i = 1; i < times; ++i)
             {
                 pow *= sqr;
-                sum -= pow * _cotNumerator[i] / _cotDenominator[i];
+                sum -= pow * _cotNum[i] / _cotDen[i];
+            }
+
+            return sum;
+        }
+        #endregion
+
+        #region 反正弦的泰勒展开
+        private static readonly long[] _asinNum =
+        {
+            1, // 1 / 1 = 1
+            1, // 1 / 1 = 1
+            3, // 3 / 1 = 3
+            5, // 15 / 3 = 5
+            35, // 105 / 3 = 35
+            63, // 945 / 15 = 63
+            231, // 10395 / 45 = 231
+            143, // 135135 / 945 = 143
+            6435, // 2027025 / 315 = 6435
+            12155, // 34459425 / 2835 = 12155
+            46189, // 654729075 / 14175 = 46189
+            88179, // 13749310575 / 155925 = 88179
+            676039, // 316234143225 / 467775 = 676039
+            1300075, // 7905853580625 / 6081075 = 1300075
+            5014575, // 213458046676875 / 42567525 = 5014575
+            9694845, // 6190283353629375 / 638512875 = 9694845
+        };
+        private static readonly long[] _asinDen =
+        {
+            1, // 1 / 1 = 1
+            6, // 6 / 1 = 6
+            40, // 40 / 1 = 40
+            112, // 336 / 3 = 112
+            1152, // 3456 / 3 = 1152
+            2816, // 42240 / 15 = 2816
+            13312, // 599040 / 45 = 13312
+            10240, // 9676800 / 945 = 10240
+            557056, // 175472640 / 315 = 557056
+            1245184, // 3530096640 / 2835 = 1245184
+            5505024, // 78033715200 / 14175 = 5505024
+            12058624, // 1880240947200 / 155925 = 12058624
+            104857600, // 49049763840000 / 467775 = 104857600
+            226492416, // 1377317368627200 / 6081075 = 226492416
+            973078528, // 41421544567603200 / 42567525 = 973078528
+            2080374784, // 1328346084409344000 / 638512875 = 2080374784
+        };
+
+        internal static Fixed64 ArcSine(Fixed64 value, int times = 8)
+        {
+            var sum = value;
+            var pow = value;
+            var sqr = value.Sqr();
+
+            for (int i = 1; i < times; ++i)
+            {
+                pow *= sqr;
+                sum += pow * _asinNum[i] / _asinDen[i];
             }
 
             return sum;

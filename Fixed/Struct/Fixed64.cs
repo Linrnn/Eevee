@@ -14,20 +14,17 @@ namespace Eevee.Fixed
         #region 字段
         public readonly long RawValue;
 
-        public static readonly Fixed64 MinValue = new(Const.MinValue);
-        public static readonly Fixed64 MaxValue = new(Const.MaxValue);
-        public static readonly Fixed64 Zero = new();
-        public static readonly Fixed64 One = new(Const.One);
-        public static readonly Fixed64 Half = new(Const.Half);
-        public static readonly Fixed64 NegativeInfinity = new(Const.NegativeInfinity); // 负无穷大
+        public static readonly Fixed64 Zero = new(); // 数字：0
+        public static readonly Fixed64 Half = new(Const.Half); // 数字：0.5
+        public static readonly Fixed64 One = new(Const.One); // 数字：1
+        public static readonly Fixed64 MinValue = new(Const.MinValue); // 最小值
+        public static readonly Fixed64 MaxValue = new(Const.MaxValue); // 最大值
+        public static readonly Fixed64 Infinitesimal = new(Const.Infinitesimal); // 无穷小
         public static readonly Fixed64 Infinity = new(Const.Infinity); // 无穷大
-        public static readonly Fixed64 NaN = new(Const.MinPeak);
+        public static readonly Fixed64 NaN = new(Const.MinPeak); // 非数，不存在的数
 
-        private static readonly Fixed64 _en2 = One / 100;
-        private static readonly Fixed64 _en3 = One / 1000;
-        public static readonly Fixed64 Epsilon = _en3;
+        private static readonly Fixed64 _en2 = One / 100L;
 
-        public static readonly Fixed64 LutInterval = (Const.TableSize - 1) / new Fixed64(Const.PiOver2);
         public static readonly Fixed64 Log2Max = new(Const.Log2Max);
         public static readonly Fixed64 Log2Min = new(Const.Log2Min);
         public static readonly Fixed64 Ln2 = new(Const.LogE2);
@@ -222,29 +219,6 @@ namespace Eevee.Fixed
 
             return atan;
         }
-
-        public static Fixed64 Asin(Fixed64 value)
-        {
-            return FastSub(Maths.PiOver2, Acos(value));
-        }
-
-        /// <summary>
-        /// Returns the arccos of of the specified number, calculated using Atan and Sqrt
-        /// This function has at least 7 decimals of accuracy.
-        /// </summary>
-        public static Fixed64 Acos(Fixed64 x)
-        {
-            if (x < -One || x > One)
-            {
-                throw new ArgumentOutOfRangeException("Must between -FP.One and FP.One", "x");
-            }
-
-            if (x.RawValue == 0)
-                return Maths.PiOver2;
-
-            var result = Atan((One - x * x).Sqrt() / x);
-            return x.RawValue < 0 ? result + Maths.Rad180 : result;
-        }
         #endregion
 
         #region 转换/判断
@@ -252,7 +226,7 @@ namespace Eevee.Fixed
         public double AsDouble() => (double)this;
         public decimal AsDecimal() => (decimal)this;
 
-        public bool IsInfinity() => RawValue is Const.NegativeInfinity or Const.Infinity;
+        public bool IsInfinity() => RawValue is Const.Infinitesimal or Const.Infinity;
         public bool IsNaN() => RawValue == Const.MinPeak;
         public static Fixed64 FromRaw(long rawValue) => new(rawValue);
         #endregion
@@ -573,24 +547,6 @@ namespace Eevee.Fixed
             long hiResult = hihi << Const.FractionalBits;
 
             return new Fixed64((long)loResult + midResult1 + midResult2 + hiResult);
-        }
-
-        static int CountLeadingZeroes(ulong x)
-        {
-            int result = 0;
-            while ((x & 0xF000000000000000) == 0)
-            {
-                result += 4;
-                x <<= 4;
-            }
-
-            while ((x & 0x8000000000000000) == 0)
-            {
-                result += 1;
-                x <<= 1;
-            }
-
-            return result;
         }
         #endregion
     }

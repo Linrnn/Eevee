@@ -36,7 +36,7 @@
         /// <summary>
         /// 负无穷大
         /// </summary>
-        internal const long NegativeInfinity = MinPeak + 1;
+        internal const long Infinitesimal = MinPeak + 1;
         /// <summary>
         /// 无穷大
         /// </summary>
@@ -237,10 +237,5 @@
         /// </summary>
         internal const long Log2Min = -0x2000000000 >> OffsetBits;
         #endregion
-
-        /// <summary>
-        /// 显示查找表Size
-        /// </summary>
-        internal const int TableSize = (int)(PiOver2 >> 15);
     }
 }
