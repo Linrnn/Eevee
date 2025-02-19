@@ -25,6 +25,24 @@
 
         #region 极值
         /// <summary>
+        /// 最小值（Fixed64最小值）
+        /// </summary>
+        internal const long MinValue = MinPeak + 2L;
+        /// <summary>
+        /// 最大值（Fixed64最大值）
+        /// </summary>
+        internal const long MaxValue = MaxPeak - 2L;
+
+        /// <summary>
+        /// 无穷小
+        /// </summary>
+        internal const long Infinitesimal = MinPeak + 1L;
+        /// <summary>
+        /// 无穷大
+        /// </summary>
+        internal const long Infinity = MaxPeak - 1L;
+
+        /// <summary>
         /// 可表示的最小值（非Fixed64最小值）
         /// </summary>e
         internal const long MinPeak = long.MinValue;
@@ -32,27 +50,13 @@
         /// 可表示的最大值（非Fixed64最大值）
         /// </summary>
         internal const long MaxPeak = long.MaxValue;
-
-        /// <summary>
-        /// 负无穷大
-        /// </summary>
-        internal const long Infinitesimal = MinPeak + 1;
-        /// <summary>
-        /// 无穷大
-        /// </summary>
-        internal const long Infinity = MaxPeak - 1;
-
-        /// <summary>
-        /// 最小值（Fixed64最小值）
-        /// </summary>
-        internal const long MinValue = MinPeak + 2;
-        /// <summary>
-        /// 最大值（Fixed64最大值）
-        /// </summary>
-        internal const long MaxValue = MaxPeak - 2;
         #endregion
 
         #region 数字
+        /// <summary>
+        /// 0
+        /// </summary>
+        internal const long Zero = 0L;
         /// <summary>
         /// 0.5
         /// </summary>

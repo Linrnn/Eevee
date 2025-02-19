@@ -20,9 +20,12 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Rad180 = new(Const.Rad180);
         public static readonly Fixed64 Rad360 = new(Const.Rad360);
 
-        public static readonly Fixed64 Deg90 = 90L;
-        public static readonly Fixed64 Deg180 = 180L;
-        public static readonly Fixed64 Deg360 = 360L;
+        public static readonly Fixed64 Deg30 = new(Const.Deg30);
+        public static readonly Fixed64 Deg60 = new(Const.Deg60);
+        public static readonly Fixed64 Deg90 = new(Const.Deg90);
+        public static readonly Fixed64 Deg120 = new(Const.Deg120);
+        public static readonly Fixed64 Deg180 = new(Const.Deg180);
+        public static readonly Fixed64 Deg360 = new(Const.Deg360);
 
         public static readonly Fixed64 Epsilon = Fixed64.One / 1000L;
         #endregion
@@ -67,7 +70,7 @@ namespace Eevee.Fixed
             var value = ClampRad(rad);
             return value.RawValue switch
             {
-                0L => Fixed64.Zero,
+                Const.Zero => Fixed64.Zero,
                 Const.Rad30 => Fixed64.Half,
                 Const.Rad90 => Fixed64.One,
                 Const.Rad150 => Fixed64.Half,
@@ -89,7 +92,7 @@ namespace Eevee.Fixed
             var value = ClampDeg(deg);
             return value.RawValue switch
             {
-                0L => Fixed64.Zero,
+                Const.Zero => Fixed64.Zero,
                 Const.Deg30 => Fixed64.Half,
                 Const.Deg90 => Fixed64.One,
                 Const.Deg150 => Fixed64.Half,
@@ -112,7 +115,7 @@ namespace Eevee.Fixed
             var value = ClampRad(rad);
             return value.RawValue switch
             {
-                0L => Fixed64.One,
+                Const.Zero => Fixed64.One,
                 Const.Rad60 => Fixed64.Half,
                 Const.Rad90 => Fixed64.Zero,
                 Const.Rad120 => -Fixed64.Half,
@@ -139,7 +142,7 @@ namespace Eevee.Fixed
             var value = ClampAngle(rad, Rad180);
             return value.RawValue switch
             {
-                0L => Fixed64.Zero,
+                Const.Zero => Fixed64.Zero,
                 Const.Rad45 => Fixed64.One,
                 Const.Rad90 => throw new DivideByZeroException("[Fixed] Tan无法计算90°，因为是无穷大"),
                 Const.Rad135 => -Fixed64.One,
@@ -155,7 +158,7 @@ namespace Eevee.Fixed
             var value = ClampAngle(deg, 180);
             return value.RawValue switch
             {
-                0L => Fixed64.Zero,
+                Const.Zero => Fixed64.Zero,
                 Const.Deg45 => Fixed64.One,
                 Const.Deg90 => throw new DivideByZeroException("[Fixed] Tan无法计算90°，因为是无穷大"),
                 Const.Deg135 => -Fixed64.One,
@@ -172,7 +175,7 @@ namespace Eevee.Fixed
             var value = ClampAngle(rad, Rad180);
             return value.RawValue switch
             {
-                0L => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
+                Const.Zero => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
                 Const.Rad45 => Fixed64.One,
                 Const.Rad90 => Fixed64.Zero,
                 Const.Rad135 => -Fixed64.One,
@@ -188,7 +191,7 @@ namespace Eevee.Fixed
             var value = ClampAngle(deg, 180);
             return value.RawValue switch
             {
-                0L => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
+                Const.Zero => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
                 Const.Deg45 => Fixed64.One,
                 Const.Deg90 => Fixed64.Zero,
                 Const.Deg135 => -Fixed64.One,
@@ -198,40 +201,11 @@ namespace Eevee.Fixed
         }
 
         /// <summary>
-        /// 计算反正弦
-        /// </summary>
-        public static Fixed64 Asin(Fixed64 value) => value.RawValue switch
-        {
-            -Const.One => -Rad90,
-            -Const.Half => -Rad30,
-            0L => Fixed64.Zero,
-            Const.Half => Rad30,
-            Const.One => Rad90,
-            < -Const.One => Fixed64.NaN,
-            > Const.One => Fixed64.NaN,
-            _ => Trigonometric.ArcSine(value),
-        };
-        /// <summary>
-        /// 计算反余弦
-        /// </summary>
-        public static Fixed64 Acos(Fixed64 value) => value.RawValue switch
-        {
-            -Const.One => Rad180,
-            -Const.Half => Rad120,
-            0L => Rad90,
-            Const.Half => Rad60,
-            Const.One => Fixed64.Zero,
-            < -Const.One => Fixed64.NaN,
-            > Const.One => Fixed64.NaN,
-            _ => Rad90 - Trigonometric.ArcSine(value),
-        };
-
-        /// <summary>
         /// 将弧度限制在0~2π之间
         /// </summary>
         public static Fixed64 ClampRad(Fixed64 rad) => ClampAngle(rad, Rad360);
         /// <summary>
-        /// 将角度限制在0~360度之间
+        /// 将角度限制在0~360°之间
         /// </summary>
         public static Fixed64 ClampDeg(Fixed64 deg) => ClampAngle(deg, 360);
 
@@ -245,6 +219,66 @@ namespace Eevee.Fixed
             var value = deg % mod;
             return value.RawValue < 0L ? value + mod : value;
         }
+        #endregion
+
+        #region 反三角函数
+        /// <summary>
+        /// 计算反正弦，返回弧度
+        /// </summary>
+        public static Fixed64 Asin(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => -Rad90,
+            -Const.Half => -Rad30,
+            Const.Zero => Fixed64.Zero,
+            Const.Half => Rad30,
+            Const.One => Rad90,
+            < -Const.One => Fixed64.NaN,
+            > Const.One => Fixed64.NaN,
+            _ => Trigonometric.ArcSine(value),
+        };
+        /// <summary>
+        /// 计算反正弦，返回角度
+        /// </summary>
+        public static Fixed64 AsinDeg(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => -Deg90,
+            -Const.Half => -Deg30,
+            Const.Zero => Fixed64.Zero,
+            Const.Half => Deg30,
+            Const.One => Deg90,
+            < -Const.One => Fixed64.NaN,
+            > Const.One => Fixed64.NaN,
+            _ => Trigonometric.ArcSine(value, 16) * Rad2Deg,
+        };
+
+        /// <summary>
+        /// 计算反余弦，返回弧度
+        /// </summary>
+        public static Fixed64 Acos(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => Rad180,
+            -Const.Half => Rad120,
+            Const.Zero => Rad90,
+            Const.Half => Rad60,
+            Const.One => Fixed64.Zero,
+            < -Const.One => Fixed64.NaN,
+            > Const.One => Fixed64.NaN,
+            _ => Rad90 - Trigonometric.ArcSine(value),
+        };
+        /// <summary>
+        /// 计算反余弦，返回角度
+        /// </summary>
+        public static Fixed64 AcosDeg(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => Deg180,
+            -Const.Half => Deg120,
+            Const.Zero => Deg90,
+            Const.Half => Deg60,
+            Const.One => Fixed64.Zero,
+            < -Const.One => Fixed64.NaN,
+            > Const.One => Fixed64.NaN,
+            _ => Deg90 - Trigonometric.ArcSine(value, 16) * Rad2Deg,
+        };
         #endregion
 
         #region Func
@@ -605,7 +639,7 @@ namespace Eevee.Fixed
 
             int integerPart = (int)x.Floor();
             // Take fractional part of exponent
-            x = Fixed64.FromRaw(x.RawValue & 0x00000000FFFFFFFF);
+            x = new Fixed64(x.RawValue & 0x00000000FFFFFFFF);
 
             var result = Fixed64.One;
             var term = Fixed64.One;
@@ -617,7 +651,7 @@ namespace Eevee.Fixed
                 i++;
             }
 
-            result = Fixed64.FromRaw(result.RawValue << integerPart);
+            result = new Fixed64(result.RawValue << integerPart);
             if (neg)
             {
                 result = result.Reciprocal();
@@ -657,21 +691,21 @@ namespace Eevee.Fixed
                 y += Const.One;
             }
 
-            var z = Fixed64.FromRaw(rawX);
+            var z = new Fixed64(rawX);
 
             for (int i = 0; i < Const.FractionalBits; i++)
             {
                 z = Fixed64.FastMul(z, z);
                 if (z.RawValue >= (Const.One << 1))
                 {
-                    z = Fixed64.FromRaw(z.RawValue >> 1);
+                    z = new Fixed64(z.RawValue >> 1);
                     y += b;
                 }
 
                 b >>= 1;
             }
 
-            return Fixed64.FromRaw(y);
+            return new Fixed64(y);
         }
         #endregion
     }

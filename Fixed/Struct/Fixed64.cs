@@ -11,10 +11,8 @@ namespace Eevee.Fixed
     [Serializable]
     public readonly struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
     {
-        #region 字段
-        public readonly long RawValue;
-
-        public static readonly Fixed64 Zero = new(); // 数字：0
+        #region 字段 & 构造函数
+        public static readonly Fixed64 Zero = default; // 数字：0
         public static readonly Fixed64 Half = new(Const.Half); // 数字：0.5
         public static readonly Fixed64 One = new(Const.One); // 数字：1
         public static readonly Fixed64 MinValue = new(Const.MinValue); // 最小值
@@ -28,10 +26,9 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Log2Max = new(Const.Log2Max);
         public static readonly Fixed64 Log2Min = new(Const.Log2Min);
         public static readonly Fixed64 Ln2 = new(Const.LogE2);
-        #endregion
 
-        #region 构造函数
-        internal Fixed64(long rawValue) => RawValue = rawValue;
+        public readonly long RawValue;
+        public Fixed64(long rawValue) => RawValue = rawValue;
         #endregion
 
         #region 数字转换
@@ -221,14 +218,13 @@ namespace Eevee.Fixed
         }
         #endregion
 
-        #region 转换/判断
+        #region 判断
         public float AsFloat() => (float)this;
         public double AsDouble() => (double)this;
         public decimal AsDecimal() => (decimal)this;
 
         public bool IsInfinity() => RawValue is Const.Infinitesimal or Const.Infinity;
         public bool IsNaN() => RawValue == Const.MinPeak;
-        public static Fixed64 FromRaw(long rawValue) => new(rawValue);
         #endregion
 
         #region 隐式/显示转换
