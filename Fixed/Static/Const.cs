@@ -219,10 +219,6 @@
         /// 180/π
         /// </summary>
         public const long Rad2Deg = 0x394BB834C7 >> OffsetBits;
-        /// <summary>
-        /// π*π
-        /// </summary>
-        internal const long PiOver2 = 0x1921FB544 >> OffsetBits;
         #endregion
 
         #region 对数

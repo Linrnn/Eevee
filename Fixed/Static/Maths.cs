@@ -8,26 +8,27 @@ namespace Eevee.Fixed
     public readonly struct Maths
     {
         #region 字段
+        public static readonly Fixed64 Epsilon = Fixed64.One / 1000L;
         public static readonly Fixed64 Pi = new(Const.Rad180);
         public static readonly Fixed64 Deg2Rad = new(Const.Deg2Rad);
         public static readonly Fixed64 Rad2Deg = new(Const.Rad2Deg);
-        public static readonly Fixed64 PiOver2 = new(Const.PiOver2);
 
         public static readonly Fixed64 Rad30 = new(Const.Rad30);
+        public static readonly Fixed64 Rad45 = new(Const.Rad45);
         public static readonly Fixed64 Rad60 = new(Const.Rad60);
         public static readonly Fixed64 Rad90 = new(Const.Rad90);
         public static readonly Fixed64 Rad120 = new(Const.Rad120);
+        public static readonly Fixed64 Rad135 = new(Const.Rad135);
         public static readonly Fixed64 Rad180 = new(Const.Rad180);
         public static readonly Fixed64 Rad360 = new(Const.Rad360);
 
         public static readonly Fixed64 Deg30 = new(Const.Deg30);
+        public static readonly Fixed64 Deg45 = new(Const.Deg45);
         public static readonly Fixed64 Deg60 = new(Const.Deg60);
         public static readonly Fixed64 Deg90 = new(Const.Deg90);
         public static readonly Fixed64 Deg120 = new(Const.Deg120);
         public static readonly Fixed64 Deg180 = new(Const.Deg180);
         public static readonly Fixed64 Deg360 = new(Const.Deg360);
-
-        public static readonly Fixed64 Epsilon = Fixed64.One / 1000L;
         #endregion
 
         #region 基础方法
@@ -72,15 +73,15 @@ namespace Eevee.Fixed
             {
                 Const.Zero => Fixed64.Zero,
                 Const.Rad30 => Fixed64.Half,
+                < Const.Rad90 => Trigonometric.Sine(value),
                 Const.Rad90 => Fixed64.One,
                 Const.Rad150 => Fixed64.Half,
+                < Const.Rad180 => Trigonometric.Sine(Rad180 - value),
                 Const.Rad180 => Fixed64.Zero,
                 Const.Rad210 => -Fixed64.Half,
+                < Const.Rad270 => -Trigonometric.Sine(value - Rad180),
                 Const.Rad270 => -Fixed64.One,
                 Const.Rad330 => -Fixed64.Half,
-                <= Const.Rad90 => Trigonometric.Sine(value),
-                <= Const.Rad180 => Trigonometric.Sine(Rad180 - value),
-                <= Const.Rad270 => -Trigonometric.Sine(value - Rad180),
                 _ => -Trigonometric.Sine(Rad360 - value),
             };
         }
@@ -94,15 +95,15 @@ namespace Eevee.Fixed
             {
                 Const.Zero => Fixed64.Zero,
                 Const.Deg30 => Fixed64.Half,
+                < Const.Deg90 => Trigonometric.Sine(value * Deg2Rad),
                 Const.Deg90 => Fixed64.One,
                 Const.Deg150 => Fixed64.Half,
+                < Const.Deg180 => Trigonometric.Sine((Deg180 - value) * Deg2Rad),
                 Const.Deg180 => Fixed64.Zero,
                 Const.Deg210 => -Fixed64.Half,
+                < Const.Deg270 => -Trigonometric.Sine((value - Deg180) * Deg2Rad),
                 Const.Deg270 => -Fixed64.One,
                 Const.Deg330 => -Fixed64.Half,
-                <= Const.Deg90 => Trigonometric.Sine(value * Deg2Rad),
-                <= Const.Deg180 => Trigonometric.Sine((Deg180 - value) * Deg2Rad),
-                <= Const.Deg270 => -Trigonometric.Sine((value - Deg180) * Deg2Rad),
                 _ => -Trigonometric.Sine((Deg360 - value) * Deg2Rad),
             };
         }
@@ -117,15 +118,15 @@ namespace Eevee.Fixed
             {
                 Const.Zero => Fixed64.One,
                 Const.Rad60 => Fixed64.Half,
+                < Const.Rad90 => Trigonometric.Cosine(value),
                 Const.Rad90 => Fixed64.Zero,
                 Const.Rad120 => -Fixed64.Half,
+                < Const.Rad180 => -Trigonometric.Cosine(Rad180 - value),
                 Const.Rad180 => -Fixed64.One,
                 Const.Rad240 => -Fixed64.Half,
+                < Const.Rad270 => -Trigonometric.Cosine(value - Rad180),
                 Const.Rad270 => Fixed64.Zero,
                 Const.Rad300 => Fixed64.Half,
-                <= Const.Rad90 => Trigonometric.Cosine(value),
-                <= Const.Rad180 => -Trigonometric.Cosine(Rad180 - value),
-                <= Const.Rad270 => -Trigonometric.Cosine(value - Rad180),
                 _ => Trigonometric.Cosine(Rad360 - value),
             };
         }
@@ -144,9 +145,9 @@ namespace Eevee.Fixed
             {
                 Const.Zero => Fixed64.Zero,
                 Const.Rad45 => Fixed64.One,
+                < Const.Rad90 => Trigonometric.Cotangent(Rad90 - value),
                 Const.Rad90 => throw new DivideByZeroException("[Fixed] Tan无法计算90°，因为是无穷大"),
                 Const.Rad135 => -Fixed64.One,
-                < Const.Rad90 => Trigonometric.Cotangent(Rad90 - value),
                 _ => -Trigonometric.Cotangent(value - Rad90),
             };
         }
@@ -160,9 +161,9 @@ namespace Eevee.Fixed
             {
                 Const.Zero => Fixed64.Zero,
                 Const.Deg45 => Fixed64.One,
+                < Const.Deg90 => Trigonometric.Cotangent((Deg90 - value) * Deg2Rad),
                 Const.Deg90 => throw new DivideByZeroException("[Fixed] Tan无法计算90°，因为是无穷大"),
                 Const.Deg135 => -Fixed64.One,
-                < Const.Deg90 => Trigonometric.Cotangent((Deg90 - value) * Deg2Rad),
                 _ => -Trigonometric.Cotangent((value - Deg90) * Deg2Rad),
             };
         }
@@ -177,9 +178,9 @@ namespace Eevee.Fixed
             {
                 Const.Zero => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
                 Const.Rad45 => Fixed64.One,
+                < Const.Rad90 => Trigonometric.Cotangent(value),
                 Const.Rad90 => Fixed64.Zero,
                 Const.Rad135 => -Fixed64.One,
-                < Const.Rad90 => Trigonometric.Cotangent(value),
                 _ => -Trigonometric.Cotangent(Rad180 - value),
             };
         }
@@ -193,9 +194,9 @@ namespace Eevee.Fixed
             {
                 Const.Zero => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
                 Const.Deg45 => Fixed64.One,
+                < Const.Deg90 => Trigonometric.Cotangent(value * Deg2Rad),
                 Const.Deg90 => Fixed64.Zero,
                 Const.Deg135 => -Fixed64.One,
-                < Const.Deg90 => Trigonometric.Cotangent(value * Deg2Rad),
                 _ => -Trigonometric.Cotangent((Deg180 - value) * Deg2Rad),
             };
         }
@@ -225,60 +226,125 @@ namespace Eevee.Fixed
         /// <summary>
         /// 计算反正弦，返回弧度
         /// </summary>
-        public static Fixed64 Asin(Fixed64 value) => value.RawValue switch
+        public static Fixed64 Asin(Fixed64 value)
         {
-            -Const.One => -Rad90,
-            -Const.Half => -Rad30,
-            Const.Zero => Fixed64.Zero,
-            Const.Half => Rad30,
-            Const.One => Rad90,
-            < -Const.One => Fixed64.NaN,
-            > Const.One => Fixed64.NaN,
-            _ => Trigonometric.ArcSine(value),
-        };
+            switch (value.RawValue)
+            {
+                case < -Const.One: return Fixed64.NaN;
+                case -Const.One: return -Rad90;
+                case -Const.Half: return -Rad30;
+                case Const.Zero: return Fixed64.Zero;
+                case Const.Half: return Rad30;
+                case Const.One: return Rad90;
+                case > Const.One: return Fixed64.NaN;
+                default:
+                    var rad = Atan((Fixed64.One - value.Sqr()).Sqrt() / value);
+                    return value.RawValue < 0L ? -Rad90 - rad : Rad90 - rad;
+            }
+        }
         /// <summary>
         /// 计算反正弦，返回角度
         /// </summary>
-        public static Fixed64 AsinDeg(Fixed64 value) => value.RawValue switch
+        public static Fixed64 AsinDeg(Fixed64 value)
         {
-            -Const.One => -Deg90,
-            -Const.Half => -Deg30,
-            Const.Zero => Fixed64.Zero,
-            Const.Half => Deg30,
-            Const.One => Deg90,
-            < -Const.One => Fixed64.NaN,
-            > Const.One => Fixed64.NaN,
-            _ => Trigonometric.ArcSine(value, 16) * Rad2Deg,
-        };
+            switch (value.RawValue)
+            {
+                case < -Const.One: return Fixed64.NaN;
+                case -Const.One: return -Deg90;
+                case -Const.Half: return -Deg30;
+                case Const.Zero: return Fixed64.Zero;
+                case Const.Half: return Deg30;
+                case Const.One: return Deg90;
+                case > Const.One: return Fixed64.NaN;
+                default:
+                    var deg = AtanDeg((Fixed64.One - value.Sqr()).Sqrt() / value);
+                    return value.RawValue < 0L ? -Deg90 - deg : Deg90 - deg;
+            }
+        }
 
         /// <summary>
         /// 计算反余弦，返回弧度
         /// </summary>
-        public static Fixed64 Acos(Fixed64 value) => value.RawValue switch
+        public static Fixed64 Acos(Fixed64 value)
         {
-            -Const.One => Rad180,
-            -Const.Half => Rad120,
-            Const.Zero => Rad90,
-            Const.Half => Rad60,
-            Const.One => Fixed64.Zero,
-            < -Const.One => Fixed64.NaN,
-            > Const.One => Fixed64.NaN,
-            _ => Rad90 - Trigonometric.ArcSine(value),
-        };
+            switch (value.RawValue)
+            {
+                case < -Const.One: return Fixed64.NaN;
+                case -Const.One: return Rad180;
+                case -Const.Half: return Rad120;
+                case Const.Zero: return Rad90;
+                case Const.Half: return Rad60;
+                case Const.One: return Fixed64.Zero;
+                case > Const.One: return Fixed64.NaN;
+                default:
+                    var rad = Atan((Fixed64.One - value.Sqr()).Sqrt() / value);
+                    return value.RawValue < 0L ? Rad180 + rad : rad;
+            }
+        }
         /// <summary>
         /// 计算反余弦，返回角度
         /// </summary>
-        public static Fixed64 AcosDeg(Fixed64 value) => value.RawValue switch
+        public static Fixed64 AcosDeg(Fixed64 value)
         {
-            -Const.One => Deg180,
-            -Const.Half => Deg120,
-            Const.Zero => Deg90,
-            Const.Half => Deg60,
-            Const.One => Fixed64.Zero,
-            < -Const.One => Fixed64.NaN,
-            > Const.One => Fixed64.NaN,
-            _ => Deg90 - Trigonometric.ArcSine(value, 16) * Rad2Deg,
+            switch (value.RawValue)
+            {
+                case < -Const.One: return Fixed64.NaN;
+                case -Const.One: return Deg180;
+                case -Const.Half: return Deg120;
+                case Const.Zero: return Deg90;
+                case Const.Half: return Deg60;
+                case Const.One: return Fixed64.Zero;
+                case > Const.One: return Fixed64.NaN;
+                default:
+                    var deg = AtanDeg((Fixed64.One - value.Sqr()).Sqrt() / value);
+                    return value.RawValue < 0L ? Deg180 + deg : deg;
+            }
+        }
+
+        /// <summary>
+        /// 计算反正切，返回弧度
+        /// </summary>
+        public static Fixed64 Atan(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => -Rad45,
+            < -Const.One => Trigonometric.Arctangent0To45(-value.Reciprocal()) - Rad90,
+            < Const.Zero => -Trigonometric.Arctangent0To45(-value),
+            Const.Zero => Fixed64.Zero,
+            < Const.One => Trigonometric.Arctangent0To45(value),
+            Const.One => Rad45,
+            > Const.One => Rad90 - Trigonometric.Arctangent0To45(value.Reciprocal()),
         };
+        /// <summary>
+        /// 计算反正切，返回角度
+        /// </summary>
+        public static Fixed64 AtanDeg(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => -Deg45,
+            < -Const.One => Trigonometric.Arctangent0To45(-value.Reciprocal()) * Rad2Deg - Deg90,
+            < Const.Zero => -Trigonometric.Arctangent0To45(-value) * Rad2Deg,
+            Const.Zero => Fixed64.Zero,
+            < Const.One => Trigonometric.Arctangent0To45(value) * Rad2Deg,
+            Const.One => Deg45,
+            > Const.One => Deg90 - Trigonometric.Arctangent0To45(value.Reciprocal()) * Rad2Deg,
+        };
+
+        /// <summary>
+        /// 计算反余切，返回弧度
+        /// </summary>
+        public static Fixed64 Acot(Fixed64 value) => value.RawValue switch
+        {
+            -Const.One => Rad135,
+            < -Const.One => Rad180 - Trigonometric.Arctangent0To45(-value.Reciprocal()),
+            < Const.Zero => Rad90 + Trigonometric.Arctangent0To45(-value),
+            Const.Zero => Rad90,
+            < Const.One => Rad90 - Trigonometric.Arctangent0To45(value),
+            Const.One => Rad45,
+            > Const.One => Trigonometric.Arctangent0To45(value.Reciprocal()),
+        };
+        /// <summary>
+        /// 计算反余切，返回角度
+        /// </summary>
+        public static Fixed64 AcotDeg(Fixed64 value) => Deg90 - AtanDeg(value);
         #endregion
 
         #region Func
@@ -296,14 +362,6 @@ namespace Eevee.Fixed
             result.M31 = matrix.M31.Abs();
             result.M32 = matrix.M32.Abs();
             result.M33 = matrix.M33.Abs();
-        }
-
-        /// <summary>
-        /// 反正切
-        /// </summary>
-        public static Fixed64 Atan(Fixed64 value)
-        {
-            return Fixed64.Atan(value);
         }
 
         /// <summary>

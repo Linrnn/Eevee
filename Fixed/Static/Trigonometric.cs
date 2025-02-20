@@ -158,7 +158,7 @@
             2080374784, // 1328346084409344000 / 638512875 = 2080374784
         };
 
-        internal static Fixed64 ArcSine(Fixed64 value, int times = 8)
+        internal static Fixed64 ArcSine(Fixed64 value, int times = 16)
         {
             var sum = value;
             var pow = value;
@@ -170,6 +170,74 @@
                 sum += pow * _asinNum[i] / _asinDen[i];
             }
 
+            return sum;
+        }
+        #endregion
+
+        #region 反正切的泰勒展开
+        private static readonly int[] _atan =
+        {
+            1,
+            -3,
+            5,
+            -7,
+            9,
+            -11,
+            13,
+            -15,
+            17,
+            -19,
+            21,
+            -23,
+            25,
+            -27,
+            29,
+            -31,
+            33,
+            -35,
+            37,
+            -39,
+        };
+
+        internal static Fixed64 Arctangent(Fixed64 value, int times = 20)
+        {
+            var sum = value;
+            var pow = value;
+            var sqr = value.Sqr();
+
+            for (int i = 1; i < times; ++i)
+            {
+                pow *= sqr;
+                sum += pow / _atan[i];
+            }
+
+            return sum;
+        }
+
+        internal static Fixed64 Arctangent0To45(Fixed64 value, int times = 30)
+        {
+            var sqr = value.Sqr();
+            var sqrBit = sqr << 1;
+            var sqrAdd = sqr + Fixed64.One;
+            var sqrMul = sqrAdd << 1;
+
+            var sum = Fixed64.One;
+            var term = Fixed64.One;
+            var dividend = sqrBit;
+            var divisor = sqrAdd * 3L;
+
+            for (int i = 2; i < times; ++i)
+            {
+                term *= dividend / divisor;
+                if (term.RawValue == 0L)
+                    break;
+
+                sum += term;
+                dividend += sqrBit;
+                divisor += sqrMul;
+            }
+
+            sum *= value / sqrAdd;
             return sum;
         }
         #endregion

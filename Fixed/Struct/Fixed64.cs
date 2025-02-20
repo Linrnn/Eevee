@@ -102,67 +102,6 @@ namespace Eevee.Fixed
         #endregion
 
         #region 三角函数
-        /// <summary>
-        /// Returns the arctan of of the specified number, calculated using Euler series
-        /// This function has at least 7 decimals of accuracy.
-        /// </summary>
-        public static Fixed64 Atan(Fixed64 z)
-        {
-            if (z.RawValue == 0)
-                return Zero;
-
-            // Force positive values for argument
-            // Atan(-z) = -Atan(z).
-            var neg = z.RawValue < 0;
-            if (neg)
-            {
-                z = -z;
-            }
-
-            Fixed64 two = 2;
-            Fixed64 three = 3;
-
-            bool invert = z > One;
-            if (invert)
-                z = z.Reciprocal();
-
-            var result = One;
-            var term = One;
-
-            var zSq = z * z;
-            var zSq2 = zSq * two;
-            var zSqPlusOne = zSq + One;
-            var zSq12 = zSqPlusOne * two;
-            var dividend = zSq2;
-            var divisor = zSqPlusOne * three;
-
-            for (var i = 2; i < 30; ++i)
-            {
-                term *= dividend / divisor;
-                result += term;
-
-                dividend += zSq2;
-                divisor += zSq12;
-
-                if (term.RawValue == 0)
-                    break;
-            }
-
-            result = result * z / zSqPlusOne;
-
-            if (invert)
-            {
-                result = Maths.PiOver2 - result;
-            }
-
-            if (neg)
-            {
-                result = -result;
-            }
-
-            return result;
-        }
-
         public static Fixed64 Atan2(Fixed64 y, Fixed64 x)
         {
             var yl = y.RawValue;
@@ -171,7 +110,7 @@ namespace Eevee.Fixed
             {
                 if (yl > 0)
                 {
-                    return Maths.PiOver2;
+                    return Maths.Rad90;
                 }
 
                 if (yl == 0)
@@ -179,7 +118,7 @@ namespace Eevee.Fixed
                     return Zero;
                 }
 
-                return -Maths.PiOver2;
+                return -Maths.Rad90;
             }
 
             Fixed64 atan;
@@ -189,7 +128,7 @@ namespace Eevee.Fixed
             // Deal with overflow
             if (One + sm * z * z == MaxValue)
             {
-                return y < Zero ? -Maths.PiOver2 : Maths.PiOver2;
+                return y < Zero ? -Maths.Rad90 : Maths.Rad90;
             }
 
             if (z.Abs() < One)
@@ -207,7 +146,7 @@ namespace Eevee.Fixed
             }
             else
             {
-                atan = Maths.PiOver2 - z / (z * z + sm);
+                atan = Maths.Rad90 - z / (z * z + sm);
                 if (yl < 0)
                 {
                     return atan - Maths.Rad180;
@@ -381,143 +320,6 @@ namespace Eevee.Fixed
         #endregion
 
         #region override object func
-        /// <summary>
-        /// 溢出检测相加
-        /// 以操作数的符号确定溢出取最大或最小值
-        /// </summary>
-        public static Fixed64 OverflowAdd(Fixed64 x, Fixed64 y)
-        {
-            var xl = x.RawValue;
-            var yl = y.RawValue;
-            var sum = xl + yl;
-            // if signs of operands are equal and signs of sum and x are different
-            if (((~(xl ^ yl) & (xl ^ sum)) & Const.MinPeak) != 0)
-            {
-                sum = xl > 0 ? Const.MaxPeak : Const.MinPeak;
-            }
-
-            return new Fixed64(sum);
-        }
-
-        /// <summary>
-        /// 相加。
-        /// 无溢出检测
-        /// </summary>
-        public static Fixed64 FastAdd(Fixed64 x, Fixed64 y) => new(x.RawValue + y.RawValue);
-
-        /// <summary>
-        /// 溢出检测相减
-        /// 以操作数的符号确定溢出取最大或最小值
-        /// </summary>
-        public static Fixed64 OverflowSub(Fixed64 x, Fixed64 y)
-        {
-            var xl = x.RawValue;
-            var yl = y.RawValue;
-            var diff = xl - yl;
-            // if signs of operands are different and signs of sum and x are different
-            if (((xl ^ yl) & (xl ^ diff) & Const.MinPeak) != 0)
-            {
-                diff = xl < 0 ? Const.MinPeak : Const.MaxPeak;
-            }
-
-            return new Fixed64(diff);
-        }
-
-        /// <summary>
-        /// 相减
-        /// 无溢出检测
-        /// </summary>
-        public static Fixed64 FastSub(Fixed64 x, Fixed64 y)
-        {
-            return new Fixed64(x.RawValue - y.RawValue);
-        }
-
-        static long AddOverflowHelper(long x, long y, ref bool overflow)
-        {
-            var sum = x + y;
-            // x + y overflows if sign(x) ^ sign(y) != sign(sum)
-            overflow |= ((x ^ y ^ sum) & Const.MinPeak) != 0;
-            return sum;
-        }
-
-        /// <summary>
-        /// 溢出检测相乘
-        /// 保证乘积值不会溢出
-        /// </summary>
-        public static Fixed64 OverflowMul(Fixed64 x, Fixed64 y)
-        {
-            var xl = x.RawValue;
-            var yl = y.RawValue;
-
-            var xlo = (ulong)(xl & Const.FractionalPart);
-            var xhi = xl >> Const.FractionalBits;
-            var ylo = (ulong)(yl & Const.FractionalPart);
-            var yhi = yl >> Const.FractionalBits;
-
-            var lolo = xlo * ylo;
-            var lohi = (long)xlo * yhi;
-            var hilo = xhi * (long)ylo;
-            var hihi = xhi * yhi;
-
-            var loResult = lolo >> Const.FractionalBits;
-            var midResult1 = lohi;
-            var midResult2 = hilo;
-            var hiResult = hihi << Const.FractionalBits;
-
-            bool overflow = false;
-            var sum = AddOverflowHelper((long)loResult, midResult1, ref overflow);
-            sum = AddOverflowHelper(sum, midResult2, ref overflow);
-            sum = AddOverflowHelper(sum, hiResult, ref overflow);
-
-            bool opSignsEqual = ((xl ^ yl) & Const.MinPeak) == 0;
-
-            // 如果操作数的符号相等而结果的符号为负，则乘法溢出为正，反之亦然
-            if (opSignsEqual)
-            {
-                if (sum < 0 || overflow && xl > 0)
-                {
-                    return MaxValue;
-                }
-            }
-            else
-            {
-                if (sum > 0)
-                {
-                    return MinValue;
-                }
-            }
-
-            // 如果hihi（高32位乘积）的前32位(未在结果中使用)不是全0或全1，那么这意味着结果溢出。
-            var topCarry = hihi >> Const.FractionalBits;
-            if (topCarry != 0 && topCarry != -1)
-            {
-                return opSignsEqual ? MaxValue : MinValue;
-            }
-
-            // 如果符号不同，两个操作数的大小都大于1，并且结果大于负操作数，则存在负溢出。
-            if (!opSignsEqual)
-            {
-                long posOp, negOp;
-                if (xl > yl)
-                {
-                    posOp = xl;
-                    negOp = yl;
-                }
-                else
-                {
-                    posOp = yl;
-                    negOp = xl;
-                }
-
-                if (sum > negOp && negOp < -Const.One && posOp > Const.One)
-                {
-                    return MinValue;
-                }
-            }
-
-            return new Fixed64(sum);
-        }
-
         /// <summary>
         /// 相乘
         /// 无溢出检测（对于确保值不溢出的运算效率更高）
