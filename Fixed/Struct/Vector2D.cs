@@ -464,10 +464,7 @@ namespace Eevee.Fixed
             result.Y = value1.Y - value2.Y;
         }
 
-        public static Fixed64 Angle(Vector2D a, Vector2D b)
-        {
-            return Maths.Acos(a.normalized * b.normalized) * Maths.Rad2Deg;
-        }
+        public static Fixed64 Angle(Vector2D a, Vector2D b) => Maths.AcosDeg(a.normalized * b.normalized);
 
         public Vector3D ToTSVector()
         {

@@ -21,12 +21,6 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Infinity = new(Const.Infinity); // 无穷大
         public static readonly Fixed64 NaN = new(Const.MinPeak); // 非数，不存在的数
 
-        private static readonly Fixed64 _en2 = One / 100L;
-
-        public static readonly Fixed64 Log2Max = new(Const.Log2Max);
-        public static readonly Fixed64 Log2Min = new(Const.Log2Min);
-        public static readonly Fixed64 Ln2 = new(Const.LogE2);
-
         public readonly long RawValue;
         public Fixed64(long rawValue) => RawValue = rawValue;
         #endregion
@@ -99,62 +93,6 @@ namespace Eevee.Fixed
         /// 平方，2次方
         /// </summary>
         public Fixed64 Sqr() => this * this;
-        #endregion
-
-        #region 三角函数
-        public static Fixed64 Atan2(Fixed64 y, Fixed64 x)
-        {
-            var yl = y.RawValue;
-            var xl = x.RawValue;
-            if (xl == 0)
-            {
-                if (yl > 0)
-                {
-                    return Maths.Rad90;
-                }
-
-                if (yl == 0)
-                {
-                    return Zero;
-                }
-
-                return -Maths.Rad90;
-            }
-
-            Fixed64 atan;
-            var z = y / x;
-
-            Fixed64 sm = _en2 * 28;
-            // Deal with overflow
-            if (One + sm * z * z == MaxValue)
-            {
-                return y < Zero ? -Maths.Rad90 : Maths.Rad90;
-            }
-
-            if (z.Abs() < One)
-            {
-                atan = z / (One + sm * z * z);
-                if (xl < 0)
-                {
-                    if (yl < 0)
-                    {
-                        return atan - Maths.Rad180;
-                    }
-
-                    return atan + Maths.Rad180;
-                }
-            }
-            else
-            {
-                atan = Maths.Rad90 - z / (z * z + sm);
-                if (yl < 0)
-                {
-                    return atan - Maths.Rad180;
-                }
-            }
-
-            return atan;
-        }
         #endregion
 
         #region 判断
@@ -317,35 +255,6 @@ namespace Eevee.Fixed
         public string ToString(string format) => ((float)this).ToString(format);
         public string ToString(IFormatProvider provider) => ((float)this).ToString(provider);
         public string ToString(string format, IFormatProvider provider) => ((float)this).ToString(format, provider);
-        #endregion
-
-        #region override object func
-        /// <summary>
-        /// 相乘
-        /// 无溢出检测（对于确保值不溢出的运算效率更高）
-        /// </summary>
-        public static Fixed64 FastMul(Fixed64 x, Fixed64 y)
-        {
-            long xl = x.RawValue;
-            long yl = y.RawValue;
-
-            ulong xlo = (ulong)(xl & Const.FractionalPart);
-            long xhi = xl >> Const.FractionalBits;
-            ulong ylo = (ulong)(yl & Const.FractionalPart);
-            long yhi = yl >> Const.FractionalBits;
-
-            ulong lolo = xlo * ylo;
-            long lohi = (long)xlo * yhi;
-            long hilo = xhi * (long)ylo;
-            long hihi = xhi * yhi;
-
-            ulong loResult = lolo >> Const.FractionalBits;
-            long midResult1 = lohi;
-            long midResult2 = hilo;
-            long hiResult = hihi << Const.FractionalBits;
-
-            return new Fixed64((long)loResult + midResult1 + midResult2 + hiResult);
-        }
         #endregion
     }
 }

@@ -89,11 +89,9 @@ namespace Eevee.Fixed
             get
             {
                 var result = new Vector3D();
-
-                result.X = -Maths.Rad2Deg * Maths.Atan2(M32, M33);
-                result.Y = -Maths.Rad2Deg * Maths.Atan2(-M31, (M32 * M32 + M33 * M33).Sqrt());
-                result.Z = -Maths.Rad2Deg * Maths.Atan2(M21, M11);
-
+                result.X = -Maths.Atan2Deg(M32, M33);
+                result.Y = -Maths.Atan2Deg(-M31, (M32.Sqr() + M33.Sqr()).Sqrt());
+                result.Z = -Maths.Atan2Deg(M21, M11);
                 return result;
             }
         }

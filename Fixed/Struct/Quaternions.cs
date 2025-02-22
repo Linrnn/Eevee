@@ -76,32 +76,26 @@ namespace Eevee.Fixed
         {
             get
             {
-                Vector3D result = new Vector3D();
+                var ySqr = Y.Sqr();
+                var t0 = Fixed64.One - (ySqr + Z.Sqr() << 1);
+                var t1 = X * Y - W * Z << 1;
+                var t2 = -(X * Z + W * Y << 1);
+                var t3 = Y * Z - W * X << 1;
+                var t4 = Fixed64.One - (X.Sqr() + ySqr << 1);
 
-                Fixed64 ysqr = Y * Y;
-                Fixed64 t0 = -2.0f * (ysqr + Z * Z) + 1.0f;
-                Fixed64 t1 = +2.0f * (X * Y - W * Z);
-                Fixed64 t2 = -2.0f * (X * Z + W * Y);
-                Fixed64 t3 = +2.0f * (Y * Z - W * X);
-                Fixed64 t4 = -2.0f * (X * X + ysqr) + 1.0f;
-
-                t2 = t2 > 1.0f ? 1.0f : t2;
-                t2 = t2 < -1.0f ? -1.0f : t2;
-
-                result.X = Fixed64.Atan2(t3, t4) * Maths.Rad2Deg;
-                result.Y = Maths.Asin(t2) * Maths.Rad2Deg;
-                result.Z = Fixed64.Atan2(t1, t0) * Maths.Rad2Deg;
-
+                var result = new Vector3D();
+                result.X = Maths.Atan2Deg(t3, t4);
+                result.Y = Maths.AsinDeg(Maths.Clamp(t2, -Fixed64.One, Fixed64.One));
+                result.Z = Maths.Atan2Deg(t1, t0);
                 return result * -1;
             }
         }
 
         public static Fixed64 Angle(Quaternions a, Quaternions b)
         {
-            Quaternions aInv = Inverse(a);
-            Quaternions f = b * aInv;
-
-            Fixed64 angle = Maths.Acos(f.W) * 2 * Maths.Rad2Deg;
+            var aInv = Inverse(a);
+            var f = b * aInv;
+            var angle = Maths.AcosDeg(f.W) << 1;
 
             if (angle > 180)
             {

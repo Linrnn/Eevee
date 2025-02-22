@@ -463,10 +463,7 @@ namespace Eevee.Fixed
         }
 
         // Returns the angle in degrees between /from/ and /to/. This is always the smallest
-        public static Fixed64 Angle(Vector3D from, Vector3D to)
-        {
-            return Maths.Acos(Maths.Clamp(Dot(from.normalized, to.normalized), -Const.One, Const.One)) * Maths.Rad2Deg;
-        }
+        public static Fixed64 Angle(Vector3D from, Vector3D to) => Maths.AcosDeg(Maths.Clamp(Dot(from.normalized, to.normalized), -Fixed64.One, Fixed64.One));
 
         // The smaller of the two possible angles between the two vectors is returned, therefore the result will never be greater than 180 degrees or smaller than -180 degrees.
         // If you imagine the from and to vectors as lines on a piece of paper, both originating from the same point, then the /axis/ vector would point up out of the paper.
@@ -475,8 +472,8 @@ namespace Eevee.Fixed
         {
             var fromNorm = from.normalized;
             var toNorm = to.normalized;
-            var unsignedAngle = Maths.Acos(Maths.Clamp(Dot(fromNorm, toNorm), -Const.One, Const.One)) * Maths.Rad2Deg;
-            var sign = Dot(axis, Cross(fromNorm, toNorm)).Sign();
+            var unsignedAngle = Maths.AcosDeg(Maths.Clamp(Dot(fromNorm, toNorm), -Fixed64.One, Fixed64.One));
+            int sign = Dot(axis, Cross(fromNorm, toNorm)).Sign();
             return unsignedAngle * sign;
         }
 
