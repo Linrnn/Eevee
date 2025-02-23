@@ -8,9 +8,8 @@ namespace Eevee.Fixed
     public readonly struct Maths
     {
         #region 字段
-        public static readonly Fixed64 Ln2 = new(Const.LogE2);
-        public static readonly Fixed64 Log2Min = new(Const.Log2Min);
-        public static readonly Fixed64 Log2Max = new(Const.Log2Max);
+        public static readonly Fixed64 Ln2 = new(Const.Ln2);
+        public static readonly Fixed64 Lg2 = new(Const.Lg2);
         public static readonly Fixed64 Epsilon = Fixed64.One / 1000L;
         public static readonly Fixed64 Pi = new(Const.Rad180);
         public static readonly Fixed64 Deg2Rad = new(Const.Deg2Rad);
@@ -65,7 +64,7 @@ namespace Eevee.Fixed
         public static Fixed64 Sqrt(Fixed64 fixed64) => fixed64.Sqrt();
         #endregion
 
-        #region 三角/反三角函数
+        #region 三角函数/反三角函数
         #region 三角函数
         /// <summary>
         /// 输入弧度，计算正弦
@@ -160,7 +159,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 TanDeg(Fixed64 deg)
         {
-            var value = ClampAngle(deg, 180);
+            var value = ClampAngle(deg, Deg180);
             return value.RawValue switch
             {
                 Const.Zero => Fixed64.Zero,
@@ -193,7 +192,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 CotDeg(Fixed64 deg)
         {
-            var value = ClampAngle(deg, 180);
+            var value = ClampAngle(deg, Deg180);
             return value.RawValue switch
             {
                 Const.Zero => throw new DivideByZeroException("[Fixed] Cot无法计算0°，因为是无穷大"),
@@ -377,125 +376,87 @@ namespace Eevee.Fixed
         /// <summary>
         /// 将角度限制在0~360°之间
         /// </summary>
-        public static Fixed64 ClampDeg(Fixed64 deg) => ClampAngle(deg, 360);
+        public static Fixed64 ClampDeg(Fixed64 deg) => ClampAngle(deg, Deg360);
 
         private static Fixed64 ClampAngle(Fixed64 rad, Fixed64 mod)
         {
             var value = rad % mod;
             return value.RawValue < 0L ? value + mod : value;
         }
-        private static Fixed64 ClampAngle(Fixed64 deg, int mod)
-        {
-            var value = deg % mod;
-            return value.RawValue < 0L ? value + mod : value;
-        }
         #endregion
         #endregion
 
-        #region 幂/对数
+        #region 幂/指数/对数，参考链接：https: //zh.wikipedia.org/wiki/%E6%8C%87%E6%95%B0%E5%87%BD%E6%95%B0
         /// <summary>
         /// 输入数值，返回2次幂
         /// </summary>
-        public static Fixed64 Pow2(Fixed64 value)
+        public static Fixed64 Pow2(Fixed64 exp)
         {
-            if (value.RawValue == 0L)
-                return Fixed64.One;
-
-            bool neg = value.RawValue < 0L;
-            if (neg)
-                value = -value;
-
-            switch (value.RawValue)
+            if (exp.RawValue == 0L)
             {
-                case Const.One: return neg ? Fixed64.Half : 2;
+                return Fixed64.One;
+            }
+
+            bool neg = exp.RawValue < 0L;
+            var abs = neg ? -exp : exp;
+            switch (abs.RawValue)
+            {
                 case >= Const.Log2Max: return neg ? Fixed64.MaxValue.Reciprocal() : Fixed64.MaxValue;
                 case <= Const.Log2Min: return neg ? Fixed64.MaxValue : Fixed64.Zero;
             }
 
-            // The algorithm is based on the power series for exp(x):
-            // http://en.wikipedia.org/wiki/Exponential_function#Formal_definition
-            // From term n, we get term n + 1 by multiplying with x / n.
-            // When the sum term drops to zero, we can stop summing.
-
-            int integerPart = (int)value.Floor();
-            // Take fractional part of exponent
-            value = new Fixed64(value.RawValue & 0x00000000FFFFFFFF);
-
-            var result = Fixed64.One;
-            var term = Fixed64.One;
-            int i = 1;
-            while (term.RawValue != 0)
+            var sum = Fixed64.One;
+            for (Fixed64 fractional = abs.FractionalPart(), term = Fixed64.One, divisor = Fixed64.One; term.RawValue != 0L; ++divisor)
             {
-                term = value * term * Ln2 / i;
-                result += term;
-                i++;
+                term *= Ln2 * fractional / divisor;
+                sum += term;
             }
 
-            result = new Fixed64(result.RawValue << integerPart);
-            if (neg)
-            {
-                result = result.Reciprocal();
-            }
-
-            return result;
+            int integer = (int)abs.Floor();
+            return neg ? sum.Reciprocal() >> integer : sum << integer;
         }
         /// <summary>
-        /// 幂运算
+        /// 幂运算/指数运算
         /// </summary>
-        public static Fixed64 Pow(Fixed64 b, Fixed64 exp)
+        public static Fixed64 Pow(Fixed64 b, Fixed64 e)
         {
-            if (b == Fixed64.One)
-            {
+            if (e.RawValue == 0L)
                 return Fixed64.One;
-            }
 
-            if (exp.RawValue == 0)
+            return b.RawValue switch
             {
-                return Fixed64.One;
-            }
-
-            if (b.RawValue == 0)
-            {
-                if (exp.RawValue < 0)
-                {
-                    return Fixed64.Infinity;
-                }
-
-                return Fixed64.Zero;
-            }
-
-            var log2 = Log2(b);
-            return Pow2(exp * log2);
+                Const.Zero => e.RawValue < 0L ? Fixed64.Infinity : Fixed64.Zero,
+                Const.One => Fixed64.One,
+                _ => Pow2(e * Log2(b)),
+            };
         }
 
         /// <summary>
-        /// 输入数值，返回以2为底的对数
+        /// 返回以2为底的对数
         /// </summary>
-        public static Fixed64 Log2(Fixed64 value)
+        public static Fixed64 Log2(Fixed64 a)
         {
-            if (value.RawValue <= 0)
+            if (a.RawValue <= 0L)
             {
-                throw new ArgumentOutOfRangeException($"value：{value}是负数，无法计算对数");
+                throw new ArgumentOutOfRangeException($"x：{a}≤0，无法计算对数");
             }
 
-            long b = 1L << (Const.FractionalBits - 1);
+            long xrv = a.RawValue;
             long y = 0L;
-
-            long raw = value.RawValue;
-            while (raw < Const.One)
+            while (xrv < Const.One)
             {
-                raw <<= 1;
+                xrv <<= 1;
                 y -= Const.One;
             }
-
-            while (raw >= (Const.One << 1))
+            while (xrv >= Const.One << 1)
             {
-                raw >>= 1;
+                xrv >>= 1;
                 y += Const.One;
             }
 
-            var z = new Fixed64(raw);
-            for (int i = 0; i < Const.FractionalBits; i++)
+            var z = new Fixed64(xrv);
+            long b = 1L << Const.FractionalBits - 1;
+            for (int i = 0; i < Const.FractionalBits; ++i)
             {
                 z = z.Sqr();
                 if (z.RawValue >= Const.One << 1)
@@ -510,23 +471,26 @@ namespace Eevee.Fixed
             return new Fixed64(y);
         }
         /// <summary>
-        /// 返回自然对数<br/>
-        /// 提供至少7位小数的准确性
+        /// 返回自然对数（即以e为底的对数）
         /// </summary>
-        public static Fixed64 Ln(Fixed64 x) => Log2(x) * Ln2;
+        public static Fixed64 Ln(Fixed64 a) => Log2(a) * Ln2;
+        /// <summary>
+        /// 返回以10为底的对数
+        /// </summary>
+        public static Fixed64 Lg(Fixed64 a) => Log2(a) * Lg2;
 
         /// <summary>
-        /// 判断高位是否是2的次幂
+        /// 是否是2的次幂
         /// </summary>
-        public static bool IsPowerOfTwo(Fixed64 value)
-        {
-            if (value.Sign() < 1)
-                return false;
-            if (value.RawValue << Const.FractionalBits != 0)
-                return false;
-            var result = value.RawValue >> Const.FractionalBits;
-            return (result & result - 1) == 0;
-        }
+        public static bool IsPowerOf2(Fixed64 a) => IsPowerOf2(a.RawValue);
+        /// <summary>
+        /// 是否是2的次幂
+        /// </summary>
+        public static bool IsPowerOf2(long a) => a > 0L && (a & a - 1L) == 0L;
+        /// <summary>
+        /// 是否是2的次幂
+        /// </summary>
+        public static bool IsPowerOf2(ulong a) => a != 0UL && (a & a - 1UL) == 0UL;
         #endregion
 
         #region Func

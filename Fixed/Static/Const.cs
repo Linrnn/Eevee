@@ -223,19 +223,24 @@
 
         #region 对数
         /// <summary>
-        /// 2的自然对数
+        /// 2的自然对数（即e为底，2的对数）
         /// </summary>
-        public const long LogE2 = 0xB17217F7 >> OffsetBits;
+        public const long Ln2 = 0xB17217F7 >> OffsetBits;
         /// <summary>
-        /// Number高位位数<br/>
-        /// Log2(Number(高位)) <= Log2Max
+        /// 10为底，2的对数
         /// </summary>
-        public const long Log2Max = 0x1F00000000 >> OffsetBits;
+        public const long Lg2 = 0x4D104D42 >> OffsetBits;
+
         /// <summary>
-        /// Number低位位数<br/>
-        /// Log2(Number(低位)) >= Log2Max
+        /// 低位位数<br/>
+        /// Log2（低位）≥ Log2Min
         /// </summary>
         public const long Log2Min = -0x2000000000 >> OffsetBits;
+        /// <summary>
+        /// 高位位数<br/>
+        /// Log2（高位）≤ Log2Max
+        /// </summary>
+        public const long Log2Max = 0x1F00000000 >> OffsetBits;
         #endregion
     }
 }

@@ -25,7 +25,7 @@ namespace Eevee.Fixed
         public Fixed64(long rawValue) => RawValue = rawValue;
         #endregion
 
-        #region 数字转换
+        #region 数字转换/判断
         /// <summary>
         /// 符号<br/>
         /// 大于0，返回1<br/>
@@ -56,6 +56,10 @@ namespace Eevee.Fixed
             > Const.Half => Ceiling(),
             _ => (RawValue & Const.One) == 0L ? Floor() : Ceiling(),
         };
+        /// <summary>
+        /// 得到小数部分
+        /// </summary>
+        public Fixed64 FractionalPart() => new(RawValue & Const.FractionalPart);
 
         /// <summary>
         /// 倒数，-1次方
@@ -93,9 +97,7 @@ namespace Eevee.Fixed
         /// 平方，2次方
         /// </summary>
         public Fixed64 Sqr() => this * this;
-        #endregion
 
-        #region 判断
         public float AsFloat() => (float)this;
         public double AsDouble() => (double)this;
         public decimal AsDecimal() => (decimal)this;
@@ -104,7 +106,7 @@ namespace Eevee.Fixed
         public bool IsNaN() => RawValue == Const.MinPeak;
         #endregion
 
-        #region 隐式/显示转换
+        #region 隐式转换/显示转换
         public static implicit operator Fixed64(long value) => new(value << Const.FractionalBits);
         public static implicit operator Fixed64(float value) => new((long)(value * Const.One));
         public static implicit operator Fixed64(double value) => new((long)(value * Const.One));
@@ -122,17 +124,25 @@ namespace Eevee.Fixed
         #endregion
 
         #region 运算符重载
+        public static Fixed64 operator >>(Fixed64 left, int right) => new(left.RawValue >> right);
+        public static Fixed64 operator <<(Fixed64 left, int right) => new(left.RawValue << right);
+        public static Fixed64 operator ~(Fixed64 value) => new(~value.RawValue);
+        public static Fixed64 operator |(Fixed64 left, Fixed64 right) => new(left.RawValue | right.RawValue);
+        public static Fixed64 operator |(Fixed64 left, long right) => new(left.RawValue | right);
+        public static Fixed64 operator |(long left, Fixed64 right) => new(left | right.RawValue);
+        public static Fixed64 operator &(Fixed64 left, Fixed64 right) => new(left.RawValue & right.RawValue);
+        public static Fixed64 operator &(Fixed64 left, long right) => new(left.RawValue & right);
+        public static Fixed64 operator &(long left, Fixed64 right) => new(left & right.RawValue);
+        public static Fixed64 operator ^(Fixed64 left, Fixed64 right) => new(left.RawValue ^ right.RawValue);
+        public static Fixed64 operator ^(Fixed64 left, long right) => new(left.RawValue ^ right);
+        public static Fixed64 operator ^(long left, Fixed64 right) => new(left ^ right.RawValue);
+
         public static Fixed64 operator +(Fixed64 value) => value;
         public static Fixed64 operator -(Fixed64 value) => new(-value.RawValue);
         public static Fixed64 operator ++(Fixed64 value) => new(value.RawValue + Const.One);
         public static Fixed64 operator --(Fixed64 value) => new(value.RawValue - Const.One);
-
-        public static Fixed64 operator >>(Fixed64 left, int right) => new(left.RawValue >> right);
-        public static Fixed64 operator <<(Fixed64 left, int right) => new(left.RawValue << right);
         public static Fixed64 operator +(Fixed64 left, Fixed64 right) => new(left.RawValue + right.RawValue);
         public static Fixed64 operator -(Fixed64 left, Fixed64 right) => new(left.RawValue - right.RawValue);
-        public static Fixed64 operator %(Fixed64 left, Fixed64 right) => new(left.RawValue % right.RawValue);
-
         public static Fixed64 operator *(Fixed64 left, Fixed64 right)
         {
             long li = left.RawValue >> Const.FractionalBits;
@@ -236,6 +246,7 @@ namespace Eevee.Fixed
             return new Fixed64(sameSign ? quotient : -quotient);
         }
         public static Fixed64 operator /(Fixed64 left, long right) => new(left.RawValue / right);
+        public static Fixed64 operator %(Fixed64 left, Fixed64 right) => new(left.RawValue % right.RawValue);
 
         public static bool operator ==(Fixed64 left, Fixed64 right) => left.RawValue == right.RawValue;
         public static bool operator !=(Fixed64 left, Fixed64 right) => left.RawValue != right.RawValue;

@@ -26,13 +26,13 @@
         internal static Fixed64 Sine(Fixed64 rad, int times = 5)
         {
             var sum = rad;
-            var pow = rad;
+            var term = rad;
             var sqr = rad.Sqr();
 
             for (int i = 1; i < times; ++i)
             {
-                pow *= sqr;
-                sum += pow / _sinDen[i];
+                term *= sqr;
+                sum += term / _sinDen[i];
             }
 
             return sum;
@@ -58,13 +58,13 @@
         internal static Fixed64 Cosine(Fixed64 rad, int times = 5)
         {
             var sum = Fixed64.One;
-            var pow = Fixed64.One;
+            var term = Fixed64.One;
             var sqr = rad.Sqr();
 
             for (int i = 1; i < times; ++i)
             {
-                pow *= sqr;
-                sum += pow / _cosDen[i];
+                term *= sqr;
+                sum += term / _cosDen[i];
             }
 
             return sum;
@@ -105,13 +105,13 @@
         {
             var reciprocal = rad.Reciprocal();
             var sum = reciprocal;
-            var pow = reciprocal;
+            var term = reciprocal;
             var sqr = rad.Sqr();
 
             for (int i = 1; i < times; ++i)
             {
-                pow *= sqr;
-                sum -= pow * _cotNum[i] / _cotDen[i];
+                term *= sqr;
+                sum -= term * _cotNum[i] / _cotDen[i];
             }
 
             return sum;
@@ -161,13 +161,13 @@
         internal static Fixed64 ArcSine(Fixed64 value, int times = 16)
         {
             var sum = value;
-            var pow = value;
+            var term = value;
             var sqr = value.Sqr();
 
             for (int i = 1; i < times; ++i)
             {
-                pow *= sqr;
-                sum += pow * _asinNum[i] / _asinDen[i];
+                term *= sqr;
+                sum += term * _asinNum[i] / _asinDen[i];
             }
 
             return sum;
@@ -202,13 +202,13 @@
         internal static Fixed64 Arctangent(Fixed64 value, int times = 20)
         {
             var sum = value;
-            var pow = value;
+            var term = value;
             var sqr = value.Sqr();
 
             for (int i = 1; i < times; ++i)
             {
-                pow *= sqr;
-                sum += pow / _atan[i];
+                term *= sqr;
+                sum += term / _atan[i];
             }
 
             return sum;
