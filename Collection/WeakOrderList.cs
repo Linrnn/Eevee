@@ -72,8 +72,14 @@ namespace Eevee.Collection
 
         #region Field
         private const int DefaultCapacity = 4;
+
+#if UNITY_STANDALONE
+        [UnityEngine.SerializeField] private T[] _items;
+        [UnityEngine.SerializeField] private int _size;
+#else
         private T[] _items;
         private int _size;
+#endif
         private int _version;
         #endregion
 
@@ -228,12 +234,12 @@ namespace Eevee.Collection
 
         public void InsertRange(int index, IEnumerable<T> enumerable)
         {
+            if (index > _size)
+                throw new ArgumentOutOfRangeException($"[Collection] InsertRange fail, index > count, index:{index}, count:{_size}");
+
             if (enumerable is ICollection<T> collection)
             {
                 int count = collection.Count;
-                if (index > count)
-                    throw new ArgumentOutOfRangeException($"[Collection] InsertRange fail, index > count, index:{index}, count:{count}");
-
                 if (count > 0)
                 {
                     int end = Math.Max(_size, index + count);
