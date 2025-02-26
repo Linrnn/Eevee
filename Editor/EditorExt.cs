@@ -3,22 +3,22 @@ using System;
 using System.Reflection;
 using UnityEditor;
 
-namespace EeveeEditor.Collection
+namespace EeveeEditor
 {
     internal static class EditorExt
     {
         internal readonly struct MemberAbout
         {
-            private readonly MemberInfo _info;
-            private readonly object _instance;
+            internal readonly MemberInfo Info;
+            internal readonly object Instance;
 
             internal MemberAbout(MemberInfo info, object instance)
             {
-                _info = info;
-                _instance = instance;
+                Info = info;
+                Instance = instance;
             }
-            internal object GetValue() => _info.GetValue(_instance);
-            internal void SetValue(object value) => _info.SetValue(_instance, value);
+            internal object GetValue() => Info.GetValue(Instance);
+            internal void SetValue(object value) => Info.SetValue(Instance, value);
         }
 
         internal static MemberAbout GetMemberInfo(this SerializedProperty property, string name)

@@ -6,7 +6,8 @@ namespace Eevee.Fixed
     /// <summary>
     /// 有限小数，不包括无限循环小数<br/>
     /// 默认实现：1位符号 + 31位整数 + 32位小数<br/>
-    /// 通过 “Const.FractionalPlaces” 修改小数位数
+    /// 通过 “Const.FractionalPlaces” 修改小数位数<br/>
+    /// 删除 “public readonly struct Fixed64” 和 “public readonly long RawValue” 的 “readonly”，使Fixed64可序列化
     /// </summary>
     [Serializable]
     public readonly struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
@@ -262,10 +263,10 @@ namespace Eevee.Fixed
         public bool Equals(Fixed64 other) => RawValue == other.RawValue;
         public int CompareTo(Fixed64 other) => RawValue.CompareTo(other.RawValue);
 
-        public override string ToString() => ((float)this).ToString();
-        public string ToString(string format) => ((float)this).ToString(format);
-        public string ToString(IFormatProvider provider) => ((float)this).ToString(provider);
-        public string ToString(string format, IFormatProvider provider) => ((float)this).ToString(format, provider);
+        public override string ToString() => ((double)this).ToString();
+        public string ToString(string format) => ((double)this).ToString(format);
+        public string ToString(IFormatProvider provider) => ((double)this).ToString(provider);
+        public string ToString(string format, IFormatProvider provider) => ((double)this).ToString(format, provider);
         #endregion
     }
 }
