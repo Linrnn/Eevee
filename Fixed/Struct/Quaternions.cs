@@ -132,7 +132,7 @@ namespace Eevee.Fixed
 
         public static Quaternions Slerp(Quaternions from, Quaternions to, Fixed64 t)
         {
-            t = Maths.Clamp(t, 0, 1);
+            t = Maths.Clamp01(t);
 
             var dot = Dot(from, to);
 
@@ -271,7 +271,7 @@ namespace Eevee.Fixed
 
         public static Quaternions Lerp(Quaternions a, Quaternions b, Fixed64 t)
         {
-            t = Maths.Clamp(t, Fixed64.Zero, Fixed64.One);
+            t = Maths.Clamp01(t);
 
             return LerpUnclamped(a, b, t);
         }

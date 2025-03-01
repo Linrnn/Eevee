@@ -10,7 +10,6 @@ namespace Eevee.Fixed
         #region 字段
         public static readonly Fixed64 Ln2 = new(Const.Ln2);
         public static readonly Fixed64 Lg2 = new(Const.Lg2);
-        public static readonly Fixed64 Epsilon = Fixed64.One / 1000L;
         public static readonly Fixed64 Pi = new(Const.Rad180);
         public static readonly Fixed64 Deg2Rad = new(Const.Deg2Rad);
         public static readonly Fixed64 Rad2Deg = new(Const.Rad2Deg);
@@ -35,33 +34,27 @@ namespace Eevee.Fixed
 
         #region 基础方法
         /// <summary>
-        /// value大于0，返回1<br/>
-        /// value等于0，返回0<br/>
-        /// value小于0，返回-1
+        /// 区间值更正（如果出区间，值取最近）
         /// </summary>
-        public static int Sign(Fixed64 value) => value.Sign();
-        /// <summary>
-        /// 绝对值
-        /// </summary>
-        public static Fixed64 Abs(Fixed64 value) => value.Abs();
+        public static Fixed64 Clamp(Fixed64 value, Fixed64 min, Fixed64 max)
+        {
+            if (value < min)
+                return min;
 
-        /// <summary>
-        /// 向上取整
-        /// </summary>
-        public static Fixed64 Ceiling(Fixed64 value) => value.Ceiling();
-        /// <summary>
-        /// 向下取整
-        /// </summary>
-        public static Fixed64 Floor(Fixed64 value) => value.Floor();
-        /// <summary>
-        /// 四舍五入到最接近的整数值<br/>
-        /// </summary>
-        public static Fixed64 Round(Fixed64 value) => value.Round();
+            if (value > max)
+                return max;
 
+            return value;
+        }
         /// <summary>
-        /// 开平方
+        /// 区间[0, 1]值更正（如果出区间，值取最近）
         /// </summary>
-        public static Fixed64 Sqrt(Fixed64 fixed64) => fixed64.Sqrt();
+        public static Fixed64 Clamp01(Fixed64 value) => value.RawValue switch
+        {
+            < Const.Zero => Fixed64.Zero,
+            > Const.One => Fixed64.One,
+            _ => value,
+        };
         #endregion
 
         #region 三角函数/反三角函数
@@ -207,7 +200,7 @@ namespace Eevee.Fixed
 
         #region 反三角函数
         /// <summary>
-        /// 计算反正弦，返回弧度
+        /// 计算反正弦，返回弧度，值域：[-π/2, π/2]
         /// </summary>
         public static Fixed64 Asin(Fixed64 value)
         {
@@ -226,7 +219,7 @@ namespace Eevee.Fixed
             }
         }
         /// <summary>
-        /// 计算反正弦，返回角度
+        /// 计算反正弦，返回角度，值域：[-90°, 90°]
         /// </summary>
         public static Fixed64 AsinDeg(Fixed64 value)
         {
@@ -246,7 +239,7 @@ namespace Eevee.Fixed
         }
 
         /// <summary>
-        /// 计算反余弦，返回弧度
+        /// 计算反余弦，返回弧度，值域：[0, π]
         /// </summary>
         public static Fixed64 Acos(Fixed64 value)
         {
@@ -265,7 +258,7 @@ namespace Eevee.Fixed
             }
         }
         /// <summary>
-        /// 计算反余弦，返回角度
+        /// 计算反余弦，返回角度，值域：[0°, 180°]
         /// </summary>
         public static Fixed64 AcosDeg(Fixed64 value)
         {
@@ -285,7 +278,7 @@ namespace Eevee.Fixed
         }
 
         /// <summary>
-        /// 计算反正切，返回弧度
+        /// 计算反正切，返回弧度，值域：(-π/2, π/2)
         /// </summary>
         public static Fixed64 Atan(Fixed64 value) => value.RawValue switch
         {
@@ -298,7 +291,7 @@ namespace Eevee.Fixed
             > Const.One => Rad90 - Trigonometric.Arctangent0To45(value.Reciprocal()),
         };
         /// <summary>
-        /// 计算反正切，返回角度
+        /// 计算反正切，返回角度，值域：(-90°, 90°)
         /// </summary>
         public static Fixed64 AtanDeg(Fixed64 value) => value.RawValue switch
         {
@@ -311,7 +304,7 @@ namespace Eevee.Fixed
             > Const.One => Deg90 - Trigonometric.Arctangent0To45(value.Reciprocal()) * Rad2Deg,
         };
         /// <summary>
-        /// 计算反正切，返回弧度
+        /// 计算反正切，返回弧度，值域：(-π/2, π/2)
         /// </summary>
         public static Fixed64 Atan2(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
@@ -330,7 +323,7 @@ namespace Eevee.Fixed
             _ => Atan(y / x),
         };
         /// <summary>
-        /// 计算反正切，返回角度
+        /// 计算反正切，返回角度，值域：(-90°, 90°)
         /// </summary>
         public static Fixed64 Atan2Deg(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
@@ -350,7 +343,7 @@ namespace Eevee.Fixed
         };
 
         /// <summary>
-        /// 计算反余切，返回弧度
+        /// 计算反余切，返回弧度，值域：(0, π)
         /// </summary>
         public static Fixed64 Acot(Fixed64 value) => value.RawValue switch
         {
@@ -363,7 +356,7 @@ namespace Eevee.Fixed
             > Const.One => Trigonometric.Arctangent0To45(value.Reciprocal()),
         };
         /// <summary>
-        /// 计算反余切，返回角度
+        /// 计算反余切，返回角度，值域：(0°, 180°)
         /// </summary>
         public static Fixed64 AcotDeg(Fixed64 value) => Deg90 - AtanDeg(value);
         #endregion
@@ -374,9 +367,26 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 ClampRad(Fixed64 rad) => ClampAngle(rad, Rad360);
         /// <summary>
+        /// 将角度限制在-π~π之间
+        /// </summary>
+        public static Fixed64 DeltaAngleRad(Fixed64 lhs, Fixed64 rhs)
+        {
+            var deg = ClampAngle(rhs - lhs, Rad360);
+            return deg.RawValue > Rad180 ? deg - Rad360 : deg;
+        }
+
+        /// <summary>
         /// 将角度限制在0~360°之间
         /// </summary>
         public static Fixed64 ClampDeg(Fixed64 deg) => ClampAngle(deg, Deg360);
+        /// <summary>
+        /// 将角度限制在-180~180°之间
+        /// </summary>
+        public static Fixed64 DeltaAngleDeg(Fixed64 lhs, Fixed64 rhs)
+        {
+            var deg = ClampAngle(rhs - lhs, Deg360);
+            return deg > Deg180 ? deg - Deg360 : deg;
+        }
 
         private static Fixed64 ClampAngle(Fixed64 rad, Fixed64 mod)
         {
@@ -438,7 +448,7 @@ namespace Eevee.Fixed
         {
             if (a.RawValue <= 0L)
             {
-                throw new ArgumentOutOfRangeException($"x：{a}≤0，无法计算对数");
+                throw new ArgumentOutOfRangeException(nameof(a), $"x：{a}≤0，无法计算对数");
             }
 
             long xrv = a.RawValue;
@@ -493,249 +503,181 @@ namespace Eevee.Fixed
         public static bool IsPowerOf2(ulong a) => a != 0UL && (a & a - 1UL) == 0UL;
         #endregion
 
-        #region Func
+        #region Fixed64/Vector2D 关联操作
         /// <summary>
-        /// 3x3矩阵所有值取绝对值
+        /// 较小值
         /// </summary>
-        public static void Absolute(ref Matrix3X3 matrix, out Matrix3X3 result)
+        public static Fixed64 Min(Fixed64 lsh, Fixed64 rsh) => lsh < rsh ? lsh : rsh;
+        public static Fixed64 Min(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
         {
-            result.M11 = matrix.M11.Abs();
-            result.M12 = matrix.M12.Abs();
-            result.M13 = matrix.M13.Abs();
-            result.M21 = matrix.M21.Abs();
-            result.M22 = matrix.M22.Abs();
-            result.M23 = matrix.M23.Abs();
-            result.M31 = matrix.M31.Abs();
-            result.M32 = matrix.M32.Abs();
-            result.M33 = matrix.M33.Abs();
+            var value = lsh < msh ? lsh : msh;
+            return value < rsh ? value : rsh;
         }
-
-        /// <summary>
-        /// 质心
-        /// </summary>
-        /// <param name="value1">值1</param>
-        /// <param name="value2">值2</param>
-        /// <param name="value3">值3</param>
-        /// <param name="amount1">值2加权因子</param>
-        /// <param name="amount2">值3加权因子</param>
-        public static Fixed64 Barycentric(Fixed64 value1, Fixed64 value2, Fixed64 value3, Fixed64 amount1, Fixed64 amount2)
+        public static Vector2D Min(in Vector2D lsh, in Vector2D rsh) => new()
         {
-            return value1 + (value2 - value1) * amount1 + (value3 - value1) * amount2;
-        }
-
-        /// <summary>
-        /// 区间值更正（如果出区间，值取最近）
-        /// </summary>
-        public static Fixed64 Clamp(Fixed64 value, Fixed64 min, Fixed64 max)
-        {
-            if (value < min)
-                return min;
-
-            if (value > max)
-                return max;
-
-            return value;
-        }
-
-        /// <summary>
-        /// 区间[FixFloat.Zero, FixFloat,One]值更正（如果出区间，值取最近）
-        /// </summary>
-        public static Fixed64 Clamp01(Fixed64 value) => value.RawValue switch
-        {
-            < Const.Zero => Fixed64.Zero,
-            > Const.One => Fixed64.One,
-            _ => value,
+            X = Min(lsh.X, rsh.X),
+            Y = Min(lsh.Y, rsh.Y),
         };
 
         /// <summary>
-        /// Catmull-Rom插值
+        /// 较大值
         /// </summary>
-        /// <param name="value1">控制点1</param>
-        /// <param name="value2">控制点2</param>
-        /// <param name="value3">控制点3</param>
-        /// <param name="value4">控制点4</param>
-        /// <param name="amount">加权因子</param>
-        public static Fixed64 CatmullRom(Fixed64 value1, Fixed64 value2, Fixed64 value3, Fixed64 value4, Fixed64 amount)
+        public static Fixed64 Max(Fixed64 lsh, Fixed64 rsh) => lsh > rsh ? lsh : rsh;
+        public static Fixed64 Max(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
         {
-            // Using formula from http://www.mvps.org/directx/articles/catmull/
-            // Internally using FPs not to lose precission
-            var amountSquared = amount * amount;
-            var amountCubed = amountSquared * amount;
-            return 0.5 * (2.0 * value2 + (value3 - value1) * amount + (2.0 * value1 - 5.0 * value2 + 4.0 * value3 - value4) * amountSquared + (3.0 * value2 - value1 - 3.0 * value3 + value4) * amountCubed);
+            var value = lsh > msh ? lsh : msh;
+            return value > rsh ? value : rsh;
         }
-
-        /// <summary>
-        /// 最小角度差（弧度）
-        /// </summary>
-        public static Fixed64 DeltaAngle(Fixed64 current, Fixed64 target)
+        public static Vector2D Max(in Vector2D lsh, in Vector2D rsh) => new()
         {
-            var num = Repeat(target - current, 360f);
-            if (num > 180f)
-            {
-                num -= 360f;
-            }
+            X = Max(lsh.X, rsh.X),
+            Y = Max(lsh.Y, rsh.Y),
+        };
 
-            return num;
-        }
-
+        #region 基础插值
         /// <summary>
-        /// 两点间距
+        /// 计算线性参数amount在[lsh，rsh]范围内产生插值
         /// </summary>
-        public static Fixed64 Distance(Fixed64 value1, Fixed64 value2) => value1 > value2 ? value1 - value2 : value2 - value1;
-
-        /// <summary>
-        /// Hermite插值
-        /// </summary>
-        /// <param name="value1">位置1</param>
-        /// <param name="tangent1">切线1</param>
-        /// <param name="value2">位置2</param>
-        /// <param name="tangent2">切线2</param>
-        /// <param name="amount">加权因子</param>
-        public static Fixed64 Hermite(Fixed64 value1, Fixed64 tangent1, Fixed64 value2, Fixed64 tangent2, Fixed64 amount)
-        {
-            // 全部转换为FixFloat为了不丢失精度
-            // 否则，对于大量的参数:amount，结果是NaN，而不是无穷大
-            var v1 = value1;
-            var v2 = value2;
-            var t1 = tangent1;
-            var t2 = tangent2;
-            var s = amount;
-            var sCubed = s * s * s;
-            var sSquared = s * s;
-
-            if (amount == Fixed64.Zero)
-                return value1;
-
-            if (amount == Fixed64.One)
-                return value2;
-
-            return (2 * v1 - 2 * v2 + t2 + t1) * sCubed + (3 * v2 - 3 * v1 - 2 * t1 - t2) * sSquared + t1 * s + v1;
-        }
-
-        /// <summary>
-        /// 计算线性参数amount，该线性参数amount在[value1，value2]范围内产生插值。
-        /// </summary>
-        /// <param name="value1">开始值</param>
-        /// <param name="value2">结束值</param>
+        /// <param name="lsh">开始值</param>
+        /// <param name="rsh">结束值</param>
         /// <param name="amount">插值</param>
         /// <returns>amount介于开始和结束之间的值的百分比</returns>
-        public static Fixed64 InverseLerp(Fixed64 value1, Fixed64 value2, Fixed64 amount)
-        {
-            if (value1 != value2)
-                return Clamp01((amount - value1) / (value2 - value1));
-            return Fixed64.Zero;
-        }
+        public static Fixed64 InverseLerp(Fixed64 lsh, Fixed64 rsh, Fixed64 amount) => lsh == rsh ? Fixed64.Zero : Clamp01((amount - lsh) / (rsh - lsh));
 
         /// <summary>
         /// 线性插值
-        /// [value1, value2]通过参数amount进行插值
+        /// [lsh, rsh]通过参数amount进行插值
         /// </summary>
-        /// <param name="value1">开始值</param>
-        /// <param name="value2">结束值</param>
+        /// <param name="lsh">开始值</param>
+        /// <param name="rsh">结束值</param>
+        /// <param name="amount">开始值与结束值之间的参数，0到1之间</param>
+        public static Fixed64 Lerp(Fixed64 lsh, Fixed64 rsh, Fixed64 amount) => LerpUnClamp(lsh, rsh, Clamp01(amount));
+        public static Vector2D Lerp(in Vector2D lsh, in Vector2D rsh, Fixed64 amount) => LerpUnClamp(in lsh, in rsh, Clamp01(amount));
+
+        /// <summary>
+        /// 线性插值
+        /// [lsh, rsh]通过参数amount进行插值
+        /// </summary>
+        /// <param name="lsh">开始值</param>
+        /// <param name="rsh">结束值</param>
         /// <param name="amount">开始值与结束值之间的参数</param>
-        /// <returns>
-        /// amount = 0, return value1<br/>
-        /// amount = 1, return value2<br/>
-        /// amount = 0.5, return the midpoint of value1 and value2
-        /// </returns>
-        public static Fixed64 Lerp(Fixed64 value1, Fixed64 value2, Fixed64 amount)
+        public static Fixed64 LerpUnClamp(Fixed64 lsh, Fixed64 rsh, Fixed64 amount) => lsh + (rsh - lsh) * amount;
+        public static Vector2D LerpUnClamp(in Vector2D lsh, in Vector2D rsh, Fixed64 amount) => new()
         {
-            return value1 + (value2 - value1) * Clamp01(amount);
-        }
+            X = LerpUnClamp(lsh.X, rsh.X, amount),
+            Y = LerpUnClamp(lsh.Y, rsh.Y, amount),
+        };
 
         /// <summary>
-        /// 最大值比较
-        /// </summary>
-        public static Fixed64 Max(Fixed64 val1, Fixed64 val2)
-        {
-            return val1 > val2 ? val1 : val2;
-        }
-
-        /// <summary>
-        /// 最小值比较
-        /// </summary>
-        public static Fixed64 Min(Fixed64 val1, Fixed64 val2)
-        {
-            return val1 < val2 ? val1 : val2;
-        }
-
-        /// <summary>
-        /// 最大值比较
-        /// </summary>
-        public static Fixed64 Max(Fixed64 val1, Fixed64 val2, Fixed64 val3)
-        {
-            var max12 = val1 > val2 ? val1 : val2;
-            return max12 > val3 ? max12 : val3;
-        }
-
-        /// <summary>
-        /// 移动到目标
+        /// 移动到目标，类似LerpUnClamp
         /// </summary>
         /// <param name="current">当前值</param>
         /// <param name="target">目标值</param>
         /// <param name="maxDelta">最大改变值（负值将远离目标）</param>
-        public static Fixed64 MoveTowards(Fixed64 current, Fixed64 target, Fixed64 maxDelta) => (target - current).Abs() <= maxDelta ? target : current + (target - current).Sign() * maxDelta;
+        public static Fixed64 MoveTowards(Fixed64 current, Fixed64 target, Fixed64 maxDelta)
+        {
+            var delta = target - current;
+            return delta.Abs() <= maxDelta ? target : current + delta.Sign() * maxDelta;
+        }
+        public static Vector2D MoveTowards(in Vector2D current, in Vector2D target, Fixed64 maxDelta)
+        {
+            var delta = target - current;
+            var sqrMagnitude = delta.SqrMagnitude();
+            if (sqrMagnitude.RawValue == 0L || maxDelta.RawValue >= 0L && sqrMagnitude <= maxDelta.Sqr())
+                return target;
+
+            return current + delta / sqrMagnitude.Sqrt() * maxDelta; // 先除后乘，避免溢出
+        }
 
         /// <summary>
         /// 与MoveTowards相同，相对于角度
         /// </summary>
-        public static Fixed64 MoveTowardsAngle(Fixed64 current, Fixed64 target, float maxDelta)
+        public static Fixed64 MoveTowardsAngle(Fixed64 current, Fixed64 target, Fixed64 maxDelta)
         {
-            target = current + DeltaAngle(current, target);
-            return MoveTowards(current, target, maxDelta);
+            var newTarget = current + DeltaAngleDeg(current, target);
+            return MoveTowards(current, newTarget, maxDelta);
         }
+        #endregion
+
+        #region 复杂插值
+        /// <summary>
+        /// Catmull-Rom插值<br/>
+        /// 参考链接：http://www.mvps.org/directx/articles/catmull/
+        /// </summary>
+        public static Fixed64 LerpCatmullRom(Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 v4, Fixed64 a)
+        {
+            var squared = a.Sqr();
+            var cubed = squared * a;
+            return (v2 << 1) + (v3 - v1) * a + ((v1 << 1) - v2 * 5L + (v3 << 2) - v4) * squared + ((v2 - v3) * 3L - v1 + v4) * cubed >> 1;
+        }
+        public static Vector2D LerpCatmullRom(in Vector2D p1, in Vector2D p2, in Vector2D p3, in Vector2D p4, Fixed64 a) => new()
+        {
+            X = LerpCatmullRom(p1.X, p2.X, p3.X, p4.X, a),
+            Y = LerpCatmullRom(p1.Y, p2.Y, p3.Y, p4.Y, a),
+        };
 
         /// <summary>
-        /// 循环值（类似于取模操作）
+        /// Hermite插值
         /// </summary>
-        public static Fixed64 Repeat(Fixed64 t, Fixed64 length) => (t - (t / length).Floor() * length);
+        public static Fixed64 LerpHermite(Fixed64 v1, Fixed64 t1, Fixed64 v2, Fixed64 t2, Fixed64 a)
+        {
+            switch (a.RawValue)
+            {
+                case Const.Zero: return v1;
+                case Const.One: return v2;
+            }
+
+            var squared = a.Sqr();
+            var cubed = squared * a;
+            return ((v1 - v2 << 1) + t1 + t2) * cubed + ((v2 - v1) * 3L - (t1 << 1) - t2) * squared + t1 * a + v1;
+        }
+        public static Vector2D LerpHermite(in Vector2D p1, in Vector2D t1, in Vector2D p2, in Vector2D t2, Fixed64 a) => new()
+        {
+            X = LerpHermite(p1.X, t1.X, p2.X, t2.X, a),
+            Y = LerpHermite(p1.Y, t1.Y, p2.Y, t2.Y, a),
+        };
 
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
         /// </summary>
-        /// <param name="value1">开始值</param>
-        /// <param name="value2">结束值</param>
-        /// <param name="amount">加权因子</param>
-        public static Fixed64 SmoothStep(Fixed64 value1, Fixed64 value2, Fixed64 amount)
+        /// <param name="v1">开始值</param>
+        /// <param name="v2">结束值</param>
+        /// <param name="a">加权因子</param>
+        public static Fixed64 LerpSmoothStep(Fixed64 v1, Fixed64 v2, Fixed64 a) => LerpHermite(v1, Fixed64.Zero, v2, Fixed64.Zero, Clamp01(a));
+        public static Vector2D LerpSmoothStep(in Vector2D v1, in Vector2D v2, Fixed64 a) => new()
         {
-            // It is expected that 0 < amount < 1
-            // If amount < 0, return value1
-            // If amount > 1, return value2
-            Fixed64 result = Clamp(amount, 0f, 1f);
-            result = Hermite(value1, 0f, value2, 0f, result);
-            return result;
-        }
+            X = LerpSmoothStep(v1.X, v2.X, a),
+            Y = LerpSmoothStep(v1.Y, v2.Y, a),
+        };
+        #endregion
 
         /// <summary>
-        /// 平滑阻尼
+        /// 返回两向量之间的夹角，返回弧度，值域：[0, π]
         /// </summary>
-        /// <param name="current">当前位置</param>
-        /// <param name="target">目标位置</param>
-        /// <param name="currentVelocity">当前速度</param>
-        /// <param name="smoothTime">到达目标时间</param>
-        /// <param name="maxSpeed">允许的最大速度</param>
-        /// <param name="deltaTime">自上次调用此函数以来的时间</param>
-        public static Fixed64 SmoothDamp(Fixed64 current, Fixed64 target, ref Fixed64 currentVelocity, Fixed64 smoothTime, Fixed64 maxSpeed, Fixed64 deltaTime)
-        {
-            var num = 2f / smoothTime;
-            var num2 = num * deltaTime;
-            var num3 = (Fixed64.One + num2 + 0.48f * num2 * num2 + 0.235f * num2 * num2 * num2).Reciprocal();
-            var num4 = current - target;
-            var num5 = target;
-            var max = maxSpeed * smoothTime;
-            num4 = Clamp(num4, -max, max);
-            target = current - num4;
-            var num7 = (currentVelocity + num * num4) * deltaTime;
-            currentVelocity = (currentVelocity - num * num7) * num3;
-            Fixed64 num8 = target + (num4 + num7) * num3;
-            if (num5 - current > Fixed64.Zero == num8 > num5)
-            {
-                num8 = num5;
-                currentVelocity = (num8 - num5) / deltaTime;
-            }
+        public static Fixed64 AngleRad(in Vector2D lhs, in Vector2D rhs) => Acos(lhs.Normalized() * rhs.Normalized());
+        /// <summary>
+        /// 返回两向量之间的夹角，返回无符号角度，值域：[0°, 180°]
+        /// </summary>
+        public static Fixed64 AngleDeg(in Vector2D lhs, in Vector2D rhs) => AcosDeg(lhs.Normalized() * rhs.Normalized());
 
-            return num8;
-        }
+        /// <summary>
+        /// 返回两向量之间的夹角，返回弧度，值域：[-π, π]
+        /// </summary>
+        public static Fixed64 SignedAngleRad(in Vector2D from, in Vector2D to) => AngleRad(from, to) * Vector2D.Cross(in from, in to).Sign();
+        /// <summary>
+        /// 返回两向量之间的夹角，返回弧度，值域：[-180°, 180°]
+        /// </summary>
+        public static Fixed64 SignedAngleDeg(in Vector2D from, in Vector2D to) => AngleDeg(from, to) * Vector2D.Cross(in from, in to).Sign();
+
+        /// <summary>
+        /// 质心
+        /// </summary>
+        public static Fixed64 Barycentric(Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 a1, Fixed64 a2) => v1 + (v2 - v1) * a1 + (v3 - v1) * a2;
+        public static Vector2D Barycentric(in Vector2D p1, in Vector2D p2, in Vector2D p3, Fixed64 a1, Fixed64 a2) => new()
+        {
+            X = Barycentric(p1.X, p2.X, p3.X, a1, a2),
+            Y = Barycentric(p1.Y, p2.Y, p3.Y, a1, a2),
+        };
         #endregion
     }
 }

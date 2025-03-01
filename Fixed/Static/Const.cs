@@ -60,24 +60,24 @@
         /// <summary>
         /// 0.5
         /// </summary>
-        public const long Half = 1L << FractionalBits - 1;
+        public const long Half = One >> 1;
         /// <summary>
         /// 1
         /// </summary>
         public const long One = 1L << FractionalBits;
         /// <summary>
-        /// 10
+        /// 极小值
         /// </summary>
-        public const long Ten = 10L << FractionalBits;
+        public const long Epsilon = One / 1000L;
 
         /// <summary>
         /// 整数部分
         /// </summary>
-        public const long IntegerPart = ~FractionalPart;
+        public const long IntegerPart = ~(One - 1L);
         /// <summary>
         /// 小数部分
         /// </summary>
-        public const long FractionalPart = (1L << FractionalBits) - 1L;
+        public const long FractionalPart = One - 1L;
         #endregion
 
         #region 圆周率

@@ -1,544 +1,174 @@
-﻿#region License
-/*
-MIT License
-Copyright © 2006 The Mono.Xna Team
-
-All rights reserved.
-
-Authors
- * Alan McGovern
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-*/
-#endregion License
-
-using System;
+﻿using System;
 
 namespace Eevee.Fixed
 {
+    /// <summary>
+    /// 确定性的二维向量
+    /// </summary>
     [Serializable]
     public struct Vector2D : IEquatable<Vector2D>, IComparable<Vector2D>
     {
-        #region Private Fields
-        private static Vector2D zeroVector = new Vector2D(0, 0);
-        private static Vector2D oneVector = new Vector2D(1, 1);
+        #region 字段/初始化
+        public static readonly Vector2D Zero = new(0, 0);
+        public static readonly Vector2D One = new(1, 1);
+        public static readonly Vector2D Right = new(1, 0);
+        public static readonly Vector2D Left = new(-1, 0);
+        public static readonly Vector2D Up = new(0, 1);
+        public static readonly Vector2D Down = new(0, -1);
 
-        private static Vector2D rightVector = new Vector2D(1, 0);
-        private static Vector2D leftVector = new Vector2D(-1, 0);
-
-        private static Vector2D upVector = new Vector2D(0, 1);
-        private static Vector2D downVector = new Vector2D(0, -1);
-        #endregion Private Fields
-
-        #region Public Fields
         public Fixed64 X;
         public Fixed64 Y;
-        #endregion Public Fields
 
-        #region Properties
-        public static Vector2D zero
+        public Fixed64 this[int index]
         {
-            get { return zeroVector; }
+            readonly get => index switch
+            {
+                0 => X,
+                1 => Y,
+                _ => throw new IndexOutOfRangeException($"Invalid Vector2D index:{index}!"),
+            };
+            set
+            {
+                switch (index)
+                {
+                    case 0: X = value; break;
+                    case 1: Y = value; break;
+                    default: throw new IndexOutOfRangeException($"Invalid Vector2D index:{index}!");
+                }
+            }
         }
 
-        public static Vector2D one
-        {
-            get { return oneVector; }
-        }
-
-        public static Vector2D right
-        {
-            get { return rightVector; }
-        }
-
-        public static Vector2D left
-        {
-            get { return leftVector; }
-        }
-
-        public static Vector2D up
-        {
-            get { return upVector; }
-        }
-
-        public static Vector2D down
-        {
-            get { return downVector; }
-        }
-        #endregion Properties
-
-        #region Constructors
-        /// <summary>
-        /// Constructor foe standard 2D vector.
-        /// </summary>
-        /// <param name="x">
-        /// A <see cref="System.Single"/>
-        /// </param>
-        /// <param name="y">
-        /// A <see cref="System.Single"/>
-        /// </param>
-        public Vector2D(Fixed64 x, Fixed64 y)
-        {
-            this.X = x;
-            this.Y = y;
-        }
-
-        /// <summary>
-        /// Constructor for "square" vector.
-        /// </summary>
-        /// <param name="value">
-        /// A <see cref="System.Single"/>
-        /// </param>
         public Vector2D(Fixed64 value)
         {
             X = value;
             Y = value;
         }
-
+        public Vector2D(Fixed64 x, Fixed64 y)
+        {
+            X = x;
+            Y = y;
+        }
         public void Set(Fixed64 x, Fixed64 y)
         {
-            this.X = x;
-            this.Y = y;
-        }
-        #endregion Constructors
-
-        #region Public Methods
-        public static void Reflect(ref Vector2D vector, ref Vector2D normal, out Vector2D result)
-        {
-            Fixed64 dot = Dot(vector, normal);
-            result.X = vector.X - ((2f * dot) * normal.X);
-            result.Y = vector.Y - ((2f * dot) * normal.Y);
-        }
-
-        public static Vector2D Reflect(Vector2D vector, Vector2D normal)
-        {
-            Vector2D result;
-            Reflect(ref vector, ref normal, out result);
-            return result;
-        }
-
-        public static Vector2D Add(Vector2D value1, Vector2D value2)
-        {
-            value1.X += value2.X;
-            value1.Y += value2.Y;
-            return value1;
-        }
-
-        public static void Add(ref Vector2D value1, ref Vector2D value2, out Vector2D result)
-        {
-            result.X = value1.X + value2.X;
-            result.Y = value1.Y + value2.Y;
-        }
-
-        public static Vector2D Barycentric(Vector2D value1, Vector2D value2, Vector2D value3, Fixed64 amount1, Fixed64 amount2)
-        {
-            return new Vector2D(Maths.Barycentric(value1.X, value2.X, value3.X, amount1, amount2), Maths.Barycentric(value1.Y, value2.Y, value3.Y, amount1, amount2));
-        }
-
-        public static void Barycentric(ref Vector2D value1, ref Vector2D value2, ref Vector2D value3, Fixed64 amount1, Fixed64 amount2, out Vector2D result)
-        {
-            result = new Vector2D(Maths.Barycentric(value1.X, value2.X, value3.X, amount1, amount2), Maths.Barycentric(value1.Y, value2.Y, value3.Y, amount1, amount2));
-        }
-
-        public static Vector2D CatmullRom(Vector2D value1, Vector2D value2, Vector2D value3, Vector2D value4, Fixed64 amount)
-        {
-            return new Vector2D(Maths.CatmullRom(value1.X, value2.X, value3.X, value4.X, amount), Maths.CatmullRom(value1.Y, value2.Y, value3.Y, value4.Y, amount));
-        }
-
-        public static void CatmullRom(ref Vector2D value1, ref Vector2D value2, ref Vector2D value3, ref Vector2D value4, Fixed64 amount, out Vector2D result)
-        {
-            result = new Vector2D(Maths.CatmullRom(value1.X, value2.X, value3.X, value4.X, amount), Maths.CatmullRom(value1.Y, value2.Y, value3.Y, value4.Y, amount));
-        }
-
-        public static Vector2D Clamp(Vector2D value1, Vector2D min, Vector2D max)
-        {
-            return new Vector2D(Maths.Clamp(value1.X, min.X, max.X), Maths.Clamp(value1.Y, min.Y, max.Y));
-        }
-
-        public static void Clamp(ref Vector2D value1, ref Vector2D min, ref Vector2D max, out Vector2D result)
-        {
-            result = new Vector2D(Maths.Clamp(value1.X, min.X, max.X), Maths.Clamp(value1.Y, min.Y, max.Y));
-        }
-
-        /// <summary>
-        /// Returns FP precison distanve between two vectors
-        /// </summary>
-        public static Fixed64 Distance(Vector2D value1, Vector2D value2)
-        {
-            DistanceSquared(ref value1, ref value2, out var result);
-            return result.Sqrt();
-        }
-
-        public static void Distance(ref Vector2D value1, ref Vector2D value2, out Fixed64 result)
-        {
-            DistanceSquared(ref value1, ref value2, out result);
-            result = result.Sqrt();
-        }
-
-        public static Fixed64 DistanceSquared(Vector2D value1, Vector2D value2)
-        {
-            DistanceSquared(ref value1, ref value2, out var result);
-            return result;
-        }
-
-        public static void DistanceSquared(ref Vector2D value1, ref Vector2D value2, out Fixed64 result)
-        {
-            var delta = value1 - value2;
-            result = delta.X * delta.X + delta.Y * delta.Y;
-        }
-
-        /// <summary>
-        /// Devide first vector with the secund vector
-        /// </summary>
-        /// <param name="value1">
-        /// A <see cref="Vector2D"/>
-        /// </param>
-        /// <param name="value2">
-        /// A <see cref="Vector2D"/>
-        /// </param>
-        /// <returns>
-        /// A <see cref="Vector2D"/>
-        /// </returns>
-        public static Vector2D Divide(Vector2D value1, Vector2D value2)
-        {
-            value1.X /= value2.X;
-            value1.Y /= value2.Y;
-            return value1;
-        }
-
-        public static void Divide(ref Vector2D value1, ref Vector2D value2, out Vector2D result)
-        {
-            result.X = value1.X / value2.X;
-            result.Y = value1.Y / value2.Y;
-        }
-
-        public static Vector2D Divide(Vector2D value1, Fixed64 divider)
-        {
-            Fixed64 factor = 1 / divider;
-            value1.X *= factor;
-            value1.Y *= factor;
-            return value1;
-        }
-
-        public static void Divide(ref Vector2D value1, Fixed64 divider, out Vector2D result)
-        {
-            Fixed64 factor = 1 / divider;
-            result.X = value1.X * factor;
-            result.Y = value1.Y * factor;
-        }
-
-        #region 叉乘
-        public static Fixed64 Cross(Vector2D value1, Vector2D value2)
-        {
-            return value1.X * value2.Y - value1.Y * value2.X;
-        }
-        public static void Cross(ref Vector2D value1, ref Vector2D value2, out Fixed64 result)
-        {
-            result = value1.X * value2.Y - value1.Y * value2.X;
+            X = x;
+            Y = y;
         }
         #endregion
 
-        #region 点乘
-        public static Fixed64 Dot(Vector2D value1, Vector2D value2)
-        {
-            return value1.X * value2.X + value1.Y * value2.Y;
-        }
+        #region 基础方法
+        /// <summary>
+        /// 模长
+        /// </summary>
+        public readonly Fixed64 Magnitude() => X * X + Y * Y;
+        /// <summary>
+        /// 模长的平方
+        /// </summary>
+        public readonly Fixed64 SqrMagnitude() => Magnitude().Sqrt();
+        /// <summary>
+        /// 返回两点之间的距离
+        /// </summary>
+        public static Fixed64 Distance(in Vector2D lhs, in Vector2D rhs) => (lhs - rhs).Magnitude();
+        /// <summary>
+        /// 返回两点之间的距离的平方
+        /// </summary>
+        public static Fixed64 SqrDistance(in Vector2D lhs, in Vector2D rhs) => (lhs - rhs).Magnitude().Sqrt();
 
-        public static void Dot(ref Vector2D value1, ref Vector2D value2, out Fixed64 result)
+        /// <summary>
+        /// 返回副本，其大小被限制为输入值
+        /// </summary>
+        public readonly Vector2D ClampMagnitude(Fixed64 maxLength)
         {
-            result = value1.X * value2.X + value1.Y * value2.Y;
-        }
-        #endregion
-
-        public int CompareTo(Vector2D other)
-        {
-            throw new NotImplementedException();
-        }
-        public override bool Equals(object obj)
-        {
-            return (obj is Vector2D) ? this == ((Vector2D)obj) : false;
-        }
-
-        public bool Equals(Vector2D other)
-        {
-            return this == other;
-        }
-
-        public override int GetHashCode()
-        {
-            return (int)(X + Y);
-        }
-
-        public static Vector2D Hermite(Vector2D value1, Vector2D tangent1, Vector2D value2, Vector2D tangent2, Fixed64 amount)
-        {
-            Vector2D result = new Vector2D();
-            Hermite(ref value1, ref tangent1, ref value2, ref tangent2, amount, out result);
-            return result;
-        }
-
-        public static void Hermite(ref Vector2D value1, ref Vector2D tangent1, ref Vector2D value2, ref Vector2D tangent2, Fixed64 amount, out Vector2D result)
-        {
-            result.X = Maths.Hermite(value1.X, tangent1.X, value2.X, tangent2.X, amount);
-            result.Y = Maths.Hermite(value1.Y, tangent1.Y, value2.Y, tangent2.Y, amount);
-        }
-
-        public Fixed64 magnitude
-        {
-            get
+            switch (maxLength.RawValue)
             {
-                DistanceSquared(ref this, ref zeroVector, out var result);
-                return result.Sqrt();
+                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxLength), $"maxLength:{maxLength} < 0");
+                case 0L: return Zero;
             }
-        }
 
-        public static Vector2D ClampMagnitude(Vector2D vector, Fixed64 maxLength)
+            var sqrMagnitude = SqrMagnitude();
+            if (sqrMagnitude.RawValue == 0L)
+                return Zero;
+
+            var sqrMaxLength = maxLength.Sqr();
+            if (sqrMaxLength >= sqrMagnitude)
+                return this;
+
+            return this * (sqrMaxLength / sqrMagnitude).Sqrt();
+        }
+        /// <summary>
+        /// 返回该向量的模长为1的向量
+        /// </summary>
+        public readonly Vector2D Normalized() => this * Magnitude().Reciprocal();
+        /// <summary>
+        /// 使该向量的模长为1
+        /// </summary>
+        public void Normalize() => this = Normalized();
+
+        /// <summary>
+        /// 返回垂直于该向量的向量，对于正Y轴向上的坐标系来说，结果始终沿逆时针方向旋转90度
+        /// </summary>
+        public readonly Vector2D Perpendicular() => new(-Y, X);
+
+        /// <summary>
+        /// 点乘
+        /// </summary>
+        public static Fixed64 Dot(in Vector2D lhs, in Vector2D rhs) => lhs * rhs;
+        /// <summary>
+        /// 叉乘
+        /// </summary>
+        public static Fixed64 Cross(in Vector2D lhs, in Vector2D rhs) => lhs.X * rhs.Y - lhs.Y * rhs.X;
+        /// <summary>
+        /// 将两个向量的分量相乘
+        /// </summary>
+        public static Vector2D Scale(in Vector2D lhs, in Vector2D rhs) => new(lhs.X * rhs.X, lhs.Y * rhs.Y);
+        /// <summary>
+        /// 从法线定义的向量反射一个向量
+        /// </summary>
+        public static Vector2D Reflect(in Vector2D direction, in Vector2D normal)
         {
-            return Normalize(vector) * maxLength;
+            var dot = direction * normal << 1;
+            return new Vector2D(direction.X - dot * normal.X, direction.Y - dot * normal.Y);
         }
 
-        public Fixed64 LengthSquared()
-        {
-            DistanceSquared(ref this, ref zeroVector, out var result);
-            return result;
-        }
-
-        public static Vector2D Lerp(Vector2D value1, Vector2D value2, Fixed64 amount)
-        {
-            amount = Maths.Clamp(amount, 0, 1);
-
-            return new Vector2D(Maths.Lerp(value1.X, value2.X, amount), Maths.Lerp(value1.Y, value2.Y, amount));
-        }
-
-        public static Vector2D LerpUnclamped(Vector2D value1, Vector2D value2, Fixed64 amount)
-        {
-            return new Vector2D(Maths.Lerp(value1.X, value2.X, amount), Maths.Lerp(value1.Y, value2.Y, amount));
-        }
-
-        public static void LerpUnclamped(ref Vector2D value1, ref Vector2D value2, Fixed64 amount, out Vector2D result)
-        {
-            result = new Vector2D(Maths.Lerp(value1.X, value2.X, amount), Maths.Lerp(value1.Y, value2.Y, amount));
-        }
-
-        public static Vector2D Max(Vector2D value1, Vector2D value2)
-        {
-            return new Vector2D(Maths.Max(value1.X, value2.X), Maths.Max(value1.Y, value2.Y));
-        }
-
-        public static void Max(ref Vector2D value1, ref Vector2D value2, out Vector2D result)
-        {
-            result.X = Maths.Max(value1.X, value2.X);
-            result.Y = Maths.Max(value1.Y, value2.Y);
-        }
-
-        public static Vector2D Min(Vector2D value1, Vector2D value2)
-        {
-            return new Vector2D(Maths.Min(value1.X, value2.X), Maths.Min(value1.Y, value2.Y));
-        }
-
-        public static void Min(ref Vector2D value1, ref Vector2D value2, out Vector2D result)
-        {
-            result.X = Maths.Min(value1.X, value2.X);
-            result.Y = Maths.Min(value1.Y, value2.Y);
-        }
-
-        public void Scale(Vector2D other)
-        {
-            this.X = X * other.X;
-            this.Y = Y * other.Y;
-        }
-
-        public static Vector2D Scale(Vector2D value1, Vector2D value2)
-        {
-            Vector2D result;
-            result.X = value1.X * value2.X;
-            result.Y = value1.Y * value2.Y;
-
-            return result;
-        }
-
-        public static Vector2D Multiply(Vector2D value1, Vector2D value2)
-        {
-            value1.X *= value2.X;
-            value1.Y *= value2.Y;
-            return value1;
-        }
-
-        public static Vector2D Multiply(Vector2D value1, Fixed64 scaleFactor)
-        {
-            value1.X *= scaleFactor;
-            value1.Y *= scaleFactor;
-            return value1;
-        }
-
-        public static void Multiply(ref Vector2D value1, Fixed64 scaleFactor, out Vector2D result)
-        {
-            result.X = value1.X * scaleFactor;
-            result.Y = value1.Y * scaleFactor;
-        }
-
-        public static void Multiply(ref Vector2D value1, ref Vector2D value2, out Vector2D result)
-        {
-            result.X = value1.X * value2.X;
-            result.Y = value1.Y * value2.Y;
-        }
-
-        public static Vector2D Negate(Vector2D value)
-        {
-            value.X = -value.X;
-            value.Y = -value.Y;
-            return value;
-        }
-
-        public static void Negate(ref Vector2D value, out Vector2D result)
-        {
-            result.X = -value.X;
-            result.Y = -value.Y;
-        }
-
-        public void Normalize()
-        {
-            Normalize(ref this, out this);
-        }
-
-        public static Vector2D Normalize(Vector2D value)
-        {
-            Normalize(ref value, out value);
-            return value;
-        }
-
-        public Vector2D normalized
-        {
-            get
-            {
-                Normalize(ref this, out var result);
-                return result;
-            }
-        }
-
-        public static void Normalize(ref Vector2D value, out Vector2D result)
-        {
-            DistanceSquared(ref value, ref zeroVector, out var factor);
-
-            // 溢出  小于0  当做0计算
-            factor = factor < 0 ? Fixed64.Zero : factor.Sqrt().Reciprocal();
-            result.X = value.X * factor;
-            result.Y = value.Y * factor;
-        }
-
-        public static Vector2D SmoothStep(Vector2D value1, Vector2D value2, Fixed64 amount)
-        {
-            return new Vector2D(Maths.SmoothStep(value1.X, value2.X, amount), Maths.SmoothStep(value1.Y, value2.Y, amount));
-        }
-
-        public static void SmoothStep(ref Vector2D value1, ref Vector2D value2, Fixed64 amount, out Vector2D result)
-        {
-            result = new Vector2D(Maths.SmoothStep(value1.X, value2.X, amount), Maths.SmoothStep(value1.Y, value2.Y, amount));
-        }
-
-        public static Vector2D Subtract(Vector2D value1, Vector2D value2)
-        {
-            value1.X -= value2.X;
-            value1.Y -= value2.Y;
-            return value1;
-        }
-
-        public static void Subtract(ref Vector2D value1, ref Vector2D value2, out Vector2D result)
-        {
-            result.X = value1.X - value2.X;
-            result.Y = value1.Y - value2.Y;
-        }
-
-        public static Fixed64 Angle(Vector2D a, Vector2D b) => Maths.AcosDeg(a.normalized * b.normalized);
-
-        public Vector3D ToTSVector()
-        {
-            return new Vector3D(this.X, this.Y, 0);
-        }
-
-        public override string ToString() => $"({X:f1}, {Y:f1})";
+        public readonly bool IsZero() => SqrMagnitude().RawValue == 0L;
+        public readonly bool IsNearlyZero() => SqrMagnitude().RawValue <= Const.Epsilon;
         #endregion Public Methods
 
-        #region Operators
-        public static Vector2D operator -(Vector2D value)
-        {
-            value.X = -value.X;
-            value.Y = -value.Y;
-            return value;
-        }
+        #region 运算符重载
+        public static Vector2D operator +(in Vector2D value) => value;
+        public static Vector2D operator -(in Vector2D value) => new(-value.X, -value.Y);
+        public static Vector2D operator +(in Vector2D lhs, in Vector2D rhs) => new(lhs.X + rhs.X, lhs.Y + rhs.Y);
+        public static Vector2D operator -(in Vector2D lhs, in Vector2D rhs) => new(lhs.X - rhs.X, lhs.Y - rhs.Y);
 
-        public static bool operator ==(Vector2D value1, Vector2D value2)
-        {
-            return value1.X == value2.X && value1.Y == value2.Y;
-        }
+        public static Fixed64 operator *(in Vector2D lhs, in Vector2D rhs) => lhs.X * rhs.X + lhs.Y * rhs.Y;
+        public static Vector2D operator *(in Vector2D lhs, in Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs);
+        public static Vector2D operator *(in Vector2D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs);
+        public static Vector2D operator *(in Fixed64 lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
+        public static Vector2D operator *(long lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
+        public static Vector2D operator /(in Vector2D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs);
+        public static Vector2D operator /(in Vector2D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs);
 
-        public static bool operator !=(Vector2D value1, Vector2D value2)
-        {
-            return value1.X != value2.X || value1.Y != value2.Y;
-        }
-
-        public static Vector2D operator +(Vector2D value1, Vector2D value2)
-        {
-            value1.X += value2.X;
-            value1.Y += value2.Y;
-            return value1;
-        }
-
-        public static Vector2D operator -(Vector2D value1, Vector2D value2)
-        {
-            value1.X -= value2.X;
-            value1.Y -= value2.Y;
-            return value1;
-        }
-
-        public static Fixed64 operator *(Vector2D value1, Vector2D value2)
-        {
-            return Vector2D.Dot(value1, value2);
-        }
-
-        public static Vector2D operator *(Vector2D value, Fixed64 scaleFactor)
-        {
-            value.X *= scaleFactor;
-            value.Y *= scaleFactor;
-            return value;
-        }
-
-        public static Vector2D operator *(Fixed64 scaleFactor, Vector2D value)
-        {
-            value.X *= scaleFactor;
-            value.Y *= scaleFactor;
-            return value;
-        }
-
-        public static Vector2D operator /(Vector2D value1, Vector2D value2)
-        {
-            value1.X /= value2.X;
-            value1.Y /= value2.Y;
-            return value1;
-        }
-
-        public static Vector2D operator /(Vector2D value1, Fixed64 divider)
-        {
-            Fixed64 factor = 1 / divider;
-            value1.X *= factor;
-            value1.Y *= factor;
-            return value1;
-        }
+        public static bool operator ==(in Vector2D lhs, in Vector2D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y;
+        public static bool operator !=(in Vector2D lhs, in Vector2D rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y;
         #endregion Operators
+
+        #region 继承重载
+        public readonly override bool Equals(object obj) => obj is Vector2D other && this == other;
+        public readonly override int GetHashCode() => HashCode.Combine(X.RawValue, Y.RawValue);
+        public readonly override string ToString() => $"({X}, {Y})";
+
+        public readonly bool Equals(Vector2D other) => this == other;
+        public readonly int CompareTo(Vector2D other)
+        {
+            int match1 = X.CompareTo(other.X);
+            if (match1 != 0)
+                return match1;
+
+            int match2 = Y.CompareTo(other.Y);
+            if (match2 != 0)
+                return match2;
+
+            return 0;
+        }
+        #endregion
     }
 }

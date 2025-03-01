@@ -28,7 +28,6 @@ namespace Eevee.Fixed
     [Serializable]
     public struct Vector4D : IEquatable<Vector4D>, IComparable<Vector4D>
     {
-        private static Fixed64 ZeroEpsilonSq = Maths.Epsilon;
         internal static Vector4D InternalZero;
 
         /// <summary>The X component of the vector.</summary>
@@ -334,19 +333,13 @@ namespace Eevee.Fixed
         /// <returns>Returns true if the vector is zero, otherwise false.</returns>
 
         #region public bool IsZero()
-        public bool IsZero()
-        {
-            return (this.sqrMagnitude == Fixed64.Zero);
-        }
+        public bool IsZero() => sqrMagnitude.RawValue == 0L;
 
         /// <summary>
         /// Checks if the length of the vector is nearly zero.
         /// </summary>
         /// <returns>Returns true if the vector is nearly zero, otherwise false.</returns>
-        public bool IsNearlyZero()
-        {
-            return (this.sqrMagnitude < ZeroEpsilonSq);
-        }
+        public bool IsNearlyZero() => sqrMagnitude.RawValue <= Const.Epsilon;
         #endregion
 
         /// <summary>

@@ -12,7 +12,7 @@ namespace Eevee.Fixed
     [Serializable]
     public readonly struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
     {
-        #region 字段 & 构造函数
+        #region 字段/构造函数
         public static readonly Fixed64 Zero = default; // 数字：0
         public static readonly Fixed64 Half = new(Const.Half); // 数字：0.5
         public static readonly Fixed64 One = new(Const.One); // 数字：1
@@ -26,7 +26,7 @@ namespace Eevee.Fixed
         public Fixed64(long rawValue) => RawValue = rawValue;
         #endregion
 
-        #region 数字转换/判断
+        #region 基础方法
         /// <summary>
         /// 符号<br/>
         /// 大于0，返回1<br/>
@@ -42,7 +42,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 向上取整
         /// </summary>
-        public Fixed64 Ceiling() => (RawValue & Const.FractionalPart) == 0 ? this : Floor() + One;
+        public Fixed64 Ceiling() => (RawValue & Const.FractionalPart) == 0L ? this : Floor() + One;
         /// <summary>
         /// 向下取整
         /// </summary>
@@ -125,56 +125,47 @@ namespace Eevee.Fixed
         #endregion
 
         #region 运算符重载
-        public static Fixed64 operator >>(Fixed64 left, int right) => new(left.RawValue >> right);
-        public static Fixed64 operator <<(Fixed64 left, int right) => new(left.RawValue << right);
-        public static Fixed64 operator ~(Fixed64 value) => new(~value.RawValue);
-        public static Fixed64 operator |(Fixed64 left, Fixed64 right) => new(left.RawValue | right.RawValue);
-        public static Fixed64 operator |(Fixed64 left, long right) => new(left.RawValue | right);
-        public static Fixed64 operator |(long left, Fixed64 right) => new(left | right.RawValue);
-        public static Fixed64 operator &(Fixed64 left, Fixed64 right) => new(left.RawValue & right.RawValue);
-        public static Fixed64 operator &(Fixed64 left, long right) => new(left.RawValue & right);
-        public static Fixed64 operator &(long left, Fixed64 right) => new(left & right.RawValue);
-        public static Fixed64 operator ^(Fixed64 left, Fixed64 right) => new(left.RawValue ^ right.RawValue);
-        public static Fixed64 operator ^(Fixed64 left, long right) => new(left.RawValue ^ right);
-        public static Fixed64 operator ^(long left, Fixed64 right) => new(left ^ right.RawValue);
+        public static Fixed64 operator >>(Fixed64 lhs, int rhs) => new(lhs.RawValue >> rhs);
+        public static Fixed64 operator <<(Fixed64 lhs, int rhs) => new(lhs.RawValue << rhs);
+        public static Fixed64 operator ~(Fixed64 lhs) => new(~lhs.RawValue);
 
         public static Fixed64 operator +(Fixed64 value) => value;
         public static Fixed64 operator -(Fixed64 value) => new(-value.RawValue);
         public static Fixed64 operator ++(Fixed64 value) => new(value.RawValue + Const.One);
         public static Fixed64 operator --(Fixed64 value) => new(value.RawValue - Const.One);
-        public static Fixed64 operator +(Fixed64 left, Fixed64 right) => new(left.RawValue + right.RawValue);
-        public static Fixed64 operator -(Fixed64 left, Fixed64 right) => new(left.RawValue - right.RawValue);
-        public static Fixed64 operator *(Fixed64 left, Fixed64 right)
+        public static Fixed64 operator +(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue + rhs.RawValue);
+        public static Fixed64 operator -(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue - rhs.RawValue);
+        public static Fixed64 operator *(Fixed64 lhs, Fixed64 rhs)
         {
-            long li = left.RawValue >> Const.FractionalBits;
-            long lf = left.RawValue & Const.FractionalPart;
-            long ri = right.RawValue >> Const.FractionalBits;
-            long rf = right.RawValue & Const.FractionalPart;
+            long li = lhs.RawValue >> Const.FractionalBits;
+            long lf = lhs.RawValue & Const.FractionalPart;
+            long ri = rhs.RawValue >> Const.FractionalBits;
+            long rf = rhs.RawValue & Const.FractionalPart;
 
             long ii = li * ri << Const.FractionalBits;
             long fi = li * rf + lf * ri;
             ulong ff = (ulong)lf * (ulong)rf >> Const.FractionalBits; // lf*lf可能会溢出，所以转成ulong
             return new Fixed64(ii + fi + (long)ff);
         }
-        public static Fixed64 operator *(Fixed64 left, long right) => new(left.RawValue * right);
-        public static Fixed64 operator *(long left, Fixed64 right) => new(left * right.RawValue);
-        public static Fixed64 operator /(Fixed64 left, Fixed64 right)
+        public static Fixed64 operator *(Fixed64 lhs, long rhs) => new(lhs.RawValue * rhs);
+        public static Fixed64 operator *(long lhs, Fixed64 rhs) => new(lhs * rhs.RawValue);
+        public static Fixed64 operator /(Fixed64 lhs, Fixed64 rhs)
         {
-            if (left.RawValue is >= Const.MinPeak >> Const.FractionalBits and <= Const.MaxPeak >> Const.FractionalBits)
+            if (lhs.RawValue is >= Const.MinPeak >> Const.FractionalBits and <= Const.MaxPeak >> Const.FractionalBits)
             {
-                return new Fixed64((left.RawValue << Const.FractionalBits) / right.RawValue);
+                return new Fixed64((lhs.RawValue << Const.FractionalBits) / rhs.RawValue);
             }
 
-            long remainder = left.RawValue % right.RawValue;
+            long remainder = lhs.RawValue % rhs.RawValue;
             if (remainder is >= Const.MinPeak >> Const.FractionalBits and <= Const.MaxPeak >> Const.FractionalBits)
             {
-                long div = left.RawValue / right.RawValue << Const.FractionalBits;
-                long mod = (remainder << Const.FractionalBits) / right.RawValue;
+                long div = lhs.RawValue / rhs.RawValue << Const.FractionalBits;
+                long mod = (remainder << Const.FractionalBits) / rhs.RawValue;
                 return new Fixed64(div + mod);
             }
 
-            long dividend = Math.Abs(left.RawValue); // 被除数
-            long divisor = Math.Abs(right.RawValue); // 除数
+            long dividend = Math.Abs(lhs.RawValue); // 被除数
+            long divisor = Math.Abs(rhs.RawValue); // 除数
             long quotient = 0L; // 商
             for (int remainBits = Const.FractionalBits, moveBits = Const.FractionalBits >> 1;;)
             {
@@ -243,27 +234,27 @@ namespace Eevee.Fixed
                 }
                 #endregion
             }
-            bool sameSign = Math.Sign(left.RawValue) == Math.Sign(right.RawValue);
+            bool sameSign = Math.Sign(lhs.RawValue) == Math.Sign(rhs.RawValue);
             return new Fixed64(sameSign ? quotient : -quotient);
         }
-        public static Fixed64 operator /(Fixed64 left, long right) => new(left.RawValue / right);
-        public static Fixed64 operator %(Fixed64 left, Fixed64 right) => new(left.RawValue % right.RawValue);
+        public static Fixed64 operator /(Fixed64 lhs, long rhs) => new(lhs.RawValue / rhs);
+        public static Fixed64 operator %(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue % rhs.RawValue);
 
-        public static bool operator ==(Fixed64 left, Fixed64 right) => left.RawValue == right.RawValue;
-        public static bool operator !=(Fixed64 left, Fixed64 right) => left.RawValue != right.RawValue;
-        public static bool operator >=(Fixed64 left, Fixed64 right) => left.RawValue >= right.RawValue;
-        public static bool operator <=(Fixed64 left, Fixed64 right) => left.RawValue <= right.RawValue;
-        public static bool operator >(Fixed64 left, Fixed64 right) => left.RawValue > right.RawValue;
-        public static bool operator <(Fixed64 left, Fixed64 right) => left.RawValue < right.RawValue;
+        public static bool operator ==(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue == rhs.RawValue;
+        public static bool operator !=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue != rhs.RawValue;
+        public static bool operator >=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue >= rhs.RawValue;
+        public static bool operator <=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue <= rhs.RawValue;
+        public static bool operator >(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue > rhs.RawValue;
+        public static bool operator <(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue < rhs.RawValue;
         #endregion
 
         #region 继承重载
-        public override bool Equals(object obj) => obj is Fixed64 number && number.RawValue == RawValue;
+        public override bool Equals(object obj) => obj is Fixed64 other && other.RawValue == RawValue;
         public override int GetHashCode() => RawValue.GetHashCode();
+        public override string ToString() => ((double)this).ToString();
+
         public bool Equals(Fixed64 other) => RawValue == other.RawValue;
         public int CompareTo(Fixed64 other) => RawValue.CompareTo(other.RawValue);
-
-        public override string ToString() => ((double)this).ToString();
         public string ToString(string format) => ((double)this).ToString(format);
         public string ToString(IFormatProvider provider) => ((double)this).ToString(provider);
         public string ToString(string format, IFormatProvider provider) => ((double)this).ToString(format, provider);

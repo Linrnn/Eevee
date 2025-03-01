@@ -28,7 +28,6 @@ namespace Eevee.Fixed
     [Serializable]
     public struct Vector3D : IEquatable<Vector3D>, IComparable<Vector3D>
     {
-        private static Fixed64 ZeroEpsilonSq = Maths.Epsilon;
         internal static Vector3D InternalZero;
         internal static Vector3D Arbitrary;
 
@@ -356,19 +355,13 @@ namespace Eevee.Fixed
         /// <returns>Returns true if the vector is zero, otherwise false.</returns>
 
         #region public bool IsZero()
-        public bool IsZero()
-        {
-            return (this.sqrMagnitude == Fixed64.Zero);
-        }
+        public bool IsZero() => sqrMagnitude.RawValue == 0L;
 
         /// <summary>
         /// Checks if the length of the vector is nearly zero.
         /// </summary>
         /// <returns>Returns true if the vector is nearly zero, otherwise false.</returns>
-        public bool IsNearlyZero()
-        {
-            return (this.sqrMagnitude < ZeroEpsilonSq);
-        }
+        public bool IsNearlyZero() => sqrMagnitude.RawValue <= Const.Epsilon;
         #endregion
 
         /// <summary>
@@ -449,11 +442,10 @@ namespace Eevee.Fixed
         // Projects a vector onto another vector.
         public static Vector3D Project(Vector3D vector, Vector3D onNormal)
         {
-            Fixed64 sqrtMag = Dot(onNormal, onNormal);
-            if (sqrtMag < Maths.Epsilon)
+            var sqrtMag = Dot(onNormal, onNormal);
+            if (sqrtMag.RawValue <= Const.Epsilon)
                 return zero;
-            else
-                return onNormal * Dot(vector, onNormal) / sqrtMag;
+            return onNormal * Dot(vector, onNormal) / sqrtMag;
         }
 
         // Projects a vector onto a plane defined by a normal orthogonal to the plane.

@@ -581,6 +581,22 @@ namespace Eevee.Fixed
         }
         #endregion
 
+        /// <summary>
+        /// 3x3矩阵所有值取绝对值
+        /// </summary>
+        public Matrix3X3 Absolute() => new()
+        {
+            M11 = M11.Abs(),
+            M12 = M12.Abs(),
+            M13 = M13.Abs(),
+            M21 = M21.Abs(),
+            M22 = M22.Abs(),
+            M23 = M23.Abs(),
+            M31 = M31.Abs(),
+            M32 = M32.Abs(),
+            M33 = M33.Abs(),
+        };
+
         public Fixed64 Trace()
         {
             return this.M11 + this.M22 + this.M33;
