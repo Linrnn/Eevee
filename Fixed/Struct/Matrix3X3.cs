@@ -465,8 +465,7 @@ namespace Eevee.Fixed
         #region public static JMatrix CreateFromQuaternion(JQuaternion quaternion)
         public static Matrix3X3 CreateFromLookAt(Vector3D position, Vector3D target)
         {
-            Matrix3X3 result;
-            LookAt(target - position, Vector3D.up, out result);
+            LookAt(target - position, Vector3D.Up, out var result);
             return result;
         }
 
@@ -632,6 +631,58 @@ namespace Eevee.Fixed
             Matrix3X3.Multiply(ref value2, -Fixed64.One, out value2);
             Matrix3X3.Add(ref value1, ref value2, out result);
             return result;
+        }
+        #endregion
+
+        #region public static JVector Transform(JVector position, JMatrix matrix)
+        /// <summary>
+        /// Checks if the length of the vector is zero.
+        /// </summary>
+        /// <returns>Returns true if the vector is zero, otherwise false.</returns>
+        /// <summary>
+        /// Transforms a vector by the given matrix.
+        /// </summary>
+        /// <param name="position">The vector to transform.</param>
+        /// <param name="matrix">The transform matrix.</param>
+        /// <returns>The transformed vector.</returns>
+        public static Vector3D Transform(Vector3D position, Matrix3X3 matrix)
+        {
+            Transform(ref position, ref matrix, out var result);
+            return result;
+        }
+
+        /// <summary>
+        /// Transforms a vector by the given matrix.
+        /// </summary>
+        /// <param name="position">The vector to transform.</param>
+        /// <param name="matrix">The transform matrix.</param>
+        /// <param name="result">The transformed vector.</param>
+        public static void Transform(ref Vector3D position, ref Matrix3X3 matrix, out Vector3D result)
+        {
+            Fixed64 num0 = ((position.X * matrix.M11) + (position.Y * matrix.M21)) + (position.Z * matrix.M31);
+            Fixed64 num1 = ((position.X * matrix.M12) + (position.Y * matrix.M22)) + (position.Z * matrix.M32);
+            Fixed64 num2 = ((position.X * matrix.M13) + (position.Y * matrix.M23)) + (position.Z * matrix.M33);
+
+            result.X = num0;
+            result.Y = num1;
+            result.Z = num2;
+        }
+
+        /// <summary>
+        /// Transforms a vector by the transposed of the given Matrix.
+        /// </summary>
+        /// <param name="position">The vector to transform.</param>
+        /// <param name="matrix">The transform matrix.</param>
+        /// <param name="result">The transformed vector.</param>
+        public static void TransposedTransform(ref Vector3D position, ref Matrix3X3 matrix, out Vector3D result)
+        {
+            Fixed64 num0 = ((position.X * matrix.M11) + (position.Y * matrix.M12)) + (position.Z * matrix.M13);
+            Fixed64 num1 = ((position.X * matrix.M21) + (position.Y * matrix.M22)) + (position.Z * matrix.M23);
+            Fixed64 num2 = ((position.X * matrix.M31) + (position.Y * matrix.M32)) + (position.Z * matrix.M33);
+
+            result.X = num0;
+            result.Y = num1;
+            result.Z = num2;
         }
         #endregion
 

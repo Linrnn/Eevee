@@ -6,11 +6,10 @@ namespace Eevee.Fixed
     /// <summary>
     /// 有限小数，不包括无限循环小数<br/>
     /// 默认实现：1位符号 + 31位整数 + 32位小数<br/>
-    /// 通过 “Const.FractionalPlaces” 修改小数位数<br/>
-    /// 删除 “public readonly struct Fixed64” 和 “public readonly long RawValue” 的 “readonly”，使Fixed64可序列化
+    /// 通过 “Const.FractionalPlaces” 修改小数位数
     /// </summary>
     [Serializable]
-    public readonly struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
+    public struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
     {
         #region 字段/构造函数
         public static readonly Fixed64 Zero = default; // 数字：0
@@ -22,7 +21,7 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Infinity = new(Const.Infinity); // 无穷大
         public static readonly Fixed64 NaN = new(Const.MinPeak); // 非数，不存在的数
 
-        public readonly long RawValue;
+        public long RawValue;
         public Fixed64(long rawValue) => RawValue = rawValue;
         #endregion
 
@@ -33,25 +32,25 @@ namespace Eevee.Fixed
         /// 等于0，返回0<br/>
         /// 小于0，返回-1
         /// </summary>
-        public int Sign() => Math.Sign(RawValue);
+        public readonly int Sign() => Math.Sign(RawValue);
         /// <summary>
         /// 绝对值
         /// </summary>
-        public Fixed64 Abs() => RawValue >= 0L ? this : -this;
+        public readonly Fixed64 Abs() => RawValue >= 0L ? this : -this;
 
         /// <summary>
         /// 向上取整
         /// </summary>
-        public Fixed64 Ceiling() => (RawValue & Const.FractionalPart) == 0L ? this : Floor() + One;
+        public readonly Fixed64 Ceiling() => (RawValue & Const.FractionalPart) == 0L ? this : Floor() + One;
         /// <summary>
         /// 向下取整
         /// </summary>
-        public Fixed64 Floor() => new(RawValue & Const.IntegerPart);
+        public readonly Fixed64 Floor() => new(RawValue & Const.IntegerPart);
         /// <summary>
         /// 四舍五入到最接近的整数值<br/>
         /// 如果一个数在偶数和奇数中间，则返回最近的偶数（如：3.5 -> 4，4.5 -> 4）
         /// </summary>
-        public Fixed64 Round() => (RawValue & Const.FractionalPart) switch
+        public readonly Fixed64 Round() => (RawValue & Const.FractionalPart) switch
         {
             < Const.Half => Floor(),
             > Const.Half => Ceiling(),
@@ -60,16 +59,16 @@ namespace Eevee.Fixed
         /// <summary>
         /// 得到小数部分
         /// </summary>
-        public Fixed64 FractionalPart() => new(RawValue & Const.FractionalPart);
+        public readonly Fixed64 FractionalPart() => new(RawValue & Const.FractionalPart);
 
         /// <summary>
         /// 倒数，-1次方
         /// </summary>
-        public Fixed64 Reciprocal() => One / this;
+        public readonly Fixed64 Reciprocal() => One / this;
         /// <summary>
         /// 平方根，即开方，1/2次方
         /// </summary>
-        public Fixed64 Sqrt()
+        public readonly Fixed64 Sqrt()
         {
             switch (RawValue)
             {
@@ -97,17 +96,13 @@ namespace Eevee.Fixed
         /// <summary>
         /// 平方，2次方
         /// </summary>
-        public Fixed64 Sqr() => this * this;
+        public readonly Fixed64 Sqr() => this * this;
 
-        public float AsFloat() => (float)this;
-        public double AsDouble() => (double)this;
-        public decimal AsDecimal() => (decimal)this;
-
-        public bool IsInfinity() => RawValue is Const.Infinitesimal or Const.Infinity;
-        public bool IsNaN() => RawValue == Const.MinPeak;
+        public readonly bool IsInfinity() => RawValue is Const.Infinitesimal or Const.Infinity;
+        public readonly bool IsNaN() => RawValue == Const.MinPeak;
         #endregion
 
-        #region 隐式转换/显示转换
+        #region 隐式转换/显示转换/运算符重载
         public static implicit operator Fixed64(long value) => new(value << Const.FractionalBits);
         public static implicit operator Fixed64(float value) => new((long)(value * Const.One));
         public static implicit operator Fixed64(double value) => new((long)(value * Const.One));
@@ -122,9 +117,7 @@ namespace Eevee.Fixed
         public static explicit operator float(Fixed64 value) => value.RawValue / (float)Const.One;
         public static explicit operator double(Fixed64 value) => value.RawValue / (double)Const.One;
         public static explicit operator decimal(Fixed64 value) => value.RawValue / (decimal)Const.One;
-        #endregion
 
-        #region 运算符重载
         public static Fixed64 operator >>(Fixed64 lhs, int rhs) => new(lhs.RawValue >> rhs);
         public static Fixed64 operator <<(Fixed64 lhs, int rhs) => new(lhs.RawValue << rhs);
         public static Fixed64 operator ~(Fixed64 lhs) => new(~lhs.RawValue);
@@ -133,6 +126,7 @@ namespace Eevee.Fixed
         public static Fixed64 operator -(Fixed64 value) => new(-value.RawValue);
         public static Fixed64 operator ++(Fixed64 value) => new(value.RawValue + Const.One);
         public static Fixed64 operator --(Fixed64 value) => new(value.RawValue - Const.One);
+
         public static Fixed64 operator +(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue + rhs.RawValue);
         public static Fixed64 operator -(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue - rhs.RawValue);
         public static Fixed64 operator *(Fixed64 lhs, Fixed64 rhs)
@@ -249,15 +243,15 @@ namespace Eevee.Fixed
         #endregion
 
         #region 继承重载
-        public override bool Equals(object obj) => obj is Fixed64 other && other.RawValue == RawValue;
-        public override int GetHashCode() => RawValue.GetHashCode();
-        public override string ToString() => ((double)this).ToString();
+        public readonly override bool Equals(object obj) => obj is Fixed64 other && other.RawValue == RawValue;
+        public readonly override int GetHashCode() => RawValue.GetHashCode();
+        public readonly bool Equals(Fixed64 other) => RawValue == other.RawValue;
+        public readonly int CompareTo(Fixed64 other) => RawValue.CompareTo(other.RawValue);
 
-        public bool Equals(Fixed64 other) => RawValue == other.RawValue;
-        public int CompareTo(Fixed64 other) => RawValue.CompareTo(other.RawValue);
-        public string ToString(string format) => ((double)this).ToString(format);
-        public string ToString(IFormatProvider provider) => ((double)this).ToString(provider);
-        public string ToString(string format, IFormatProvider provider) => ((double)this).ToString(format, provider);
+        public readonly override string ToString() => ((double)this).ToString();
+        public readonly string ToString(string format) => ((double)this).ToString(format);
+        public readonly string ToString(IFormatProvider provider) => ((double)this).ToString(provider);
+        public readonly string ToString(string format, IFormatProvider provider) => ((double)this).ToString(format, provider);
         #endregion
     }
 }

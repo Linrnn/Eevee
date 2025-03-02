@@ -3,7 +3,7 @@
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 包含常见的数学操作
+    /// 常见的数学操作
     /// </summary>
     public readonly struct Maths
     {
@@ -503,7 +503,8 @@ namespace Eevee.Fixed
         public static bool IsPowerOf2(ulong a) => a != 0UL && (a & a - 1UL) == 0UL;
         #endregion
 
-        #region Fixed64/Vector2D 关联操作
+        #region Fixed64/Vector2D/Vector3D 关联操作
+        #region 较小值/较大值
         /// <summary>
         /// 较小值
         /// </summary>
@@ -517,6 +518,12 @@ namespace Eevee.Fixed
         {
             X = Min(lsh.X, rsh.X),
             Y = Min(lsh.Y, rsh.Y),
+        };
+        public static Vector3D Min(in Vector3D lsh, in Vector3D rsh) => new()
+        {
+            X = Min(lsh.X, rsh.X),
+            Y = Min(lsh.Y, rsh.Y),
+            Z = Min(lsh.Z, rsh.Z),
         };
 
         /// <summary>
@@ -533,69 +540,91 @@ namespace Eevee.Fixed
             X = Max(lsh.X, rsh.X),
             Y = Max(lsh.Y, rsh.Y),
         };
+        public static Vector3D Max(in Vector3D lsh, in Vector3D rsh) => new()
+        {
+            X = Max(lsh.X, rsh.X),
+            Y = Max(lsh.Y, rsh.Y),
+            Z = Max(lsh.Z, rsh.Z),
+        };
+        #endregion
 
         #region 基础插值
         /// <summary>
         /// 计算线性参数amount在[lsh，rsh]范围内产生插值
         /// </summary>
-        /// <param name="lsh">开始值</param>
-        /// <param name="rsh">结束值</param>
-        /// <param name="amount">插值</param>
+        /// <param name="from">开始值</param>
+        /// <param name="to">结束值</param>
+        /// <param name="value">插值</param>
         /// <returns>amount介于开始和结束之间的值的百分比</returns>
-        public static Fixed64 InverseLerp(Fixed64 lsh, Fixed64 rsh, Fixed64 amount) => lsh == rsh ? Fixed64.Zero : Clamp01((amount - lsh) / (rsh - lsh));
+        public static Fixed64 InverseLerp(Fixed64 from, Fixed64 to, Fixed64 value) => from == to ? Fixed64.Zero : Clamp01((value - from) / (to - from));
 
         /// <summary>
         /// 线性插值
         /// [lsh, rsh]通过参数amount进行插值
         /// </summary>
-        /// <param name="lsh">开始值</param>
-        /// <param name="rsh">结束值</param>
-        /// <param name="amount">开始值与结束值之间的参数，0到1之间</param>
-        public static Fixed64 Lerp(Fixed64 lsh, Fixed64 rsh, Fixed64 amount) => LerpUnClamp(lsh, rsh, Clamp01(amount));
-        public static Vector2D Lerp(in Vector2D lsh, in Vector2D rsh, Fixed64 amount) => LerpUnClamp(in lsh, in rsh, Clamp01(amount));
+        /// <param name="from">开始值</param>
+        /// <param name="to">结束值</param>
+        /// <param name="percent">开始值与结束值之间的参数，0到1之间</param>
+        public static Fixed64 Lerp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * Clamp01(percent);
+        public static Vector2D Lerp(in Vector2D from, in Vector2D to, Fixed64 percent) => from + (to - from) * Clamp01(percent);
+        public static Vector3D Lerp(Vector3D from, Vector3D to, Fixed64 percent) => from + (to - from) * Clamp01(percent);
 
         /// <summary>
         /// 线性插值
         /// [lsh, rsh]通过参数amount进行插值
         /// </summary>
-        /// <param name="lsh">开始值</param>
-        /// <param name="rsh">结束值</param>
-        /// <param name="amount">开始值与结束值之间的参数</param>
-        public static Fixed64 LerpUnClamp(Fixed64 lsh, Fixed64 rsh, Fixed64 amount) => lsh + (rsh - lsh) * amount;
-        public static Vector2D LerpUnClamp(in Vector2D lsh, in Vector2D rsh, Fixed64 amount) => new()
-        {
-            X = LerpUnClamp(lsh.X, rsh.X, amount),
-            Y = LerpUnClamp(lsh.Y, rsh.Y, amount),
-        };
+        /// <param name="from">开始值</param>
+        /// <param name="to">结束值</param>
+        /// <param name="percent">开始值与结束值之间的参数</param>
+        public static Fixed64 LerpUnClamp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * percent;
+        public static Vector2D LerpUnClamp(in Vector2D from, in Vector2D to, Fixed64 percent) => from + (to - from) * percent;
+        public static Vector3D LerpUnClamp(in Vector3D from, in Vector3D to, Fixed64 percent) => from + (to - from) * percent;
 
         /// <summary>
         /// 移动到目标，类似LerpUnClamp
         /// </summary>
-        /// <param name="current">当前值</param>
-        /// <param name="target">目标值</param>
+        /// <param name="from">当前值</param>
+        /// <param name="to">目标值</param>
         /// <param name="maxDelta">最大改变值（负值将远离目标）</param>
-        public static Fixed64 MoveTowards(Fixed64 current, Fixed64 target, Fixed64 maxDelta)
+        public static Fixed64 MoveTowards(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
         {
-            var delta = target - current;
-            return delta.Abs() <= maxDelta ? target : current + delta.Sign() * maxDelta;
+            var delta = to - from;
+            return delta.Abs() <= maxDelta ? to : from + delta.Sign() * maxDelta;
         }
-        public static Vector2D MoveTowards(in Vector2D current, in Vector2D target, Fixed64 maxDelta)
+        public static Vector2D MoveTowards(in Vector2D from, in Vector2D to, Fixed64 maxDelta)
         {
-            var delta = target - current;
+            var delta = to - from;
             var sqrMagnitude = delta.SqrMagnitude();
             if (sqrMagnitude.RawValue == 0L || maxDelta.RawValue >= 0L && sqrMagnitude <= maxDelta.Sqr())
-                return target;
+                return to;
 
-            return current + delta / sqrMagnitude.Sqrt() * maxDelta; // 先除后乘，避免溢出
+            return from + maxDelta / sqrMagnitude.Sqrt() * delta;
+        }
+        public static Vector3D MoveTowards(in Vector3D from, in Vector3D to, Fixed64 maxDelta)
+        {
+            var delta = to - from;
+            var sqrMagnitude = delta.SqrMagnitude();
+            if (sqrMagnitude.RawValue == 0L || maxDelta.RawValue >= 0L && sqrMagnitude <= maxDelta.Sqr())
+                return to;
+
+            return from + maxDelta / sqrMagnitude.Sqrt() * delta;
         }
 
         /// <summary>
-        /// 与MoveTowards相同，相对于角度
+        /// 与MoveTowards相同，返回弧度
         /// </summary>
-        public static Fixed64 MoveTowardsAngle(Fixed64 current, Fixed64 target, Fixed64 maxDelta)
+        public static Fixed64 MoveTowardsAngleRad(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
         {
-            var newTarget = current + DeltaAngleDeg(current, target);
-            return MoveTowards(current, newTarget, maxDelta);
+            var newTarget = from + DeltaAngleRad(from, to);
+            return MoveTowards(from, newTarget, maxDelta);
+        }
+        /// <summary>
+        /// 与MoveTowards相同，返回角度
+        /// </summary>
+        public static Fixed64 MoveTowardsAngleDeg(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
+        {
+            var newTarget = from + DeltaAngleDeg(from, to);
+            return MoveTowards(from, newTarget, maxDelta);
         }
         #endregion
 
@@ -614,6 +643,12 @@ namespace Eevee.Fixed
         {
             X = LerpCatmullRom(p1.X, p2.X, p3.X, p4.X, a),
             Y = LerpCatmullRom(p1.Y, p2.Y, p3.Y, p4.Y, a),
+        };
+        public static Vector3D LerpCatmullRom(in Vector3D p1, in Vector3D p2, in Vector3D p3, in Vector3D p4, Fixed64 a) => new()
+        {
+            X = LerpCatmullRom(p1.X, p2.X, p3.X, p4.X, a),
+            Y = LerpCatmullRom(p1.Y, p2.Y, p3.Y, p4.Y, a),
+            Z = LerpCatmullRom(p1.Z, p2.Z, p3.Z, p4.Z, a),
         };
 
         /// <summary>
@@ -636,6 +671,12 @@ namespace Eevee.Fixed
             X = LerpHermite(p1.X, t1.X, p2.X, t2.X, a),
             Y = LerpHermite(p1.Y, t1.Y, p2.Y, t2.Y, a),
         };
+        public static Vector3D LerpHermite(in Vector3D p1, in Vector3D t1, in Vector3D p2, in Vector3D t2, Fixed64 a) => new()
+        {
+            X = LerpHermite(p1.X, t1.X, p2.X, t2.X, a),
+            Y = LerpHermite(p1.Y, t1.Y, p2.Y, t2.Y, a),
+            Z = LerpHermite(p1.Z, t1.Z, p2.Z, t2.Z, a),
+        };
 
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
@@ -649,25 +690,55 @@ namespace Eevee.Fixed
             X = LerpSmoothStep(v1.X, v2.X, a),
             Y = LerpSmoothStep(v1.Y, v2.Y, a),
         };
+        public static Vector3D LerpSmoothStep(in Vector3D v1, in Vector3D v2, Fixed64 a) => new()
+        {
+            X = LerpSmoothStep(v1.X, v2.X, a),
+            Y = LerpSmoothStep(v1.Y, v2.Y, a),
+            Z = LerpSmoothStep(v1.Z, v2.Z, a),
+        };
         #endregion
 
+        #region 夹角计算
         /// <summary>
         /// 返回两向量之间的夹角，返回弧度，值域：[0, π]
         /// </summary>
-        public static Fixed64 AngleRad(in Vector2D lhs, in Vector2D rhs) => Acos(lhs.Normalized() * rhs.Normalized());
+        public static Fixed64 AngleRad(in Vector2D lhs, in Vector2D rhs) => Acos(Vector2D.Dot(lhs.Normalized(), rhs.Normalized()));
+        public static Fixed64 AngleRad(in Vector3D lhs, in Vector3D rhs) => Acos(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
+
         /// <summary>
         /// 返回两向量之间的夹角，返回无符号角度，值域：[0°, 180°]
         /// </summary>
-        public static Fixed64 AngleDeg(in Vector2D lhs, in Vector2D rhs) => AcosDeg(lhs.Normalized() * rhs.Normalized());
+        public static Fixed64 AngleDeg(in Vector2D lhs, in Vector2D rhs) => AcosDeg(Vector2D.Dot(lhs.Normalized(), rhs.Normalized()));
+        public static Fixed64 AngleDeg(in Vector3D lhs, in Vector3D rhs) => AcosDeg(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
 
         /// <summary>
         /// 返回两向量之间的夹角，返回弧度，值域：[-π, π]
         /// </summary>
         public static Fixed64 SignedAngleRad(in Vector2D from, in Vector2D to) => AngleRad(from, to) * Vector2D.Cross(in from, in to).Sign();
+        public static Fixed64 SignedAngleRad(in Vector3D from, in Vector3D to, in Vector3D axis)
+        {
+            var fromNorm = from.Normalized();
+            var toNorm = to.Normalized();
+            var acos = Acos(Vector3D.Dot(in fromNorm, in toNorm));
+            var cross = Vector3D.Cross(in fromNorm, in toNorm);
+            var dot = Vector3D.Dot(in axis, in cross);
+            return acos * dot.Sign();
+        }
+
         /// <summary>
         /// 返回两向量之间的夹角，返回弧度，值域：[-180°, 180°]
         /// </summary>
         public static Fixed64 SignedAngleDeg(in Vector2D from, in Vector2D to) => AngleDeg(from, to) * Vector2D.Cross(in from, in to).Sign();
+        public static Fixed64 SignedAngleDeg(in Vector3D from, in Vector3D to, in Vector3D axis)
+        {
+            var fromNorm = from.Normalized();
+            var toNorm = to.Normalized();
+            var acos = AcosDeg(Vector3D.Dot(in fromNorm, in toNorm));
+            var cross = Vector3D.Cross(in fromNorm, in toNorm);
+            var dot = Vector3D.Dot(in axis, in cross);
+            return acos * dot.Sign();
+        }
+        #endregion
 
         /// <summary>
         /// 质心

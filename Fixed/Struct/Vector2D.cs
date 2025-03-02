@@ -6,7 +6,7 @@ namespace Eevee.Fixed
     /// 确定性的二维向量
     /// </summary>
     [Serializable]
-    public struct Vector2D : IEquatable<Vector2D>, IComparable<Vector2D>
+    public struct Vector2D : IEquatable<Vector2D>, IComparable<Vector2D>, IFormattable
     {
         #region 字段/初始化
         public static readonly Vector2D Zero = new(0, 0);
@@ -18,6 +18,17 @@ namespace Eevee.Fixed
 
         public Fixed64 X;
         public Fixed64 Y;
+
+        public Vector2D(Fixed64 x)
+        {
+            X = x;
+            Y = Fixed64.Zero;
+        }
+        public Vector2D(Fixed64 x, Fixed64 y)
+        {
+            X = x;
+            Y = y;
+        }
 
         public Fixed64 this[int index]
         {
@@ -37,17 +48,6 @@ namespace Eevee.Fixed
                 }
             }
         }
-
-        public Vector2D(Fixed64 value)
-        {
-            X = value;
-            Y = value;
-        }
-        public Vector2D(Fixed64 x, Fixed64 y)
-        {
-            X = x;
-            Y = y;
-        }
         public void Set(Fixed64 x, Fixed64 y)
         {
             X = x;
@@ -57,30 +57,30 @@ namespace Eevee.Fixed
 
         #region 基础方法
         /// <summary>
-        /// 模长
-        /// </summary>
-        public readonly Fixed64 Magnitude() => X * X + Y * Y;
-        /// <summary>
         /// 模长的平方
         /// </summary>
-        public readonly Fixed64 SqrMagnitude() => Magnitude().Sqrt();
+        public readonly Fixed64 SqrMagnitude() => X.Sqr() + Y.Sqr();
         /// <summary>
-        /// 返回两点之间的距离
+        /// 模长
         /// </summary>
-        public static Fixed64 Distance(in Vector2D lhs, in Vector2D rhs) => (lhs - rhs).Magnitude();
+        public readonly Fixed64 Magnitude() => SqrMagnitude().Sqrt();
         /// <summary>
         /// 返回两点之间的距离的平方
         /// </summary>
-        public static Fixed64 SqrDistance(in Vector2D lhs, in Vector2D rhs) => (lhs - rhs).Magnitude().Sqrt();
+        public static Fixed64 SqrDistance(in Vector2D lhs, in Vector2D rhs) => (lhs - rhs).SqrMagnitude();
+        /// <summary>
+        /// 返回两点之间的距离
+        /// </summary>
+        public static Fixed64 Distance(in Vector2D lhs, in Vector2D rhs) => (lhs - rhs).SqrMagnitude().Sqrt();
 
         /// <summary>
         /// 返回副本，其大小被限制为输入值
         /// </summary>
-        public readonly Vector2D ClampMagnitude(Fixed64 maxLength)
+        public readonly Vector2D ClampMagnitude(Fixed64 maxDelta)
         {
-            switch (maxLength.RawValue)
+            switch (maxDelta.RawValue)
             {
-                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxLength), $"maxLength:{maxLength} < 0");
+                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"maxLength:{maxDelta} < 0");
                 case 0L: return Zero;
             }
 
@@ -88,7 +88,7 @@ namespace Eevee.Fixed
             if (sqrMagnitude.RawValue == 0L)
                 return Zero;
 
-            var sqrMaxLength = maxLength.Sqr();
+            var sqrMaxLength = maxDelta.Sqr();
             if (sqrMaxLength >= sqrMagnitude)
                 return this;
 
@@ -111,7 +111,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 点乘
         /// </summary>
-        public static Fixed64 Dot(in Vector2D lhs, in Vector2D rhs) => lhs * rhs;
+        public static Fixed64 Dot(in Vector2D lhs, in Vector2D rhs) => lhs.X * rhs.X + lhs.Y * rhs.Y;
         /// <summary>
         /// 叉乘
         /// </summary>
@@ -123,23 +123,33 @@ namespace Eevee.Fixed
         /// <summary>
         /// 从法线定义的向量反射一个向量
         /// </summary>
-        public static Vector2D Reflect(in Vector2D direction, in Vector2D normal)
+        public static Vector2D Reflect(in Vector2D inDirection, in Vector2D inNormal)
         {
-            var dot = direction * normal << 1;
-            return new Vector2D(direction.X - dot * normal.X, direction.Y - dot * normal.Y);
+            var dot = Dot(in inDirection, in inNormal) << 1;
+            return new Vector2D(inDirection.X - dot * inNormal.X, inDirection.Y - dot * inNormal.Y);
         }
 
         public readonly bool IsZero() => SqrMagnitude().RawValue == 0L;
         public readonly bool IsNearlyZero() => SqrMagnitude().RawValue <= Const.Epsilon;
-        #endregion Public Methods
+        #endregion
 
-        #region 运算符重载
+        #region 隐式转换/显示转换/运算符重载
+        public static implicit operator Vector2D(System.Numerics.Vector2 value) => new(value.X, value.Y);
+        public static explicit operator System.Numerics.Vector2(in Vector2D value) => new((float)value.X, (float)value.Y);
+
+#if UNITY_STANDALONE
+        public static implicit operator Vector2D(UnityEngine.Vector2 value) => new(value.x, value.y);
+        public static explicit operator UnityEngine.Vector2(in Vector2D value) => new((float)value.X, (float)value.Y);
+
+        public static implicit operator Vector2D(UnityEngine.Vector2Int value) => new(value.x, value.y);
+        public static explicit operator UnityEngine.Vector2Int(in Vector2D value) => new((int)value.X, (int)value.Y);
+#endif
+
         public static Vector2D operator +(in Vector2D value) => value;
         public static Vector2D operator -(in Vector2D value) => new(-value.X, -value.Y);
         public static Vector2D operator +(in Vector2D lhs, in Vector2D rhs) => new(lhs.X + rhs.X, lhs.Y + rhs.Y);
         public static Vector2D operator -(in Vector2D lhs, in Vector2D rhs) => new(lhs.X - rhs.X, lhs.Y - rhs.Y);
 
-        public static Fixed64 operator *(in Vector2D lhs, in Vector2D rhs) => lhs.X * rhs.X + lhs.Y * rhs.Y;
         public static Vector2D operator *(in Vector2D lhs, in Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs);
         public static Vector2D operator *(in Vector2D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs);
         public static Vector2D operator *(in Fixed64 lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
@@ -149,26 +159,29 @@ namespace Eevee.Fixed
 
         public static bool operator ==(in Vector2D lhs, in Vector2D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y;
         public static bool operator !=(in Vector2D lhs, in Vector2D rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y;
-        #endregion Operators
+        #endregion
 
         #region 继承重载
         public readonly override bool Equals(object obj) => obj is Vector2D other && this == other;
         public readonly override int GetHashCode() => HashCode.Combine(X.RawValue, Y.RawValue);
-        public readonly override string ToString() => $"({X}, {Y})";
-
         public readonly bool Equals(Vector2D other) => this == other;
         public readonly int CompareTo(Vector2D other)
         {
-            int match1 = X.CompareTo(other.X);
+            int match1 = X.RawValue.CompareTo(other.X.RawValue);
             if (match1 != 0)
                 return match1;
 
-            int match2 = Y.CompareTo(other.Y);
+            int match2 = Y.RawValue.CompareTo(other.Y.RawValue);
             if (match2 != 0)
                 return match2;
 
             return 0;
         }
+
+        public readonly override string ToString() => $"({X.ToString()}, {Y.ToString()})";
+        public readonly string ToString(string format) => $"({X.ToString(format)}, {Y.ToString(format)})";
+        public readonly string ToString(IFormatProvider provider) => $"({X.ToString(provider)}, {Y.ToString(provider)})";
+        public readonly string ToString(string format, IFormatProvider provider) => $"({X.ToString(format, provider)}, {Y.ToString(format, provider)})";
         #endregion
     }
 }

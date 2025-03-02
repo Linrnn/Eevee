@@ -66,7 +66,7 @@
         /// </summary>
         public const long One = 1L << FractionalBits;
         /// <summary>
-        /// 极小值
+        /// 无限接近于0（小于等于这个值，等价于0）
         /// </summary>
         public const long Epsilon = One / 1000L;
 

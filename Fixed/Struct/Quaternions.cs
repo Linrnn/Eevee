@@ -122,7 +122,7 @@ namespace Eevee.Fixed
 
         public static Quaternions LookRotation(Vector3D forward)
         {
-            return CreateFromMatrix(Matrix3X3.LookAt(forward, Vector3D.up));
+            return CreateFromMatrix(Matrix3X3.LookAt(forward, Vector3D.Up));
         }
 
         public static Quaternions LookRotation(Vector3D forward, Vector3D upwards)
@@ -263,7 +263,7 @@ namespace Eevee.Fixed
         {
             var w = Vector3D.Cross(fromVector, toVector);
             Quaternions q = new Quaternions(w.X, w.Y, w.Z, Vector3D.Dot(fromVector, toVector));
-            q.W += (fromVector.sqrMagnitude * toVector.sqrMagnitude).Sqrt();
+            q.W += (fromVector.SqrMagnitude() * toVector.SqrMagnitude()).Sqrt();
             q.Normalize();
 
             return q;
