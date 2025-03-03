@@ -633,68 +633,68 @@ namespace Eevee.Fixed
         /// Catmull-Rom插值<br/>
         /// 参考链接：http://www.mvps.org/directx/articles/catmull/
         /// </summary>
-        public static Fixed64 LerpCatmullRom(Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 v4, Fixed64 a)
+        public static Fixed64 LerpCatmullRom(Fixed64 v0, Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 a)
         {
             var squared = a.Sqr();
             var cubed = squared * a;
-            return (v2 << 1) + (v3 - v1) * a + ((v1 << 1) - v2 * 5L + (v3 << 2) - v4) * squared + ((v2 - v3) * 3L - v1 + v4) * cubed >> 1;
+            return (v1 << 1) + (v2 - v0) * a + ((v0 << 1) - v1 * 5L + (v2 << 2) - v3) * squared + ((v1 - v2) * 3L - v0 + v3) * cubed >> 1;
         }
-        public static Vector2D LerpCatmullRom(in Vector2D p1, in Vector2D p2, in Vector2D p3, in Vector2D p4, Fixed64 a) => new()
+        public static Vector2D LerpCatmullRom(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, Fixed64 a) => new()
         {
-            X = LerpCatmullRom(p1.X, p2.X, p3.X, p4.X, a),
-            Y = LerpCatmullRom(p1.Y, p2.Y, p3.Y, p4.Y, a),
+            X = LerpCatmullRom(p0.X, p1.X, p2.X, p3.X, a),
+            Y = LerpCatmullRom(p0.Y, p1.Y, p2.Y, p3.Y, a),
         };
-        public static Vector3D LerpCatmullRom(in Vector3D p1, in Vector3D p2, in Vector3D p3, in Vector3D p4, Fixed64 a) => new()
+        public static Vector3D LerpCatmullRom(in Vector3D p0, in Vector3D p1, in Vector3D p2, in Vector3D p3, Fixed64 a) => new()
         {
-            X = LerpCatmullRom(p1.X, p2.X, p3.X, p4.X, a),
-            Y = LerpCatmullRom(p1.Y, p2.Y, p3.Y, p4.Y, a),
-            Z = LerpCatmullRom(p1.Z, p2.Z, p3.Z, p4.Z, a),
+            X = LerpCatmullRom(p0.X, p1.X, p2.X, p3.X, a),
+            Y = LerpCatmullRom(p0.Y, p1.Y, p2.Y, p3.Y, a),
+            Z = LerpCatmullRom(p0.Z, p1.Z, p2.Z, p3.Z, a),
         };
 
         /// <summary>
         /// Hermite插值
         /// </summary>
-        public static Fixed64 LerpHermite(Fixed64 v1, Fixed64 t1, Fixed64 v2, Fixed64 t2, Fixed64 a)
+        public static Fixed64 LerpHermite(Fixed64 v0, Fixed64 t0, Fixed64 v1, Fixed64 t1, Fixed64 a)
         {
             switch (a.RawValue)
             {
-                case Const.Zero: return v1;
-                case Const.One: return v2;
+                case Const.Zero: return v0;
+                case Const.One: return v1;
             }
 
             var squared = a.Sqr();
             var cubed = squared * a;
-            return ((v1 - v2 << 1) + t1 + t2) * cubed + ((v2 - v1) * 3L - (t1 << 1) - t2) * squared + t1 * a + v1;
+            return ((v0 - v1 << 1) + t0 + t1) * cubed + ((v1 - v0) * 3L - (t0 << 1) - t1) * squared + t0 * a + v0;
         }
-        public static Vector2D LerpHermite(in Vector2D p1, in Vector2D t1, in Vector2D p2, in Vector2D t2, Fixed64 a) => new()
+        public static Vector2D LerpHermite(in Vector2D p0, in Vector2D t0, in Vector2D p1, in Vector2D t1, Fixed64 a) => new()
         {
-            X = LerpHermite(p1.X, t1.X, p2.X, t2.X, a),
-            Y = LerpHermite(p1.Y, t1.Y, p2.Y, t2.Y, a),
+            X = LerpHermite(p0.X, t0.X, p1.X, t1.X, a),
+            Y = LerpHermite(p0.Y, t0.Y, p1.Y, t1.Y, a),
         };
-        public static Vector3D LerpHermite(in Vector3D p1, in Vector3D t1, in Vector3D p2, in Vector3D t2, Fixed64 a) => new()
+        public static Vector3D LerpHermite(in Vector3D p0, in Vector3D t0, in Vector3D p1, in Vector3D t1, Fixed64 a) => new()
         {
-            X = LerpHermite(p1.X, t1.X, p2.X, t2.X, a),
-            Y = LerpHermite(p1.Y, t1.Y, p2.Y, t2.Y, a),
-            Z = LerpHermite(p1.Z, t1.Z, p2.Z, t2.Z, a),
+            X = LerpHermite(p0.X, t0.X, p1.X, t1.X, a),
+            Y = LerpHermite(p0.Y, t0.Y, p1.Y, t1.Y, a),
+            Z = LerpHermite(p0.Z, t0.Z, p1.Z, t1.Z, a),
         };
 
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
         /// </summary>
-        /// <param name="v1">开始值</param>
-        /// <param name="v2">结束值</param>
+        /// <param name="v0">开始值</param>
+        /// <param name="v1">结束值</param>
         /// <param name="a">加权因子</param>
-        public static Fixed64 LerpSmoothStep(Fixed64 v1, Fixed64 v2, Fixed64 a) => LerpHermite(v1, Fixed64.Zero, v2, Fixed64.Zero, Clamp01(a));
-        public static Vector2D LerpSmoothStep(in Vector2D v1, in Vector2D v2, Fixed64 a) => new()
+        public static Fixed64 LerpSmoothStep(Fixed64 v0, Fixed64 v1, Fixed64 a) => LerpHermite(v0, Fixed64.Zero, v1, Fixed64.Zero, Clamp01(a));
+        public static Vector2D LerpSmoothStep(in Vector2D p0, in Vector2D p1, Fixed64 a) => new()
         {
-            X = LerpSmoothStep(v1.X, v2.X, a),
-            Y = LerpSmoothStep(v1.Y, v2.Y, a),
+            X = LerpSmoothStep(p0.X, p1.X, a),
+            Y = LerpSmoothStep(p0.Y, p1.Y, a),
         };
-        public static Vector3D LerpSmoothStep(in Vector3D v1, in Vector3D v2, Fixed64 a) => new()
+        public static Vector3D LerpSmoothStep(in Vector3D p0, in Vector3D p1, Fixed64 a) => new()
         {
-            X = LerpSmoothStep(v1.X, v2.X, a),
-            Y = LerpSmoothStep(v1.Y, v2.Y, a),
-            Z = LerpSmoothStep(v1.Z, v2.Z, a),
+            X = LerpSmoothStep(p0.X, p1.X, a),
+            Y = LerpSmoothStep(p0.Y, p1.Y, a),
+            Z = LerpSmoothStep(p0.Z, p1.Z, a),
         };
         #endregion
 

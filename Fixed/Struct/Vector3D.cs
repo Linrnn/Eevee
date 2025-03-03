@@ -81,7 +81,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 返回两点之间的距离的平方
         /// </summary>
-        public static Fixed64 SqrDistance(in Vector3D lhs, in Vector3D rhs) => (lhs - rhs).Magnitude();
+        public static Fixed64 SqrDistance(in Vector3D lhs, in Vector3D rhs) => (lhs - rhs).SqrMagnitude();
         /// <summary>
         /// 返回两点之间的距离
         /// </summary>
@@ -94,7 +94,7 @@ namespace Eevee.Fixed
         {
             switch (maxDelta.RawValue)
             {
-                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"maxLength:{maxDelta} < 0");
+                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
                 case 0L: return Zero;
             }
 
@@ -151,6 +151,7 @@ namespace Eevee.Fixed
             var sqrMagnitude = onNormal.SqrMagnitude();
             if (sqrMagnitude.RawValue <= Const.Epsilon)
                 return Zero;
+
             var dot = Dot(in direction, in onNormal);
             return dot / sqrMagnitude * onNormal;
         }

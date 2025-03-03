@@ -1,10 +1,19 @@
-﻿namespace Eevee.Fixed
+﻿using System;
+
+namespace Eevee.Fixed
 {
     /// <summary>
     /// 便捷实现，子类需要实现 EasyRandom.GetInt()
     /// </summary>
     public abstract class EasyRandom : IRandom
     {
+        #region 接口实现
+        public virtual bool GetBoolean()
+        {
+            int value = GetInt(0, 2);
+            return Convert.ToBoolean(value);
+        }
+
         public virtual sbyte GetSbyte(sbyte minInclusive, sbyte maxExclusive)
         {
             if (minInclusive == maxExclusive)
@@ -52,7 +61,7 @@
             if (minInclusive == maxExclusive)
                 return minInclusive;
 
-            uint value = GetUInt(minInclusive, maxExclusive);
+            uint value = RandomUInt32(minInclusive, maxExclusive);
             return value;
         }
 
@@ -61,19 +70,119 @@
             if (minInclusive == maxExclusive)
                 return minInclusive;
 
-            ulong min = L2Ul(minInclusive);
-            ulong max = L2Ul(maxExclusive);
-            ulong value = GetULong(min, max);
-            return Ul2L(value);
+            long value = RandomInt64(minInclusive, maxExclusive);
+            return value;
         }
         public virtual ulong GetUInt64(ulong minInclusive, ulong maxExclusive)
         {
             if (minInclusive == maxExclusive)
                 return minInclusive;
 
-            ulong value = GetULong(minInclusive, maxExclusive);
+            ulong value = RandomUInt64(minInclusive, maxExclusive);
             return value;
         }
+
+        public virtual Fixed64 GetFixed64(Fixed64 minInclusive, Fixed64 maxExclusive)
+        {
+            if (minInclusive.RawValue == maxExclusive.RawValue)
+                return minInclusive;
+
+            long value = RandomInt64(minInclusive.RawValue, maxExclusive.RawValue);
+            return new Fixed64(value);
+        }
+        public Fixed64 GetFixed64()
+        {
+            var value = RandomFixed64(Fixed64.One);
+            return value;
+        }
+        public virtual Fixed64 GetRad()
+        {
+            var value = RandomFixed64(Maths.Rad360);
+            return value;
+        }
+        public virtual Fixed64 GetDeg()
+        {
+            var value = RandomFixed64(Maths.Deg360);
+            return value;
+        }
+
+        public virtual Vector2D GetVector2D(in Vector2D p0, in Vector2D p1)
+        {
+            if (p0 == p1)
+                return p0;
+
+            var value = RandomVector2D(in p0, in p1);
+            return value;
+        }
+        public virtual Vector3D GetVector3D(in Vector3D p0, in Vector3D p1)
+        {
+            if (p0 == p1)
+                return p0;
+
+            var value = RandomVector3D(in p0, in p1);
+            return value;
+        }
+        public virtual Vector2D InTriangle(in Vector2D p0, in Vector2D p1, in Vector2D p2)
+        {
+            var p3 = RandomVector2D(in p0, in p1);
+            var p4 = RandomVector2D(in p2, in p3);
+            return p4;
+        }
+
+        public virtual Vector2D OnUnitCircle()
+        {
+            var rad = RandomFixed64(Maths.Rad360);
+            return new Vector2D(Maths.Cos(rad), Maths.Sin(rad));
+        }
+        public virtual Vector2D InCircle(Fixed64 radius)
+        {
+            var rad = RandomFixed64(Maths.Rad360);
+            var r = RandomFixed64(radius);
+            return new Vector2D(Maths.Cos(rad), Maths.Sin(rad)) * r;
+        }
+
+        public virtual Vector3D OnUnitSphere()
+        {
+            var x = RandomFixed64(Fixed64.One);
+            var y = RandomFixed64(Fixed64.One);
+            var z = RandomFixed64(Fixed64.One);
+            var value = new Vector3D(x, y, z);
+            return value.Normalized();
+        }
+        public virtual Vector3D InSphere(Fixed64 radius)
+        {
+            var x = RandomFixed64(radius);
+            var y = RandomFixed64(radius);
+            var z = RandomFixed64(radius);
+            var r = RandomFixed64(radius);
+            var value = new Vector3D(x, y, z);
+            return value.ClampMagnitude(r);
+        }
+
+        public virtual Vector3D GetEulerAngles()
+        {
+            var x = RandomFixed64(Maths.Deg360);
+            var y = RandomFixed64(Maths.Deg360);
+            var z = RandomFixed64(Maths.Deg360);
+            return new Vector3D(x, y, z);
+        }
+        public virtual Quaternions GetQuaternions()
+        {
+            var number = RandomFixed64(Fixed64.One);
+            var rad0 = RandomFixed64(Maths.Rad360);
+            var rad1 = RandomFixed64(Maths.Rad360);
+            var sqrt0 = (Fixed64.One - number).Sqrt();
+            var sqrt1 = number.Sqrt();
+
+            var w = sqrt0 * Maths.Sin(rad0);
+            var x = sqrt0 * Maths.Cos(rad0);
+            var y = sqrt1 * Maths.Sin(rad1);
+            var z = sqrt1 * Maths.Cos(rad1);
+
+            var scale = (w.Sqr() + x.Sqr() + y.Sqr() + z.Sqr()).Sqrt().Reciprocal();
+            return new Quaternions(w * scale, x * scale, y * scale, z * scale);
+        }
+        #endregion
 
         /// <summary>
         /// 随机获取Int32<br/>
@@ -83,14 +192,22 @@
         /// <param name="maxExclusive">不包括最大值</param>
         protected abstract int GetInt(int minInclusive, int maxExclusive);
 
-        private uint GetUInt(uint minInclusive, uint maxExclusive)
+        #region 工具方法
+        private uint RandomUInt32(uint minInclusive, uint maxExclusive)
         {
             int min = (int)(minInclusive + int.MinValue);
             int max = (int)(maxExclusive + int.MinValue);
             int value = GetInt(min, max);
             return (uint)(value - (long)int.MinValue);
         }
-        private ulong GetULong(ulong minInclusive, ulong maxExclusive) // 此实现随机数分布不均匀
+        private long RandomInt64(long minInclusive, long maxExclusive)
+        {
+            ulong min = L2Ul(minInclusive);
+            ulong max = L2Ul(maxExclusive);
+            ulong value = RandomUInt64(min, max);
+            return Ul2L(value);
+        }
+        private ulong RandomUInt64(ulong minInclusive, ulong maxExclusive) // 此实现随机数分布不均匀
         {
             uint minHigh = (uint)(minInclusive >> 32);
             uint maxHigh = (uint)(maxExclusive >> 32);
@@ -99,33 +216,53 @@
             {
                 uint minLow = (uint)(minInclusive & uint.MaxValue);
                 uint maxLow = (uint)(maxExclusive & uint.MaxValue);
-                ulong low = GetUInt(minLow, maxLow);
+                ulong low = RandomUInt32(minLow, maxLow);
                 return (ulong)minHigh << 32 | low;
             }
 
             uint realMaxHigh = maxHigh == uint.MaxValue ? maxHigh : maxHigh + 1;
-            ulong high = GetUInt(minHigh, realMaxHigh);
+            ulong high = RandomUInt32(minHigh, realMaxHigh);
             if (high == minHigh)
             {
                 uint minLow = (uint)(minInclusive & uint.MaxValue);
-                ulong low = GetUInt(minLow, uint.MaxValue);
+                ulong low = RandomUInt32(minLow, uint.MaxValue);
                 return high << 32 | low;
             }
 
             if (high == realMaxHigh)
             {
                 uint maxLow = (uint)(maxExclusive & uint.MaxValue);
-                ulong low = GetUInt(uint.MinValue, maxLow);
+                ulong low = RandomUInt32(uint.MinValue, maxLow);
                 return high << 32 | low;
             }
             else
             {
-                ulong low = GetUInt(uint.MinValue, uint.MaxValue);
+                ulong low = RandomUInt32(uint.MinValue, uint.MaxValue);
                 return high << 32 | low;
             }
         }
 
-        private ulong L2Ul(long num) => num >= 0L ? (ulong)num + long.MaxValue + 1 : (ulong)(num - long.MinValue);
-        private long Ul2L(ulong num) => num > long.MaxValue ? (long)(num - long.MaxValue - 1) : (long)num + long.MinValue;
+        private Fixed64 RandomFixed64(Fixed64 maxInclusive)
+        {
+            if (maxInclusive.RawValue < 0L)
+                throw new ArgumentOutOfRangeException(nameof(maxInclusive), $"Random fail, {maxInclusive} < 0");
+
+            ulong value = RandomUInt64(Const.Zero, (ulong)maxInclusive.RawValue + 1UL);
+            return new Fixed64((long)value);
+        }
+        private Vector2D RandomVector2D(in Vector2D from, in Vector2D to)
+        {
+            var percent = RandomFixed64(Fixed64.One);
+            return Maths.LerpUnClamp(in from, in to, percent);
+        }
+        private Vector3D RandomVector3D(in Vector3D from, in Vector3D to)
+        {
+            var percent = RandomFixed64(Fixed64.One);
+            return Maths.LerpUnClamp(in from, in to, percent);
+        }
+
+        private ulong L2Ul(long num) => num >= 0L ? (ulong)num + long.MaxValue + 1UL : (ulong)(num - long.MinValue);
+        private long Ul2L(ulong num) => num > long.MaxValue ? (long)(num - long.MaxValue - 1UL) : (long)num + long.MinValue;
+        #endregion
     }
 }

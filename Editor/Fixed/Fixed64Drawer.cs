@@ -16,10 +16,9 @@ namespace EeveeEditor.Fixed
 
             var rawValueProperty = property.FindPropertyRelative(nameof(Fixed64.RawValue));
             rawValueProperty.longValue = EditorGUI.LongField(rawValuePosition, property.displayName, rawValueProperty.longValue);
-            //rawValueProperty.longValue = ((Fixed64)EditorGUI.DoubleField(displayPosition, (double)(new Fixed64(rawValueProperty.longValue)))).RawValue;
 
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUI.TextField(displayPosition, (new Fixed64(rawValueProperty.longValue)).ToString());
+            EditorGUI.TextField(displayPosition, new Fixed64(rawValueProperty.longValue).ToString("0.#######"));
             EditorGUI.EndDisabledGroup();
         }
     }

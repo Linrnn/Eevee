@@ -80,7 +80,7 @@ namespace Eevee.Fixed
         {
             switch (maxDelta.RawValue)
             {
-                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"maxLength:{maxDelta} < 0");
+                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
                 case 0L: return Zero;
             }
 
