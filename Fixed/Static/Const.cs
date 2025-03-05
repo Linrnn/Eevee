@@ -27,20 +27,20 @@
         /// <summary>
         /// 最小值（Fixed64最小值）
         /// </summary>
-        public const long MinValue = MinPeak + 2L;
+        public const long MinValue = MinPeak + 2;
         /// <summary>
         /// 最大值（Fixed64最大值）
         /// </summary>
-        public const long MaxValue = MaxPeak - 2L;
+        public const long MaxValue = MaxPeak - 2;
 
         /// <summary>
         /// 无穷小
         /// </summary>
-        public const long Infinitesimal = MinPeak + 1L;
+        public const long Infinitesimal = MinPeak + 1;
         /// <summary>
         /// 无穷大
         /// </summary>
-        public const long Infinity = MaxPeak - 1L;
+        public const long Infinity = MaxPeak - 1;
 
         /// <summary>
         /// 可表示的最小值（非Fixed64最小值）
@@ -56,7 +56,7 @@
         /// <summary>
         /// 0
         /// </summary>
-        public const long Zero = 0L;
+        public const long Zero = 0;
         /// <summary>
         /// 0.5
         /// </summary>
@@ -68,16 +68,16 @@
         /// <summary>
         /// 无限接近于0（小于等于这个值，等价于0）
         /// </summary>
-        public const long Epsilon = One / 1000L;
+        public const long Epsilon = One / 1000;
 
         /// <summary>
         /// 整数部分
         /// </summary>
-        public const long IntegerPart = ~(One - 1L);
+        public const long IntegerPart = ~(One - 1);
         /// <summary>
         /// 小数部分
         /// </summary>
-        public const long FractionalPart = One - 1L;
+        public const long FractionalPart = One - 1;
         #endregion
 
         #region 圆周率

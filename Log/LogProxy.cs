@@ -5,22 +5,15 @@
     /// </summary>
     public readonly struct LogProxy
     {
-        private static ILog _impl;
-
-        internal static ILog Impl => _impl ??=
-#if UNITY_STANDALONE
-            new UnityLog();
-#else
-            new SystemLog();
-#endif
+        internal static ILog Impl { get; private set; }
 
         /// <summary>
         /// 注入Log实例
         /// </summary>
-        public static void Inject(ILog impl) => _impl = impl;
+        public static void Inject(ILog impl) => Impl = impl;
         /// <summary>
         /// 清空Log实例
         /// </summary>
-        public static void UnInject() => _impl = null;
+        public static void UnInject() => Impl = null;
     }
 }

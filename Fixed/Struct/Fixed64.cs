@@ -36,12 +36,12 @@ namespace Eevee.Fixed
         /// <summary>
         /// 绝对值
         /// </summary>
-        public readonly Fixed64 Abs() => RawValue >= 0L ? this : -this;
+        public readonly Fixed64 Abs() => RawValue >= 0 ? this : -this;
 
         /// <summary>
         /// 向上取整
         /// </summary>
-        public readonly Fixed64 Ceiling() => (RawValue & Const.FractionalPart) == 0L ? this : Floor() + One;
+        public readonly Fixed64 Ceiling() => (RawValue & Const.FractionalPart) == 0 ? this : Floor() + One;
         /// <summary>
         /// 向下取整
         /// </summary>
@@ -54,7 +54,7 @@ namespace Eevee.Fixed
         {
             < Const.Half => Floor(),
             > Const.Half => Ceiling(),
-            _ => (RawValue & Const.One) == 0L ? Floor() : Ceiling(),
+            _ => (RawValue & Const.One) == 0 ? Floor() : Ceiling(),
         };
         /// <summary>
         /// 得到小数部分
@@ -72,7 +72,7 @@ namespace Eevee.Fixed
         {
             switch (RawValue)
             {
-                case < 0L:
+                case < 0:
                 {
                     LogRelay.Fail($"[Fixed] Fixed64.Sqrt()，value：{RawValue}是负数，无法开方");
                     return NaN;
@@ -138,7 +138,7 @@ namespace Eevee.Fixed
 
             long ii = li * ri << Const.FractionalBits;
             long fi = li * rf + lf * ri;
-            ulong ff = (ulong)lf * (ulong)rf >> Const.FractionalBits; // lf*lf可能会溢出，所以转成ulong
+            ulong ff = (ulong)lf * (ulong)rf >> Const.FractionalBits; // lf*rf可能会溢出，所以转成ulong
             return new Fixed64(ii + fi + (long)ff);
         }
         public static Fixed64 operator *(Fixed64 lhs, long rhs) => new(lhs.RawValue * rhs);
@@ -160,7 +160,7 @@ namespace Eevee.Fixed
 
             long dividend = Math.Abs(lhs.RawValue); // 被除数
             long divisor = Math.Abs(rhs.RawValue); // 除数
-            long quotient = 0L; // 商
+            long quotient = 0; // 商
             for (int remainBits = Const.FractionalBits, moveBits = Const.FractionalBits >> 1;;)
             {
                 #region 检测
@@ -206,12 +206,12 @@ namespace Eevee.Fixed
                     else
                     {
                         long quot = div / divisor >> -remainBits;
-                        if (quot == 0L)
+                        if (quot == 0)
                             break;
 
                         quotient += quot;
                     }
-                    if (dividend == 0L)
+                    if (dividend == 0)
                         break;
                 }
                 else // dividend同时满足下列条件：小于divisor，小于Const.MinPeak/2，大于Const.MaxPeak/2
@@ -223,7 +223,7 @@ namespace Eevee.Fixed
                         quotient += 1L << remainBits;
                     else
                         break;
-                    if (dividend == 0L)
+                    if (dividend == 0)
                         break;
                 }
                 #endregion
@@ -248,7 +248,7 @@ namespace Eevee.Fixed
         public readonly bool Equals(Fixed64 other) => RawValue == other.RawValue;
         public readonly int CompareTo(Fixed64 other) => RawValue.CompareTo(other.RawValue);
 
-        public readonly override string ToString() => ((double)this).ToString();
+        public readonly override string ToString() => ((double)this).ToString("0.#######");
         public readonly string ToString(string format) => ((double)this).ToString(format);
         public readonly string ToString(IFormatProvider provider) => ((double)this).ToString(provider);
         public readonly string ToString(string format, IFormatProvider provider) => ((double)this).ToString(format, provider);

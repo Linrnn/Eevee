@@ -215,7 +215,7 @@ namespace Eevee.Fixed
                 case > Const.One: return Fixed64.NaN;
                 default:
                     var rad = Atan((Fixed64.One - value.Sqr()).Sqrt() / value);
-                    return value.RawValue < 0L ? -Rad90 - rad : Rad90 - rad;
+                    return value.RawValue < 0 ? -Rad90 - rad : Rad90 - rad;
             }
         }
         /// <summary>
@@ -234,7 +234,7 @@ namespace Eevee.Fixed
                 case > Const.One: return Fixed64.NaN;
                 default:
                     var deg = AtanDeg((Fixed64.One - value.Sqr()).Sqrt() / value);
-                    return value.RawValue < 0L ? -Deg90 - deg : Deg90 - deg;
+                    return value.RawValue < 0 ? -Deg90 - deg : Deg90 - deg;
             }
         }
 
@@ -254,7 +254,7 @@ namespace Eevee.Fixed
                 case > Const.One: return Fixed64.NaN;
                 default:
                     var rad = Atan((Fixed64.One - value.Sqr()).Sqrt() / value);
-                    return value.RawValue < 0L ? Rad180 + rad : rad;
+                    return value.RawValue < 0 ? Rad180 + rad : rad;
             }
         }
         /// <summary>
@@ -273,7 +273,7 @@ namespace Eevee.Fixed
                 case > Const.One: return Fixed64.NaN;
                 default:
                     var deg = AtanDeg((Fixed64.One - value.Sqr()).Sqrt() / value);
-                    return value.RawValue < 0L ? Deg180 + deg : deg;
+                    return value.RawValue < 0 ? Deg180 + deg : deg;
             }
         }
 
@@ -308,17 +308,17 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Atan2(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
-            < 0L => y.RawValue switch
+            < 0 => y.RawValue switch
             {
-                > 0L => Atan(y / x) + Rad180,
-                < 0L => Atan(y / x) - Rad180,
+                > 0 => Atan(y / x) + Rad180,
+                < 0 => Atan(y / x) - Rad180,
                 _ => Rad180,
             },
-            0L => y.RawValue switch
+            0 => y.RawValue switch
             {
-                < 0L => -Rad90,
-                > 0L => Rad90,
-                0L => Fixed64.Zero,
+                < 0 => -Rad90,
+                > 0 => Rad90,
+                0 => Fixed64.Zero,
             },
             _ => Atan(y / x),
         };
@@ -327,17 +327,17 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Atan2Deg(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
-            < 0L => y.RawValue switch
+            < 0 => y.RawValue switch
             {
-                > 0L => AtanDeg(y / x) + Deg180,
-                < 0L => AtanDeg(y / x) - Deg180,
+                > 0 => AtanDeg(y / x) + Deg180,
+                < 0 => AtanDeg(y / x) - Deg180,
                 _ => Deg180,
             },
-            0L => y.RawValue switch
+            0 => y.RawValue switch
             {
-                < 0L => -Deg90,
-                > 0L => Deg90,
-                0L => Fixed64.Zero,
+                < 0 => -Deg90,
+                > 0 => Deg90,
+                0 => Fixed64.Zero,
             },
             _ => AtanDeg(y / x),
         };
@@ -391,7 +391,7 @@ namespace Eevee.Fixed
         private static Fixed64 ClampAngle(Fixed64 rad, Fixed64 mod)
         {
             var value = rad % mod;
-            return value.RawValue < 0L ? value + mod : value;
+            return value.RawValue < 0 ? value + mod : value;
         }
         #endregion
         #endregion
@@ -402,12 +402,12 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Pow2(Fixed64 exp)
         {
-            if (exp.RawValue == 0L)
+            if (exp.RawValue == 0)
             {
                 return Fixed64.One;
             }
 
-            bool neg = exp.RawValue < 0L;
+            bool neg = exp.RawValue < 0;
             var abs = neg ? -exp : exp;
             switch (abs.RawValue)
             {
@@ -416,7 +416,7 @@ namespace Eevee.Fixed
             }
 
             var sum = Fixed64.One;
-            for (Fixed64 fractional = abs.FractionalPart(), term = Fixed64.One, divisor = Fixed64.One; term.RawValue != 0L; ++divisor)
+            for (Fixed64 fractional = abs.FractionalPart(), term = Fixed64.One, divisor = Fixed64.One; term.RawValue != 0; ++divisor)
             {
                 term *= Ln2 * fractional / divisor;
                 sum += term;
@@ -430,12 +430,12 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Pow(Fixed64 b, Fixed64 e)
         {
-            if (e.RawValue == 0L)
+            if (e.RawValue == 0)
                 return Fixed64.One;
 
             return b.RawValue switch
             {
-                Const.Zero => e.RawValue < 0L ? Fixed64.Infinity : Fixed64.Zero,
+                Const.Zero => e.RawValue < 0 ? Fixed64.Infinity : Fixed64.Zero,
                 Const.One => Fixed64.One,
                 _ => Pow2(e * Log2(b)),
             };
@@ -446,13 +446,13 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Log2(Fixed64 a)
         {
-            if (a.RawValue <= 0L)
+            if (a.RawValue <= 0)
             {
                 throw new ArgumentOutOfRangeException(nameof(a), $"x：{a}≤0，无法计算对数");
             }
 
             long xrv = a.RawValue;
-            long y = 0L;
+            long y = 0;
             while (xrv < Const.One)
             {
                 xrv <<= 1;
@@ -496,11 +496,11 @@ namespace Eevee.Fixed
         /// <summary>
         /// 是否是2的次幂
         /// </summary>
-        public static bool IsPowerOf2(long a) => a > 0L && (a & a - 1L) == 0L;
+        public static bool IsPowerOf2(long a) => a > 0 && (a & a - 1) == 0;
         /// <summary>
         /// 是否是2的次幂
         /// </summary>
-        public static bool IsPowerOf2(ulong a) => a != 0UL && (a & a - 1UL) == 0UL;
+        public static bool IsPowerOf2(ulong a) => a != 0 && (a & a - 1) == 0;
         #endregion
 
         #region Fixed64/Vector2D/Vector3D 关联操作
@@ -595,7 +595,7 @@ namespace Eevee.Fixed
         {
             var delta = to - from;
             var sqrMagnitude = delta.SqrMagnitude();
-            if (sqrMagnitude.RawValue == 0L || maxDelta.RawValue >= 0L && sqrMagnitude <= maxDelta.Sqr())
+            if (sqrMagnitude.RawValue == 0 || maxDelta.RawValue >= 0 && sqrMagnitude <= maxDelta.Sqr())
                 return to;
 
             return from + maxDelta / sqrMagnitude.Sqrt() * delta;
@@ -604,7 +604,7 @@ namespace Eevee.Fixed
         {
             var delta = to - from;
             var sqrMagnitude = delta.SqrMagnitude();
-            if (sqrMagnitude.RawValue == 0L || maxDelta.RawValue >= 0L && sqrMagnitude <= maxDelta.Sqr())
+            if (sqrMagnitude.RawValue == 0 || maxDelta.RawValue >= 0 && sqrMagnitude <= maxDelta.Sqr())
                 return to;
 
             return from + maxDelta / sqrMagnitude.Sqrt() * delta;
@@ -637,7 +637,7 @@ namespace Eevee.Fixed
         {
             var squared = a.Sqr();
             var cubed = squared * a;
-            return (v1 << 1) + (v2 - v0) * a + ((v0 << 1) - v1 * 5L + (v2 << 2) - v3) * squared + ((v1 - v2) * 3L - v0 + v3) * cubed >> 1;
+            return (v1 << 1) + (v2 - v0) * a + ((v0 << 1) - v1 * 5 + (v2 << 2) - v3) * squared + ((v1 - v2) * 3 - v0 + v3) * cubed >> 1;
         }
         public static Vector2D LerpCatmullRom(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, Fixed64 a) => new()
         {
@@ -664,7 +664,7 @@ namespace Eevee.Fixed
 
             var squared = a.Sqr();
             var cubed = squared * a;
-            return ((v0 - v1 << 1) + t0 + t1) * cubed + ((v1 - v0) * 3L - (t0 << 1) - t1) * squared + t0 * a + v0;
+            return ((v0 - v1 << 1) + t0 + t1) * cubed + ((v1 - v0) * 3 - (t0 << 1) - t1) * squared + t0 * a + v0;
         }
         public static Vector2D LerpHermite(in Vector2D p0, in Vector2D t0, in Vector2D p1, in Vector2D t1, Fixed64 a) => new()
         {

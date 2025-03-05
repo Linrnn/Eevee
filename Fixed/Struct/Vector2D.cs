@@ -80,12 +80,12 @@ namespace Eevee.Fixed
         {
             switch (maxDelta.RawValue)
             {
-                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
-                case 0L: return Zero;
+                case < 0: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
+                case 0: return Zero;
             }
 
             var sqrMagnitude = SqrMagnitude();
-            if (sqrMagnitude.RawValue == 0L)
+            if (sqrMagnitude.RawValue == 0)
                 return Zero;
 
             var sqrMaxLength = maxDelta.Sqr();
@@ -129,7 +129,7 @@ namespace Eevee.Fixed
             return new Vector2D(inDirection.X - dot * inNormal.X, inDirection.Y - dot * inNormal.Y);
         }
 
-        public readonly bool IsZero() => SqrMagnitude().RawValue == 0L;
+        public readonly bool IsZero() => X.RawValue == 0 && Y.RawValue == 0;
         public readonly bool IsNearlyZero() => SqrMagnitude().RawValue <= Const.Epsilon;
         #endregion
 

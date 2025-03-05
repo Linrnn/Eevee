@@ -20,8 +20,8 @@
         protected override int GetInt(int minInclusive, int maxExclusive)
         {
             int range = RangeInt32();
-            int diff = maxExclusive - minInclusive;
-            return minInclusive + range % diff;
+            long diff = maxExclusive - (long)minInclusive;
+            return (int)(minInclusive + range % diff);
         }
 
         private int RangeInt32() => (int)(RangeUInt32() >> 1);

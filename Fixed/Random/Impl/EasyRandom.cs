@@ -143,11 +143,14 @@ namespace Eevee.Fixed
 
         public virtual Vector3D OnUnitSphere()
         {
-            var x = RandomFixed64(Fixed64.One);
-            var y = RandomFixed64(Fixed64.One);
-            var z = RandomFixed64(Fixed64.One);
-            var value = new Vector3D(x, y, z);
-            return value.Normalized();
+            var rad360 = RandomFixed64(Maths.Rad360);
+            var rad180 = RandomFixed64(Maths.Rad180);
+            var sin = Maths.Sin(rad180);
+
+            var x = sin * Maths.Cos(rad360);
+            var y = sin * Maths.Sin(rad360);
+            var z = Maths.Cos(rad180);
+            return new Vector3D(x, y, z);
         }
         public virtual Vector3D InSphere(Fixed64 radius)
         {
@@ -207,47 +210,32 @@ namespace Eevee.Fixed
             ulong value = RandomUInt64(min, max);
             return Ul2L(value);
         }
-        private ulong RandomUInt64(ulong minInclusive, ulong maxExclusive) // 此实现随机数分布不均匀
+        private ulong RandomUInt64(ulong minInclusive, ulong maxExclusive)
         {
-            uint minHigh = (uint)(minInclusive >> 32);
-            uint maxHigh = (uint)(maxExclusive >> 32);
-
-            if (minHigh == maxHigh)
+            ulong diff = maxExclusive - minInclusive;
+            if (diff < uint.MaxValue)
             {
-                uint minLow = (uint)(minInclusive & uint.MaxValue);
-                uint maxLow = (uint)(maxExclusive & uint.MaxValue);
-                ulong low = RandomUInt32(minLow, maxLow);
-                return (ulong)minHigh << 32 | low;
-            }
-
-            uint realMaxHigh = maxHigh == uint.MaxValue ? maxHigh : maxHigh + 1;
-            ulong high = RandomUInt32(minHigh, realMaxHigh);
-            if (high == minHigh)
-            {
-                uint minLow = (uint)(minInclusive & uint.MaxValue);
-                ulong low = RandomUInt32(minLow, uint.MaxValue);
-                return high << 32 | low;
-            }
-
-            if (high == realMaxHigh)
-            {
-                uint maxLow = (uint)(maxExclusive & uint.MaxValue);
-                ulong low = RandomUInt32(uint.MinValue, maxLow);
-                return high << 32 | low;
+                uint value = RandomUInt32(0, (uint)diff);
+                return minInclusive + value;
             }
             else
             {
-                ulong low = RandomUInt32(uint.MinValue, uint.MaxValue);
-                return high << 32 | low;
+                uint high = RandomUInt32(0, uint.MaxValue);
+                uint low = RandomUInt32(0, uint.MaxValue);
+                ulong value = (ulong)high << 32 | low;
+
+                if (value > diff)
+                    return minInclusive + low;
+                return minInclusive + value;
             }
         }
 
         private Fixed64 RandomFixed64(Fixed64 maxInclusive)
         {
-            if (maxInclusive.RawValue < 0L)
+            if (maxInclusive.RawValue < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxInclusive), $"Random fail, {maxInclusive} < 0");
 
-            ulong value = RandomUInt64(Const.Zero, (ulong)maxInclusive.RawValue + 1UL);
+            ulong value = RandomUInt64(Const.Zero, (ulong)maxInclusive.RawValue + 1);
             return new Fixed64((long)value);
         }
         private Vector2D RandomVector2D(in Vector2D from, in Vector2D to)
@@ -261,8 +249,8 @@ namespace Eevee.Fixed
             return Maths.LerpUnClamp(in from, in to, percent);
         }
 
-        private ulong L2Ul(long num) => num >= 0L ? (ulong)num + long.MaxValue + 1UL : (ulong)(num - long.MinValue);
-        private long Ul2L(ulong num) => num > long.MaxValue ? (long)(num - long.MaxValue - 1UL) : (long)num + long.MinValue;
+        private ulong L2Ul(long num) => num >= 0 ? (ulong)num + long.MaxValue + 1 : (ulong)(num - long.MinValue);
+        private long Ul2L(ulong num) => num > long.MaxValue ? (long)(num - long.MaxValue - 1) : (long)num + long.MinValue;
         #endregion
     }
 }

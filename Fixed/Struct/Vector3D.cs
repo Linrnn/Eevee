@@ -94,12 +94,12 @@ namespace Eevee.Fixed
         {
             switch (maxDelta.RawValue)
             {
-                case < 0L: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
-                case 0L: return Zero;
+                case < 0: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
+                case 0: return Zero;
             }
 
             var sqrMagnitude = SqrMagnitude();
-            if (sqrMagnitude.RawValue == 0L)
+            if (sqrMagnitude.RawValue == 0)
                 return Zero;
 
             var sqrMaxLength = maxDelta.Sqr();
@@ -160,7 +160,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Vector3D ProjectOnPlane(in Vector3D direction, in Vector3D planeNormal) => direction - Project(in direction, in planeNormal);
 
-        public readonly bool IsZero() => SqrMagnitude().RawValue == 0L;
+        public readonly bool IsZero() => X.RawValue == 0 && Y.RawValue == 0 && Z.RawValue == 0;
         public readonly bool IsNearlyZero() => SqrMagnitude().RawValue <= Const.Epsilon;
         #endregion
 

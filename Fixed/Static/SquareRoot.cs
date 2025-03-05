@@ -40,7 +40,7 @@ namespace Eevee.Fixed
 
         internal static long Count(long value) // 计算
         {
-            if (value >= 0L)
+            if (value >= 0)
                 return value <= int.MaxValue ? UseTable((int)value) : UseNewton(value);
 
             LogRelay.Fail($"[Fixed] SquareRoot.Count()，value：{value}是负数，无法开方");
@@ -68,7 +68,7 @@ namespace Eevee.Fixed
         }
         private static long UseNewton(long value) // 牛顿迭代法
         {
-            long x0 = 1L;
+            long x0 = 1;
 
             while (x0 * x0 != value)
             {

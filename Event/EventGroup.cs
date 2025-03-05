@@ -90,7 +90,7 @@ namespace Eevee.Event
         {
             int hashCode1 = module.GetHashCode();
             int hashCode2 = listener.GetHashCode();
-            ulong key = ((ulong)(uint)hashCode1 << 32) | (uint)hashCode2; // (ulong)-1 = 18446744073709551615，(uint)-1 = 4294967295，结果不一致
+            ulong key = (ulong)(uint)hashCode1 << 32 | (uint)hashCode2; // (ulong)-1 = 18446744073709551615，(uint)-1 = 4294967295，结果不一致
             return key;
         }
 

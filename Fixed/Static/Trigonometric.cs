@@ -224,12 +224,12 @@
             var sum = Fixed64.One;
             var term = Fixed64.One;
             var dividend = sqrBit;
-            var divisor = sqrAdd * 3L;
+            var divisor = sqrAdd * 3;
 
             for (int i = 2; i < times; ++i)
             {
                 term *= dividend / divisor;
-                if (term.RawValue == 0L)
+                if (term.RawValue == 0)
                     break;
 
                 sum += term;
