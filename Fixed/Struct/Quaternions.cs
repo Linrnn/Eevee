@@ -85,7 +85,7 @@ namespace Eevee.Fixed
 
                 var result = new Vector3D();
                 result.X = Maths.Atan2Deg(t3, t4);
-                result.Y = Maths.AsinDeg(Maths.Clamp(t2, -Fixed64.One, Fixed64.One));
+                result.Y = Maths.AsinDeg(t2.Clamp(-Fixed64.One, Fixed64.One));
                 result.Z = Maths.Atan2Deg(t1, t0);
                 return result * -1;
             }
@@ -132,18 +132,15 @@ namespace Eevee.Fixed
 
         public static Quaternions Slerp(Quaternions from, Quaternions to, Fixed64 t)
         {
-            t = Maths.Clamp01(t);
-
+            t = t.Clamp01();
             var dot = Dot(from, to);
-
-            if (dot < 0.0f)
+            if (dot < Fixed64.Zero)
             {
-                to = Multiply(to, -1);
+                to = Multiply(to, -Fixed64.One);
                 dot = -dot;
             }
 
             var halfTheta = Maths.Acos(dot);
-
             return Multiply(Multiply(from, Maths.Sin((1 - t) * halfTheta)) + Multiply(to, Maths.Sin(t * halfTheta)), 1 / Maths.Sin(halfTheta));
         }
 
@@ -269,12 +266,7 @@ namespace Eevee.Fixed
             return q;
         }
 
-        public static Quaternions Lerp(Quaternions a, Quaternions b, Fixed64 t)
-        {
-            t = Maths.Clamp01(t);
-
-            return LerpUnclamped(a, b, t);
-        }
+        public static Quaternions Lerp(Quaternions a, Quaternions b, Fixed64 t) => LerpUnclamped(a, b, t.Clamp01());
 
         public static Quaternions LerpUnclamped(Quaternions a, Quaternions b, Fixed64 t)
         {

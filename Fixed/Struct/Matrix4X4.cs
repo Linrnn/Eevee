@@ -1154,5 +1154,51 @@ namespace Eevee.Fixed
         //    TRS(transform.localPosition, transform.localRotation, transform.localScale, out result);
         //    return result;
         //}
+
+        /// <summary>
+        /// Sets the length of the vector to zero.
+        /// </summary>
+        /// <summary>
+        /// Transforms a vector by the given matrix.
+        /// </summary>
+        /// <param name="position">The vector to transform.</param>
+        /// <param name="matrix">The transform matrix.</param>
+        /// <returns>The transformed vector.</returns>
+
+        #region public static JVector Transform(JVector position, JMatrix matrix)
+        public static Vector4D Transform(Vector4D position, Matrix4X4 matrix)
+        {
+            Transform(ref position, ref matrix, out var result);
+            return result;
+        }
+
+        public static Vector4D Transform(Vector3D position, Matrix4X4 matrix)
+        {
+            Transform(ref position, ref matrix, out var result);
+            return result;
+        }
+
+        /// <summary>
+        /// Transforms a vector by the given matrix.
+        /// </summary>
+        /// <param name="vector">The vector to transform.</param>
+        /// <param name="matrix">The transform matrix.</param>
+        /// <param name="result">The transformed vector.</param>
+        public static void Transform(ref Vector3D vector, ref Matrix4X4 matrix, out Vector4D result)
+        {
+            result.X = vector.X * matrix.M11 + vector.Y * matrix.M12 + vector.Z * matrix.M13 + matrix.M14;
+            result.Y = vector.X * matrix.M21 + vector.Y * matrix.M22 + vector.Z * matrix.M23 + matrix.M24;
+            result.Z = vector.X * matrix.M31 + vector.Y * matrix.M32 + vector.Z * matrix.M33 + matrix.M34;
+            result.W = vector.X * matrix.M41 + vector.Y * matrix.M42 + vector.Z * matrix.M43 + matrix.M44;
+        }
+
+        public static void Transform(ref Vector4D vector, ref Matrix4X4 matrix, out Vector4D result)
+        {
+            result.X = vector.X * matrix.M11 + vector.Y * matrix.M12 + vector.Z * matrix.M13 + vector.W * matrix.M14;
+            result.Y = vector.X * matrix.M21 + vector.Y * matrix.M22 + vector.Z * matrix.M23 + vector.W * matrix.M24;
+            result.Z = vector.X * matrix.M31 + vector.Y * matrix.M32 + vector.Z * matrix.M33 + vector.W * matrix.M34;
+            result.W = vector.X * matrix.M41 + vector.Y * matrix.M42 + vector.Z * matrix.M43 + vector.W * matrix.M44;
+        }
+        #endregion
     }
 }

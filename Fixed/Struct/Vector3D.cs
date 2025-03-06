@@ -133,7 +133,13 @@ namespace Eevee.Fixed
         /// <summary>
         /// 将两个向量的分量相乘
         /// </summary>
-        public static Vector3D Scale(in Vector3D lhs, in Vector3D rhs) => new(lhs.X * rhs.X, lhs.Y * rhs.Y, lhs.Z * rhs.Z);
+        public static Vector3D Scale(in Vector3D lhs, in Vector3D rhs) => new()
+        {
+            X = lhs.X * rhs.X,
+            Y = lhs.Y * rhs.Y,
+            Z = lhs.Z * rhs.Z,
+        };
+
         /// <summary>
         /// 从法线定义的向量反射一个向量
         /// </summary>
@@ -142,7 +148,6 @@ namespace Eevee.Fixed
             var dot = Dot(in inDirection, in inNormal) << 1;
             return new Vector3D(inDirection.X - dot * inNormal.X, inDirection.Y - dot * inNormal.Y, inDirection.Z - dot * inNormal.Z);
         }
-
         /// <summary>
         /// 将向量投影到另一个向量上
         /// </summary>
@@ -160,14 +165,36 @@ namespace Eevee.Fixed
         /// </summary>
         public static Vector3D ProjectOnPlane(in Vector3D direction, in Vector3D planeNormal) => direction - Project(in direction, in planeNormal);
 
-        public readonly bool IsZero() => X.RawValue == 0 && Y.RawValue == 0 && Z.RawValue == 0;
-        public readonly bool IsNearlyZero() => SqrMagnitude().RawValue <= Const.Epsilon;
+        /// <summary>
+        /// 区间值更正
+        /// </summary>
+        public readonly Vector3D Clamp(in Vector3D min, Vector3D max) => new()
+        {
+            X = X.Clamp(min.X, max.X),
+            Y = Y.Clamp(min.Y, max.Y),
+            Z = Z.Clamp(min.Z, max.Z),
+        };
+        /// <summary>
+        /// 较小值
+        /// </summary>
+        public static Vector3D Min(in Vector3D lsh, in Vector3D rsh) => new()
+        {
+            X = Fixed64.Min(lsh.X, rsh.X),
+            Y = Fixed64.Min(lsh.Y, rsh.Y),
+            Z = Fixed64.Min(lsh.Z, rsh.Z),
+        };
+        /// <summary>
+        /// 较大值
+        /// </summary>
+        public static Vector3D Max(in Vector3D lsh, in Vector3D rsh) => new()
+        {
+            X = Fixed64.Max(lsh.X, rsh.X),
+            Y = Fixed64.Max(lsh.Y, rsh.Y),
+            Z = Fixed64.Max(lsh.Z, rsh.Z),
+        };
         #endregion
 
         #region 隐式转换/显示转换/运算符重载
-        public static implicit operator Vector3D(System.Numerics.Vector3 value) => new(value.X, value.Y, value.Z);
-        public static explicit operator System.Numerics.Vector3(in Vector3D value) => new((float)value.X, (float)value.Y, (float)value.Z);
-
 #if UNITY_STANDALONE
         public static implicit operator Vector3D(UnityEngine.Vector3 value) => new(value.x, value.y, value.z);
         public static explicit operator UnityEngine.Vector3(in Vector3D value) => new((float)value.X, (float)value.Y, (float)value.Z);
@@ -175,6 +202,9 @@ namespace Eevee.Fixed
         public static implicit operator Vector3D(UnityEngine.Vector3Int value) => new(value.x, value.y, value.z);
         public static explicit operator UnityEngine.Vector3Int(in Vector3D value) => new((int)value.X, (int)value.Y, (int)value.Z);
 #endif
+
+        public static implicit operator Vector3D(System.Numerics.Vector3 value) => new(value.X, value.Y, value.Z);
+        public static explicit operator System.Numerics.Vector3(in Vector3D value) => new((float)value.X, (float)value.Y, (float)value.Z);
 
         public static implicit operator Vector3D(in Vector2D value) => new(value.X, value.Y);
         public static explicit operator Vector2D(in Vector3D value) => new(value.X, value.Y);

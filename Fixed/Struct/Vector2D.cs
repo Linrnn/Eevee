@@ -104,11 +104,6 @@ namespace Eevee.Fixed
         public void Normalize() => this = Normalized();
 
         /// <summary>
-        /// 返回垂直于该向量的向量，对于正Y轴向上的坐标系来说，结果始终沿逆时针方向旋转90度
-        /// </summary>
-        public readonly Vector2D Perpendicular() => new(-Y, X);
-
-        /// <summary>
         /// 点乘
         /// </summary>
         public static Fixed64 Dot(in Vector2D lhs, in Vector2D rhs) => lhs.X * rhs.X + lhs.Y * rhs.Y;
@@ -119,7 +114,16 @@ namespace Eevee.Fixed
         /// <summary>
         /// 将两个向量的分量相乘
         /// </summary>
-        public static Vector2D Scale(in Vector2D lhs, in Vector2D rhs) => new(lhs.X * rhs.X, lhs.Y * rhs.Y);
+        public static Vector2D Scale(in Vector2D lhs, in Vector2D rhs) => new()
+        {
+            X = lhs.X * rhs.X,
+            Y = lhs.Y * rhs.Y,
+        };
+
+        /// <summary>
+        /// 返回垂直于该向量的向量，对于正Y轴向上的坐标系来说，结果始终沿逆时针方向旋转90度
+        /// </summary>
+        public readonly Vector2D Perpendicular() => new(-Y, X);
         /// <summary>
         /// 从法线定义的向量反射一个向量
         /// </summary>
@@ -129,14 +133,33 @@ namespace Eevee.Fixed
             return new Vector2D(inDirection.X - dot * inNormal.X, inDirection.Y - dot * inNormal.Y);
         }
 
-        public readonly bool IsZero() => X.RawValue == 0 && Y.RawValue == 0;
-        public readonly bool IsNearlyZero() => SqrMagnitude().RawValue <= Const.Epsilon;
+        /// <summary>
+        /// 区间值更正
+        /// </summary>
+        public readonly Vector2D Clamp(in Vector2D min, Vector2D max) => new()
+        {
+            X = X.Clamp(min.X, max.X),
+            Y = Y.Clamp(min.Y, max.Y),
+        };
+        /// <summary>
+        /// 较小值
+        /// </summary>
+        public static Vector2D Min(in Vector2D lsh, in Vector2D rsh) => new()
+        {
+            X = Fixed64.Min(lsh.X, rsh.X),
+            Y = Fixed64.Min(lsh.Y, rsh.Y),
+        };
+        /// <summary>
+        /// 较大值
+        /// </summary>
+        public static Vector2D Max(in Vector2D lsh, in Vector2D rsh) => new()
+        {
+            X = Fixed64.Max(lsh.X, rsh.X),
+            Y = Fixed64.Max(lsh.Y, rsh.Y),
+        };
         #endregion
 
         #region 隐式转换/显示转换/运算符重载
-        public static implicit operator Vector2D(System.Numerics.Vector2 value) => new(value.X, value.Y);
-        public static explicit operator System.Numerics.Vector2(in Vector2D value) => new((float)value.X, (float)value.Y);
-
 #if UNITY_STANDALONE
         public static implicit operator Vector2D(UnityEngine.Vector2 value) => new(value.x, value.y);
         public static explicit operator UnityEngine.Vector2(in Vector2D value) => new((float)value.X, (float)value.Y);
@@ -144,6 +167,9 @@ namespace Eevee.Fixed
         public static implicit operator Vector2D(UnityEngine.Vector2Int value) => new(value.x, value.y);
         public static explicit operator UnityEngine.Vector2Int(in Vector2D value) => new((int)value.X, (int)value.Y);
 #endif
+
+        public static implicit operator Vector2D(System.Numerics.Vector2 value) => new(value.X, value.Y);
+        public static explicit operator System.Numerics.Vector2(in Vector2D value) => new((float)value.X, (float)value.Y);
 
         public static Vector2D operator +(in Vector2D value) => value;
         public static Vector2D operator -(in Vector2D value) => new(-value.X, -value.Y);

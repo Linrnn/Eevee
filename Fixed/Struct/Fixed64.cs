@@ -98,6 +98,55 @@ namespace Eevee.Fixed
         /// </summary>
         public readonly Fixed64 Sqr() => this * this;
 
+        /// <summary>
+        /// 区间[0, 1]值更正（如果出区间，值取最近）
+        /// </summary>
+        public readonly Fixed64 Clamp01() => RawValue switch
+        {
+            < Const.Zero => Zero,
+            > Const.One => One,
+            _ => this,
+        };
+        /// <summary>
+        /// 区间值更正（如果出区间，值取最近）
+        /// </summary>
+        public readonly Fixed64 Clamp(Fixed64 min, Fixed64 max)
+        {
+            if (RawValue < min.RawValue)
+                return min;
+
+            if (RawValue > max.RawValue)
+                return max;
+
+            return this;
+        }
+
+        /// <summary>
+        /// 较小值
+        /// </summary>
+        public static Fixed64 Min(Fixed64 lsh, Fixed64 rsh) => lsh < rsh ? lsh : rsh;
+        /// <summary>
+        /// 较小值
+        /// </summary>
+        public static Fixed64 Min(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
+        {
+            var value = lsh < msh ? lsh : msh;
+            return value < rsh ? value : rsh;
+        }
+
+        /// <summary>
+        /// 较大值
+        /// </summary>
+        public static Fixed64 Max(Fixed64 lsh, Fixed64 rsh) => lsh > rsh ? lsh : rsh;
+        /// <summary>
+        /// 较大值
+        /// </summary>
+        public static Fixed64 Max(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
+        {
+            var value = lsh > msh ? lsh : msh;
+            return value > rsh ? value : rsh;
+        }
+
         public readonly bool IsInfinity() => RawValue is Const.Infinitesimal or Const.Infinity;
         public readonly bool IsNaN() => RawValue == Const.MinPeak;
         #endregion

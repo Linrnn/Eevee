@@ -32,31 +32,6 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Deg360 = new(Const.Deg360);
         #endregion
 
-        #region 基础方法
-        /// <summary>
-        /// 区间值更正（如果出区间，值取最近）
-        /// </summary>
-        public static Fixed64 Clamp(Fixed64 value, Fixed64 min, Fixed64 max)
-        {
-            if (value < min)
-                return min;
-
-            if (value > max)
-                return max;
-
-            return value;
-        }
-        /// <summary>
-        /// 区间[0, 1]值更正（如果出区间，值取最近）
-        /// </summary>
-        public static Fixed64 Clamp01(Fixed64 value) => value.RawValue switch
-        {
-            < Const.Zero => Fixed64.Zero,
-            > Const.One => Fixed64.One,
-            _ => value,
-        };
-        #endregion
-
         #region 三角函数/反三角函数
         #region 三角函数
         /// <summary>
@@ -504,50 +479,6 @@ namespace Eevee.Fixed
         #endregion
 
         #region Fixed64/Vector2D/Vector3D 关联操作
-        #region 较小值/较大值
-        /// <summary>
-        /// 较小值
-        /// </summary>
-        public static Fixed64 Min(Fixed64 lsh, Fixed64 rsh) => lsh < rsh ? lsh : rsh;
-        public static Fixed64 Min(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
-        {
-            var value = lsh < msh ? lsh : msh;
-            return value < rsh ? value : rsh;
-        }
-        public static Vector2D Min(in Vector2D lsh, in Vector2D rsh) => new()
-        {
-            X = Min(lsh.X, rsh.X),
-            Y = Min(lsh.Y, rsh.Y),
-        };
-        public static Vector3D Min(in Vector3D lsh, in Vector3D rsh) => new()
-        {
-            X = Min(lsh.X, rsh.X),
-            Y = Min(lsh.Y, rsh.Y),
-            Z = Min(lsh.Z, rsh.Z),
-        };
-
-        /// <summary>
-        /// 较大值
-        /// </summary>
-        public static Fixed64 Max(Fixed64 lsh, Fixed64 rsh) => lsh > rsh ? lsh : rsh;
-        public static Fixed64 Max(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
-        {
-            var value = lsh > msh ? lsh : msh;
-            return value > rsh ? value : rsh;
-        }
-        public static Vector2D Max(in Vector2D lsh, in Vector2D rsh) => new()
-        {
-            X = Max(lsh.X, rsh.X),
-            Y = Max(lsh.Y, rsh.Y),
-        };
-        public static Vector3D Max(in Vector3D lsh, in Vector3D rsh) => new()
-        {
-            X = Max(lsh.X, rsh.X),
-            Y = Max(lsh.Y, rsh.Y),
-            Z = Max(lsh.Z, rsh.Z),
-        };
-        #endregion
-
         #region 基础插值
         /// <summary>
         /// 计算线性参数amount在[lsh，rsh]范围内产生插值
@@ -556,7 +487,7 @@ namespace Eevee.Fixed
         /// <param name="to">结束值</param>
         /// <param name="value">插值</param>
         /// <returns>amount介于开始和结束之间的值的百分比</returns>
-        public static Fixed64 InverseLerp(Fixed64 from, Fixed64 to, Fixed64 value) => from == to ? Fixed64.Zero : Clamp01((value - from) / (to - from));
+        public static Fixed64 InverseLerp(Fixed64 from, Fixed64 to, Fixed64 value) => from == to ? Fixed64.Zero : ((value - from) / (to - from)).Clamp01();
 
         /// <summary>
         /// 线性插值
@@ -565,9 +496,10 @@ namespace Eevee.Fixed
         /// <param name="from">开始值</param>
         /// <param name="to">结束值</param>
         /// <param name="percent">开始值与结束值之间的参数，0到1之间</param>
-        public static Fixed64 Lerp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * Clamp01(percent);
-        public static Vector2D Lerp(in Vector2D from, in Vector2D to, Fixed64 percent) => from + (to - from) * Clamp01(percent);
-        public static Vector3D Lerp(Vector3D from, Vector3D to, Fixed64 percent) => from + (to - from) * Clamp01(percent);
+        public static Fixed64 Lerp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
+        public static Vector2D Lerp(in Vector2D from, in Vector2D to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
+        public static Vector3D Lerp(Vector3D from, Vector3D to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
+        public static Vector4D Lerp(Vector4D from, Vector4D to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
 
         /// <summary>
         /// 线性插值
@@ -579,6 +511,7 @@ namespace Eevee.Fixed
         public static Fixed64 LerpUnClamp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * percent;
         public static Vector2D LerpUnClamp(in Vector2D from, in Vector2D to, Fixed64 percent) => from + (to - from) * percent;
         public static Vector3D LerpUnClamp(in Vector3D from, in Vector3D to, Fixed64 percent) => from + (to - from) * percent;
+        public static Vector4D LerpUnClamp(in Vector4D from, in Vector4D to, Fixed64 percent) => from + (to - from) * percent;
 
         /// <summary>
         /// 移动到目标，类似LerpUnClamp
@@ -601,6 +534,15 @@ namespace Eevee.Fixed
             return from + maxDelta / sqrMagnitude.Sqrt() * delta;
         }
         public static Vector3D MoveTowards(in Vector3D from, in Vector3D to, Fixed64 maxDelta)
+        {
+            var delta = to - from;
+            var sqrMagnitude = delta.SqrMagnitude();
+            if (sqrMagnitude.RawValue == 0 || maxDelta.RawValue >= 0 && sqrMagnitude <= maxDelta.Sqr())
+                return to;
+
+            return from + maxDelta / sqrMagnitude.Sqrt() * delta;
+        }
+        public static Vector4D MoveTowards(in Vector4D from, in Vector4D to, Fixed64 maxDelta)
         {
             var delta = to - from;
             var sqrMagnitude = delta.SqrMagnitude();
@@ -650,6 +592,13 @@ namespace Eevee.Fixed
             Y = LerpCatmullRom(p0.Y, p1.Y, p2.Y, p3.Y, a),
             Z = LerpCatmullRom(p0.Z, p1.Z, p2.Z, p3.Z, a),
         };
+        public static Vector4D LerpCatmullRom(in Vector4D p0, in Vector4D p1, in Vector4D p2, in Vector4D p3, Fixed64 a) => new()
+        {
+            X = LerpCatmullRom(p0.X, p1.X, p2.X, p3.X, a),
+            Y = LerpCatmullRom(p0.Y, p1.Y, p2.Y, p3.Y, a),
+            Z = LerpCatmullRom(p0.Z, p1.Z, p2.Z, p3.Z, a),
+            W = LerpCatmullRom(p0.W, p1.W, p2.W, p3.W, a),
+        };
 
         /// <summary>
         /// Hermite插值
@@ -677,6 +626,13 @@ namespace Eevee.Fixed
             Y = LerpHermite(p0.Y, t0.Y, p1.Y, t1.Y, a),
             Z = LerpHermite(p0.Z, t0.Z, p1.Z, t1.Z, a),
         };
+        public static Vector4D LerpHermite(in Vector4D p0, in Vector4D t0, in Vector4D p1, in Vector4D t1, Fixed64 a) => new()
+        {
+            X = LerpHermite(p0.X, t0.X, p1.X, t1.X, a),
+            Y = LerpHermite(p0.Y, t0.Y, p1.Y, t1.Y, a),
+            Z = LerpHermite(p0.Z, t0.Z, p1.Z, t1.Z, a),
+            W = LerpHermite(p0.W, t0.W, p1.W, t1.W, a),
+        };
 
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
@@ -684,7 +640,7 @@ namespace Eevee.Fixed
         /// <param name="v0">开始值</param>
         /// <param name="v1">结束值</param>
         /// <param name="a">加权因子</param>
-        public static Fixed64 LerpSmoothStep(Fixed64 v0, Fixed64 v1, Fixed64 a) => LerpHermite(v0, Fixed64.Zero, v1, Fixed64.Zero, Clamp01(a));
+        public static Fixed64 LerpSmoothStep(Fixed64 v0, Fixed64 v1, Fixed64 a) => LerpHermite(v0, Fixed64.Zero, v1, Fixed64.Zero, a.Clamp01());
         public static Vector2D LerpSmoothStep(in Vector2D p0, in Vector2D p1, Fixed64 a) => new()
         {
             X = LerpSmoothStep(p0.X, p1.X, a),
@@ -695,6 +651,13 @@ namespace Eevee.Fixed
             X = LerpSmoothStep(p0.X, p1.X, a),
             Y = LerpSmoothStep(p0.Y, p1.Y, a),
             Z = LerpSmoothStep(p0.Z, p1.Z, a),
+        };
+        public static Vector4D LerpSmoothStep(in Vector4D p0, in Vector4D p1, Fixed64 a) => new()
+        {
+            X = LerpSmoothStep(p0.X, p1.X, a),
+            Y = LerpSmoothStep(p0.Y, p1.Y, a),
+            Z = LerpSmoothStep(p0.Z, p1.Z, a),
+            W = LerpSmoothStep(p0.W, p1.W, a),
         };
         #endregion
 
@@ -741,7 +704,7 @@ namespace Eevee.Fixed
         #endregion
 
         /// <summary>
-        /// 质心
+        /// 重心/质心
         /// </summary>
         public static Fixed64 Barycentric(Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 a1, Fixed64 a2) => v1 + (v2 - v1) * a1 + (v3 - v1) * a2;
         public static Vector2D Barycentric(in Vector2D p1, in Vector2D p2, in Vector2D p3, Fixed64 a1, Fixed64 a2) => new()
