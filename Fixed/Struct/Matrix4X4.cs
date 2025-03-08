@@ -518,33 +518,33 @@ namespace Eevee.Fixed
             result.M44 = matrix1.M44 * num;
         }
 
-        public static Matrix4X4 Rotate(Quaternions quaternion)
+        public static Matrix4X4 Rotate(Quaternions quaternions)
         {
             Matrix4X4 result;
-            Matrix4X4.Rotate(ref quaternion, out result);
+            Matrix4X4.Rotate(ref quaternions, out result);
             return result;
         }
 
         /// <summary>
         /// Creates a JMatrix representing an orientation from a quaternion.
         /// </summary>
-        /// <param name="quaternion">The quaternion the matrix should be created from.</param>
+        /// <param name="quaternions">The quaternion the matrix should be created from.</param>
         /// <param name="result">JMatrix representing an orientation.</param>
-        public static void Rotate(ref Quaternions quaternion, out Matrix4X4 result)
+        public static void Rotate(ref Quaternions quaternions, out Matrix4X4 result)
         {
             // Precalculate coordinate products
-            Fixed64 x = quaternion.X * 2;
-            Fixed64 y = quaternion.Y * 2;
-            Fixed64 z = quaternion.Z * 2;
-            Fixed64 xx = quaternion.X * x;
-            Fixed64 yy = quaternion.Y * y;
-            Fixed64 zz = quaternion.Z * z;
-            Fixed64 xy = quaternion.X * y;
-            Fixed64 xz = quaternion.X * z;
-            Fixed64 yz = quaternion.Y * z;
-            Fixed64 wx = quaternion.W * x;
-            Fixed64 wy = quaternion.W * y;
-            Fixed64 wz = quaternion.W * z;
+            Fixed64 x = quaternions.X * 2;
+            Fixed64 y = quaternions.Y * 2;
+            Fixed64 z = quaternions.Z * 2;
+            Fixed64 xx = quaternions.X * x;
+            Fixed64 yy = quaternions.Y * y;
+            Fixed64 zz = quaternions.Z * z;
+            Fixed64 xy = quaternions.X * y;
+            Fixed64 xz = quaternions.X * z;
+            Fixed64 yz = quaternions.Y * z;
+            Fixed64 wx = quaternions.W * x;
+            Fixed64 wy = quaternions.W * y;
+            Fixed64 wz = quaternions.W * z;
 
             // Calculate 3x3 matrix from orthonormal basis
             result.M11 = Fixed64.One - (yy + zz);

@@ -3,7 +3,7 @@
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 常见的数学操作
+    /// 数学库
     /// </summary>
     public readonly struct Maths
     {
@@ -175,7 +175,8 @@ namespace Eevee.Fixed
 
         #region 反三角函数
         /// <summary>
-        /// 计算反正弦，返回弧度，值域：[-π/2, π/2]
+        /// 计算反正弦，返回弧度<br/>
+        /// 值域：[-π/2, π/2]
         /// </summary>
         public static Fixed64 Asin(Fixed64 value)
         {
@@ -194,7 +195,8 @@ namespace Eevee.Fixed
             }
         }
         /// <summary>
-        /// 计算反正弦，返回角度，值域：[-90°, 90°]
+        /// 计算反正弦，返回角度<br/>
+        /// 值域：[-90°, 90°]
         /// </summary>
         public static Fixed64 AsinDeg(Fixed64 value)
         {
@@ -214,7 +216,8 @@ namespace Eevee.Fixed
         }
 
         /// <summary>
-        /// 计算反余弦，返回弧度，值域：[0, π]
+        /// 计算反余弦，返回弧度<br/>
+        /// 值域：[0, π]
         /// </summary>
         public static Fixed64 Acos(Fixed64 value)
         {
@@ -233,7 +236,8 @@ namespace Eevee.Fixed
             }
         }
         /// <summary>
-        /// 计算反余弦，返回角度，值域：[0°, 180°]
+        /// 计算反余弦，返回角度<br/>
+        /// 值域：[0°, 180°]
         /// </summary>
         public static Fixed64 AcosDeg(Fixed64 value)
         {
@@ -253,7 +257,8 @@ namespace Eevee.Fixed
         }
 
         /// <summary>
-        /// 计算反正切，返回弧度，值域：(-π/2, π/2)
+        /// 计算反正切，返回弧度<br/>
+        /// 值域：(-π/2, π/2)
         /// </summary>
         public static Fixed64 Atan(Fixed64 value) => value.RawValue switch
         {
@@ -266,7 +271,8 @@ namespace Eevee.Fixed
             > Const.One => Rad90 - Trigonometric.Arctangent0To45(value.Reciprocal()),
         };
         /// <summary>
-        /// 计算反正切，返回角度，值域：(-90°, 90°)
+        /// 计算反正切，返回角度<br/>
+        /// 值域：(-90°, 90°)
         /// </summary>
         public static Fixed64 AtanDeg(Fixed64 value) => value.RawValue switch
         {
@@ -279,7 +285,8 @@ namespace Eevee.Fixed
             > Const.One => Deg90 - Trigonometric.Arctangent0To45(value.Reciprocal()) * Rad2Deg,
         };
         /// <summary>
-        /// 计算反正切，返回弧度，值域：(-π/2, π/2)
+        /// 计算反正切，返回弧度<br/>
+        /// 值域：(-π/2, π/2)
         /// </summary>
         public static Fixed64 Atan2(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
@@ -298,7 +305,8 @@ namespace Eevee.Fixed
             _ => Atan(y / x),
         };
         /// <summary>
-        /// 计算反正切，返回角度，值域：(-90°, 90°)
+        /// 计算反正切，返回角度<br/>
+        /// 值域：(-90°, 90°)
         /// </summary>
         public static Fixed64 Atan2Deg(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
@@ -318,7 +326,8 @@ namespace Eevee.Fixed
         };
 
         /// <summary>
-        /// 计算反余切，返回弧度，值域：(0, π)
+        /// 计算反余切，返回弧度<br/>
+        /// 值域：(0, π)
         /// </summary>
         public static Fixed64 Acot(Fixed64 value) => value.RawValue switch
         {
@@ -331,7 +340,8 @@ namespace Eevee.Fixed
             > Const.One => Trigonometric.Arctangent0To45(value.Reciprocal()),
         };
         /// <summary>
-        /// 计算反余切，返回角度，值域：(0°, 180°)
+        /// 计算反余切，返回角度<br/>
+        /// 值域：(0°, 180°)
         /// </summary>
         public static Fixed64 AcotDeg(Fixed64 value) => Deg90 - AtanDeg(value);
         #endregion
@@ -478,52 +488,81 @@ namespace Eevee.Fixed
         public static bool IsPowerOf2(ulong a) => a != 0 && (a & a - 1) == 0;
         #endregion
 
-        #region Fixed64/Vector2D/Vector3D 关联操作
+        #region Fixed64/Vector2D/Vector3D/Vector4D/Quaternions 关联操作
         #region 基础插值
         /// <summary>
         /// 计算线性参数amount在[lsh，rsh]范围内产生插值
         /// </summary>
-        /// <param name="from">开始值</param>
-        /// <param name="to">结束值</param>
-        /// <param name="value">插值</param>
-        /// <returns>amount介于开始和结束之间的值的百分比</returns>
         public static Fixed64 InverseLerp(Fixed64 from, Fixed64 to, Fixed64 value) => from == to ? Fixed64.Zero : ((value - from) / (to - from)).Clamp01();
 
         /// <summary>
         /// 线性插值
-        /// [lsh, rsh]通过参数amount进行插值
         /// </summary>
-        /// <param name="from">开始值</param>
-        /// <param name="to">结束值</param>
-        /// <param name="percent">开始值与结束值之间的参数，0到1之间</param>
-        public static Fixed64 Lerp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
-        public static Vector2D Lerp(in Vector2D from, in Vector2D to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
-        public static Vector3D Lerp(Vector3D from, Vector3D to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
-        public static Vector4D Lerp(Vector4D from, Vector4D to, Fixed64 percent) => from + (to - from) * percent.Clamp01();
+        public static Fixed64 Lerp(Fixed64 from, Fixed64 to, Fixed64 percent) => LerpUnClamp(from, to, percent.Clamp01());
+        /// <summary>
+        /// 线性插值
+        /// </summary>
+        public static Vector2D Lerp(in Vector2D from, in Vector2D to, Fixed64 percent) => LerpUnClamp(in from, in to, percent.Clamp01());
+        /// <summary>
+        /// 线性插值
+        /// </summary>
+        public static Vector3D Lerp(in Vector3D from, in Vector3D to, Fixed64 percent) => LerpUnClamp(in from, in to, percent.Clamp01());
+        /// <summary>
+        /// 线性插值
+        /// </summary>
+        public static Vector4D Lerp(in Vector4D from, in Vector4D to, Fixed64 percent) => LerpUnClamp(in from, in to, percent.Clamp01());
+        /// <summary>
+        /// 线性插值
+        /// </summary>
+        public static Quaternions Lerp(in Quaternions from, in Quaternions to, Fixed64 percent) => LerpUnClamp(in from, in to, percent.Clamp01());
+        /// <summary>
+        /// 球面线性插值
+        /// </summary>
+        public static Quaternions SLerp(in Quaternions from, in Quaternions to, Fixed64 percent) => SLerpUnClamp(in from, in to, percent.Clamp01());
 
         /// <summary>
         /// 线性插值
-        /// [lsh, rsh]通过参数amount进行插值
         /// </summary>
-        /// <param name="from">开始值</param>
-        /// <param name="to">结束值</param>
-        /// <param name="percent">开始值与结束值之间的参数</param>
         public static Fixed64 LerpUnClamp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * percent;
+        /// <summary>
+        /// 线性插值
+        /// </summary>
         public static Vector2D LerpUnClamp(in Vector2D from, in Vector2D to, Fixed64 percent) => from + (to - from) * percent;
+        /// <summary>
+        /// 线性插值
+        /// </summary>
         public static Vector3D LerpUnClamp(in Vector3D from, in Vector3D to, Fixed64 percent) => from + (to - from) * percent;
+        /// <summary>
+        /// 线性插值
+        /// </summary>
         public static Vector4D LerpUnClamp(in Vector4D from, in Vector4D to, Fixed64 percent) => from + (to - from) * percent;
+        /// <summary>
+        /// 线性插值
+        /// </summary>
+        public static Quaternions LerpUnClamp(in Quaternions from, in Quaternions to, Fixed64 percent) => (from + (to - from) * percent).Normalized();
+        /// <summary>
+        /// 球面线性插值
+        /// </summary>
+        public static Quaternions SLerpUnClamp(in Quaternions from, in Quaternions to, Fixed64 percent)
+        {
+            var dot = Quaternions.Dot(in from, in to);
+            var abs = dot < Fixed64.Zero ? -to : to;
+            var rad = Acos(dot.Abs());
+            var quaternion = Sin((Fixed64.One - percent) * rad) * from + Sin(percent * rad) * abs;
+            return quaternion / Sin(rad);
+        }
 
         /// <summary>
         /// 移动到目标，类似LerpUnClamp
         /// </summary>
-        /// <param name="from">当前值</param>
-        /// <param name="to">目标值</param>
-        /// <param name="maxDelta">最大改变值（负值将远离目标）</param>
         public static Fixed64 MoveTowards(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
         {
             var delta = to - from;
             return delta.Abs() <= maxDelta ? to : from + delta.Sign() * maxDelta;
         }
+        /// <summary>
+        /// 移动到目标，类似LerpUnClamp
+        /// </summary>
         public static Vector2D MoveTowards(in Vector2D from, in Vector2D to, Fixed64 maxDelta)
         {
             var delta = to - from;
@@ -533,6 +572,9 @@ namespace Eevee.Fixed
 
             return from + maxDelta / sqrMagnitude.Sqrt() * delta;
         }
+        /// <summary>
+        /// 移动到目标，类似LerpUnClamp
+        /// </summary>
         public static Vector3D MoveTowards(in Vector3D from, in Vector3D to, Fixed64 maxDelta)
         {
             var delta = to - from;
@@ -542,6 +584,9 @@ namespace Eevee.Fixed
 
             return from + maxDelta / sqrMagnitude.Sqrt() * delta;
         }
+        /// <summary>
+        /// 移动到目标，类似LerpUnClamp
+        /// </summary>
         public static Vector4D MoveTowards(in Vector4D from, in Vector4D to, Fixed64 maxDelta)
         {
             var delta = to - from;
@@ -568,6 +613,24 @@ namespace Eevee.Fixed
             var newTarget = from + DeltaAngleDeg(from, to);
             return MoveTowards(from, newTarget, maxDelta);
         }
+        /// <summary>
+        /// 输入角度角，将from向to旋转
+        /// </summary>
+        public static Quaternions RotateTowards(in Quaternions from, in Quaternions to, Fixed64 maxDelta)
+        {
+            var dot = Quaternions.Dot(in from, in to);
+            var abs = dot < Fixed64.Zero ? -to : to;
+            var rad = Acos(dot.Abs());
+            var theta = rad << 1;
+
+            maxDelta *= Deg2Rad;
+            if (maxDelta >= theta)
+                return abs;
+
+            maxDelta /= theta;
+            var quaternion = Sin((Fixed64.One - maxDelta) * rad) * from + Sin(maxDelta * rad) * abs;
+            return quaternion * Sin(rad).Reciprocal();
+        }
         #endregion
 
         #region 复杂插值
@@ -581,17 +644,26 @@ namespace Eevee.Fixed
             var cubed = squared * a;
             return (v1 << 1) + (v2 - v0) * a + ((v0 << 1) - v1 * 5 + (v2 << 2) - v3) * squared + ((v1 - v2) * 3 - v0 + v3) * cubed >> 1;
         }
+        /// <summary>
+        /// Catmull-Rom插值
+        /// </summary>
         public static Vector2D LerpCatmullRom(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, Fixed64 a) => new()
         {
             X = LerpCatmullRom(p0.X, p1.X, p2.X, p3.X, a),
             Y = LerpCatmullRom(p0.Y, p1.Y, p2.Y, p3.Y, a),
         };
+        /// <summary>
+        /// Catmull-Rom插值
+        /// </summary>
         public static Vector3D LerpCatmullRom(in Vector3D p0, in Vector3D p1, in Vector3D p2, in Vector3D p3, Fixed64 a) => new()
         {
             X = LerpCatmullRom(p0.X, p1.X, p2.X, p3.X, a),
             Y = LerpCatmullRom(p0.Y, p1.Y, p2.Y, p3.Y, a),
             Z = LerpCatmullRom(p0.Z, p1.Z, p2.Z, p3.Z, a),
         };
+        /// <summary>
+        /// Catmull-Rom插值
+        /// </summary>
         public static Vector4D LerpCatmullRom(in Vector4D p0, in Vector4D p1, in Vector4D p2, in Vector4D p3, Fixed64 a) => new()
         {
             X = LerpCatmullRom(p0.X, p1.X, p2.X, p3.X, a),
@@ -615,17 +687,26 @@ namespace Eevee.Fixed
             var cubed = squared * a;
             return ((v0 - v1 << 1) + t0 + t1) * cubed + ((v1 - v0) * 3 - (t0 << 1) - t1) * squared + t0 * a + v0;
         }
+        /// <summary>
+        /// Hermite插值
+        /// </summary>
         public static Vector2D LerpHermite(in Vector2D p0, in Vector2D t0, in Vector2D p1, in Vector2D t1, Fixed64 a) => new()
         {
             X = LerpHermite(p0.X, t0.X, p1.X, t1.X, a),
             Y = LerpHermite(p0.Y, t0.Y, p1.Y, t1.Y, a),
         };
+        /// <summary>
+        /// Hermite插值
+        /// </summary>
         public static Vector3D LerpHermite(in Vector3D p0, in Vector3D t0, in Vector3D p1, in Vector3D t1, Fixed64 a) => new()
         {
             X = LerpHermite(p0.X, t0.X, p1.X, t1.X, a),
             Y = LerpHermite(p0.Y, t0.Y, p1.Y, t1.Y, a),
             Z = LerpHermite(p0.Z, t0.Z, p1.Z, t1.Z, a),
         };
+        /// <summary>
+        /// Hermite插值
+        /// </summary>
         public static Vector4D LerpHermite(in Vector4D p0, in Vector4D t0, in Vector4D p1, in Vector4D t1, Fixed64 a) => new()
         {
             X = LerpHermite(p0.X, t0.X, p1.X, t1.X, a),
@@ -637,21 +718,27 @@ namespace Eevee.Fixed
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
         /// </summary>
-        /// <param name="v0">开始值</param>
-        /// <param name="v1">结束值</param>
-        /// <param name="a">加权因子</param>
         public static Fixed64 LerpSmoothStep(Fixed64 v0, Fixed64 v1, Fixed64 a) => LerpHermite(v0, Fixed64.Zero, v1, Fixed64.Zero, a.Clamp01());
+        /// <summary>
+        /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
+        /// </summary>
         public static Vector2D LerpSmoothStep(in Vector2D p0, in Vector2D p1, Fixed64 a) => new()
         {
             X = LerpSmoothStep(p0.X, p1.X, a),
             Y = LerpSmoothStep(p0.Y, p1.Y, a),
         };
+        /// <summary>
+        /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
+        /// </summary>
         public static Vector3D LerpSmoothStep(in Vector3D p0, in Vector3D p1, Fixed64 a) => new()
         {
             X = LerpSmoothStep(p0.X, p1.X, a),
             Y = LerpSmoothStep(p0.Y, p1.Y, a),
             Z = LerpSmoothStep(p0.Z, p1.Z, a),
         };
+        /// <summary>
+        /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
+        /// </summary>
         public static Vector4D LerpSmoothStep(in Vector4D p0, in Vector4D p1, Fixed64 a) => new()
         {
             X = LerpSmoothStep(p0.X, p1.X, a),
@@ -663,43 +750,107 @@ namespace Eevee.Fixed
 
         #region 夹角计算
         /// <summary>
-        /// 返回两向量之间的夹角，返回弧度，值域：[0, π]
+        /// 返回两个向量之间的夹角，返回无符号弧度<br/>
+        /// 值域：[0, π]
         /// </summary>
         public static Fixed64 AngleRad(in Vector2D lhs, in Vector2D rhs) => Acos(Vector2D.Dot(lhs.Normalized(), rhs.Normalized()));
-        public static Fixed64 AngleRad(in Vector3D lhs, in Vector3D rhs) => Acos(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
-
         /// <summary>
-        /// 返回两向量之间的夹角，返回无符号角度，值域：[0°, 180°]
+        /// 返回两个向量之间的夹角，返回无符号弧度<br/>
+        /// 值域：[0, π]
         /// </summary>
-        public static Fixed64 AngleDeg(in Vector2D lhs, in Vector2D rhs) => AcosDeg(Vector2D.Dot(lhs.Normalized(), rhs.Normalized()));
-        public static Fixed64 AngleDeg(in Vector3D lhs, in Vector3D rhs) => AcosDeg(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
+        public static Fixed64 AngleRad(in Vector3D lhs, in Vector3D rhs) => Acos(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
+        /// <summary>
+        /// 返回两个旋转之间的夹角，返回无符号弧度<br/>
+        /// 值域：[0, π]
+        /// </summary>
+        public static Fixed64 AngleRad(in Quaternions lhs, in Quaternions rhs)
+        {
+            var rad = Rad0To2Pi(in lhs, in rhs);
+            return rad > Rad180 ? Rad360 - rad : rad;
+        }
 
         /// <summary>
-        /// 返回两向量之间的夹角，返回弧度，值域：[-π, π]
+        /// 返回两个向量之间的夹角，返回无符号角度<br/>
+        /// 值域：[0°, 180°]
+        /// </summary>
+        public static Fixed64 Angle(in Vector2D lhs, in Vector2D rhs) => AcosDeg(Vector2D.Dot(lhs.Normalized(), rhs.Normalized()));
+        /// <summary>
+        /// 返回两个向量之间的夹角，返回无符号角度<br/>
+        /// 值域：[0°, 180°]
+        /// </summary>
+        public static Fixed64 Angle(in Vector3D lhs, in Vector3D rhs) => AcosDeg(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
+        /// <summary>
+        /// 返回两个旋转之间的夹角，返回无符号角度<br/>
+        /// 值域：[0°, 180°]
+        /// </summary>
+        public static Fixed64 Angle(in Quaternions lhs, in Quaternions rhs)
+        {
+            var deg = Deg0To360(in lhs, in rhs);
+            return deg > Deg180 ? Deg360 - deg : deg;
+        }
+
+        /// <summary>
+        /// 返回两个向量之间的夹角，返回弧度<br/>
+        /// 值域：[-π, π]
         /// </summary>
         public static Fixed64 SignedAngleRad(in Vector2D from, in Vector2D to) => AngleRad(from, to) * Vector2D.Cross(in from, in to).Sign();
+        /// <summary>
+        /// 返回两个向量之间的夹角，返回弧度<br/>
+        /// 值域：[-π, π]
+        /// </summary>
         public static Fixed64 SignedAngleRad(in Vector3D from, in Vector3D to, in Vector3D axis)
         {
             var fromNorm = from.Normalized();
             var toNorm = to.Normalized();
-            var acos = Acos(Vector3D.Dot(in fromNorm, in toNorm));
+            var rad = Acos(Vector3D.Dot(in fromNorm, in toNorm));
             var cross = Vector3D.Cross(in fromNorm, in toNorm);
             var dot = Vector3D.Dot(in axis, in cross);
-            return acos * dot.Sign();
+            return rad * dot.Sign();
+        }
+        /// <summary>
+        /// 返回两个旋转之间的角度，返回弧度<br/>
+        /// 值域：[-π, π]
+        /// </summary>
+        public static Fixed64 SignedAngleRad(in Quaternions lhs, in Quaternions rhs)
+        {
+            var rad = Rad0To2Pi(in lhs, in rhs);
+            return rad > Rad180 ? rad - Rad360 : rad;
         }
 
         /// <summary>
-        /// 返回两向量之间的夹角，返回弧度，值域：[-180°, 180°]
+        /// 返回两个向量之间的夹角，返回角度<br/>
+        /// 值域：[-180°, 180°]
         /// </summary>
-        public static Fixed64 SignedAngleDeg(in Vector2D from, in Vector2D to) => AngleDeg(from, to) * Vector2D.Cross(in from, in to).Sign();
-        public static Fixed64 SignedAngleDeg(in Vector3D from, in Vector3D to, in Vector3D axis)
+        public static Fixed64 SignedAngle(in Vector2D from, in Vector2D to) => Angle(from, to) * Vector2D.Cross(in from, in to).Sign();
+        /// <summary>
+        /// 返回两个向量之间的夹角，返回角度<br/>
+        /// 值域：[-180°, 180°]
+        /// </summary>
+        public static Fixed64 SignedAngle(in Vector3D from, in Vector3D to, in Vector3D axis)
         {
             var fromNorm = from.Normalized();
             var toNorm = to.Normalized();
-            var acos = AcosDeg(Vector3D.Dot(in fromNorm, in toNorm));
+            var deg = AcosDeg(Vector3D.Dot(in fromNorm, in toNorm));
             var cross = Vector3D.Cross(in fromNorm, in toNorm);
             var dot = Vector3D.Dot(in axis, in cross);
-            return acos * dot.Sign();
+            return deg * dot.Sign();
+        }
+        /// <summary>
+        /// 返回两个旋转之间的夹角，返回角度<br/>
+        /// 值域：[-180°, 180°]
+        /// </summary>
+        public static Fixed64 SignedAngle(in Quaternions lhs, in Quaternions rhs)
+        {
+            var deg = Deg0To360(in lhs, in rhs);
+            return deg > Deg180 ? deg - Deg360 : deg;
+        }
+
+        private static Fixed64 Rad0To2Pi(in Quaternions lhs, in Quaternions rhs) => Acos(Cos(in lhs, in rhs)) >> 1;
+        private static Fixed64 Deg0To360(in Quaternions lhs, in Quaternions rhs) => AcosDeg(Cos(in lhs, in rhs)) >> 1;
+        private static Fixed64 Cos(in Quaternions lhs, in Quaternions rhs)
+        {
+            var inverse = lhs.Inverse();
+            return inverse.W * rhs.W - inverse.X * rhs.X - inverse.Y * rhs.Y - inverse.Z * rhs.Z;
         }
         #endregion
 
@@ -707,11 +858,108 @@ namespace Eevee.Fixed
         /// 重心/质心
         /// </summary>
         public static Fixed64 Barycentric(Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 a1, Fixed64 a2) => v1 + (v2 - v1) * a1 + (v3 - v1) * a2;
+        /// <summary>
+        /// 重心/质心
+        /// </summary>
         public static Vector2D Barycentric(in Vector2D p1, in Vector2D p2, in Vector2D p3, Fixed64 a1, Fixed64 a2) => new()
         {
             X = Barycentric(p1.X, p2.X, p3.X, a1, a2),
             Y = Barycentric(p1.Y, p2.Y, p3.Y, a1, a2),
         };
+        #endregion
+
+        #region Vector3D/Quaternions 相互转换
+        /// <summary>
+        /// 返回以度为单位的旋转欧拉角表示形式
+        /// </summary>
+        public static Vector3D EulerAngles(in Quaternions quaternions)
+        {
+            var ySqr = quaternions.Y.Sqr();
+            var t0 = Fixed64.One - (ySqr + quaternions.Z.Sqr() << 1);
+            var t1 = quaternions.X * quaternions.Y - quaternions.W * quaternions.Z << 1;
+            var t2 = -quaternions.X * quaternions.Z - quaternions.W * quaternions.Y << 1;
+            var t3 = quaternions.Y * quaternions.Z - quaternions.W * quaternions.X << 1;
+            var t4 = Fixed64.One - (quaternions.X.Sqr() + ySqr << 1);
+
+            return new Vector3D
+            {
+                X = -Atan2Deg(t3, t4),
+                Y = -AsinDeg(t2.Clamp(-Fixed64.One, Fixed64.One)),
+                Z = -Atan2Deg(t1, t0),
+            };
+        }
+        /// <summary>
+        /// 返回一个旋转，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
+        /// </summary>
+        public static Quaternions Euler(in Vector3D eulerAngles) => CreateFromYawPitchRollDeg(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
+        /// <summary>
+        /// 返回一个旋转，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
+        /// </summary>
+        public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z) => CreateFromYawPitchRollDeg(y, x, z);
+
+        /// <summary>
+        /// 使用指定的forward和up方向创建旋转
+        /// </summary>
+        public static Quaternions LookRotation(in Vector3D forward) => LookRotation(in forward, in Vector3D.Up);
+        /// <summary>
+        /// 使用指定的forward和upwards方向创建旋转
+        /// </summary>
+        public static Quaternions LookRotation(in Vector3D forward, in Vector3D upwards) => Matrix3X3.CreateFromMatrix(Matrix3X3.LookAt(in forward, in upwards));
+
+        /// <summary>
+        /// 创建一个围绕axis旋转angle度的旋转
+        /// </summary>
+        public static Quaternions AngleAxis(Fixed64 angle, in Vector3D axis)
+        {
+            var normal = axis.Normalized();
+            var deg = angle >> 1;
+            return new Quaternions(normal * SinDeg(deg), CosDeg(deg));
+        }
+
+        /// <summary>
+        /// 输入弧度，从旋转矩阵创建旋转
+        /// </summary>
+        public static Quaternions CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        {
+            var rh = roll >> 1;
+            var rs = Sin(rh);
+            var rc = Cos(rh);
+            var ph = pitch >> 1;
+            var ps = Sin(ph);
+            var pc = Cos(ph);
+            var yh = yaw >> 1;
+            var ys = Sin(yh);
+            var yc = Cos(yh);
+            return new Quaternions
+            {
+                X = yc * ps * rc + ys * pc * rs,
+                Y = ys * pc * rc - yc * ps * rs,
+                Z = yc * pc * rs - ys * ps * rc,
+                W = yc * pc * rc + ys * ps * rs,
+            };
+        }
+        /// <summary>
+        /// 输入角度，从旋转矩阵创建旋转
+        /// </summary>
+        public static Quaternions CreateFromYawPitchRollDeg(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        {
+            var rh = roll >> 1;
+            var rs = SinDeg(rh);
+            var rc = CosDeg(rh);
+            var ph = pitch >> 1;
+            var ps = SinDeg(ph);
+            var pc = CosDeg(ph);
+            var yh = yaw >> 1;
+            var ys = SinDeg(yh);
+            var yc = CosDeg(yh);
+            return new Quaternions
+            {
+                X = yc * ps * rc + ys * pc * rs,
+                Y = ys * pc * rc - yc * ps * rs,
+                Z = yc * pc * rs - ys * ps * rc,
+                W = yc * pc * rc + ys * ps * rs,
+            };
+        }
         #endregion
     }
 }

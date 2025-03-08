@@ -1,563 +1,181 @@
-﻿/* Copyright (C) <2009-2011> <Thorben Linneweber, Jitter Physics>
- *
- *  This software is provided 'as-is', without any express or implied
- *  warranty.  In no event will the authors be held liable for any damages
- *  arising from the use of this software.
- *
- *  Permission is granted to anyone to use this software for any purpose,
- *  including commercial applications, and to alter it and redistribute it
- *  freely, subject to the following restrictions:
- *
- *  1. The origin of this software must not be misrepresented; you must not
- *      claim that you wrote the original software. If you use this software
- *      in a product, an acknowledgment in the product documentation would be
- *      appreciated but is not required.
- *  2. Altered source versions must be plainly marked as such, and must not be
- *      misrepresented as being the original software.
- *  3. This notice may not be removed or altered from any source distribution.
- */
-
-using System;
+﻿using System;
 
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// A Quaternion representing an orientation.
+    /// 确定性的四元数
     /// </summary>
     [Serializable]
-    public struct Quaternions : IEquatable<Quaternions>, IComparable<Quaternions>
+    public struct Quaternions : IEquatable<Quaternions>, IComparable<Quaternions>, IFormattable
     {
-        /// <summary>The X component of the quaternion.</summary>
+        #region 字段/初始化
+        public static readonly Quaternions Identity = new(0, 0, 0, 1);
+
         public Fixed64 X;
-        /// <summary>The Y component of the quaternion.</summary>
         public Fixed64 Y;
-        /// <summary>The Z component of the quaternion.</summary>
         public Fixed64 Z;
-        /// <summary>The W component of the quaternion.</summary>
         public Fixed64 W;
 
-        public static readonly Quaternions identity;
-
-        static Quaternions()
-        {
-            identity = new Quaternions(0, 0, 0, 1);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the JQuaternion structure.
-        /// </summary>
-        /// <param name="x">The X component of the quaternion.</param>
-        /// <param name="y">The Y component of the quaternion.</param>
-        /// <param name="z">The Z component of the quaternion.</param>
-        /// <param name="w">The W component of the quaternion.</param>
         public Quaternions(Fixed64 x, Fixed64 y, Fixed64 z, Fixed64 w)
         {
-            this.X = x;
-            this.Y = y;
-            this.Z = z;
-            this.W = w;
+            X = x;
+            Y = y;
+            Z = z;
+            W = w;
+        }
+        public Quaternions(in Vector3D xyz, Fixed64 w)
+        {
+            X = xyz.X;
+            Y = xyz.Y;
+            Z = xyz.Z;
+            W = w;
         }
 
-        public void Set(Fixed64 new_x, Fixed64 new_y, Fixed64 new_z, Fixed64 new_w)
+        public void Set(Fixed64 x, Fixed64 y, Fixed64 z, Fixed64 w)
         {
-            this.X = new_x;
-            this.Y = new_y;
-            this.Z = new_z;
-            this.W = new_w;
+            X = x;
+            Y = y;
+            Z = z;
+            W = w;
         }
-
-        public void SetFromToRotation(Vector3D fromDirection, Vector3D toDirection)
+        public void Set(in Vector3D xyz, Fixed64 w)
         {
-            Quaternions targetRotation = Quaternions.FromToRotation(fromDirection, toDirection);
-            this.Set(targetRotation.X, targetRotation.Y, targetRotation.Z, targetRotation.W);
+            X = xyz.X;
+            Y = xyz.Y;
+            Z = xyz.Z;
+            W = w;
         }
+        #endregion
 
-        public Vector3D eulerAngles
+        #region 基础方法
+        /// <summary>
+        /// 模长的平方
+        /// </summary>
+        public readonly Fixed64 SqrMagnitude() => X.Sqr() + Y.Sqr() + Z.Sqr() + W.Sqr();
+        /// <summary>
+        /// 模长
+        /// </summary>
+        public readonly Fixed64 Magnitude() => SqrMagnitude().Sqrt();
+
+        /// <summary>
+        /// 返回该向量的模长为1的向量
+        /// </summary>
+        public readonly Quaternions Normalized() => this * Magnitude().Reciprocal();
+        /// <summary>
+        /// 使该向量的模长为1
+        /// </summary>
+        public void Normalize() => this = Normalized();
+
+        /// <summary>
+        /// 两个旋转之间的点积
+        /// </summary>
+        public static Fixed64 Dot(in Quaternions lhs, in Quaternions rhs) => lhs.W * rhs.W + lhs.X * rhs.X + lhs.Y * rhs.Y + lhs.Z * rhs.Z;
+
+        /// <summary>
+        /// 绝对值
+        /// </summary>
+        public readonly Quaternions Abs() => new(X.Abs(), Y.Abs(), Z.Abs(), W.Abs());
+        /// <summary>
+        /// 共轭
+        /// </summary>
+        public readonly Quaternions Conjugate() => new(-X, -Y, -Z, W);
+        /// <summary>
+        /// 反转
+        /// </summary>
+        public readonly Quaternions Inverse() => Conjugate() / SqrMagnitude();
+
+        public static Quaternions FromToRotation(in Vector3D fromDirection, in Vector3D toDirection)
         {
-            get
+            var cross = Vector3D.Cross(in fromDirection, in toDirection);
+            var dot = Vector3D.Dot(in fromDirection, in toDirection);
+            var magnitude = (fromDirection.SqrMagnitude() * toDirection.SqrMagnitude()).Sqr();
+            var quaternion = new Quaternions(cross.X, cross.Y, cross.Z, dot + magnitude);
+            return quaternion.Normalized();
+        }
+        public void SetFromToRotation(in Vector3D fromDirection, in Vector3D toDirection) => this = FromToRotation(in fromDirection, in toDirection);
+        #endregion
+
+        #region 隐式转换/显示转换/运算符重载
+#if UNITY_STANDALONE
+        public static implicit operator Quaternions(UnityEngine.Quaternion value) => new(value.x, value.y, value.z, value.w);
+        public static explicit operator UnityEngine.Quaternion(in Quaternions value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
+#endif
+
+        public static Quaternions operator +(in Quaternions value) => value;
+        public static Quaternions operator -(in Quaternions value) => new(-value.X, -value.Y, -value.Z, -value.W);
+        public static Quaternions operator +(in Quaternions lhs, in Quaternions rhs) => new(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
+        public static Quaternions operator -(in Quaternions lhs, in Quaternions rhs) => new(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);
+
+        public static Vector3D operator *(in Vector3D lhs, in Quaternions rhs) => rhs * lhs;
+        public static Vector3D operator *(in Quaternions lhs, in Vector3D rhs)
+        {
+            var x2 = lhs.X << 1;
+            var y2 = lhs.Y << 1;
+            var z2 = lhs.Z << 1;
+            var xx = lhs.X * x2;
+            var yy = lhs.Y * y2;
+            var zz = lhs.Z * z2;
+            var xy = lhs.X * y2;
+            var xz = lhs.X * z2;
+            var yz = lhs.Y * z2;
+            var wx = lhs.W * x2;
+            var wy = lhs.W * y2;
+            var wz = lhs.W * z2;
+            return new Vector3D
             {
-                var ySqr = Y.Sqr();
-                var t0 = Fixed64.One - (ySqr + Z.Sqr() << 1);
-                var t1 = X * Y - W * Z << 1;
-                var t2 = -(X * Z + W * Y << 1);
-                var t3 = Y * Z - W * X << 1;
-                var t4 = Fixed64.One - (X.Sqr() + ySqr << 1);
-
-                var result = new Vector3D();
-                result.X = Maths.Atan2Deg(t3, t4);
-                result.Y = Maths.AsinDeg(t2.Clamp(-Fixed64.One, Fixed64.One));
-                result.Z = Maths.Atan2Deg(t1, t0);
-                return result * -1;
-            }
+                X = (Fixed64.One - yy - zz) * rhs.X + (xy - wz) * rhs.Y + (xz + wy) * rhs.Z,
+                Y = (xy + wz) * rhs.X + (Fixed64.One - xx - zz) * rhs.Y + (yz - wx) * rhs.Z,
+                Z = (xz - wy) * rhs.X + (yz + wx) * rhs.Y + (Fixed64.One - xx - yy) * rhs.Z,
+            };
         }
-
-        public static Fixed64 Angle(Quaternions a, Quaternions b)
+        public static Quaternions operator *(in Quaternions lhs, in Quaternions rhs) => new()
         {
-            var aInv = Inverse(a);
-            var f = b * aInv;
-            var angle = Maths.AcosDeg(f.W) << 1;
+            X = lhs.X * rhs.W + lhs.W * rhs.X + lhs.Y * rhs.Z - lhs.Z * rhs.Y,
+            Y = lhs.Y * rhs.W + lhs.W * rhs.Y + lhs.Z * rhs.X - lhs.X * rhs.Z,
+            Z = lhs.Z * rhs.W + lhs.W * rhs.Z + lhs.X * rhs.Y - lhs.Y * rhs.X,
+            W = lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z,
+        };
+        public static Quaternions operator *(in Quaternions lhs, Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
+        public static Quaternions operator *(in Quaternions lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
+        public static Quaternions operator *(Fixed64 lhs, in Quaternions rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
+        public static Quaternions operator *(long lhs, in Quaternions rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
+        public static Quaternions operator /(in Quaternions lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
+        public static Quaternions operator /(in Quaternions lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
+        public static Quaternions operator /(Fixed64 lhs, in Quaternions rhs) => new(lhs / rhs.X, lhs / rhs.Y, lhs / rhs.Z, lhs / rhs.W);
 
-            if (angle > 180)
-            {
-                angle = 360 - angle;
-            }
-
-            return angle;
-        }
-
-        /// <summary>
-        /// Quaternions are added.
-        /// </summary>
-        /// <param name="quaternion1">The first quaternion.</param>
-        /// <param name="quaternion2">The second quaternion.</param>
-        /// <returns>The sum of both quaternions.</returns>
-
-        #region public static JQuaternion Add(JQuaternion quaternion1, JQuaternion quaternion2)
-        public static Quaternions Add(Quaternions quaternion1, Quaternions quaternion2)
-        {
-            Quaternions result;
-            Quaternions.Add(ref quaternion1, ref quaternion2, out result);
-            return result;
-        }
-
-        public static Quaternions LookRotation(Vector3D forward)
-        {
-            return CreateFromMatrix(Matrix3X3.LookAt(forward, Vector3D.Up));
-        }
-
-        public static Quaternions LookRotation(Vector3D forward, Vector3D upwards)
-        {
-            return CreateFromMatrix(Matrix3X3.LookAt(forward, upwards));
-        }
-
-        public static Quaternions Slerp(Quaternions from, Quaternions to, Fixed64 t)
-        {
-            t = t.Clamp01();
-            var dot = Dot(from, to);
-            if (dot < Fixed64.Zero)
-            {
-                to = Multiply(to, -Fixed64.One);
-                dot = -dot;
-            }
-
-            var halfTheta = Maths.Acos(dot);
-            return Multiply(Multiply(from, Maths.Sin((1 - t) * halfTheta)) + Multiply(to, Maths.Sin(t * halfTheta)), 1 / Maths.Sin(halfTheta));
-        }
-
-        public static Quaternions RotateTowards(Quaternions from, Quaternions to, Fixed64 maxDegreesDelta)
-        {
-            var dot = Dot(from, to);
-
-            if (dot < 0.0f)
-            {
-                to = Multiply(to, -1);
-                dot = -dot;
-            }
-
-            var halfTheta = Maths.Acos(dot);
-            var theta = halfTheta * 2;
-
-            maxDegreesDelta *= Maths.Deg2Rad;
-
-            if (maxDegreesDelta >= theta)
-            {
-                return to;
-            }
-
-            maxDegreesDelta /= theta;
-
-            return Multiply(Multiply(from, Maths.Sin((1 - maxDegreesDelta) * halfTheta)) + Multiply(to, Maths.Sin(maxDegreesDelta * halfTheta)), 1 / Maths.Sin(halfTheta));
-        }
-
-        public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z)
-        {
-            x *= Maths.Deg2Rad;
-            y *= Maths.Deg2Rad;
-            z *= Maths.Deg2Rad;
-
-            Quaternions rotation;
-            Quaternions.CreateFromYawPitchRoll(y, x, z, out rotation);
-
-            return rotation;
-        }
-
-        public static Quaternions Euler(Vector3D eulerAngles)
-        {
-            return Euler(eulerAngles.X, eulerAngles.Y, eulerAngles.Z);
-        }
-
-        public static Quaternions AngleAxis(Fixed64 angle, Vector3D axis)
-        {
-            axis *= Maths.Deg2Rad;
-            axis.Normalize();
-
-            var halfAngle = angle * Maths.Deg2Rad * Fixed64.Half;
-            var sin = Maths.Sin(halfAngle);
-
-            Quaternions rotation;
-            rotation.X = axis.X * sin;
-            rotation.Y = axis.Y * sin;
-            rotation.Z = axis.Z * sin;
-            rotation.W = Maths.Cos(halfAngle);
-            return rotation;
-        }
-
-        public static void CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll, out Quaternions result)
-        {
-            var num9 = roll * Fixed64.Half;
-            var num6 = Maths.Sin(num9);
-            var num5 = Maths.Cos(num9);
-            var num8 = pitch * Fixed64.Half;
-            var num4 = Maths.Sin(num8);
-            var num3 = Maths.Cos(num8);
-            var num7 = yaw * Fixed64.Half;
-            var num2 = Maths.Sin(num7);
-            var num = Maths.Cos(num7);
-
-            result.X = num * num4 * num5 + num2 * num3 * num6;
-            result.Y = num2 * num3 * num5 - num * num4 * num6;
-            result.Z = num * num3 * num6 - num2 * num4 * num5;
-            result.W = num * num3 * num5 + num2 * num4 * num6;
-        }
-
-        /// <summary>
-        /// Quaternions are added.
-        /// </summary>
-        /// <param name="quaternion1">The first quaternion.</param>
-        /// <param name="quaternion2">The second quaternion.</param>
-        /// <param name="result">The sum of both quaternions.</param>
-        public static void Add(ref Quaternions quaternion1, ref Quaternions quaternion2, out Quaternions result)
-        {
-            result.X = quaternion1.X + quaternion2.X;
-            result.Y = quaternion1.Y + quaternion2.Y;
-            result.Z = quaternion1.Z + quaternion2.Z;
-            result.W = quaternion1.W + quaternion2.W;
-        }
+        public static bool operator ==(in Quaternions lhs, in Quaternions rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;
+        public static bool operator !=(in Quaternions lhs, in Quaternions rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z || lhs.W != rhs.W;
         #endregion
 
-        public static Quaternions Conjugate(Quaternions value)
+        #region 继承/重载
+        public readonly override bool Equals(object obj) => obj is Quaternions other && this == other;
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2 ^ Z.GetHashCode() >> 2 ^ W.GetHashCode() >> 1;
+        public readonly bool Equals(Quaternions other) => this == other;
+        public readonly int CompareTo(Quaternions other)
         {
-            Quaternions quaternion;
-            quaternion.X = -value.X;
-            quaternion.Y = -value.Y;
-            quaternion.Z = -value.Z;
-            quaternion.W = value.W;
-            return quaternion;
+            int match1 = X.RawValue.CompareTo(other.X.RawValue);
+            if (match1 != 0)
+                return match1;
+
+            int match2 = Y.RawValue.CompareTo(other.Y.RawValue);
+            if (match2 != 0)
+                return match2;
+
+            int match3 = Z.RawValue.CompareTo(other.Z.RawValue);
+            if (match3 != 0)
+                return match3;
+
+            int match4 = W.RawValue.CompareTo(other.W.RawValue);
+            if (match4 != 0)
+                return match4;
+
+            return 0;
         }
 
-        public static Fixed64 Dot(Quaternions a, Quaternions b)
-        {
-            return a.W * b.W + a.X * b.X + a.Y * b.Y + a.Z * b.Z;
-        }
-
-        public static Quaternions Inverse(Quaternions rotation)
-        {
-            var invNorm = (rotation.X * rotation.X + rotation.Y * rotation.Y + rotation.Z * rotation.Z + rotation.W * rotation.W).Reciprocal();
-            return Multiply(Conjugate(rotation), invNorm);
-        }
-
-        public static Quaternions FromToRotation(Vector3D fromVector, Vector3D toVector)
-        {
-            var w = Vector3D.Cross(fromVector, toVector);
-            Quaternions q = new Quaternions(w.X, w.Y, w.Z, Vector3D.Dot(fromVector, toVector));
-            q.W += (fromVector.SqrMagnitude() * toVector.SqrMagnitude()).Sqrt();
-            q.Normalize();
-
-            return q;
-        }
-
-        public static Quaternions Lerp(Quaternions a, Quaternions b, Fixed64 t) => LerpUnclamped(a, b, t.Clamp01());
-
-        public static Quaternions LerpUnclamped(Quaternions a, Quaternions b, Fixed64 t)
-        {
-            Quaternions result = Quaternions.Multiply(a, (1 - t)) + Quaternions.Multiply(b, t);
-            result.Normalize();
-
-            return result;
-        }
-
-        /// <summary>
-        /// Quaternions are subtracted.
-        /// </summary>
-        /// <param name="quaternion1">The first quaternion.</param>
-        /// <param name="quaternion2">The second quaternion.</param>
-        /// <returns>The difference of both quaternions.</returns>
-
-        #region public static JQuaternion Subtract(JQuaternion quaternion1, JQuaternion quaternion2)
-        public static Quaternions Subtract(Quaternions quaternion1, Quaternions quaternion2)
-        {
-            Quaternions result;
-            Quaternions.Subtract(ref quaternion1, ref quaternion2, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Quaternions are subtracted.
-        /// </summary>
-        /// <param name="quaternion1">The first quaternion.</param>
-        /// <param name="quaternion2">The second quaternion.</param>
-        /// <param name="result">The difference of both quaternions.</param>
-        public static void Subtract(ref Quaternions quaternion1, ref Quaternions quaternion2, out Quaternions result)
-        {
-            result.X = quaternion1.X - quaternion2.X;
-            result.Y = quaternion1.Y - quaternion2.Y;
-            result.Z = quaternion1.Z - quaternion2.Z;
-            result.W = quaternion1.W - quaternion2.W;
-        }
+        public readonly override string ToString() => $"({X}, {Y}, {Z}, {W})";
+        public readonly string ToString(string format) => $"({X.ToString(format)}, {Y.ToString(format)}, {Z.ToString(format)}, {W.ToString(format)})";
+        public readonly string ToString(IFormatProvider provider) => $"({X.ToString(provider)}, {Y.ToString(provider)}, {Z.ToString(provider)}, {W.ToString(provider)})";
+        public readonly string ToString(string format, IFormatProvider provider) => $"({X.ToString(format, provider)}, {Y.ToString(format, provider)}, {Z.ToString(format, provider)}, {W.ToString(format, provider)})";
         #endregion
-
-        /// <summary>
-        /// Multiply two quaternions.
-        /// </summary>
-        /// <param name="quaternion1">The first quaternion.</param>
-        /// <param name="quaternion2">The second quaternion.</param>
-        /// <returns>The product of both quaternions.</returns>
-
-        #region public static JQuaternion Multiply(JQuaternion quaternion1, JQuaternion quaternion2)
-        public static Quaternions Multiply(Quaternions quaternion1, Quaternions quaternion2)
-        {
-            Quaternions result;
-            Quaternions.Multiply(ref quaternion1, ref quaternion2, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Multiply two quaternions.
-        /// </summary>
-        /// <param name="quaternion1">The first quaternion.</param>
-        /// <param name="quaternion2">The second quaternion.</param>
-        /// <param name="result">The product of both quaternions.</param>
-        public static void Multiply(ref Quaternions quaternion1, ref Quaternions quaternion2, out Quaternions result)
-        {
-            Fixed64 x = quaternion1.X;
-            Fixed64 y = quaternion1.Y;
-            Fixed64 z = quaternion1.Z;
-            Fixed64 w = quaternion1.W;
-            Fixed64 num4 = quaternion2.X;
-            Fixed64 num3 = quaternion2.Y;
-            Fixed64 num2 = quaternion2.Z;
-            Fixed64 num = quaternion2.W;
-            Fixed64 num12 = (y * num2) - (z * num3);
-            Fixed64 num11 = (z * num4) - (x * num2);
-            Fixed64 num10 = (x * num3) - (y * num4);
-            Fixed64 num9 = ((x * num4) + (y * num3)) + (z * num2);
-            result.X = ((x * num) + (num4 * w)) + num12;
-            result.Y = ((y * num) + (num3 * w)) + num11;
-            result.Z = ((z * num) + (num2 * w)) + num10;
-            result.W = (w * num) - num9;
-        }
-        #endregion
-
-        /// <summary>
-        /// Scale a quaternion
-        /// </summary>
-        /// <param name="quaternion1">The quaternion to scale.</param>
-        /// <param name="scaleFactor">Scale factor.</param>
-        /// <returns>The scaled quaternion.</returns>
-
-        #region public static JQuaternion Multiply(JQuaternion quaternion1, FP scaleFactor)
-        public static Quaternions Multiply(Quaternions quaternion1, Fixed64 scaleFactor)
-        {
-            Quaternions result;
-            Quaternions.Multiply(ref quaternion1, scaleFactor, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Scale a quaternion
-        /// </summary>
-        /// <param name="quaternion1">The quaternion to scale.</param>
-        /// <param name="scaleFactor">Scale factor.</param>
-        /// <param name="result">The scaled quaternion.</param>
-        public static void Multiply(ref Quaternions quaternion1, Fixed64 scaleFactor, out Quaternions result)
-        {
-            result.X = quaternion1.X * scaleFactor;
-            result.Y = quaternion1.Y * scaleFactor;
-            result.Z = quaternion1.Z * scaleFactor;
-            result.W = quaternion1.W * scaleFactor;
-        }
-        #endregion
-
-        /// <summary>
-        /// Sets the length of the quaternion to one.
-        /// </summary>
-
-        #region public void Normalize()
-        public void Normalize()
-        {
-            var num2 = X * X + Y * Y + Z * Z + W * W;
-            var num = num2.Sqrt().Reciprocal();
-
-            X *= num;
-            Y *= num;
-            Z *= num;
-            W *= num;
-        }
-        #endregion
-
-        /// <summary>
-        /// Creates a quaternion from a matrix.
-        /// </summary>
-        /// <param name="matrix">A matrix representing an orientation.</param>
-        /// <returns>JQuaternion representing an orientation.</returns>
-
-        #region public static JQuaternion CreateFromMatrix(JMatrix matrix)
-        public static Quaternions CreateFromMatrix(Matrix3X3 matrix)
-        {
-            CreateFromMatrix(ref matrix, out var result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a quaternion from a matrix.
-        /// </summary>
-        /// <param name="matrix">A matrix representing an orientation.</param>
-        /// <param name="result">JQuaternion representing an orientation.</param>
-        public static void CreateFromMatrix(ref Matrix3X3 matrix, out Quaternions result)
-        {
-            Fixed64 num8 = (matrix.M11 + matrix.M22) + matrix.M33;
-            if (num8 > Fixed64.Zero)
-            {
-                var num = (num8 + Fixed64.One).Sqrt();
-                result.W = num * Fixed64.Half;
-                num = Fixed64.Half / num;
-                result.X = (matrix.M23 - matrix.M32) * num;
-                result.Y = (matrix.M31 - matrix.M13) * num;
-                result.Z = (matrix.M12 - matrix.M21) * num;
-            }
-            else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
-            {
-                var num7 = (Fixed64.One + matrix.M11 - matrix.M22 - matrix.M33).Sqrt();
-                var num4 = Fixed64.Half / num7;
-                result.X = Fixed64.Half * num7;
-                result.Y = (matrix.M12 + matrix.M21) * num4;
-                result.Z = (matrix.M13 + matrix.M31) * num4;
-                result.W = (matrix.M23 - matrix.M32) * num4;
-            }
-            else if (matrix.M22 > matrix.M33)
-            {
-                var num6 = (Fixed64.One + matrix.M22 - matrix.M11 - matrix.M33).Sqrt();
-                var num3 = Fixed64.Half / num6;
-                result.X = (matrix.M21 + matrix.M12) * num3;
-                result.Y = Fixed64.Half * num6;
-                result.Z = (matrix.M32 + matrix.M23) * num3;
-                result.W = (matrix.M31 - matrix.M13) * num3;
-            }
-            else
-            {
-                var num5 = (Fixed64.One + matrix.M33 - matrix.M11 - matrix.M22).Sqrt();
-                var num2 = Fixed64.Half / num5;
-                result.X = (matrix.M31 + matrix.M13) * num2;
-                result.Y = (matrix.M32 + matrix.M23) * num2;
-                result.Z = Fixed64.Half * num5;
-                result.W = (matrix.M12 - matrix.M21) * num2;
-            }
-        }
-        #endregion
-
-        /// <summary>
-        /// Multiply two quaternions.
-        /// </summary>
-        /// <param name="value1">The first quaternion.</param>
-        /// <param name="value2">The second quaternion.</param>
-        /// <returns>The product of both quaternions.</returns>
-
-        #region public static FP operator *(JQuaternion value1, JQuaternion value2)
-        public static Quaternions operator *(Quaternions value1, Quaternions value2)
-        {
-            Quaternions result;
-            Quaternions.Multiply(ref value1, ref value2, out result);
-            return result;
-        }
-        #endregion
-
-        /// <summary>
-        /// Add two quaternions.
-        /// </summary>
-        /// <param name="value1">The first quaternion.</param>
-        /// <param name="value2">The second quaternion.</param>
-        /// <returns>The sum of both quaternions.</returns>
-
-        #region public static FP operator +(JQuaternion value1, JQuaternion value2)
-        public static Quaternions operator +(Quaternions value1, Quaternions value2)
-        {
-            Quaternions result;
-            Quaternions.Add(ref value1, ref value2, out result);
-            return result;
-        }
-        #endregion
-
-        /// <summary>
-        /// Subtract two quaternions.
-        /// </summary>
-        /// <param name="value1">The first quaternion.</param>
-        /// <param name="value2">The second quaternion.</param>
-        /// <returns>The difference of both quaternions.</returns>
-
-        #region public static FP operator -(JQuaternion value1, JQuaternion value2)
-        public static Quaternions operator -(Quaternions value1, Quaternions value2)
-        {
-            Quaternions result;
-            Quaternions.Subtract(ref value1, ref value2, out result);
-            return result;
-        }
-        #endregion
-
-        /**
-         *  @brief Rotates a {@link TSVector} by the {@link TSQuanternion}.
-         **/
-        public static Vector3D operator *(Quaternions quat, Vector3D vec)
-        {
-            Fixed64 num = quat.X * 2f;
-            Fixed64 num2 = quat.Y * 2f;
-            Fixed64 num3 = quat.Z * 2f;
-            Fixed64 num4 = quat.X * num;
-            Fixed64 num5 = quat.Y * num2;
-            Fixed64 num6 = quat.Z * num3;
-            Fixed64 num7 = quat.X * num2;
-            Fixed64 num8 = quat.X * num3;
-            Fixed64 num9 = quat.Y * num3;
-            Fixed64 num10 = quat.W * num;
-            Fixed64 num11 = quat.W * num2;
-            Fixed64 num12 = quat.W * num3;
-
-            Vector3D result;
-            result.X = (1f - (num5 + num6)) * vec.X + (num7 - num12) * vec.Y + (num8 + num11) * vec.Z;
-            result.Y = (num7 + num12) * vec.X + (1f - (num4 + num6)) * vec.Y + (num9 - num10) * vec.Z;
-            result.Z = (num8 - num11) * vec.X + (num9 + num10) * vec.Y + (1f - (num4 + num5)) * vec.Z;
-
-            return result;
-        }
-
-        #region operator == And !=
-        public static bool operator ==(Quaternions value1, Quaternions value2)
-        {
-            return value1.X == value2.X && value1.Y == value2.Y && value1.Z == value2.Z && value1.W == value2.W;
-        }
-
-        public static bool operator !=(Quaternions value1, Quaternions value2)
-        {
-            return value1.X != value2.X || value1.Y != value2.Y || value1.Z != value2.Z || value1.W != value2.W;
-        }
-        #endregion
-
-        public override int GetHashCode()
-        {
-            throw new NotImplementedException();
-        }
-        public bool Equals(Quaternions other)
-        {
-            throw new NotImplementedException();
-        }
-        public int CompareTo(Quaternions other)
-        {
-            throw new NotImplementedException();
-        }
-        public override bool Equals(object obj)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override string ToString() => $"({X:f1}, {Y:f1}, {Z:f1}, {W:f1})";
     }
 }

@@ -98,7 +98,7 @@ namespace Eevee.Fixed
 
         public static Matrix3X3 CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
-            Quaternions.CreateFromYawPitchRoll(yaw, pitch, roll, out var quaternion);
+            var quaternion = Maths.CreateFromYawPitchRoll(yaw, pitch, roll);
             CreateFromQuaternion(ref quaternion, out var matrix);
             return matrix;
         }
@@ -469,7 +469,7 @@ namespace Eevee.Fixed
             return result;
         }
 
-        public static Matrix3X3 LookAt(Vector3D forward, Vector3D upwards)
+        public static Matrix3X3 LookAt(in Vector3D forward, in Vector3D upwards)
         {
             Matrix3X3 result;
             LookAt(forward, upwards, out result);
@@ -496,29 +496,29 @@ namespace Eevee.Fixed
             result.M33 = zaxis.Z;
         }
 
-        public static Matrix3X3 CreateFromQuaternion(Quaternions quaternion)
+        public static Matrix3X3 CreateFromQuaternion(Quaternions quaternions)
         {
             Matrix3X3 result;
-            Matrix3X3.CreateFromQuaternion(ref quaternion, out result);
+            Matrix3X3.CreateFromQuaternion(ref quaternions, out result);
             return result;
         }
 
         /// <summary>
         /// Creates a JMatrix representing an orientation from a quaternion.
         /// </summary>
-        /// <param name="quaternion">The quaternion the matrix should be created from.</param>
+        /// <param name="quaternions">The quaternion the matrix should be created from.</param>
         /// <param name="result">JMatrix representing an orientation.</param>
-        public static void CreateFromQuaternion(ref Quaternions quaternion, out Matrix3X3 result)
+        public static void CreateFromQuaternion(ref Quaternions quaternions, out Matrix3X3 result)
         {
-            Fixed64 num9 = quaternion.X * quaternion.X;
-            Fixed64 num8 = quaternion.Y * quaternion.Y;
-            Fixed64 num7 = quaternion.Z * quaternion.Z;
-            Fixed64 num6 = quaternion.X * quaternion.Y;
-            Fixed64 num5 = quaternion.Z * quaternion.W;
-            Fixed64 num4 = quaternion.Z * quaternion.X;
-            Fixed64 num3 = quaternion.Y * quaternion.W;
-            Fixed64 num2 = quaternion.Y * quaternion.Z;
-            Fixed64 num = quaternion.X * quaternion.W;
+            Fixed64 num9 = quaternions.X * quaternions.X;
+            Fixed64 num8 = quaternions.Y * quaternions.Y;
+            Fixed64 num7 = quaternions.Z * quaternions.Z;
+            Fixed64 num6 = quaternions.X * quaternions.Y;
+            Fixed64 num5 = quaternions.Z * quaternions.W;
+            Fixed64 num4 = quaternions.Z * quaternions.X;
+            Fixed64 num3 = quaternions.Y * quaternions.W;
+            Fixed64 num2 = quaternions.Y * quaternions.Z;
+            Fixed64 num = quaternions.X * quaternions.W;
             result.M11 = Fixed64.One - (2 * (num8 + num7));
             result.M12 = 2 * (num6 + num5);
             result.M13 = 2 * (num4 - num3);
@@ -764,6 +764,63 @@ namespace Eevee.Fixed
             return result;
         }
         #endregion
+
+        /// <summary>
+        /// Creates a quaternion from a matrix.
+        /// </summary>
+        /// <param name="matrix">A matrix representing an orientation.</param>
+        /// <returns>JQuaternion representing an orientation.</returns>
+        public static Quaternions CreateFromMatrix(in Matrix3X3 matrix)
+        {
+            CreateFromMatrix(in matrix, out var result);
+            return result;
+        }
+
+        /// <summary>
+        /// Creates a quaternion from a matrix.
+        /// </summary>
+        /// <param name="matrix">A matrix representing an orientation.</param>
+        /// <param name="result">JQuaternion representing an orientation.</param>
+        public static void CreateFromMatrix(in Matrix3X3 matrix, out Quaternions result)
+        {
+            Fixed64 num8 = (matrix.M11 + matrix.M22) + matrix.M33;
+            if (num8 > Fixed64.Zero)
+            {
+                var num = (num8 + Fixed64.One).Sqrt();
+                result.W = num * Fixed64.Half;
+                num = Fixed64.Half / num;
+                result.X = (matrix.M23 - matrix.M32) * num;
+                result.Y = (matrix.M31 - matrix.M13) * num;
+                result.Z = (matrix.M12 - matrix.M21) * num;
+            }
+            else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
+            {
+                var num7 = (Fixed64.One + matrix.M11 - matrix.M22 - matrix.M33).Sqrt();
+                var num4 = Fixed64.Half / num7;
+                result.X = Fixed64.Half * num7;
+                result.Y = (matrix.M12 + matrix.M21) * num4;
+                result.Z = (matrix.M13 + matrix.M31) * num4;
+                result.W = (matrix.M23 - matrix.M32) * num4;
+            }
+            else if (matrix.M22 > matrix.M33)
+            {
+                var num6 = (Fixed64.One + matrix.M22 - matrix.M11 - matrix.M33).Sqrt();
+                var num3 = Fixed64.Half / num6;
+                result.X = (matrix.M21 + matrix.M12) * num3;
+                result.Y = Fixed64.Half * num6;
+                result.Z = (matrix.M32 + matrix.M23) * num3;
+                result.W = (matrix.M31 - matrix.M13) * num3;
+            }
+            else
+            {
+                var num5 = (Fixed64.One + matrix.M33 - matrix.M11 - matrix.M22).Sqrt();
+                var num2 = Fixed64.Half / num5;
+                result.X = (matrix.M31 + matrix.M13) * num2;
+                result.Y = (matrix.M32 + matrix.M23) * num2;
+                result.Z = Fixed64.Half * num5;
+                result.W = (matrix.M12 - matrix.M21) * num2;
+            }
+        }
 
         public override string ToString()
         {

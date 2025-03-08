@@ -141,6 +141,11 @@ namespace Eevee.Fixed
         };
 
         /// <summary>
+        /// 绝对值
+        /// </summary>
+        public readonly Vector4D Abs() => new(X.Abs(), Y.Abs(), Z.Abs(), W.Abs());
+
+        /// <summary>
         /// 区间值更正
         /// </summary>
         public readonly Vector4D Clamp(in Vector4D min, Vector4D max) => new()
@@ -203,9 +208,9 @@ namespace Eevee.Fixed
         public static bool operator !=(in Vector4D lhs, in Vector4D rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z || lhs.W != rhs.W;
         #endregion
 
-        #region 继承重载
+        #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Vector4D other && this == other;
-        public readonly override int GetHashCode() => HashCode.Combine(X.RawValue, Y.RawValue, Z.RawValue, W.RawValue);
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2 ^ Z.GetHashCode() >> 2 ^ W.GetHashCode() >> 1;
         public readonly bool Equals(Vector4D other) => this == other;
         public readonly int CompareTo(Vector4D other)
         {
@@ -228,7 +233,7 @@ namespace Eevee.Fixed
             return 0;
         }
 
-        public readonly override string ToString() => $"({X.ToString()}, {Y.ToString()}, {Z.ToString()}, {W.ToString()})";
+        public readonly override string ToString() => $"({X}, {Y}, {Z}, {W})";
         public readonly string ToString(string format) => $"({X.ToString(format)}, {Y.ToString(format)}, {Z.ToString(format)}, {W.ToString(format)})";
         public readonly string ToString(IFormatProvider provider) => $"({X.ToString(provider)}, {Y.ToString(provider)}, {Z.ToString(provider)}, {W.ToString(provider)})";
         public readonly string ToString(string format, IFormatProvider provider) => $"({X.ToString(format, provider)}, {Y.ToString(format, provider)}, {Z.ToString(format, provider)}, {W.ToString(format, provider)})";

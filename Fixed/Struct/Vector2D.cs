@@ -121,6 +121,10 @@ namespace Eevee.Fixed
         };
 
         /// <summary>
+        /// 绝对值
+        /// </summary>
+        public readonly Vector2D Abs() => new(X.Abs(), Y.Abs());
+        /// <summary>
         /// 返回垂直于该向量的向量，对于正Y轴向上的坐标系来说，结果始终沿逆时针方向旋转90度
         /// </summary>
         public readonly Vector2D Perpendicular() => new(-Y, X);
@@ -187,9 +191,9 @@ namespace Eevee.Fixed
         public static bool operator !=(in Vector2D lhs, in Vector2D rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y;
         #endregion
 
-        #region 继承重载
+        #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Vector2D other && this == other;
-        public readonly override int GetHashCode() => HashCode.Combine(X.RawValue, Y.RawValue);
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2;
         public readonly bool Equals(Vector2D other) => this == other;
         public readonly int CompareTo(Vector2D other)
         {
@@ -204,7 +208,7 @@ namespace Eevee.Fixed
             return 0;
         }
 
-        public readonly override string ToString() => $"({X.ToString()}, {Y.ToString()})";
+        public readonly override string ToString() => $"({X}, {Y})";
         public readonly string ToString(string format) => $"({X.ToString(format)}, {Y.ToString(format)})";
         public readonly string ToString(IFormatProvider provider) => $"({X.ToString(provider)}, {Y.ToString(provider)})";
         public readonly string ToString(string format, IFormatProvider provider) => $"({X.ToString(format, provider)}, {Y.ToString(format, provider)})";

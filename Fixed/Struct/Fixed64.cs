@@ -291,7 +291,7 @@ namespace Eevee.Fixed
         public static bool operator <(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue < rhs.RawValue;
         #endregion
 
-        #region 继承重载
+        #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Fixed64 other && other.RawValue == RawValue;
         public readonly override int GetHashCode() => RawValue.GetHashCode();
         public readonly bool Equals(Fixed64 other) => RawValue == other.RawValue;

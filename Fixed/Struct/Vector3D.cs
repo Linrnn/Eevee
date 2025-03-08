@@ -141,6 +141,10 @@ namespace Eevee.Fixed
         };
 
         /// <summary>
+        /// 绝对值
+        /// </summary>
+        public readonly Vector3D Abs() => new(X.Abs(), Y.Abs(), Z.Abs());
+        /// <summary>
         /// 从法线定义的向量反射一个向量
         /// </summary>
         public static Vector3D Reflect(in Vector3D inDirection, in Vector3D inNormal)
@@ -225,9 +229,9 @@ namespace Eevee.Fixed
         public static bool operator !=(in Vector3D lhs, in Vector3D rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z;
         #endregion
 
-        #region 继承重载
+        #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Vector3D other && this == other;
-        public readonly override int GetHashCode() => HashCode.Combine(X.RawValue, Y.RawValue, Z.RawValue);
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2 ^ Z.GetHashCode() >> 2;
         public readonly bool Equals(Vector3D other) => this == other;
         public readonly int CompareTo(Vector3D other)
         {
@@ -246,7 +250,7 @@ namespace Eevee.Fixed
             return 0;
         }
 
-        public readonly override string ToString() => $"({X.ToString()}, {Y.ToString()}, {Z.ToString()})";
+        public readonly override string ToString() => $"({X}, {Y}, {Z})";
         public readonly string ToString(string format) => $"({X.ToString(format)}, {Y.ToString(format)}, {Z.ToString(format)})";
         public readonly string ToString(IFormatProvider provider) => $"({X.ToString(provider)}, {Y.ToString(provider)}, {Z.ToString(provider)})";
         public readonly string ToString(string format, IFormatProvider provider) => $"({X.ToString(format, provider)}, {Y.ToString(format, provider)}, {Z.ToString(format, provider)})";
