@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Eevee.Fixed;
+using System;
 
-namespace Eevee.Fixed
+namespace Eevee.Random
 {
     /// <summary>
     /// 便捷实现，子类需要实现 EasyRandom.GetInt()

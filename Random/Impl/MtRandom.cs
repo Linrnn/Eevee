@@ -1,4 +1,4 @@
-﻿namespace Eevee.Fixed
+﻿namespace Eevee.Random
 {
     /// <summary>
     /// 根据“梅森旋转算法”实现的随机数<br/>

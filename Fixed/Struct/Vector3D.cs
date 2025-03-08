@@ -200,14 +200,14 @@ namespace Eevee.Fixed
 
         #region 隐式转换/显示转换/运算符重载
 #if UNITY_STANDALONE
-        public static implicit operator Vector3D(UnityEngine.Vector3 value) => new(value.x, value.y, value.z);
+        public static implicit operator Vector3D(in UnityEngine.Vector3 value) => new(value.x, value.y, value.z);
         public static explicit operator UnityEngine.Vector3(in Vector3D value) => new((float)value.X, (float)value.Y, (float)value.Z);
 
-        public static implicit operator Vector3D(UnityEngine.Vector3Int value) => new(value.x, value.y, value.z);
+        public static implicit operator Vector3D(in UnityEngine.Vector3Int value) => new(value.x, value.y, value.z);
         public static explicit operator UnityEngine.Vector3Int(in Vector3D value) => new((int)value.X, (int)value.Y, (int)value.Z);
 #endif
 
-        public static implicit operator Vector3D(System.Numerics.Vector3 value) => new(value.X, value.Y, value.Z);
+        public static implicit operator Vector3D(in System.Numerics.Vector3 value) => new(value.X, value.Y, value.Z);
         public static explicit operator System.Numerics.Vector3(in Vector3D value) => new((float)value.X, (float)value.Y, (float)value.Z);
 
         public static implicit operator Vector3D(in Vector2D value) => new(value.X, value.Y);

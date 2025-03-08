@@ -1,4 +1,4 @@
-﻿namespace Eevee.Fixed
+﻿namespace Eevee.Random
 {
     /// <summary>
     /// Random代理

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SRandom = System.Random;
 
-namespace Eevee.Fixed
+namespace Eevee.Random
 {
     /// <summary>
     /// 使用 System.Random 实现 IRandom<br/>
@@ -8,9 +8,9 @@ namespace Eevee.Fixed
     /// </summary>
     public sealed class SystemRandom : EasyRandom
     {
-        private readonly Random _random;
+        private readonly SRandom _random;
 
-        public SystemRandom(int seed) => _random = new Random(seed);
+        public SystemRandom(int seed) => _random = new SRandom(seed);
 
         protected override int GetInt(int minInclusive, int maxExclusive) => _random.Next(minInclusive, maxExclusive);
     }

@@ -179,11 +179,11 @@ namespace Eevee.Fixed
 
         #region 隐式转换/显示转换/运算符重载
 #if UNITY_STANDALONE
-        public static implicit operator Vector4D(UnityEngine.Vector4 value) => new(value.x, value.y, value.z, value.w);
+        public static implicit operator Vector4D(in UnityEngine.Vector4 value) => new(value.x, value.y, value.z, value.w);
         public static explicit operator UnityEngine.Vector4(in Vector4D value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
 #endif
 
-        public static implicit operator Vector4D(System.Numerics.Vector4 value) => new(value.X, value.Y, value.Z, value.W);
+        public static implicit operator Vector4D(in System.Numerics.Vector4 value) => new(value.X, value.Y, value.Z, value.W);
         public static explicit operator System.Numerics.Vector4(in Vector4D value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
 
         public static implicit operator Vector4D(in Vector2D value) => new(value.X, value.Y);

@@ -1,7 +1,7 @@
 ﻿#if UNITY_STANDALONE
-using UnityEngine;
+using URandom = UnityEngine.Random;
 
-namespace Eevee.Fixed
+namespace Eevee.Random
 {
     /// <summary>
     /// 使用 UnityEngine.Random 实现 IRandom<br/>
@@ -9,9 +9,9 @@ namespace Eevee.Fixed
     /// </summary>
     public sealed class UnityRandom : EasyRandom
     {
-        public UnityRandom(int seed) => Random.InitState(seed);
+        public UnityRandom(int seed) => URandom.InitState(seed);
 
-        protected override int GetInt(int minInclusive, int maxExclusive) => Random.Range(minInclusive, maxExclusive);
+        protected override int GetInt(int minInclusive, int maxExclusive) => URandom.Range(minInclusive, maxExclusive);
     }
 }
 #endif

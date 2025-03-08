@@ -1,4 +1,6 @@
-﻿namespace Eevee.Fixed
+﻿using Eevee.Fixed;
+
+namespace Eevee.Random
 {
     public interface IRandom
     {

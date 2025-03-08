@@ -1,5 +1,5 @@
-﻿using Eevee.Fixed;
-using Eevee.Log;
+﻿using Eevee.Log;
+using Eevee.Random;
 using System.Collections.Generic;
 
 namespace Eevee.Collection
@@ -22,7 +22,7 @@ namespace Eevee.Collection
             int index = random.GetInt32(0, source.Count);
             return source[index];
         }
-        public static void GetRandomIndexAndItem<T>(this IList<T> source, out int? index, IRandom random, out T item)
+        public static void GetRandomIndexAndItem<T>(this IList<T> source, IRandom random, out int? index, out T item)
         {
             if (source.IsNullOrEmpty())
             {

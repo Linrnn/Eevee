@@ -97,9 +97,12 @@ namespace Eevee.Fixed
 
         #region 隐式转换/显示转换/运算符重载
 #if UNITY_STANDALONE
-        public static implicit operator Quaternions(UnityEngine.Quaternion value) => new(value.x, value.y, value.z, value.w);
+        public static implicit operator Quaternions(in UnityEngine.Quaternion value) => new(value.x, value.y, value.z, value.w);
         public static explicit operator UnityEngine.Quaternion(in Quaternions value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
 #endif
+
+        public static implicit operator Quaternions(in System.Numerics.Quaternion value) => new(value.X, value.Y, value.Z, value.W);
+        public static explicit operator System.Numerics.Quaternion(in Quaternions value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
 
         public static Quaternions operator +(in Quaternions value) => value;
         public static Quaternions operator -(in Quaternions value) => new(-value.X, -value.Y, -value.Z, -value.W);
