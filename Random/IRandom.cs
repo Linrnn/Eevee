@@ -23,8 +23,8 @@ namespace Eevee.Random
         Fixed64 GetRad();
         Fixed64 GetDeg();
 
-        Vector2D GetVector2D(in Vector2D p0, in Vector2D p1);
-        Vector3D GetVector3D(in Vector3D p0, in Vector3D p1);
+        Vector2D GetVector2(in Vector2D p0, in Vector2D p1);
+        Vector3D GetVector3(in Vector3D p0, in Vector3D p1);
         Vector2D InTriangle(in Vector2D p0, in Vector2D p1, in Vector2D p2);
 
         Vector2D OnUnitCircle();
@@ -34,6 +34,6 @@ namespace Eevee.Random
         Vector3D InSphere(Fixed64 radius);
 
         Vector3D GetEulerAngles();
-        Quaternions GetQuaternions();
+        Quaternions GetQuaternion();
     }
 }

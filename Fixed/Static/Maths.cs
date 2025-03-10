@@ -441,12 +441,12 @@ namespace Eevee.Fixed
             while (xrv < Const.One)
             {
                 xrv <<= 1;
-                y -= Const.One;
+                --y;
             }
             while (xrv >= Const.One << 1)
             {
                 xrv >>= 1;
-                y += Const.One;
+                ++y;
             }
 
             var z = new Fixed64(xrv);
@@ -640,9 +640,9 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 LerpCatmullRom(Fixed64 v0, Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 a)
         {
-            var squared = a.Sqr();
-            var cubed = squared * a;
-            return (v1 << 1) + (v2 - v0) * a + ((v0 << 1) - v1 * 5 + (v2 << 2) - v3) * squared + ((v1 - v2) * 3 - v0 + v3) * cubed >> 1;
+            var sqr = a.Sqr();
+            var cube = sqr * a;
+            return (v1 << 1) + (v2 - v0) * a + ((v0 << 1) - v1 * 5 + (v2 << 2) - v3) * sqr + ((v1 - v2) * 3 - v0 + v3) * cube >> 1;
         }
         /// <summary>
         /// Catmull-Rom插值
@@ -683,9 +683,9 @@ namespace Eevee.Fixed
                 case Const.One: return v1;
             }
 
-            var squared = a.Sqr();
-            var cubed = squared * a;
-            return ((v0 - v1 << 1) + t0 + t1) * cubed + ((v1 - v0) * 3 - (t0 << 1) - t1) * squared + t0 * a + v0;
+            var sqr = a.Sqr();
+            var cube = sqr * a;
+            return ((v0 - v1 << 1) + t0 + t1) * cube + ((v1 - v0) * 3 - (t0 << 1) - t1) * sqr + t0 * a + v0;
         }
         /// <summary>
         /// Hermite插值
@@ -793,17 +793,17 @@ namespace Eevee.Fixed
         /// 返回两个向量之间的夹角，返回弧度<br/>
         /// 值域：[-π, π]
         /// </summary>
-        public static Fixed64 SignedAngleRad(in Vector2D from, in Vector2D to) => AngleRad(from, to) * Vector2D.Cross(in from, in to).Sign();
+        public static Fixed64 SignedAngleRad(in Vector2D lhs, in Vector2D rhs) => AngleRad(lhs, rhs) * Vector2D.Cross(in lhs, in rhs).Sign();
         /// <summary>
         /// 返回两个向量之间的夹角，返回弧度<br/>
         /// 值域：[-π, π]
         /// </summary>
-        public static Fixed64 SignedAngleRad(in Vector3D from, in Vector3D to, in Vector3D axis)
+        public static Fixed64 SignedAngleRad(in Vector3D lhs, in Vector3D rhs, in Vector3D axis)
         {
-            var fromNorm = from.Normalized();
-            var toNorm = to.Normalized();
-            var rad = Acos(Vector3D.Dot(in fromNorm, in toNorm));
-            var cross = Vector3D.Cross(in fromNorm, in toNorm);
+            var lshNorm = lhs.Normalized();
+            var rshNorm = rhs.Normalized();
+            var rad = Acos(Vector3D.Dot(in lshNorm, in rshNorm));
+            var cross = Vector3D.Cross(in lshNorm, in rshNorm);
             var dot = Vector3D.Dot(in axis, in cross);
             return rad * dot.Sign();
         }
@@ -821,17 +821,17 @@ namespace Eevee.Fixed
         /// 返回两个向量之间的夹角，返回角度<br/>
         /// 值域：[-180°, 180°]
         /// </summary>
-        public static Fixed64 SignedAngle(in Vector2D from, in Vector2D to) => Angle(from, to) * Vector2D.Cross(in from, in to).Sign();
+        public static Fixed64 SignedAngle(in Vector2D lhs, in Vector2D rhs) => Angle(lhs, rhs) * Vector2D.Cross(in lhs, in rhs).Sign();
         /// <summary>
         /// 返回两个向量之间的夹角，返回角度<br/>
         /// 值域：[-180°, 180°]
         /// </summary>
-        public static Fixed64 SignedAngle(in Vector3D from, in Vector3D to, in Vector3D axis)
+        public static Fixed64 SignedAngle(in Vector3D lhs, in Vector3D rhs, in Vector3D axis)
         {
-            var fromNorm = from.Normalized();
-            var toNorm = to.Normalized();
-            var deg = AcosDeg(Vector3D.Dot(in fromNorm, in toNorm));
-            var cross = Vector3D.Cross(in fromNorm, in toNorm);
+            var lshNorm = lhs.Normalized();
+            var rshNorm = rhs.Normalized();
+            var deg = AcosDeg(Vector3D.Dot(in lshNorm, in rshNorm));
+            var cross = Vector3D.Cross(in lshNorm, in rshNorm);
             var dot = Vector3D.Dot(in axis, in cross);
             return deg * dot.Sign();
         }
@@ -868,18 +868,18 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        #region Vector3D/Quaternions 相互转换
+        #region Vector3D/Quaternions/Matrix3X3 相互转换
         /// <summary>
-        /// 返回以度为单位的旋转欧拉角表示形式
+        /// 返回欧拉角的角度角
         /// </summary>
-        public static Vector3D EulerAngles(in Quaternions quaternions)
+        public static Vector3D EulerAngles(in Quaternions quaternion)
         {
-            var ySqr = quaternions.Y.Sqr();
-            var t0 = Fixed64.One - (ySqr + quaternions.Z.Sqr() << 1);
-            var t1 = quaternions.X * quaternions.Y - quaternions.W * quaternions.Z << 1;
-            var t2 = -quaternions.X * quaternions.Z - quaternions.W * quaternions.Y << 1;
-            var t3 = quaternions.Y * quaternions.Z - quaternions.W * quaternions.X << 1;
-            var t4 = Fixed64.One - (quaternions.X.Sqr() + ySqr << 1);
+            var ySqr = quaternion.Y.Sqr();
+            var t0 = Fixed64.One - (ySqr + quaternion.Z.Sqr() << 1);
+            var t1 = quaternion.X * quaternion.Y - quaternion.W * quaternion.Z << 1;
+            var t2 = -quaternion.X * quaternion.Z - quaternion.W * quaternion.Y << 1;
+            var t3 = quaternion.Y * quaternion.Z - quaternion.W * quaternion.X << 1;
+            var t4 = Fixed64.One - (quaternion.X.Sqr() + ySqr << 1);
 
             return new Vector3D
             {
@@ -889,37 +889,48 @@ namespace Eevee.Fixed
             };
         }
         /// <summary>
-        /// 返回一个旋转，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
+        /// 返回欧拉角的角度角
         /// </summary>
-        public static Quaternions Euler(in Vector3D eulerAngles) => CreateFromYawPitchRollDeg(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
-        /// <summary>
-        /// 返回一个旋转，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
-        /// </summary>
-        public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z) => CreateFromYawPitchRollDeg(y, x, z);
-
-        /// <summary>
-        /// 使用指定的forward和up方向创建旋转
-        /// </summary>
-        public static Quaternions LookRotation(in Vector3D forward) => LookRotation(in forward, in Vector3D.Up);
-        /// <summary>
-        /// 使用指定的forward和upwards方向创建旋转
-        /// </summary>
-        public static Quaternions LookRotation(in Vector3D forward, in Vector3D upwards) => Matrix3X3.CreateFromMatrix(Matrix3X3.LookAt(in forward, in upwards));
-
-        /// <summary>
-        /// 创建一个围绕axis旋转angle度的旋转
-        /// </summary>
-        public static Quaternions AngleAxis(Fixed64 angle, in Vector3D axis)
+        public static Vector3D EulerAngles(in Matrix3X3 matrix) => new()
         {
-            var normal = axis.Normalized();
-            var deg = angle >> 1;
-            return new Quaternions(normal * SinDeg(deg), CosDeg(deg));
+            X = -Atan2Deg(matrix.M21, matrix.M22),
+            Y = -Atan2Deg(-matrix.M20, (matrix.M21.Sqr() + matrix.M22.Sqr()).Sqrt()),
+            Z = -Atan2Deg(matrix.M10, matrix.M00),
+        };
+
+        #region 返回Quaternions
+        /// <summary>
+        /// 返回一个四元数，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
+        /// </summary>
+        public static Quaternions Euler(in Vector3D eulerAngles) => CreateQuaternionDeg(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
+        /// <summary>
+        /// 返回一个四元数，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
+        /// </summary>
+        public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z) => CreateQuaternionDeg(y, x, z);
+
+        /// <summary>
+        /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数
+        /// </summary>
+        public static Quaternions AngleAxisQuaternion(in Vector3D axis, Fixed64 rad)
+        {
+            var half = rad >> 1;
+            var xyz = axis.Normalized() * Sin(half);
+            return new Quaternions(in xyz, Cos(half));
+        }
+        /// <summary>
+        /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数
+        /// </summary>
+        public static Quaternions AngleAxisQuaternionDeg(in Vector3D axis, Fixed64 deg)
+        {
+            var half = deg >> 1;
+            var xyz = axis.Normalized() * SinDeg(half);
+            return new Quaternions(in xyz, CosDeg(half));
         }
 
         /// <summary>
-        /// 输入弧度，从旋转矩阵创建旋转
+        /// 输入弧度，从旋转矩阵创建四元数
         /// </summary>
-        public static Quaternions CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        public static Quaternions CreateQuaternion(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
             var rh = roll >> 1;
             var rs = Sin(rh);
@@ -939,9 +950,9 @@ namespace Eevee.Fixed
             };
         }
         /// <summary>
-        /// 输入角度，从旋转矩阵创建旋转
+        /// 输入角度，从旋转矩阵创建四元数
         /// </summary>
-        public static Quaternions CreateFromYawPitchRollDeg(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        public static Quaternions CreateQuaternionDeg(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
             var rh = roll >> 1;
             var rs = SinDeg(rh);
@@ -960,6 +971,170 @@ namespace Eevee.Fixed
                 W = yc * pc * rc + ys * ps * rs,
             };
         }
+        #endregion
+
+        #region 返回Matrix3X3
+        /// <summary>
+        /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数3*3矩阵
+        /// </summary>
+        public static Matrix3X3 AngleAxisMatrix(in Vector3D axis, Fixed64 rad)
+        {
+            var sin = Sin(rad);
+            var cos = Cos(rad);
+            var xx = axis.X.Sqr();
+            var yy = axis.Y.Sqr();
+            var zz = axis.Z.Sqr();
+            var xy = axis.X * axis.Y;
+            var xz = axis.X * axis.Z;
+            var yz = axis.Y * axis.Z;
+            return new Matrix3X3
+            {
+                M00 = xx + cos * (Fixed64.One - xx),
+                M01 = xy - cos * xy + sin * axis.Z,
+                M02 = xz - cos * xz - sin * axis.Y,
+                M10 = xy - cos * xy - sin * axis.Z,
+                M11 = yy + cos * (Fixed64.One - yy),
+                M12 = yz - cos * yz + sin * axis.X,
+                M20 = xz - cos * xz + sin * axis.Y,
+                M21 = yz - cos * yz - sin * axis.X,
+                M22 = zz + cos * (Fixed64.One - zz),
+            };
+        }
+        /// <summary>
+        /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数3*3矩阵
+        /// </summary>
+        public static Matrix3X3 AngleAxisMatrixDeg(in Vector3D axis, Fixed64 deg)
+        {
+            var sin = SinDeg(deg);
+            var cos = CosDeg(deg);
+            var xx = axis.X.Sqr();
+            var yy = axis.Y.Sqr();
+            var zz = axis.Z.Sqr();
+            var xy = axis.X * axis.Y;
+            var xz = axis.X * axis.Z;
+            var yz = axis.Y * axis.Z;
+            return new Matrix3X3
+            {
+                M00 = xx + cos * (Fixed64.One - xx),
+                M01 = xy - cos * xy + sin * axis.Z,
+                M02 = xz - cos * xz - sin * axis.Y,
+                M10 = xy - cos * xy - sin * axis.Z,
+                M11 = yy + cos * (Fixed64.One - yy),
+                M12 = yz - cos * yz + sin * axis.X,
+                M20 = xz - cos * xz + sin * axis.Y,
+                M21 = yz - cos * yz - sin * axis.X,
+                M22 = zz + cos * (Fixed64.One - zz),
+            };
+        }
+
+        /// <summary>
+        /// 输入弧度，从旋转矩阵创建3*3矩阵
+        /// </summary>
+        public static Matrix3X3 CreateMatrix(Fixed64 yaw, Fixed64 pitch, Fixed64 roll) => Matrix3X3.Create(CreateQuaternion(yaw, pitch, roll));
+
+        public static Matrix3X3 CreateRotationX(Fixed64 rad)
+        {
+            var cos = Cos(rad);
+            var sin = Sin(rad);
+            return new Matrix3X3
+            {
+                M00 = Fixed64.One,
+                M01 = Fixed64.Zero,
+                M02 = Fixed64.Zero,
+                M10 = Fixed64.Zero,
+                M11 = cos,
+                M12 = sin,
+                M20 = Fixed64.Zero,
+                M21 = -sin,
+                M22 = cos,
+            };
+        }
+        public static Matrix3X3 CreateRotationY(Fixed64 rad)
+        {
+            var cos = Cos(rad);
+            var sin = Sin(rad);
+            return new Matrix3X3
+            {
+                M00 = cos,
+                M01 = Fixed64.Zero,
+                M02 = -sin,
+                M10 = Fixed64.Zero,
+                M11 = Fixed64.One,
+                M12 = Fixed64.Zero,
+                M20 = sin,
+                M21 = Fixed64.Zero,
+                M22 = cos,
+            };
+        }
+        public static Matrix3X3 CreateRotationZ(Fixed64 rad)
+        {
+            var cos = Cos(rad);
+            var sin = Sin(rad);
+            return new Matrix3X3
+            {
+                M00 = cos,
+                M01 = sin,
+                M02 = Fixed64.Zero,
+                M10 = -sin,
+                M11 = cos,
+                M12 = Fixed64.Zero,
+                M20 = Fixed64.Zero,
+                M21 = Fixed64.Zero,
+                M22 = Fixed64.One,
+            };
+        }
+        public static Matrix3X3 CreateRotationXDeg(Fixed64 deg)
+        {
+            var cos = CosDeg(deg);
+            var sin = SinDeg(deg);
+            return new Matrix3X3
+            {
+                M00 = Fixed64.One,
+                M01 = Fixed64.Zero,
+                M02 = Fixed64.Zero,
+                M10 = Fixed64.Zero,
+                M11 = cos,
+                M12 = sin,
+                M20 = Fixed64.Zero,
+                M21 = -sin,
+                M22 = cos,
+            };
+        }
+        public static Matrix3X3 CreateRotationYDeg(Fixed64 deg)
+        {
+            var cos = CosDeg(deg);
+            var sin = SinDeg(deg);
+            return new Matrix3X3
+            {
+                M00 = cos,
+                M01 = Fixed64.Zero,
+                M02 = -sin,
+                M10 = Fixed64.Zero,
+                M11 = Fixed64.One,
+                M12 = Fixed64.Zero,
+                M20 = sin,
+                M21 = Fixed64.Zero,
+                M22 = cos,
+            };
+        }
+        public static Matrix3X3 CreateRotationZDeg(Fixed64 deg)
+        {
+            var cos = CosDeg(deg);
+            var sin = SinDeg(deg);
+            return new Matrix3X3
+            {
+                M00 = cos,
+                M01 = sin,
+                M02 = Fixed64.Zero,
+                M10 = -sin,
+                M11 = cos,
+                M12 = Fixed64.Zero,
+                M20 = Fixed64.Zero,
+                M21 = Fixed64.Zero,
+                M22 = Fixed64.One,
+            };
+        }
+        #endregion
         #endregion
     }
 }

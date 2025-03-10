@@ -97,6 +97,10 @@ namespace Eevee.Fixed
         /// 平方，2次方
         /// </summary>
         public readonly Fixed64 Sqr() => this * this;
+        /// <summary>
+        /// 立方，3次方
+        /// </summary>
+        public readonly Fixed64 Cube() => this * this * this;
 
         /// <summary>
         /// 区间[0, 1]值更正（如果出区间，值取最近）

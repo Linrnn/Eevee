@@ -1,830 +1,465 @@
-﻿/* Copyright (C) <2009-2011> <Thorben Linneweber, Jitter Physics>
- *
- *  This software is provided 'as-is', without any express or implied
- *  warranty.  In no event will the authors be held liable for any damages
- *  arising from the use of this software.
- *
- *  Permission is granted to anyone to use this software for any purpose,
- *  including commercial applications, and to alter it and redistribute it
- *  freely, subject to the following restrictions:
- *
- *  1. The origin of this software must not be misrepresented; you must not
- *      claim that you wrote the original software. If you use this software
- *      in a product, an acknowledgment in the product documentation would be
- *      appreciated but is not required.
- *  2. Altered source versions must be plainly marked as such, and must not be
- *      misrepresented as being the original software.
- *  3. This notice may not be removed or altered from any source distribution.
- */
-
-using System;
+﻿using System;
 
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 3x3 Matrix.
+    /// 确定性的3*3矩阵
     /// </summary>
     [Serializable]
-    public struct Matrix3X3 : IEquatable<Matrix3X3>, IComparable<Matrix3X3>
+    public struct Matrix3X3 : IEquatable<Matrix3X3>, IComparable<Matrix3X3>, IFormattable
     {
-        /// <summary>
-        /// M11
-        /// </summary>
-        public Fixed64 M11; // 1st row vector
-        /// <summary>
-        /// M12
-        /// </summary>
-        public Fixed64 M12;
-        /// <summary>
-        /// M13
-        /// </summary>
-        public Fixed64 M13;
-        /// <summary>
-        /// M21
-        /// </summary>
-        public Fixed64 M21; // 2nd row vector
-        /// <summary>
-        /// M22
-        /// </summary>
-        public Fixed64 M22;
-        /// <summary>
-        /// M23
-        /// </summary>
-        public Fixed64 M23;
-        /// <summary>
-        /// M31
-        /// </summary>
-        public Fixed64 M31; // 3rd row vector
-        /// <summary>
-        /// M32
-        /// </summary>
-        public Fixed64 M32;
-        /// <summary>
-        /// M33
-        /// </summary>
-        public Fixed64 M33;
-
-        internal static Matrix3X3 InternalIdentity;
-
-        /// <summary>
-        /// Identity matrix.
-        /// </summary>
-        public static readonly Matrix3X3 Identity;
-        public static readonly Matrix3X3 Zero;
-
-        static Matrix3X3()
+        #region 字段/初始化
+        public static readonly Matrix3X3 Zero = new();
+        public static readonly Matrix3X3 Identity = new()
         {
-            Zero = new Matrix3X3();
-
-            Identity = new Matrix3X3();
-            Identity.M11 = Fixed64.One;
-            Identity.M22 = Fixed64.One;
-            Identity.M33 = Fixed64.One;
-
-            InternalIdentity = Identity;
-        }
-
-        public Vector3D eulerAngles
-        {
-            get
-            {
-                var result = new Vector3D();
-                result.X = -Maths.Atan2Deg(M32, M33);
-                result.Y = -Maths.Atan2Deg(-M31, (M32.Sqr() + M33.Sqr()).Sqrt());
-                result.Z = -Maths.Atan2Deg(M21, M11);
-                return result;
-            }
-        }
-
-        public static Matrix3X3 CreateFromYawPitchRoll(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
-        {
-            var quaternion = Maths.CreateFromYawPitchRoll(yaw, pitch, roll);
-            CreateFromQuaternion(ref quaternion, out var matrix);
-            return matrix;
-        }
-
-        public static Matrix3X3 CreateRotationX(Fixed64 radians)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            Matrix3X3 matrix;
-            matrix.M11 = Fixed64.One;
-            matrix.M12 = Fixed64.Zero;
-            matrix.M13 = Fixed64.Zero;
-            matrix.M21 = Fixed64.Zero;
-            matrix.M22 = cos;
-            matrix.M23 = sin;
-            matrix.M31 = Fixed64.Zero;
-            matrix.M32 = -sin;
-            matrix.M33 = cos;
-            return matrix;
-        }
-
-        public static void CreateRotationX(Fixed64 radians, out Matrix3X3 result)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            result.M11 = Fixed64.One;
-            result.M12 = Fixed64.Zero;
-            result.M13 = Fixed64.Zero;
-            result.M21 = Fixed64.Zero;
-            result.M22 = cos;
-            result.M23 = sin;
-            result.M31 = Fixed64.Zero;
-            result.M32 = -sin;
-            result.M33 = cos;
-        }
-
-        public static Matrix3X3 CreateRotationY(Fixed64 radians)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            Matrix3X3 matrix;
-            matrix.M11 = cos;
-            matrix.M12 = Fixed64.Zero;
-            matrix.M13 = -sin;
-            matrix.M21 = Fixed64.Zero;
-            matrix.M22 = Fixed64.One;
-            matrix.M23 = Fixed64.Zero;
-            matrix.M31 = sin;
-            matrix.M32 = Fixed64.Zero;
-            matrix.M33 = cos;
-            return matrix;
-        }
-
-        public static void CreateRotationY(Fixed64 radians, out Matrix3X3 result)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            result.M11 = cos;
-            result.M12 = Fixed64.Zero;
-            result.M13 = -sin;
-            result.M21 = Fixed64.Zero;
-            result.M22 = Fixed64.One;
-            result.M23 = Fixed64.Zero;
-            result.M31 = sin;
-            result.M32 = Fixed64.Zero;
-            result.M33 = cos;
-        }
-
-        public static Matrix3X3 CreateRotationZ(Fixed64 radians)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            Matrix3X3 matrix;
-            matrix.M11 = cos;
-            matrix.M12 = sin;
-            matrix.M13 = Fixed64.Zero;
-            matrix.M21 = -sin;
-            matrix.M22 = cos;
-            matrix.M23 = Fixed64.Zero;
-            matrix.M31 = Fixed64.Zero;
-            matrix.M32 = Fixed64.Zero;
-            matrix.M33 = Fixed64.One;
-            return matrix;
-        }
-
-        public static void CreateRotationZ(Fixed64 radians, out Matrix3X3 result)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            result.M11 = cos;
-            result.M12 = sin;
-            result.M13 = Fixed64.Zero;
-            result.M21 = -sin;
-            result.M22 = cos;
-            result.M23 = Fixed64.Zero;
-            result.M31 = Fixed64.Zero;
-            result.M32 = Fixed64.Zero;
-            result.M33 = Fixed64.One;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the matrix structure.
-        /// </summary>
-        /// <param name="m11">m11</param>
-        /// <param name="m12">m12</param>
-        /// <param name="m13">m13</param>
-        /// <param name="m21">m21</param>
-        /// <param name="m22">m22</param>
-        /// <param name="m23">m23</param>
-        /// <param name="m31">m31</param>
-        /// <param name="m32">m32</param>
-        /// <param name="m33">m33</param>
-
-        #region public JMatrix(FP m11, FP m12, FP m13, FP m21, FP m22, FP m23,FP m31, FP m32, FP m33)
-        public Matrix3X3(Fixed64 m11, Fixed64 m12, Fixed64 m13, Fixed64 m21, Fixed64 m22, Fixed64 m23, Fixed64 m31, Fixed64 m32, Fixed64 m33)
-        {
-            this.M11 = m11;
-            this.M12 = m12;
-            this.M13 = m13;
-            this.M21 = m21;
-            this.M22 = m22;
-            this.M23 = m23;
-            this.M31 = m31;
-            this.M32 = m32;
-            this.M33 = m33;
-        }
-        #endregion
-
-        /// <summary>
-        /// Gets the determinant of the matrix.
-        /// </summary>
-        /// <returns>The determinant of the matrix.</returns>
-
-        #region public FP Determinant()
-        //public FP Determinant()
-        //{
-        //    return M11 * M22 * M33 -M11 * M23 * M32 -M12 * M21 * M33 +M12 * M23 * M31 + M13 * M21 * M32 - M13 * M22 * M31;
-        //}
-        #endregion
-
-        /// <summary>
-        /// Multiply two matrices. Notice: matrix multiplication is not commutative.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <returns>The product of both matrices.</returns>
-
-        #region public static JMatrix Multiply(JMatrix matrix1, JMatrix matrix2)
-        public static Matrix3X3 Multiply(Matrix3X3 matrix1, Matrix3X3 matrix2)
-        {
-            Matrix3X3 result;
-            Matrix3X3.Multiply(ref matrix1, ref matrix2, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Multiply two matrices. Notice: matrix multiplication is not commutative.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <param name="result">The product of both matrices.</param>
-        public static void Multiply(ref Matrix3X3 matrix1, ref Matrix3X3 matrix2, out Matrix3X3 result)
-        {
-            Fixed64 num0 = ((matrix1.M11 * matrix2.M11) + (matrix1.M12 * matrix2.M21)) + (matrix1.M13 * matrix2.M31);
-            Fixed64 num1 = ((matrix1.M11 * matrix2.M12) + (matrix1.M12 * matrix2.M22)) + (matrix1.M13 * matrix2.M32);
-            Fixed64 num2 = ((matrix1.M11 * matrix2.M13) + (matrix1.M12 * matrix2.M23)) + (matrix1.M13 * matrix2.M33);
-            Fixed64 num3 = ((matrix1.M21 * matrix2.M11) + (matrix1.M22 * matrix2.M21)) + (matrix1.M23 * matrix2.M31);
-            Fixed64 num4 = ((matrix1.M21 * matrix2.M12) + (matrix1.M22 * matrix2.M22)) + (matrix1.M23 * matrix2.M32);
-            Fixed64 num5 = ((matrix1.M21 * matrix2.M13) + (matrix1.M22 * matrix2.M23)) + (matrix1.M23 * matrix2.M33);
-            Fixed64 num6 = ((matrix1.M31 * matrix2.M11) + (matrix1.M32 * matrix2.M21)) + (matrix1.M33 * matrix2.M31);
-            Fixed64 num7 = ((matrix1.M31 * matrix2.M12) + (matrix1.M32 * matrix2.M22)) + (matrix1.M33 * matrix2.M32);
-            Fixed64 num8 = ((matrix1.M31 * matrix2.M13) + (matrix1.M32 * matrix2.M23)) + (matrix1.M33 * matrix2.M33);
-
-            result.M11 = num0;
-            result.M12 = num1;
-            result.M13 = num2;
-            result.M21 = num3;
-            result.M22 = num4;
-            result.M23 = num5;
-            result.M31 = num6;
-            result.M32 = num7;
-            result.M33 = num8;
-        }
-        #endregion
-
-        /// <summary>
-        /// Matrices are added.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <returns>The sum of both matrices.</returns>
-
-        #region public static JMatrix Add(JMatrix matrix1, JMatrix matrix2)
-        public static Matrix3X3 Add(Matrix3X3 matrix1, Matrix3X3 matrix2)
-        {
-            Matrix3X3 result;
-            Matrix3X3.Add(ref matrix1, ref matrix2, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Matrices are added.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <param name="result">The sum of both matrices.</param>
-        public static void Add(ref Matrix3X3 matrix1, ref Matrix3X3 matrix2, out Matrix3X3 result)
-        {
-            result.M11 = matrix1.M11 + matrix2.M11;
-            result.M12 = matrix1.M12 + matrix2.M12;
-            result.M13 = matrix1.M13 + matrix2.M13;
-            result.M21 = matrix1.M21 + matrix2.M21;
-            result.M22 = matrix1.M22 + matrix2.M22;
-            result.M23 = matrix1.M23 + matrix2.M23;
-            result.M31 = matrix1.M31 + matrix2.M31;
-            result.M32 = matrix1.M32 + matrix2.M32;
-            result.M33 = matrix1.M33 + matrix2.M33;
-        }
-        #endregion
-
-        /// <summary>
-        /// Calculates the inverse of a give matrix.
-        /// </summary>
-        /// <param name="matrix">The matrix to invert.</param>
-        /// <returns>The inverted JMatrix.</returns>
-
-        #region public static JMatrix Inverse(JMatrix matrix)
-        public static Matrix3X3 Inverse(Matrix3X3 matrix)
-        {
-            Matrix3X3 result;
-            Matrix3X3.Inverse(ref matrix, out result);
-            return result;
-        }
-
-        public Fixed64 Determinant()
-        {
-            return M11 * M22 * M33 + M12 * M23 * M31 + M13 * M21 * M32 - M31 * M22 * M13 - M32 * M23 * M11 - M33 * M21 * M12;
-        }
-
-        public static void Invert(ref Matrix3X3 matrix, out Matrix3X3 result)
-        {
-            Fixed64 determinantInverse = 1 / matrix.Determinant();
-            Fixed64 m11 = (matrix.M22 * matrix.M33 - matrix.M23 * matrix.M32) * determinantInverse;
-            Fixed64 m12 = (matrix.M13 * matrix.M32 - matrix.M33 * matrix.M12) * determinantInverse;
-            Fixed64 m13 = (matrix.M12 * matrix.M23 - matrix.M22 * matrix.M13) * determinantInverse;
-
-            Fixed64 m21 = (matrix.M23 * matrix.M31 - matrix.M21 * matrix.M33) * determinantInverse;
-            Fixed64 m22 = (matrix.M11 * matrix.M33 - matrix.M13 * matrix.M31) * determinantInverse;
-            Fixed64 m23 = (matrix.M13 * matrix.M21 - matrix.M11 * matrix.M23) * determinantInverse;
-
-            Fixed64 m31 = (matrix.M21 * matrix.M32 - matrix.M22 * matrix.M31) * determinantInverse;
-            Fixed64 m32 = (matrix.M12 * matrix.M31 - matrix.M11 * matrix.M32) * determinantInverse;
-            Fixed64 m33 = (matrix.M11 * matrix.M22 - matrix.M12 * matrix.M21) * determinantInverse;
-
-            result.M11 = m11;
-            result.M12 = m12;
-            result.M13 = m13;
-
-            result.M21 = m21;
-            result.M22 = m22;
-            result.M23 = m23;
-
-            result.M31 = m31;
-            result.M32 = m32;
-            result.M33 = m33;
-        }
-
-        /// <summary>
-        /// Calculates the inverse of a give matrix.
-        /// </summary>
-        /// <param name="matrix">The matrix to invert.</param>
-        /// <param name="result">The inverted JMatrix.</param>
-        public static void Inverse(ref Matrix3X3 matrix, out Matrix3X3 result)
-        {
-            Fixed64 det = 1024 * matrix.M11 * matrix.M22 * matrix.M33 - 1024 * matrix.M11 * matrix.M23 * matrix.M32 - 1024 * matrix.M12 * matrix.M21 * matrix.M33 + 1024 * matrix.M12 * matrix.M23 * matrix.M31 + 1024 * matrix.M13 * matrix.M21 * matrix.M32 - 1024 * matrix.M13 * matrix.M22 * matrix.M31;
-
-            Fixed64 num11 = 1024 * matrix.M22 * matrix.M33 - 1024 * matrix.M23 * matrix.M32;
-            Fixed64 num12 = 1024 * matrix.M13 * matrix.M32 - 1024 * matrix.M12 * matrix.M33;
-            Fixed64 num13 = 1024 * matrix.M12 * matrix.M23 - 1024 * matrix.M22 * matrix.M13;
-
-            Fixed64 num21 = 1024 * matrix.M23 * matrix.M31 - 1024 * matrix.M33 * matrix.M21;
-            Fixed64 num22 = 1024 * matrix.M11 * matrix.M33 - 1024 * matrix.M31 * matrix.M13;
-            Fixed64 num23 = 1024 * matrix.M13 * matrix.M21 - 1024 * matrix.M23 * matrix.M11;
-
-            Fixed64 num31 = 1024 * matrix.M21 * matrix.M32 - 1024 * matrix.M31 * matrix.M22;
-            Fixed64 num32 = 1024 * matrix.M12 * matrix.M31 - 1024 * matrix.M32 * matrix.M11;
-            Fixed64 num33 = 1024 * matrix.M11 * matrix.M22 - 1024 * matrix.M21 * matrix.M12;
-
-            if (det == 0)
-            {
-                result.M11 = Fixed64.Infinity;
-                result.M12 = Fixed64.Infinity;
-                result.M13 = Fixed64.Infinity;
-                result.M21 = Fixed64.Infinity;
-                result.M22 = Fixed64.Infinity;
-                result.M23 = Fixed64.Infinity;
-                result.M31 = Fixed64.Infinity;
-                result.M32 = Fixed64.Infinity;
-                result.M33 = Fixed64.Infinity;
-            }
-            else
-            {
-                result.M11 = num11 / det;
-                result.M12 = num12 / det;
-                result.M13 = num13 / det;
-                result.M21 = num21 / det;
-                result.M22 = num22 / det;
-                result.M23 = num23 / det;
-                result.M31 = num31 / det;
-                result.M32 = num32 / det;
-                result.M33 = num33 / det;
-            }
-        }
-        #endregion
-
-        /// <summary>
-        /// Multiply a matrix by a scalefactor.
-        /// </summary>
-        /// <param name="matrix1">The matrix.</param>
-        /// <param name="scaleFactor">The scale factor.</param>
-        /// <returns>A JMatrix multiplied by the scale factor.</returns>
-
-        #region public static JMatrix Multiply(JMatrix matrix1, FP scaleFactor)
-        public static Matrix3X3 Multiply(Matrix3X3 matrix1, Fixed64 scaleFactor)
-        {
-            Matrix3X3 result;
-            Matrix3X3.Multiply(ref matrix1, scaleFactor, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Multiply a matrix by a scalefactor.
-        /// </summary>
-        /// <param name="matrix1">The matrix.</param>
-        /// <param name="scaleFactor">The scale factor.</param>
-        /// <param name="result">A JMatrix multiplied by the scale factor.</param>
-        public static void Multiply(ref Matrix3X3 matrix1, Fixed64 scaleFactor, out Matrix3X3 result)
-        {
-            Fixed64 num = scaleFactor;
-            result.M11 = matrix1.M11 * num;
-            result.M12 = matrix1.M12 * num;
-            result.M13 = matrix1.M13 * num;
-            result.M21 = matrix1.M21 * num;
-            result.M22 = matrix1.M22 * num;
-            result.M23 = matrix1.M23 * num;
-            result.M31 = matrix1.M31 * num;
-            result.M32 = matrix1.M32 * num;
-            result.M33 = matrix1.M33 * num;
-        }
-        #endregion
-
-        /// <summary>
-        /// Creates a JMatrix representing an orientation from a quaternion.
-        /// </summary>
-        /// <param name="quaternion">The quaternion the matrix should be created from.</param>
-        /// <returns>JMatrix representing an orientation.</returns>
-
-        #region public static JMatrix CreateFromQuaternion(JQuaternion quaternion)
-        public static Matrix3X3 CreateFromLookAt(Vector3D position, Vector3D target)
-        {
-            LookAt(target - position, Vector3D.Up, out var result);
-            return result;
-        }
-
-        public static Matrix3X3 LookAt(in Vector3D forward, in Vector3D upwards)
-        {
-            Matrix3X3 result;
-            LookAt(forward, upwards, out result);
-
-            return result;
-        }
-
-        public static void LookAt(Vector3D forward, Vector3D upwards, out Matrix3X3 result)
-        {
-            Vector3D zaxis = forward;
-            zaxis.Normalize();
-            Vector3D xaxis = Vector3D.Cross(upwards, zaxis);
-            xaxis.Normalize();
-            Vector3D yaxis = Vector3D.Cross(zaxis, xaxis);
-
-            result.M11 = xaxis.X;
-            result.M21 = yaxis.X;
-            result.M31 = zaxis.X;
-            result.M12 = xaxis.Y;
-            result.M22 = yaxis.Y;
-            result.M32 = zaxis.Y;
-            result.M13 = xaxis.Z;
-            result.M23 = yaxis.Z;
-            result.M33 = zaxis.Z;
-        }
-
-        public static Matrix3X3 CreateFromQuaternion(Quaternions quaternions)
-        {
-            Matrix3X3 result;
-            Matrix3X3.CreateFromQuaternion(ref quaternions, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a JMatrix representing an orientation from a quaternion.
-        /// </summary>
-        /// <param name="quaternions">The quaternion the matrix should be created from.</param>
-        /// <param name="result">JMatrix representing an orientation.</param>
-        public static void CreateFromQuaternion(ref Quaternions quaternions, out Matrix3X3 result)
-        {
-            Fixed64 num9 = quaternions.X * quaternions.X;
-            Fixed64 num8 = quaternions.Y * quaternions.Y;
-            Fixed64 num7 = quaternions.Z * quaternions.Z;
-            Fixed64 num6 = quaternions.X * quaternions.Y;
-            Fixed64 num5 = quaternions.Z * quaternions.W;
-            Fixed64 num4 = quaternions.Z * quaternions.X;
-            Fixed64 num3 = quaternions.Y * quaternions.W;
-            Fixed64 num2 = quaternions.Y * quaternions.Z;
-            Fixed64 num = quaternions.X * quaternions.W;
-            result.M11 = Fixed64.One - (2 * (num8 + num7));
-            result.M12 = 2 * (num6 + num5);
-            result.M13 = 2 * (num4 - num3);
-            result.M21 = 2 * (num6 - num5);
-            result.M22 = Fixed64.One - (2 * (num7 + num9));
-            result.M23 = 2 * (num2 + num);
-            result.M31 = 2 * (num4 + num3);
-            result.M32 = 2 * (num2 - num);
-            result.M33 = Fixed64.One - (2 * (num8 + num9));
-        }
-        #endregion
-
-        /// <summary>
-        /// Creates the transposed matrix.
-        /// </summary>
-        /// <param name="matrix">The matrix which should be transposed.</param>
-        /// <returns>The transposed JMatrix.</returns>
-
-        #region public static JMatrix Transpose(JMatrix matrix)
-        public static Matrix3X3 Transpose(Matrix3X3 matrix)
-        {
-            Matrix3X3 result;
-            Matrix3X3.Transpose(ref matrix, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates the transposed matrix.
-        /// </summary>
-        /// <param name="matrix">The matrix which should be transposed.</param>
-        /// <param name="result">The transposed JMatrix.</param>
-        public static void Transpose(ref Matrix3X3 matrix, out Matrix3X3 result)
-        {
-            result.M11 = matrix.M11;
-            result.M12 = matrix.M21;
-            result.M13 = matrix.M31;
-            result.M21 = matrix.M12;
-            result.M22 = matrix.M22;
-            result.M23 = matrix.M32;
-            result.M31 = matrix.M13;
-            result.M32 = matrix.M23;
-            result.M33 = matrix.M33;
-        }
-        #endregion
-
-        /// <summary>
-        /// Multiplies two matrices.
-        /// </summary>
-        /// <param name="value1">The first matrix.</param>
-        /// <param name="value2">The second matrix.</param>
-        /// <returns>The product of both values.</returns>
-
-        #region public static JMatrix operator *(JMatrix value1,JMatrix value2)
-        public static Matrix3X3 operator *(Matrix3X3 value1, Matrix3X3 value2)
-        {
-            Matrix3X3 result;
-            Matrix3X3.Multiply(ref value1, ref value2, out result);
-            return result;
-        }
-        #endregion
-
-        /// <summary>
-        /// 3x3矩阵所有值取绝对值
-        /// </summary>
-        public Matrix3X3 Absolute() => new()
-        {
-            M11 = M11.Abs(),
-            M12 = M12.Abs(),
-            M13 = M13.Abs(),
-            M21 = M21.Abs(),
-            M22 = M22.Abs(),
-            M23 = M23.Abs(),
-            M31 = M31.Abs(),
-            M32 = M32.Abs(),
-            M33 = M33.Abs(),
+            M00 = Fixed64.One,
+            M11 = Fixed64.One,
+            M22 = Fixed64.One,
         };
 
-        public Fixed64 Trace()
+        public Fixed64 M00;
+        public Fixed64 M01;
+        public Fixed64 M02;
+        public Fixed64 M10;
+        public Fixed64 M11;
+        public Fixed64 M12;
+        public Fixed64 M20;
+        public Fixed64 M21;
+        public Fixed64 M22;
+
+        public Matrix3X3(Fixed64 m00, Fixed64 m01, Fixed64 m02, Fixed64 m10, Fixed64 m11, Fixed64 m12, Fixed64 m20, Fixed64 m21, Fixed64 m22)
         {
-            return this.M11 + this.M22 + this.M33;
+            M00 = m00;
+            M01 = m01;
+            M02 = m02;
+            M10 = m10;
+            M11 = m11;
+            M12 = m12;
+            M20 = m20;
+            M21 = m21;
+            M22 = m22;
+        }
+        public Matrix3X3(in Vector3D m0, in Vector3D m1, in Vector3D m2)
+        {
+            M00 = m0.X;
+            M01 = m0.Y;
+            M02 = m0.Z;
+            M10 = m1.X;
+            M11 = m1.Y;
+            M12 = m1.Z;
+            M20 = m2.X;
+            M21 = m2.Y;
+            M22 = m2.Z;
         }
 
-        /// <summary>
-        /// Adds two matrices.
-        /// </summary>
-        /// <param name="value1">The first matrix.</param>
-        /// <param name="value2">The second matrix.</param>
-        /// <returns>The sum of both values.</returns>
-
-        #region public static JMatrix operator +(JMatrix value1, JMatrix value2)
-        public static Matrix3X3 operator +(Matrix3X3 value1, Matrix3X3 value2)
+        public Fixed64 this[int row, int column]
         {
-            Matrix3X3 result;
-            Matrix3X3.Add(ref value1, ref value2, out result);
-            return result;
+            readonly get => this[row + column * 3];
+            set => this[row + column * 3] = value;
+        }
+        public Fixed64 this[int index]
+        {
+            readonly get => index switch
+            {
+                0 => M00,
+                1 => M10,
+                2 => M20,
+                3 => M01,
+                4 => M11,
+                5 => M21,
+                6 => M02,
+                7 => M12,
+                8 => M22,
+                _ => throw new IndexOutOfRangeException($"Invalid Matrix3X3 index:{index}!"),
+            };
+            set
+            {
+                switch (index)
+                {
+                    case 0: M00 = value; break;
+                    case 1: M10 = value; break;
+                    case 2: M20 = value; break;
+                    case 3: M01 = value; break;
+                    case 4: M11 = value; break;
+                    case 5: M21 = value; break;
+                    case 6: M02 = value; break;
+                    case 7: M12 = value; break;
+                    case 8: M22 = value; break;
+                    default: throw new IndexOutOfRangeException($"Invalid Matrix3X3 index:{index}!");
+                }
+            }
         }
         #endregion
 
+        #region 基础方法
         /// <summary>
-        /// Subtracts two matrices.
+        /// 迹数，矩阵的迹
         /// </summary>
-        /// <param name="value1">The first matrix.</param>
-        /// <param name="value2">The second matrix.</param>
-        /// <returns>The difference of both values.</returns>
+        public readonly Fixed64 Trace() => M00 + M11 + M22;
+        /// <summary>
+        /// 行列式
+        /// </summary>
+        public readonly Fixed64 Determinant() => M00 * M11 * M22 + M01 * M12 * M20 + M02 * M10 * M21 - M02 * M11 * M20 - M00 * M12 * M21 - M01 * M10 * M22;
 
-        #region public static JMatrix operator -(JMatrix value1, JMatrix value2)
-        public static Matrix3X3 operator -(Matrix3X3 value1, Matrix3X3 value2)
+        /// <summary>
+        /// 转换向量
+        /// </summary>
+        public readonly Vector3D Transform(in Vector3D position) => new()
         {
-            Matrix3X3 result;
-            Matrix3X3.Multiply(ref value2, -Fixed64.One, out value2);
-            Matrix3X3.Add(ref value1, ref value2, out result);
-            return result;
+            X = position.X * M00 + position.Y * M10 + position.Z * M20,
+            Y = position.X * M01 + position.Y * M11 + position.Z * M21,
+            Z = position.X * M02 + position.Y * M12 + position.Z * M22,
+        };
+        /// <summary>
+        /// 转置转换向量
+        /// </summary>
+        public readonly Vector3D TransposedTransform(in Vector3D position) => new()
+        {
+            X = position.X * M00 + position.Y * M01 + position.Z * M02,
+            Y = position.X * M10 + position.Y * M11 + position.Z * M12,
+            Z = position.X * M20 + position.Y * M21 + position.Z * M22,
+        };
+
+        /// <summary>
+        /// 转换成四元数
+        /// </summary>
+        public readonly Quaternions AsQuaternion()
+        {
+            var trace = Trace();
+
+            if (trace > Fixed64.Zero)
+            {
+                var sqrt = (trace + Fixed64.One).Sqrt();
+                var half = Fixed64.Half / sqrt;
+                return new Quaternions
+                {
+                    W = sqrt >> 1,
+                    X = (M12 - M21) * half,
+                    Y = (M20 - M02) * half,
+                    Z = (M01 - M10) * half,
+                };
+            }
+
+            if (M00 >= M11 && M00 >= M22)
+            {
+                var sqrt = (Fixed64.One + M00 - M11 - M22).Sqrt();
+                var half = Fixed64.Half / sqrt;
+                return new Quaternions
+                {
+                    X = sqrt >> 1,
+                    Y = (M01 + M10) * half,
+                    Z = (M20 + M02) * half,
+                    W = (M12 - M21) * half,
+                };
+            }
+
+            if (M11 > M22)
+            {
+                var sqrt = (Fixed64.One + M11 - M00 - M22).Sqrt();
+                var half = Fixed64.Half / sqrt;
+                return new Quaternions
+                {
+                    X = (M01 + M10) * half,
+                    Y = sqrt >> 1,
+                    Z = (M21 + M12) * half,
+                    W = (M20 - M02) * half,
+                };
+            }
+
+            {
+                var sqrt = (Fixed64.One + M22 - M00 - M11).Sqrt();
+                var half = Fixed64.Half / sqrt;
+                return new Quaternions
+                {
+                    X = (M20 + M02) * half,
+                    Y = (M21 + M12) * half,
+                    Z = sqrt >> 1,
+                    W = (M01 - M10) * half,
+                };
+            }
+        }
+        /// <summary>
+        /// 使用指定的“forward”和“upwards”方向创建四元数
+        /// </summary>
+        public static Quaternions LookRotation(in Vector3D forward) => LookRotation(in forward, in Vector3D.Up);
+        /// <summary>
+        /// 使用指定的“forward”和“upwards”方向创建四元数
+        /// </summary>
+        public static Quaternions LookRotation(in Vector3D forward, in Vector3D upwards) => LookAt(in forward, in upwards).AsQuaternion();
+
+        /// <summary>
+        /// 绝对值
+        /// </summary>
+        public readonly Matrix3X3 Abs() => new()
+        {
+            M00 = M00.Abs(),
+            M01 = M01.Abs(),
+            M02 = M02.Abs(),
+            M10 = M10.Abs(),
+            M11 = M11.Abs(),
+            M12 = M12.Abs(),
+            M20 = M20.Abs(),
+            M21 = M21.Abs(),
+            M22 = M22.Abs(),
+        };
+        /// <summary>
+        /// 转置
+        /// </summary>
+        public readonly Matrix3X3 Transpose() => new()
+        {
+            M00 = M00,
+            M01 = M10,
+            M02 = M20,
+            M10 = M01,
+            M11 = M11,
+            M12 = M21,
+            M20 = M02,
+            M21 = M12,
+            M22 = M22,
+        };
+        /// <summary>
+        /// 反转
+        /// </summary>
+        public readonly Matrix3X3 Inverse()
+        {
+            var determinant = Determinant();
+            if (determinant == Fixed64.Zero)
+                return new Matrix3X3(in Vector3D.Infinity, in Vector3D.Infinity, in Vector3D.Infinity);
+
+            var reciprocal = determinant.Reciprocal();
+            return new Matrix3X3
+            {
+                M00 = (M11 * M22 - M12 * M21) * reciprocal,
+                M01 = (M02 * M21 - M01 * M22) * reciprocal,
+                M02 = (M01 * M12 - M11 * M02) * reciprocal,
+                M10 = (M12 * M20 - M22 * M10) * reciprocal,
+                M11 = (M00 * M22 - M20 * M02) * reciprocal,
+                M12 = (M02 * M10 - M12 * M00) * reciprocal,
+                M20 = (M10 * M21 - M20 * M11) * reciprocal,
+                M21 = (M01 * M20 - M21 * M00) * reciprocal,
+                M22 = (M00 * M11 - M10 * M01) * reciprocal,
+            };
+        }
+        /// <summary>
+        /// 创建“LookAt”矩阵
+        /// </summary>
+        public static Matrix3X3 LookAtUp(in Vector3D from, in Vector3D to) => LookAt(to - from, in Vector3D.Up);
+        /// <summary>
+        /// 创建“LookAt”矩阵
+        /// </summary>
+        public static Matrix3X3 LookAt(in Vector3D forward, in Vector3D upwards)
+        {
+            var m2 = forward.Normalized();
+            var m0 = Vector3D.Cross(in upwards, in m2).Normalized();
+            var m1 = Vector3D.Cross(in m2, in m0);
+            return new Matrix3X3(in m0, in m1, in m2);
+        }
+        /// <summary>
+        /// 输入四元数，从旋转矩阵创建3*3矩阵
+        /// </summary>
+        public static Matrix3X3 Create(in Quaternions quaternion)
+        {
+            var xx = quaternion.X.Sqr();
+            var yy = quaternion.Y.Sqr();
+            var zz = quaternion.Z.Sqr();
+            var xy = quaternion.X * quaternion.Y;
+            var zw = quaternion.Z * quaternion.W;
+            var xz = quaternion.X * quaternion.Z;
+            var yw = quaternion.Y * quaternion.W;
+            var yz = quaternion.Y * quaternion.Z;
+            var xw = quaternion.X * quaternion.W;
+            return new Matrix3X3
+            {
+                M00 = Fixed64.One - (yy + zz << 1),
+                M01 = xy + zw << 1,
+                M02 = xz - yw << 1,
+                M10 = xy - zw << 1,
+                M11 = Fixed64.One - (xx + zz << 1),
+                M12 = yz + xw << 1,
+                M20 = xz + yw << 1,
+                M21 = yz - xw << 1,
+                M22 = Fixed64.One - (xx + yy << 1),
+            };
         }
         #endregion
 
-        #region public static JVector Transform(JVector position, JMatrix matrix)
-        /// <summary>
-        /// Checks if the length of the vector is zero.
-        /// </summary>
-        /// <returns>Returns true if the vector is zero, otherwise false.</returns>
-        /// <summary>
-        /// Transforms a vector by the given matrix.
-        /// </summary>
-        /// <param name="position">The vector to transform.</param>
-        /// <param name="matrix">The transform matrix.</param>
-        /// <returns>The transformed vector.</returns>
-        public static Vector3D Transform(Vector3D position, Matrix3X3 matrix)
+        #region 隐式转换/显示转换/运算符重载
+        public static Matrix3X3 operator +(in Matrix3X3 value) => value;
+        public static Matrix3X3 operator -(in Matrix3X3 value) => new()
         {
-            Transform(ref position, ref matrix, out var result);
-            return result;
-        }
-
-        /// <summary>
-        /// Transforms a vector by the given matrix.
-        /// </summary>
-        /// <param name="position">The vector to transform.</param>
-        /// <param name="matrix">The transform matrix.</param>
-        /// <param name="result">The transformed vector.</param>
-        public static void Transform(ref Vector3D position, ref Matrix3X3 matrix, out Vector3D result)
+            M00 = -value.M00,
+            M01 = -value.M01,
+            M02 = -value.M02,
+            M10 = -value.M10,
+            M11 = -value.M11,
+            M12 = -value.M12,
+            M20 = -value.M20,
+            M21 = -value.M21,
+            M22 = -value.M22,
+        };
+        public static Matrix3X3 operator +(in Matrix3X3 lhs, in Matrix3X3 rhs) => new()
         {
-            Fixed64 num0 = ((position.X * matrix.M11) + (position.Y * matrix.M21)) + (position.Z * matrix.M31);
-            Fixed64 num1 = ((position.X * matrix.M12) + (position.Y * matrix.M22)) + (position.Z * matrix.M32);
-            Fixed64 num2 = ((position.X * matrix.M13) + (position.Y * matrix.M23)) + (position.Z * matrix.M33);
-
-            result.X = num0;
-            result.Y = num1;
-            result.Z = num2;
-        }
-
-        /// <summary>
-        /// Transforms a vector by the transposed of the given Matrix.
-        /// </summary>
-        /// <param name="position">The vector to transform.</param>
-        /// <param name="matrix">The transform matrix.</param>
-        /// <param name="result">The transformed vector.</param>
-        public static void TransposedTransform(ref Vector3D position, ref Matrix3X3 matrix, out Vector3D result)
+            M00 = lhs.M00 + rhs.M00,
+            M01 = lhs.M01 + rhs.M01,
+            M02 = lhs.M02 + rhs.M02,
+            M10 = lhs.M10 + rhs.M10,
+            M11 = lhs.M11 + rhs.M11,
+            M12 = lhs.M12 + rhs.M12,
+            M20 = lhs.M20 + rhs.M20,
+            M21 = lhs.M21 + rhs.M21,
+            M22 = lhs.M22 + rhs.M22,
+        };
+        public static Matrix3X3 operator -(in Matrix3X3 lhs, in Matrix3X3 rhs) => new()
         {
-            Fixed64 num0 = ((position.X * matrix.M11) + (position.Y * matrix.M12)) + (position.Z * matrix.M13);
-            Fixed64 num1 = ((position.X * matrix.M21) + (position.Y * matrix.M22)) + (position.Z * matrix.M23);
-            Fixed64 num2 = ((position.X * matrix.M31) + (position.Y * matrix.M32)) + (position.Z * matrix.M33);
+            M00 = lhs.M00 - rhs.M00,
+            M01 = lhs.M01 - rhs.M01,
+            M02 = lhs.M02 - rhs.M02,
+            M10 = lhs.M10 - rhs.M10,
+            M11 = lhs.M11 - rhs.M11,
+            M12 = lhs.M12 - rhs.M12,
+            M20 = lhs.M20 - rhs.M20,
+            M21 = lhs.M21 - rhs.M21,
+            M22 = lhs.M22 - rhs.M22,
+        };
 
-            result.X = num0;
-            result.Y = num1;
-            result.Z = num2;
-        }
+        public static Matrix3X3 operator *(in Matrix3X3 lhs, in Matrix3X3 rhs) => new()
+        {
+            M00 = lhs.M00 * rhs.M00 + lhs.M01 * rhs.M10 + lhs.M02 * rhs.M20,
+            M01 = lhs.M00 * rhs.M01 + lhs.M01 * rhs.M11 + lhs.M02 * rhs.M21,
+            M02 = lhs.M00 * rhs.M02 + lhs.M01 * rhs.M12 + lhs.M02 * rhs.M22,
+            M10 = lhs.M10 * rhs.M00 + lhs.M11 * rhs.M10 + lhs.M12 * rhs.M20,
+            M11 = lhs.M10 * rhs.M01 + lhs.M11 * rhs.M11 + lhs.M12 * rhs.M21,
+            M12 = lhs.M10 * rhs.M02 + lhs.M11 * rhs.M12 + lhs.M12 * rhs.M22,
+            M20 = lhs.M20 * rhs.M00 + lhs.M21 * rhs.M10 + lhs.M22 * rhs.M20,
+            M21 = lhs.M20 * rhs.M01 + lhs.M21 * rhs.M11 + lhs.M22 * rhs.M21,
+            M22 = lhs.M20 * rhs.M02 + lhs.M21 * rhs.M12 + lhs.M22 * rhs.M22,
+        };
+        public static Matrix3X3 operator *(in Matrix3X3 lhs, Fixed64 rhs) => new()
+        {
+            M00 = lhs.M00 * rhs,
+            M01 = lhs.M01 * rhs,
+            M02 = lhs.M02 * rhs,
+            M10 = lhs.M10 * rhs,
+            M11 = lhs.M11 * rhs,
+            M12 = lhs.M12 * rhs,
+            M20 = lhs.M20 * rhs,
+            M21 = lhs.M21 * rhs,
+            M22 = lhs.M22 * rhs,
+        };
+        public static Matrix3X3 operator *(in Matrix3X3 lhs, long rhs) => new()
+        {
+            M00 = lhs.M00 * rhs,
+            M01 = lhs.M01 * rhs,
+            M02 = lhs.M02 * rhs,
+            M10 = lhs.M10 * rhs,
+            M11 = lhs.M11 * rhs,
+            M12 = lhs.M12 * rhs,
+            M20 = lhs.M20 * rhs,
+            M21 = lhs.M21 * rhs,
+            M22 = lhs.M22 * rhs,
+        };
+        public static Matrix3X3 operator *(Fixed64 lhs, in Matrix3X3 rhs) => new()
+        {
+            M00 = lhs * rhs.M00,
+            M01 = lhs * rhs.M01,
+            M02 = lhs * rhs.M02,
+            M10 = lhs * rhs.M10,
+            M11 = lhs * rhs.M11,
+            M12 = lhs * rhs.M12,
+            M20 = lhs * rhs.M20,
+            M21 = lhs * rhs.M21,
+            M22 = lhs * rhs.M22,
+        };
+        public static Matrix3X3 operator *(long lhs, in Matrix3X3 rhs) => new()
+        {
+            M00 = lhs * rhs.M00,
+            M01 = lhs * rhs.M01,
+            M02 = lhs * rhs.M02,
+            M10 = lhs * rhs.M10,
+            M11 = lhs * rhs.M11,
+            M12 = lhs * rhs.M12,
+            M20 = lhs * rhs.M20,
+            M21 = lhs * rhs.M21,
+            M22 = lhs * rhs.M22,
+        };
+        public static Matrix3X3 operator /(in Matrix3X3 lhs, Fixed64 rhs) => new()
+        {
+            M00 = lhs.M00 / rhs,
+            M01 = lhs.M01 / rhs,
+            M02 = lhs.M02 / rhs,
+            M10 = lhs.M10 / rhs,
+            M11 = lhs.M11 / rhs,
+            M12 = lhs.M12 / rhs,
+            M20 = lhs.M20 / rhs,
+            M21 = lhs.M21 / rhs,
+            M22 = lhs.M22 / rhs,
+        };
+        public static Matrix3X3 operator /(in Matrix3X3 lhs, long rhs) => new()
+        {
+            M00 = lhs.M00 / rhs,
+            M01 = lhs.M01 / rhs,
+            M02 = lhs.M02 / rhs,
+            M10 = lhs.M10 / rhs,
+            M11 = lhs.M11 / rhs,
+            M12 = lhs.M12 / rhs,
+            M20 = lhs.M20 / rhs,
+            M21 = lhs.M21 / rhs,
+            M22 = lhs.M22 / rhs,
+        };
+
+        public static bool operator ==(in Matrix3X3 lhs, in Matrix3X3 rhs) => lhs.M00 == rhs.M00 && lhs.M01 == rhs.M01 && lhs.M02 == rhs.M02 && lhs.M10 == rhs.M10 && lhs.M11 == rhs.M11 && lhs.M12 == rhs.M12 && lhs.M20 == rhs.M20 && lhs.M21 == rhs.M21 && lhs.M22 == rhs.M22;
+        public static bool operator !=(in Matrix3X3 lhs, in Matrix3X3 rhs) => lhs.M00 != rhs.M00 || lhs.M01 != rhs.M01 || lhs.M02 != rhs.M02 || lhs.M10 != rhs.M10 || lhs.M11 != rhs.M11 || lhs.M12 != rhs.M12 || lhs.M20 != rhs.M20 || lhs.M21 != rhs.M21 || lhs.M22 != rhs.M22;
         #endregion
 
-        public static bool operator ==(Matrix3X3 value1, Matrix3X3 value2)
+        #region 继承/重载
+        public readonly override bool Equals(object obj) => obj is Matrix3X3 other && this == other;
+        public readonly override int GetHashCode() => M00.GetHashCode() ^ M01.GetHashCode() ^ M02.GetHashCode() ^ M10.GetHashCode() ^ M11.GetHashCode() ^ M12.GetHashCode() ^ M20.GetHashCode() ^ M21.GetHashCode() ^ M22.GetHashCode();
+        public readonly bool Equals(Matrix3X3 other) => this == other;
+        public readonly int CompareTo(Matrix3X3 other)
         {
-            return value1.M11 == value2.M11 && value1.M12 == value2.M12 && value1.M13 == value2.M13 && value1.M21 == value2.M21 && value1.M22 == value2.M22 && value1.M23 == value2.M23 && value1.M31 == value2.M31 && value1.M32 == value2.M32 && value1.M33 == value2.M33;
+            int match0 = M00.RawValue.CompareTo(other.M00.RawValue);
+            if (match0 != 0)
+                return match0;
+
+            int match1 = M01.RawValue.CompareTo(other.M01.RawValue);
+            if (match1 != 0)
+                return match1;
+
+            int match2 = M02.RawValue.CompareTo(other.M02.RawValue);
+            if (match2 != 0)
+                return match2;
+
+            int match3 = M10.RawValue.CompareTo(other.M10.RawValue);
+            if (match3 != 0)
+                return match3;
+
+            int match4 = M11.RawValue.CompareTo(other.M11.RawValue);
+            if (match4 != 0)
+                return match4;
+
+            int match5 = M12.RawValue.CompareTo(other.M12.RawValue);
+            if (match5 != 0)
+                return match5;
+
+            int match6 = M20.RawValue.CompareTo(other.M20.RawValue);
+            if (match6 != 0)
+                return match6;
+
+            int match7 = M21.RawValue.CompareTo(other.M21.RawValue);
+            if (match7 != 0)
+                return match7;
+
+            int match8 = M22.RawValue.CompareTo(other.M22.RawValue);
+            if (match8 != 0)
+                return match8;
+
+            return 0;
         }
 
-        public static bool operator !=(Matrix3X3 value1, Matrix3X3 value2)
-        {
-            return value1.M11 != value2.M11 || value1.M12 != value2.M12 || value1.M13 != value2.M13 || value1.M21 != value2.M21 || value1.M22 != value2.M22 || value1.M23 != value2.M23 || value1.M31 != value2.M31 || value1.M32 != value2.M32 || value1.M33 != value2.M33;
-        }
-
-        public bool Equals(Matrix3X3 other)
-        {
-            throw new NotImplementedException();
-        }
-        public int CompareTo(Matrix3X3 other)
-        {
-            throw new NotImplementedException();
-        }
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Matrix3X3))
-                return false;
-            Matrix3X3 other = (Matrix3X3)obj;
-
-            return this.M11 == other.M11 && this.M12 == other.M12 && this.M13 == other.M13 && this.M21 == other.M21 && this.M22 == other.M22 && this.M23 == other.M23 && this.M31 == other.M31 && this.M32 == other.M32 && this.M33 == other.M33;
-        }
-
-        public override int GetHashCode()
-        {
-            return M11.GetHashCode() ^ M12.GetHashCode() ^ M13.GetHashCode() ^ M21.GetHashCode() ^ M22.GetHashCode() ^ M23.GetHashCode() ^ M31.GetHashCode() ^ M32.GetHashCode() ^ M33.GetHashCode();
-        }
-
-        /// <summary>
-        /// Creates a matrix which rotates around the given axis by the given angle.
-        /// </summary>
-        /// <param name="axis">The axis.</param>
-        /// <param name="angle">The angle.</param>
-        /// <param name="result">The resulting rotation matrix</param>
-
-        #region public static void CreateFromAxisAngle(ref JVector axis, FP angle, out JMatrix result)
-        public static void CreateFromAxisAngle(ref Vector3D axis, Fixed64 angle, out Matrix3X3 result)
-        {
-            var x = axis.X;
-            var y = axis.Y;
-            var z = axis.Z;
-            var num2 = Maths.Sin(angle);
-            var num = Maths.Cos(angle);
-            var num11 = x * x;
-            var num10 = y * y;
-            var num9 = z * z;
-            var num8 = x * y;
-            var num7 = x * z;
-            var num6 = y * z;
-
-            result.M11 = num11 + num * (Fixed64.One - num11);
-            result.M12 = num8 - num * num8 + num2 * z;
-            result.M13 = num7 - num * num7 - num2 * y;
-            result.M21 = num8 - num * num8 - num2 * z;
-            result.M22 = num10 + num * (Fixed64.One - num10);
-            result.M23 = num6 - num * num6 + num2 * x;
-            result.M31 = num7 - num * num7 + num2 * y;
-            result.M32 = num6 - num * num6 - num2 * x;
-            result.M33 = num9 + num * (Fixed64.One - num9);
-        }
-
-        /// <summary>
-        /// Creates a matrix which rotates around the given axis by the given angle.
-        /// </summary>
-        /// <param name="axis">The axis.</param>
-        /// <param name="angle">The angle.</param>
-        /// <returns>The resulting rotation matrix</returns>
-        public static Matrix3X3 AngleAxis(Fixed64 angle, Vector3D axis)
-        {
-            Matrix3X3 result;
-            CreateFromAxisAngle(ref axis, angle, out result);
-            return result;
-        }
+        public readonly override string ToString() => $"({M00}|{M01}|{M02}, {M10}|{M11}|{M12}, {M20}|{M21}|{M22})";
+        public readonly string ToString(string format) => $"({M00.ToString(format)}|{M01.ToString(format)}|{M02.ToString(format)}, {M10.ToString(format)}|{M11.ToString(format)}|{M12.ToString(format)}, {M20.ToString(format)}|{M21.ToString(format)}|{M22.ToString(format)})";
+        public readonly string ToString(IFormatProvider provider) => $"({M00.ToString(provider)}|{M01.ToString(provider)}|{M02.ToString(provider)}, {M10.ToString(provider)}|{M11.ToString(provider)}|{M12.ToString(provider)}, {M20.ToString(provider)}|{M21.ToString(provider)}|{M22.ToString(provider)})";
+        public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}|{M01.ToString(format, provider)}|{M02.ToString(format, provider)}, {M10.ToString(format, provider)}|{M11.ToString(format, provider)}|{M12.ToString(format, provider)}, {M20.ToString(format, provider)}|{M21.ToString(format, provider)}|{M22.ToString(format, provider)})";
         #endregion
-
-        /// <summary>
-        /// Creates a quaternion from a matrix.
-        /// </summary>
-        /// <param name="matrix">A matrix representing an orientation.</param>
-        /// <returns>JQuaternion representing an orientation.</returns>
-        public static Quaternions CreateFromMatrix(in Matrix3X3 matrix)
-        {
-            CreateFromMatrix(in matrix, out var result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a quaternion from a matrix.
-        /// </summary>
-        /// <param name="matrix">A matrix representing an orientation.</param>
-        /// <param name="result">JQuaternion representing an orientation.</param>
-        public static void CreateFromMatrix(in Matrix3X3 matrix, out Quaternions result)
-        {
-            Fixed64 num8 = (matrix.M11 + matrix.M22) + matrix.M33;
-            if (num8 > Fixed64.Zero)
-            {
-                var num = (num8 + Fixed64.One).Sqrt();
-                result.W = num * Fixed64.Half;
-                num = Fixed64.Half / num;
-                result.X = (matrix.M23 - matrix.M32) * num;
-                result.Y = (matrix.M31 - matrix.M13) * num;
-                result.Z = (matrix.M12 - matrix.M21) * num;
-            }
-            else if ((matrix.M11 >= matrix.M22) && (matrix.M11 >= matrix.M33))
-            {
-                var num7 = (Fixed64.One + matrix.M11 - matrix.M22 - matrix.M33).Sqrt();
-                var num4 = Fixed64.Half / num7;
-                result.X = Fixed64.Half * num7;
-                result.Y = (matrix.M12 + matrix.M21) * num4;
-                result.Z = (matrix.M13 + matrix.M31) * num4;
-                result.W = (matrix.M23 - matrix.M32) * num4;
-            }
-            else if (matrix.M22 > matrix.M33)
-            {
-                var num6 = (Fixed64.One + matrix.M22 - matrix.M11 - matrix.M33).Sqrt();
-                var num3 = Fixed64.Half / num6;
-                result.X = (matrix.M21 + matrix.M12) * num3;
-                result.Y = Fixed64.Half * num6;
-                result.Z = (matrix.M32 + matrix.M23) * num3;
-                result.W = (matrix.M31 - matrix.M13) * num3;
-            }
-            else
-            {
-                var num5 = (Fixed64.One + matrix.M33 - matrix.M11 - matrix.M22).Sqrt();
-                var num2 = Fixed64.Half / num5;
-                result.X = (matrix.M31 + matrix.M13) * num2;
-                result.Y = (matrix.M32 + matrix.M23) * num2;
-                result.Z = Fixed64.Half * num5;
-                result.W = (matrix.M12 - matrix.M21) * num2;
-            }
-        }
-
-        public override string ToString()
-        {
-            return $"{M11.RawValue}|{M12.RawValue}|{M13.RawValue}|{M21.RawValue}|{M22.RawValue}|{M23.RawValue}|{M31.RawValue}|{M32.RawValue}|{M33.RawValue}";
-        }
     }
 }

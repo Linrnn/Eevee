@@ -144,7 +144,6 @@ namespace Eevee.Fixed
         public static Quaternions operator *(long lhs, in Quaternions rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
         public static Quaternions operator /(in Quaternions lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
         public static Quaternions operator /(in Quaternions lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
-        public static Quaternions operator /(Fixed64 lhs, in Quaternions rhs) => new(lhs / rhs.X, lhs / rhs.Y, lhs / rhs.Z, lhs / rhs.W);
 
         public static bool operator ==(in Quaternions lhs, in Quaternions rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;
         public static bool operator !=(in Quaternions lhs, in Quaternions rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z || lhs.W != rhs.W;
@@ -152,25 +151,25 @@ namespace Eevee.Fixed
 
         #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Quaternions other && this == other;
-        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2 ^ Z.GetHashCode() >> 2 ^ W.GetHashCode() >> 1;
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode() ^ W.GetHashCode();
         public readonly bool Equals(Quaternions other) => this == other;
         public readonly int CompareTo(Quaternions other)
         {
-            int match1 = X.RawValue.CompareTo(other.X.RawValue);
+            int match0 = X.RawValue.CompareTo(other.X.RawValue);
+            if (match0 != 0)
+                return match0;
+
+            int match1 = Y.RawValue.CompareTo(other.Y.RawValue);
             if (match1 != 0)
                 return match1;
 
-            int match2 = Y.RawValue.CompareTo(other.Y.RawValue);
+            int match2 = Z.RawValue.CompareTo(other.Z.RawValue);
             if (match2 != 0)
                 return match2;
 
-            int match3 = Z.RawValue.CompareTo(other.Z.RawValue);
+            int match3 = W.RawValue.CompareTo(other.W.RawValue);
             if (match3 != 0)
                 return match3;
-
-            int match4 = W.RawValue.CompareTo(other.W.RawValue);
-            if (match4 != 0)
-                return match4;
 
             return 0;
         }

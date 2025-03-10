@@ -35,17 +35,17 @@ namespace Eevee.Fixed
 
         #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Ray2D other && this == other;
-        public readonly override int GetHashCode() => HashCode.Combine(Origin, Direction);
+        public readonly override int GetHashCode() => Origin.GetHashCode() ^ Direction.GetHashCode();
         public readonly bool Equals(Ray2D other) => this == other;
         public readonly int CompareTo(Ray2D other)
         {
-            int match1 = Origin.CompareTo(Origin);
+            int match0 = Origin.CompareTo(Origin);
+            if (match0 != 0)
+                return match0;
+
+            int match1 = Direction.CompareTo(Direction);
             if (match1 != 0)
                 return match1;
-
-            int match2 = Direction.CompareTo(Direction);
-            if (match2 != 0)
-                return match2;
 
             return 0;
         }

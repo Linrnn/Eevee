@@ -11,6 +11,8 @@ namespace Eevee.Fixed
         #region 字段/初始化
         public static readonly Vector4D Zero = new(0, 0, 0, 0);
         public static readonly Vector4D One = new(1, 1, 1, 1);
+        public static readonly Vector4D Infinitesimal = new(Fixed64.Infinitesimal, Fixed64.Infinitesimal, Fixed64.Infinitesimal, Fixed64.Infinitesimal);
+        public static readonly Vector4D Infinity = new(Fixed64.Infinity, Fixed64.Infinity, Fixed64.Infinity, Fixed64.Infinity);
 
         public Fixed64 X;
         public Fixed64 Y;
@@ -197,9 +199,9 @@ namespace Eevee.Fixed
         public static Vector4D operator +(in Vector4D lhs, in Vector4D rhs) => new(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
         public static Vector4D operator -(in Vector4D lhs, in Vector4D rhs) => new(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);
 
-        public static Vector4D operator *(in Vector4D lhs, in Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
+        public static Vector4D operator *(in Vector4D lhs, Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
         public static Vector4D operator *(in Vector4D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
-        public static Vector4D operator *(in Fixed64 lhs, in Vector4D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
+        public static Vector4D operator *(Fixed64 lhs, in Vector4D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
         public static Vector4D operator *(long lhs, in Vector4D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
         public static Vector4D operator /(in Vector4D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
         public static Vector4D operator /(in Vector4D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
@@ -210,25 +212,25 @@ namespace Eevee.Fixed
 
         #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Vector4D other && this == other;
-        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2 ^ Z.GetHashCode() >> 2 ^ W.GetHashCode() >> 1;
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode() ^ W.GetHashCode();
         public readonly bool Equals(Vector4D other) => this == other;
         public readonly int CompareTo(Vector4D other)
         {
-            int match1 = X.RawValue.CompareTo(other.X.RawValue);
+            int match0 = X.RawValue.CompareTo(other.X.RawValue);
+            if (match0 != 0)
+                return match0;
+
+            int match1 = Y.RawValue.CompareTo(other.Y.RawValue);
             if (match1 != 0)
                 return match1;
 
-            int match2 = Y.RawValue.CompareTo(other.Y.RawValue);
+            int match2 = Z.RawValue.CompareTo(other.Z.RawValue);
             if (match2 != 0)
                 return match2;
 
-            int match3 = Z.RawValue.CompareTo(other.Z.RawValue);
+            int match3 = W.RawValue.CompareTo(other.W.RawValue);
             if (match3 != 0)
                 return match3;
-
-            int match4 = W.RawValue.CompareTo(other.W.RawValue);
-            if (match4 != 0)
-                return match4;
 
             return 0;
         }

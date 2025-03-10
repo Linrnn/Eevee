@@ -15,6 +15,8 @@ namespace Eevee.Fixed
         public static readonly Vector2D Left = new(-1, 0);
         public static readonly Vector2D Up = new(0, 1);
         public static readonly Vector2D Down = new(0, -1);
+        public static readonly Vector2D Infinitesimal = new(Fixed64.Infinitesimal, Fixed64.Infinitesimal);
+        public static readonly Vector2D Infinity = new(Fixed64.Infinity, Fixed64.Infinity);
 
         public Fixed64 X;
         public Fixed64 Y;
@@ -180,9 +182,9 @@ namespace Eevee.Fixed
         public static Vector2D operator +(in Vector2D lhs, in Vector2D rhs) => new(lhs.X + rhs.X, lhs.Y + rhs.Y);
         public static Vector2D operator -(in Vector2D lhs, in Vector2D rhs) => new(lhs.X - rhs.X, lhs.Y - rhs.Y);
 
-        public static Vector2D operator *(in Vector2D lhs, in Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs);
+        public static Vector2D operator *(in Vector2D lhs, Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs);
         public static Vector2D operator *(in Vector2D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs);
-        public static Vector2D operator *(in Fixed64 lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
+        public static Vector2D operator *(Fixed64 lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
         public static Vector2D operator *(long lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
         public static Vector2D operator /(in Vector2D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs);
         public static Vector2D operator /(in Vector2D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs);
@@ -193,17 +195,17 @@ namespace Eevee.Fixed
 
         #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Vector2D other && this == other;
-        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() << 2;
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode();
         public readonly bool Equals(Vector2D other) => this == other;
         public readonly int CompareTo(Vector2D other)
         {
-            int match1 = X.RawValue.CompareTo(other.X.RawValue);
+            int match0 = X.RawValue.CompareTo(other.X.RawValue);
+            if (match0 != 0)
+                return match0;
+
+            int match1 = Y.RawValue.CompareTo(other.Y.RawValue);
             if (match1 != 0)
                 return match1;
-
-            int match2 = Y.RawValue.CompareTo(other.Y.RawValue);
-            if (match2 != 0)
-                return match2;
 
             return 0;
         }

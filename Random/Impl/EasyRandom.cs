@@ -107,7 +107,7 @@ namespace Eevee.Random
             return value;
         }
 
-        public virtual Vector2D GetVector2D(in Vector2D p0, in Vector2D p1)
+        public virtual Vector2D GetVector2(in Vector2D p0, in Vector2D p1)
         {
             if (p0 == p1)
                 return p0;
@@ -115,7 +115,7 @@ namespace Eevee.Random
             var value = RandomVector2D(in p0, in p1);
             return value;
         }
-        public virtual Vector3D GetVector3D(in Vector3D p0, in Vector3D p1)
+        public virtual Vector3D GetVector3(in Vector3D p0, in Vector3D p1)
         {
             if (p0 == p1)
                 return p0;
@@ -170,7 +170,7 @@ namespace Eevee.Random
             var z = RandomFixed64(Maths.Deg360);
             return new Vector3D(x, y, z);
         }
-        public virtual Quaternions GetQuaternions()
+        public virtual Quaternions GetQuaternion()
         {
             var number = RandomFixed64(Fixed64.One);
             var rad0 = RandomFixed64(Maths.Rad360);

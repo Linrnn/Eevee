@@ -26,8 +26,8 @@ namespace Eevee.Random
         public static Fixed64 Rad() => RandomProxy.Impl.GetRad();
         public static Fixed64 Deg() => RandomProxy.Impl.GetDeg();
 
-        public static Vector2D Vector2(in Vector2D p0, in Vector2D p1) => RandomProxy.Impl.GetVector2D(in p0, in p1);
-        public static Vector3D Vector3(in Vector3D p0, in Vector3D p1) => RandomProxy.Impl.GetVector3D(in p0, in p1);
+        public static Vector2D Vector2(in Vector2D p0, in Vector2D p1) => RandomProxy.Impl.GetVector2(in p0, in p1);
+        public static Vector3D Vector3(in Vector3D p0, in Vector3D p1) => RandomProxy.Impl.GetVector3(in p0, in p1);
         public static Vector2D InTriangle(in Vector2D p0, in Vector2D p1, in Vector2D p2) => RandomProxy.Impl.InTriangle(in p0, in p1, in p2);
 
         public static Vector2D OnUnitCircle() => RandomProxy.Impl.OnUnitCircle();
@@ -37,6 +37,6 @@ namespace Eevee.Random
         public static Vector3D InSphere(Fixed64 radius) => RandomProxy.Impl.InSphere(radius);
 
         public static Vector3D EulerAngles() => RandomProxy.Impl.GetEulerAngles();
-        public static Quaternions Quaternion() => RandomProxy.Impl.GetQuaternions();
+        public static Quaternions Quaternion() => RandomProxy.Impl.GetQuaternion();
     }
 }
