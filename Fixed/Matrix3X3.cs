@@ -104,20 +104,20 @@ namespace Eevee.Fixed
         /// <summary>
         /// 转换向量
         /// </summary>
-        public readonly Vector3D Transform(in Vector3D position) => new()
+        public readonly Vector3D Transform(in Vector3D vector) => new()
         {
-            X = position.X * M00 + position.Y * M10 + position.Z * M20,
-            Y = position.X * M01 + position.Y * M11 + position.Z * M21,
-            Z = position.X * M02 + position.Y * M12 + position.Z * M22,
+            X = vector.X * M00 + vector.Y * M10 + vector.Z * M20,
+            Y = vector.X * M01 + vector.Y * M11 + vector.Z * M21,
+            Z = vector.X * M02 + vector.Y * M12 + vector.Z * M22,
         };
         /// <summary>
         /// 转置转换向量
         /// </summary>
-        public readonly Vector3D TransposedTransform(in Vector3D position) => new()
+        public readonly Vector3D TransposedTransform(in Vector3D vector) => new()
         {
-            X = position.X * M00 + position.Y * M01 + position.Z * M02,
-            Y = position.X * M10 + position.Y * M11 + position.Z * M12,
-            Z = position.X * M20 + position.Y * M21 + position.Z * M22,
+            X = vector.X * M00 + vector.Y * M01 + vector.Z * M02,
+            Y = vector.X * M10 + vector.Y * M11 + vector.Z * M12,
+            Z = vector.X * M20 + vector.Y * M21 + vector.Z * M22,
         };
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入四元数，从旋转矩阵创建3*3矩阵
         /// </summary>
-        public static Matrix3X3 Create(in Quaternions quaternion)
+        public static Matrix3X3 Rotate(in Quaternions quaternion)
         {
             var xx = quaternion.X.Sqr();
             var yy = quaternion.Y.Sqr();

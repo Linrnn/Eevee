@@ -16,7 +16,7 @@ namespace Eevee.Event
             internal readonly int EventId;
             internal readonly Delegate Listener;
 
-            public Wrapper(EventModule module, int eventId, Delegate listener)
+            internal Wrapper(EventModule module, int eventId, Delegate listener)
             {
                 Module = module;
                 EventId = eventId;
@@ -26,6 +26,7 @@ namespace Eevee.Event
         #endregion
 
         // todo Eevee _listeners 未接入 EPool
+        // todo Eevee _listeners 未接入 FixedDictionary
         private readonly Dictionary<ulong, Wrapper> _listeners = new(32);
 
         /// <summary>

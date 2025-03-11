@@ -1,1203 +1,723 @@
-﻿/* Copyright (C) <2009-2011> <Thorben Linneweber, Jitter Physics>
- *
- *  This software is provided 'as-is', without any express or implied
- *  warranty.  In no event will the authors be held liable for any damages
- *  arising from the use of this software.
- *
- *  Permission is granted to anyone to use this software for any purpose,
- *  including commercial applications, and to alter it and redistribute it
- *  freely, subject to the following restrictions:
- *
- *  1. The origin of this software must not be misrepresented; you must not
- *      claim that you wrote the original software. If you use this software
- *      in a product, an acknowledgment in the product documentation would be
- *      appreciated but is not required.
- *  2. Altered source versions must be plainly marked as such, and must not be
- *      misrepresented as being the original software.
- *  3. This notice may not be removed or altered from any source distribution.
- */
-
-using System;
+﻿using System;
 
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 3x3 Matrix.
+    /// 确定性的4*4矩阵
     /// </summary>
     [Serializable]
-    public struct Matrix4X4 : IEquatable<Matrix4X4>, IComparable<Matrix4X4>
+    public struct Matrix4X4 : IEquatable<Matrix4X4>, IComparable<Matrix4X4>, IFormattable
     {
-        /// <summary>
-        /// M11
-        /// </summary>
-        public Fixed64 M11; // 1st row vector
-        /// <summary>
-        /// M12
-        /// </summary>
+        #region 字段/初始化
+        public static readonly Matrix4X4 Zero = new();
+        public static readonly Matrix4X4 Identity = new()
+        {
+            M00 = Fixed64.One,
+            M11 = Fixed64.One,
+            M22 = Fixed64.One,
+            M33 = Fixed64.One,
+        };
+
+        public Fixed64 M00;
+        public Fixed64 M01;
+        public Fixed64 M02;
+        public Fixed64 M03;
+        public Fixed64 M10;
+        public Fixed64 M11;
         public Fixed64 M12;
-        /// <summary>
-        /// M13
-        /// </summary>
         public Fixed64 M13;
-        /// <summary>
-        /// M14
-        /// </summary>
-        public Fixed64 M14;
-        /// <summary>
-        /// M21
-        /// </summary>
-        public Fixed64 M21; // 2nd row vector
-        /// <summary>
-        /// M22
-        /// </summary>
+        public Fixed64 M20;
+        public Fixed64 M21;
         public Fixed64 M22;
-        /// <summary>
-        /// M23
-        /// </summary>
         public Fixed64 M23;
-        /// <summary>
-        /// M24
-        /// </summary>
-        public Fixed64 M24;
-        /// <summary>
-        /// M31
-        /// </summary>
-        public Fixed64 M31; // 3rd row vector
-        /// <summary>
-        /// M32
-        /// </summary>
+        public Fixed64 M30;
+        public Fixed64 M31;
         public Fixed64 M32;
-        /// <summary>
-        /// M33
-        /// </summary>
         public Fixed64 M33;
-        /// <summary>
-        /// M34
-        /// </summary>
-        public Fixed64 M34;
-        /// <summary>
-        /// M41
-        /// </summary>
-        public Fixed64 M41; // 4rd row vector
-        /// <summary>
-        /// M42
-        /// </summary>
-        public Fixed64 M42;
-        /// <summary>
-        /// M43
-        /// </summary>
-        public Fixed64 M43;
-        /// <summary>
-        /// M44
-        /// </summary>
-        public Fixed64 M44;
 
-        internal static Matrix4X4 InternalIdentity;
-
-        /// <summary>
-        /// Identity matrix.
-        /// </summary>
-        public static readonly Matrix4X4 Identity;
-        public static readonly Matrix4X4 Zero;
-
-        static Matrix4X4()
+        public Matrix4X4(Fixed64 m00, Fixed64 m01, Fixed64 m02, Fixed64 m03, Fixed64 m10, Fixed64 m11, Fixed64 m12, Fixed64 m13, Fixed64 m20, Fixed64 m21, Fixed64 m22, Fixed64 m23, Fixed64 m30, Fixed64 m31, Fixed64 m32, Fixed64 m33)
         {
-            Zero = new Matrix4X4();
-
-            Identity = new Matrix4X4();
-            Identity.M11 = Fixed64.One;
-            Identity.M22 = Fixed64.One;
-            Identity.M33 = Fixed64.One;
-            Identity.M44 = Fixed64.One;
-
-            InternalIdentity = Identity;
+            M00 = m00;
+            M01 = m01;
+            M02 = m02;
+            M03 = m03;
+            M10 = m10;
+            M11 = m11;
+            M12 = m12;
+            M13 = m13;
+            M20 = m20;
+            M21 = m21;
+            M22 = m22;
+            M23 = m23;
+            M30 = m30;
+            M31 = m31;
+            M32 = m32;
+            M33 = m33;
         }
-        /// <summary>
-        /// Initializes a new instance of the matrix structure.
-        /// </summary>
-        /// <param name="m11">m11</param>
-        /// <param name="m12">m12</param>
-        /// <param name="m13">m13</param>
-        /// <param name="m14">m14</param>
-        /// <param name="m21">m21</param>
-        /// <param name="m22">m22</param>
-        /// <param name="m23">m23</param>
-        /// <param name="m24">m24</param>
-        /// <param name="m31">m31</param>
-        /// <param name="m32">m32</param>
-        /// <param name="m33">m33</param>
-        /// <param name="m34">m34</param>
-        /// <param name="m41">m41</param>
-        /// <param name="m42">m42</param>
-        /// <param name="m43">m43</param>
-        /// <param name="m44">m44</param>
-        public Matrix4X4(Fixed64 m11, Fixed64 m12, Fixed64 m13, Fixed64 m14, Fixed64 m21, Fixed64 m22, Fixed64 m23, Fixed64 m24, Fixed64 m31, Fixed64 m32, Fixed64 m33, Fixed64 m34, Fixed64 m41, Fixed64 m42, Fixed64 m43, Fixed64 m44)
+        public Matrix4X4(in Vector4D m0, in Vector4D m1, in Vector4D m2, in Vector4D m3)
         {
-            this.M11 = m11;
-            this.M12 = m12;
-            this.M13 = m13;
-            this.M14 = m14;
-            this.M21 = m21;
-            this.M22 = m22;
-            this.M23 = m23;
-            this.M24 = m24;
-            this.M31 = m31;
-            this.M32 = m32;
-            this.M33 = m33;
-            this.M34 = m34;
-            this.M41 = m41;
-            this.M42 = m42;
-            this.M43 = m43;
-            this.M44 = m44;
+            M00 = m0.X;
+            M01 = m0.Y;
+            M02 = m0.Z;
+            M03 = m0.W;
+            M10 = m1.X;
+            M11 = m1.Y;
+            M12 = m1.Z;
+            M13 = m1.W;
+            M20 = m2.X;
+            M21 = m2.Y;
+            M22 = m2.Z;
+            M23 = m2.W;
+            M30 = m3.X;
+            M31 = m3.Y;
+            M32 = m3.Z;
+            M33 = m3.W;
         }
 
-        /// <summary>
-        /// Multiply two matrices. Notice: matrix multiplication is not commutative.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <returns>The product of both matrices.</returns>
-        public static Matrix4X4 Multiply(Matrix4X4 matrix1, Matrix4X4 matrix2)
+        public Fixed64 this[int row, int column]
         {
-            Matrix4X4 result;
-            Matrix4X4.Multiply(ref matrix1, ref matrix2, out result);
-            return result;
+            readonly get => this[row + (column << 2)];
+            set => this[row + (column << 2)] = value;
         }
-
-        /// <summary>
-        /// Multiply two matrices. Notice: matrix multiplication is not commutative.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <param name="result">The product of both matrices.</param>
-        public static void Multiply(ref Matrix4X4 matrix1, ref Matrix4X4 matrix2, out Matrix4X4 result)
+        public Fixed64 this[int index]
         {
-            // First row
-            result.M11 = matrix1.M11 * matrix2.M11 + matrix1.M12 * matrix2.M21 + matrix1.M13 * matrix2.M31 + matrix1.M14 * matrix2.M41;
-            result.M12 = matrix1.M11 * matrix2.M12 + matrix1.M12 * matrix2.M22 + matrix1.M13 * matrix2.M32 + matrix1.M14 * matrix2.M42;
-            result.M13 = matrix1.M11 * matrix2.M13 + matrix1.M12 * matrix2.M23 + matrix1.M13 * matrix2.M33 + matrix1.M14 * matrix2.M43;
-            result.M14 = matrix1.M11 * matrix2.M14 + matrix1.M12 * matrix2.M24 + matrix1.M13 * matrix2.M34 + matrix1.M14 * matrix2.M44;
-
-            // Second row
-            result.M21 = matrix1.M21 * matrix2.M11 + matrix1.M22 * matrix2.M21 + matrix1.M23 * matrix2.M31 + matrix1.M24 * matrix2.M41;
-            result.M22 = matrix1.M21 * matrix2.M12 + matrix1.M22 * matrix2.M22 + matrix1.M23 * matrix2.M32 + matrix1.M24 * matrix2.M42;
-            result.M23 = matrix1.M21 * matrix2.M13 + matrix1.M22 * matrix2.M23 + matrix1.M23 * matrix2.M33 + matrix1.M24 * matrix2.M43;
-            result.M24 = matrix1.M21 * matrix2.M14 + matrix1.M22 * matrix2.M24 + matrix1.M23 * matrix2.M34 + matrix1.M24 * matrix2.M44;
-
-            // Third row
-            result.M31 = matrix1.M31 * matrix2.M11 + matrix1.M32 * matrix2.M21 + matrix1.M33 * matrix2.M31 + matrix1.M34 * matrix2.M41;
-            result.M32 = matrix1.M31 * matrix2.M12 + matrix1.M32 * matrix2.M22 + matrix1.M33 * matrix2.M32 + matrix1.M34 * matrix2.M42;
-            result.M33 = matrix1.M31 * matrix2.M13 + matrix1.M32 * matrix2.M23 + matrix1.M33 * matrix2.M33 + matrix1.M34 * matrix2.M43;
-            result.M34 = matrix1.M31 * matrix2.M14 + matrix1.M32 * matrix2.M24 + matrix1.M33 * matrix2.M34 + matrix1.M34 * matrix2.M44;
-
-            // Fourth row
-            result.M41 = matrix1.M41 * matrix2.M11 + matrix1.M42 * matrix2.M21 + matrix1.M43 * matrix2.M31 + matrix1.M44 * matrix2.M41;
-            result.M42 = matrix1.M41 * matrix2.M12 + matrix1.M42 * matrix2.M22 + matrix1.M43 * matrix2.M32 + matrix1.M44 * matrix2.M42;
-            result.M43 = matrix1.M41 * matrix2.M13 + matrix1.M42 * matrix2.M23 + matrix1.M43 * matrix2.M33 + matrix1.M44 * matrix2.M43;
-            result.M44 = matrix1.M41 * matrix2.M14 + matrix1.M42 * matrix2.M24 + matrix1.M43 * matrix2.M34 + matrix1.M44 * matrix2.M44;
-        }
-
-        /// <summary>
-        /// Matrices are added.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <returns>The sum of both matrices.</returns>
-        public static Matrix4X4 Add(Matrix4X4 matrix1, Matrix4X4 matrix2)
-        {
-            Matrix4X4 result;
-            Matrix4X4.Add(ref matrix1, ref matrix2, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Matrices are added.
-        /// </summary>
-        /// <param name="matrix1">The first matrix.</param>
-        /// <param name="matrix2">The second matrix.</param>
-        /// <param name="result">The sum of both matrices.</param>
-        public static void Add(ref Matrix4X4 matrix1, ref Matrix4X4 matrix2, out Matrix4X4 result)
-        {
-            result.M11 = matrix1.M11 + matrix2.M11;
-            result.M12 = matrix1.M12 + matrix2.M12;
-            result.M13 = matrix1.M13 + matrix2.M13;
-            result.M14 = matrix1.M14 + matrix2.M14;
-
-            result.M21 = matrix1.M21 + matrix2.M21;
-            result.M22 = matrix1.M22 + matrix2.M22;
-            result.M23 = matrix1.M23 + matrix2.M23;
-            result.M24 = matrix1.M24 + matrix2.M24;
-
-            result.M31 = matrix1.M31 + matrix2.M31;
-            result.M32 = matrix1.M32 + matrix2.M32;
-            result.M33 = matrix1.M33 + matrix2.M33;
-            result.M34 = matrix1.M34 + matrix2.M34;
-
-            result.M41 = matrix1.M41 + matrix2.M41;
-            result.M42 = matrix1.M42 + matrix2.M42;
-            result.M43 = matrix1.M43 + matrix2.M43;
-            result.M44 = matrix1.M44 + matrix2.M44;
-        }
-
-        /// <summary>
-        /// Calculates the inverse of a give matrix.
-        /// </summary>
-        /// <param name="matrix">The matrix to invert.</param>
-        /// <returns>The inverted JMatrix.</returns>
-        public static Matrix4X4 Inverse(Matrix4X4 matrix)
-        {
-            Matrix4X4 result;
-            Matrix4X4.Inverse(ref matrix, out result);
-            return result;
-        }
-
-        public Fixed64 determinant
-        {
-            get
+            readonly get => index switch
             {
-                // | a b c d |     | f g h |     | e g h |     | e f h |     | e f g |
-                // | e f g h | = a | j k l | - b | i k l | + c | i j l | - d | i j k |
-                // | i j k l |     | n o p |     | m o p |     | m n p |     | m n o |
-                // | m n o p |
-                //
-                //   | f g h |
-                // a | j k l | = a ( f ( kp - lo ) - g ( jp - ln ) + h ( jo - kn ) )
-                //   | n o p |
-                //
-                //   | e g h |     
-                // b | i k l | = b ( e ( kp - lo ) - g ( ip - lm ) + h ( io - km ) )
-                //   | m o p |     
-                //
-                //   | e f h |
-                // c | i j l | = c ( e ( jp - ln ) - f ( ip - lm ) + h ( in - jm ) )
-                //   | m n p |
-                //
-                //   | e f g |
-                // d | i j k | = d ( e ( jo - kn ) - f ( io - km ) + g ( in - jm ) )
-                //   | m n o |
-                //
-                // Cost of operation
-                // 17 adds and 28 muls.
-                //
-                // add: 6 + 8 + 3 = 17
-                // mul: 12 + 16 = 28
-
-                Fixed64 a = M11, b = M12, c = M13, d = M14;
-                Fixed64 e = M21, f = M22, g = M23, h = M24;
-                Fixed64 i = M31, j = M32, k = M33, l = M34;
-                Fixed64 m = M41, n = M42, o = M43, p = M44;
-
-                Fixed64 kp_lo = k * p - l * o;
-                Fixed64 jp_ln = j * p - l * n;
-                Fixed64 jo_kn = j * o - k * n;
-                Fixed64 ip_lm = i * p - l * m;
-                Fixed64 io_km = i * o - k * m;
-                Fixed64 in_jm = i * n - j * m;
-
-                return a * (f * kp_lo - g * jp_ln + h * jo_kn) - b * (e * kp_lo - g * ip_lm + h * io_km) + c * (e * jp_ln - f * ip_lm + h * in_jm) - d * (e * jo_kn - f * io_km + g * in_jm);
+                00 => M00,
+                01 => M10,
+                02 => M20,
+                03 => M30,
+                04 => M01,
+                05 => M11,
+                06 => M21,
+                07 => M31,
+                08 => M02,
+                09 => M12,
+                10 => M22,
+                11 => M32,
+                12 => M03,
+                13 => M13,
+                14 => M23,
+                15 => M33,
+                _ => throw new IndexOutOfRangeException($"Invalid Matrix4X4 index:{index}!"),
+            };
+            set
+            {
+                switch (index)
+                {
+                    case 00: M00 = value; break;
+                    case 01: M10 = value; break;
+                    case 02: M20 = value; break;
+                    case 03: M30 = value; break;
+                    case 04: M01 = value; break;
+                    case 05: M11 = value; break;
+                    case 06: M21 = value; break;
+                    case 07: M31 = value; break;
+                    case 08: M02 = value; break;
+                    case 09: M12 = value; break;
+                    case 10: M22 = value; break;
+                    case 11: M32 = value; break;
+                    case 12: M03 = value; break;
+                    case 13: M13 = value; break;
+                    case 14: M23 = value; break;
+                    case 15: M33 = value; break;
+                    default: throw new IndexOutOfRangeException($"Invalid Matrix4X4 index:{index}!");
+                }
             }
         }
+        #endregion
+
+        #region 基础方法
+        /// <summary>
+        /// 迹数，矩阵的迹
+        /// </summary>
+        public readonly Fixed64 Trace() => M00 + M11 + M22 + M33;
+        /// <summary>
+        /// 行列式
+        /// </summary>
+        public readonly Fixed64 Determinant()
+        {
+            var num0 = M22 * M33 - M23 * M32;
+            var num1 = M21 * M33 - M23 * M31;
+            var num2 = M21 * M32 - M22 * M31;
+            var num3 = M20 * M33 - M23 * M30;
+            var num4 = M20 * M32 - M22 * M30;
+            var num5 = M20 * M31 - M21 * M30;
+            return M00 * (M11 * num0 - M12 * num1 + M13 * num2) - M01 * (M10 * num0 - M12 * num3 + M13 * num4) + M02 * (M10 * num1 - M11 * num3 + M13 * num5) - M03 * (M10 * num2 - M11 * num4 + M12 * num5);
+        }
 
         /// <summary>
-        /// Calculates the inverse of a give matrix.
+        /// 转换向量
         /// </summary>
-        /// <param name="matrix">The matrix to invert.</param>
-        /// <param name="result">The inverted JMatrix.</param>
-        public static void Inverse(ref Matrix4X4 matrix, out Matrix4X4 result)
+        public readonly Vector4D Transform(in Vector3D vector) => new()
         {
-            //                                       -1
-            // If you have matrix M, inverse Matrix M   can compute
-            //
-            //     -1       1      
-            //    M   = --------- A
-            //            det(M)
-            //
-            // A is adjugate (adjoint) of M, where,
-            //
-            //      T
-            // A = C
-            //
-            // C is Cofactor matrix of M, where,
-            //           i + j
-            // C   = (-1)      * det(M  )
-            //  ij                    ij
-            //
-            //     [ a b c d ]
-            // M = [ e f g h ]
-            //     [ i j k l ]
-            //     [ m n o p ]
-            //
-            // First Row
-            //           2 | f g h |
-            // C   = (-1)  | j k l | = + ( f ( kp - lo ) - g ( jp - ln ) + h ( jo - kn ) )
-            //  11         | n o p |
-            //
-            //           3 | e g h |
-            // C   = (-1)  | i k l | = - ( e ( kp - lo ) - g ( ip - lm ) + h ( io - km ) )
-            //  12         | m o p |
-            //
-            //           4 | e f h |
-            // C   = (-1)  | i j l | = + ( e ( jp - ln ) - f ( ip - lm ) + h ( in - jm ) )
-            //  13         | m n p |
-            //
-            //           5 | e f g |
-            // C   = (-1)  | i j k | = - ( e ( jo - kn ) - f ( io - km ) + g ( in - jm ) )
-            //  14         | m n o |
-            //
-            // Second Row
-            //           3 | b c d |
-            // C   = (-1)  | j k l | = - ( b ( kp - lo ) - c ( jp - ln ) + d ( jo - kn ) )
-            //  21         | n o p |
-            //
-            //           4 | a c d |
-            // C   = (-1)  | i k l | = + ( a ( kp - lo ) - c ( ip - lm ) + d ( io - km ) )
-            //  22         | m o p |
-            //
-            //           5 | a b d |
-            // C   = (-1)  | i j l | = - ( a ( jp - ln ) - b ( ip - lm ) + d ( in - jm ) )
-            //  23         | m n p |
-            //
-            //           6 | a b c |
-            // C   = (-1)  | i j k | = + ( a ( jo - kn ) - b ( io - km ) + c ( in - jm ) )
-            //  24         | m n o |
-            //
-            // Third Row
-            //           4 | b c d |
-            // C   = (-1)  | f g h | = + ( b ( gp - ho ) - c ( fp - hn ) + d ( fo - gn ) )
-            //  31         | n o p |
-            //
-            //           5 | a c d |
-            // C   = (-1)  | e g h | = - ( a ( gp - ho ) - c ( ep - hm ) + d ( eo - gm ) )
-            //  32         | m o p |
-            //
-            //           6 | a b d |
-            // C   = (-1)  | e f h | = + ( a ( fp - hn ) - b ( ep - hm ) + d ( en - fm ) )
-            //  33         | m n p |
-            //
-            //           7 | a b c |
-            // C   = (-1)  | e f g | = - ( a ( fo - gn ) - b ( eo - gm ) + c ( en - fm ) )
-            //  34         | m n o |
-            //
-            // Fourth Row
-            //           5 | b c d |
-            // C   = (-1)  | f g h | = - ( b ( gl - hk ) - c ( fl - hj ) + d ( fk - gj ) )
-            //  41         | j k l |
-            //
-            //           6 | a c d |
-            // C   = (-1)  | e g h | = + ( a ( gl - hk ) - c ( el - hi ) + d ( ek - gi ) )
-            //  42         | i k l |
-            //
-            //           7 | a b d |
-            // C   = (-1)  | e f h | = - ( a ( fl - hj ) - b ( el - hi ) + d ( ej - fi ) )
-            //  43         | i j l |
-            //
-            //           8 | a b c |
-            // C   = (-1)  | e f g | = + ( a ( fk - gj ) - b ( ek - gi ) + c ( ej - fi ) )
-            //  44         | i j k |
-            //
-            // Cost of operation
-            // 53 adds, 104 muls, and 1 div.
-            Fixed64 a = matrix.M11, b = matrix.M12, c = matrix.M13, d = matrix.M14;
-            Fixed64 e = matrix.M21, f = matrix.M22, g = matrix.M23, h = matrix.M24;
-            Fixed64 i = matrix.M31, j = matrix.M32, k = matrix.M33, l = matrix.M34;
-            Fixed64 m = matrix.M41, n = matrix.M42, o = matrix.M43, p = matrix.M44;
+            X = vector.X * M00 + vector.Y * M01 + vector.Z * M02 + M03,
+            Y = vector.X * M10 + vector.Y * M11 + vector.Z * M12 + M13,
+            Z = vector.X * M20 + vector.Y * M21 + vector.Z * M22 + M23,
+            W = vector.X * M30 + vector.Y * M31 + vector.Z * M32 + M33,
+        };
+        /// <summary>
+        /// 转换向量
+        /// </summary>
+        public readonly Vector4D Transform(in Vector4D vector) => new()
+        {
+            X = vector.X * M00 + vector.Y * M01 + vector.Z * M02 + vector.W * M03,
+            Y = vector.X * M10 + vector.Y * M11 + vector.Z * M12 + vector.W * M13,
+            Z = vector.X * M20 + vector.Y * M21 + vector.Z * M22 + vector.W * M23,
+            W = vector.X * M30 + vector.Y * M31 + vector.Z * M32 + vector.W * M33,
+        };
+        /// <summary>
+        /// 转置转换向量
+        /// </summary>
+        public readonly Vector4D TransposedTransform(in Vector3D vector) => new()
+        {
+            X = vector.X * M00 + vector.Y * M10 + vector.Z * M20 + M30,
+            Y = vector.X * M01 + vector.Y * M11 + vector.Z * M21 + M31,
+            Z = vector.X * M02 + vector.Y * M12 + vector.Z * M22 + M32,
+            W = vector.X * M03 + vector.Y * M13 + vector.Z * M23 + M33,
+        };
+        /// <summary>
+        /// 转置转换向量
+        /// </summary>
+        public readonly Vector4D TransposedTransform(in Vector4D vector) => new()
+        {
+            X = vector.X * M00 + vector.Y * M10 + vector.Z * M20 + vector.W * M30,
+            Y = vector.X * M01 + vector.Y * M11 + vector.Z * M21 + vector.W * M31,
+            Z = vector.X * M02 + vector.Y * M12 + vector.Z * M22 + vector.W * M32,
+            W = vector.X * M03 + vector.Y * M13 + vector.Z * M23 + vector.W * M33,
+        };
 
-            Fixed64 kp_lo = k * p - l * o;
-            Fixed64 jp_ln = j * p - l * n;
-            Fixed64 jo_kn = j * o - k * n;
-            Fixed64 ip_lm = i * p - l * m;
-            Fixed64 io_km = i * o - k * m;
-            Fixed64 in_jm = i * n - j * m;
+        /// <summary>
+        /// 绝对值
+        /// </summary>
+        public readonly Matrix4X4 Abs() => new()
+        {
+            M00 = M00.Abs(),
+            M01 = M01.Abs(),
+            M02 = M02.Abs(),
+            M03 = M03.Abs(),
+            M10 = M10.Abs(),
+            M11 = M11.Abs(),
+            M12 = M12.Abs(),
+            M13 = M13.Abs(),
+            M20 = M20.Abs(),
+            M21 = M21.Abs(),
+            M22 = M22.Abs(),
+            M23 = M23.Abs(),
+            M30 = M30.Abs(),
+            M31 = M31.Abs(),
+            M32 = M32.Abs(),
+            M33 = M33.Abs(),
+        };
+        /// <summary>
+        /// 转置
+        /// </summary>
+        public readonly Matrix4X4 Transpose() => new()
+        {
+            M00 = M00,
+            M01 = M10,
+            M02 = M20,
+            M03 = M30,
+            M10 = M01,
+            M11 = M11,
+            M12 = M21,
+            M13 = M31,
+            M20 = M02,
+            M21 = M12,
+            M22 = M22,
+            M23 = M32,
+            M30 = M03,
+            M31 = M13,
+            M32 = M23,
+            M33 = M33,
+        };
+        /// <summary>
+        /// 反转
+        /// </summary>
+        public readonly Matrix4X4 Inverse()
+        {
+            var determinant = Determinant();
+            if (determinant == Fixed64.Zero)
+                return new Matrix4X4(in Vector4D.Infinity, in Vector4D.Infinity, in Vector4D.Infinity, in Vector4D.Infinity);
 
-            Fixed64 a11 = (f * kp_lo - g * jp_ln + h * jo_kn);
-            Fixed64 a12 = -(e * kp_lo - g * ip_lm + h * io_km);
-            Fixed64 a13 = (e * jp_ln - f * ip_lm + h * in_jm);
-            Fixed64 a14 = -(e * jo_kn - f * io_km + g * in_jm);
+            var num00 = M22 * M33 - M23 * M32;
+            var num01 = M21 * M33 - M23 * M31;
+            var num02 = M21 * M32 - M22 * M31;
+            var num03 = M20 * M33 - M23 * M30;
+            var num04 = M20 * M32 - M22 * M30;
+            var num05 = M20 * M31 - M21 * M30;
+            var num06 = M12 * M33 - M13 * M32;
+            var num07 = M11 * M33 - M13 * M31;
+            var num08 = M11 * M32 - M12 * M31;
+            var num09 = M10 * M33 - M13 * M30;
+            var num10 = M10 * M32 - M12 * M30;
+            var num11 = M10 * M31 - M11 * M30;
+            var num12 = M12 * M23 - M13 * M22;
+            var num13 = M11 * M23 - M13 * M21;
+            var num14 = M11 * M22 - M12 * M21;
+            var num15 = M10 * M23 - M13 * M20;
+            var num16 = M10 * M22 - M12 * M20;
+            var num17 = M10 * M21 - M11 * M20;
 
-            Fixed64 det = a * a11 + b * a12 + c * a13 + d * a14;
-
-            if (det == Fixed64.Zero)
+            var reciprocal = determinant.Reciprocal();
+            return new Matrix4X4
             {
-                result.M11 = Fixed64.Infinity;
-                result.M12 = Fixed64.Infinity;
-                result.M13 = Fixed64.Infinity;
-                result.M14 = Fixed64.Infinity;
-                result.M21 = Fixed64.Infinity;
-                result.M22 = Fixed64.Infinity;
-                result.M23 = Fixed64.Infinity;
-                result.M24 = Fixed64.Infinity;
-                result.M31 = Fixed64.Infinity;
-                result.M32 = Fixed64.Infinity;
-                result.M33 = Fixed64.Infinity;
-                result.M34 = Fixed64.Infinity;
-                result.M41 = Fixed64.Infinity;
-                result.M42 = Fixed64.Infinity;
-                result.M43 = Fixed64.Infinity;
-                result.M44 = Fixed64.Infinity;
-            }
-            else
+                M00 = (M11 * num00 - M12 * num01 + M13 * num02) * reciprocal,
+                M10 = (-M10 * num00 + M12 * num03 - M13 * num04) * reciprocal,
+                M20 = (M10 * num01 - M11 * num03 + M13 * num05) * reciprocal,
+                M30 = (-M10 * num02 + M11 * num04 - M12 * num05) * reciprocal,
+                M01 = (-M01 * num00 + M02 * num01 - M03 * num02) * reciprocal,
+                M11 = (M00 * num00 - M02 * num03 + M03 * num04) * reciprocal,
+                M21 = (-M00 * num01 + M01 * num03 - M03 * num05) * reciprocal,
+                M31 = (M00 * num02 - M01 * num04 + M02 * num05) * reciprocal,
+                M02 = (M01 * num06 - M02 * num07 + M03 * num08) * reciprocal,
+                M12 = (-M00 * num06 + M02 * num09 - M03 * num10) * reciprocal,
+                M22 = (M00 * num07 - M01 * num09 + M03 * num11) * reciprocal,
+                M32 = (-M00 * num08 + M01 * num10 - M02 * num11) * reciprocal,
+                M03 = (-M01 * num12 + M02 * num13 - M03 * num14) * reciprocal,
+                M13 = (M00 * num12 - M02 * num15 + M03 * num16) * reciprocal,
+                M23 = (-M00 * num13 + M01 * num15 - M03 * num17) * reciprocal,
+                M33 = (M00 * num14 - M01 * num16 + M02 * num17) * reciprocal,
+            };
+        }
+
+        /// <summary>
+        /// 位移矩阵
+        /// </summary>
+        public static Matrix4X4 Translate(in Vector3D translation) => Translate(translation.X, translation.Y, translation.Z);
+        /// <summary>
+        /// 位移矩阵
+        /// </summary>
+        public static Matrix4X4 Translate(Fixed64 x, Fixed64 y, Fixed64 z) => new()
+        {
+            M00 = Fixed64.One,
+            M01 = Fixed64.Zero,
+            M02 = Fixed64.Zero,
+            M03 = x,
+            M10 = Fixed64.Zero,
+            M11 = Fixed64.One,
+            M12 = Fixed64.Zero,
+            M13 = y,
+            M20 = Fixed64.Zero,
+            M21 = Fixed64.Zero,
+            M22 = Fixed64.One,
+            M23 = z,
+            M30 = Fixed64.Zero,
+            M31 = Fixed64.Zero,
+            M32 = Fixed64.Zero,
+            M33 = Fixed64.One,
+        };
+
+        /// <summary>
+        /// 旋转矩阵
+        /// </summary>
+        public static Matrix4X4 Rotate(in Quaternions rotation) => Rotate(rotation.X, rotation.Y, rotation.Z, rotation.W);
+        /// <summary>
+        /// 旋转矩阵
+        /// </summary>
+        public static Matrix4X4 Rotate(Fixed64 x, Fixed64 y, Fixed64 z, Fixed64 w)
+        {
+            var x2 = x << 1;
+            var y2 = y << 1;
+            var z2 = z << 1;
+            var xx = x * x2;
+            var yy = y * y2;
+            var zz = z * z2;
+            var xy = x * y2;
+            var xz = x * z2;
+            var yz = y * z2;
+            var wx = w * x2;
+            var wy = w * y2;
+            var wz = w * z2;
+            return new Matrix4X4
             {
-                var invDet = det.Reciprocal();
-
-                result.M11 = a11 * invDet;
-                result.M21 = a12 * invDet;
-                result.M31 = a13 * invDet;
-                result.M41 = a14 * invDet;
-
-                result.M12 = -(b * kp_lo - c * jp_ln + d * jo_kn) * invDet;
-                result.M22 = (a * kp_lo - c * ip_lm + d * io_km) * invDet;
-                result.M32 = -(a * jp_ln - b * ip_lm + d * in_jm) * invDet;
-                result.M42 = (a * jo_kn - b * io_km + c * in_jm) * invDet;
-
-                Fixed64 gp_ho = g * p - h * o;
-                Fixed64 fp_hn = f * p - h * n;
-                Fixed64 fo_gn = f * o - g * n;
-                Fixed64 ep_hm = e * p - h * m;
-                Fixed64 eo_gm = e * o - g * m;
-                Fixed64 en_fm = e * n - f * m;
-
-                result.M13 = (b * gp_ho - c * fp_hn + d * fo_gn) * invDet;
-                result.M23 = -(a * gp_ho - c * ep_hm + d * eo_gm) * invDet;
-                result.M33 = (a * fp_hn - b * ep_hm + d * en_fm) * invDet;
-                result.M43 = -(a * fo_gn - b * eo_gm + c * en_fm) * invDet;
-
-                Fixed64 gl_hk = g * l - h * k;
-                Fixed64 fl_hj = f * l - h * j;
-                Fixed64 fk_gj = f * k - g * j;
-                Fixed64 el_hi = e * l - h * i;
-                Fixed64 ek_gi = e * k - g * i;
-                Fixed64 ej_fi = e * j - f * i;
-
-                result.M14 = -(b * gl_hk - c * fl_hj + d * fk_gj) * invDet;
-                result.M24 = (a * gl_hk - c * el_hi + d * ek_gi) * invDet;
-                result.M34 = -(a * fl_hj - b * el_hi + d * ej_fi) * invDet;
-                result.M44 = (a * fk_gj - b * ek_gi + c * ej_fi) * invDet;
-            }
+                M00 = Fixed64.One - yy - zz,
+                M10 = xy + wz,
+                M20 = xz - wy,
+                M30 = Fixed64.Zero,
+                M01 = xy - wz,
+                M11 = Fixed64.One - xx - zz,
+                M21 = yz + wx,
+                M31 = Fixed64.Zero,
+                M02 = xz + wy,
+                M12 = yz - wx,
+                M22 = Fixed64.One - xx - yy,
+                M32 = Fixed64.Zero,
+                M03 = Fixed64.Zero,
+                M13 = Fixed64.Zero,
+                M23 = Fixed64.Zero,
+                M33 = Fixed64.One,
+            };
         }
 
         /// <summary>
-        /// Multiply a matrix by a scalefactor.
+        /// 缩放矩阵
         /// </summary>
-        /// <param name="matrix1">The matrix.</param>
-        /// <param name="scaleFactor">The scale factor.</param>
-        /// <returns>A JMatrix multiplied by the scale factor.</returns>
-        public static Matrix4X4 Multiply(Matrix4X4 matrix1, Fixed64 scaleFactor)
+        public static Matrix4X4 Scale(Fixed64 scale) => Scale(scale, scale, scale);
+        /// <summary>
+        /// 缩放矩阵
+        /// </summary>
+        public static Matrix4X4 Scale(in Vector3D scale) => Scale(scale.X, scale.Y, scale.Z);
+        /// <summary>
+        /// 缩放矩阵
+        /// </summary>
+        public static Matrix4X4 Scale(Fixed64 scale, in Vector3D center) => Scale(scale, scale, scale, in center);
+        /// <summary>
+        /// 缩放矩阵
+        /// </summary>
+        public static Matrix4X4 Scale(in Vector3D scale, in Vector3D center) => Scale(scale.X, scale.Y, scale.Z, in center);
+        /// <summary>
+        /// 缩放矩阵
+        /// </summary>
+        public static Matrix4X4 Scale(Fixed64 x, Fixed64 y, Fixed64 z) => new()
         {
-            Matrix4X4 result;
-            Matrix4X4.Multiply(ref matrix1, scaleFactor, out result);
-            return result;
-        }
+            M00 = x,
+            M01 = Fixed64.Zero,
+            M02 = Fixed64.Zero,
+            M03 = Fixed64.Zero,
+            M10 = Fixed64.Zero,
+            M11 = y,
+            M12 = Fixed64.Zero,
+            M13 = Fixed64.Zero,
+            M20 = Fixed64.Zero,
+            M21 = Fixed64.Zero,
+            M22 = z,
+            M23 = Fixed64.Zero,
+            M30 = Fixed64.Zero,
+            M31 = Fixed64.Zero,
+            M32 = Fixed64.Zero,
+            M33 = Fixed64.One,
+        };
+        /// <summary>
+        /// 缩放矩阵
+        /// </summary>
+        public static Matrix4X4 Scale(Fixed64 x, Fixed64 y, Fixed64 z, in Vector3D center) => new()
+        {
+            M00 = x,
+            M01 = Fixed64.Zero,
+            M02 = Fixed64.Zero,
+            M03 = Fixed64.Zero,
+            M10 = Fixed64.Zero,
+            M11 = y,
+            M12 = Fixed64.Zero,
+            M13 = Fixed64.Zero,
+            M20 = Fixed64.Zero,
+            M21 = Fixed64.Zero,
+            M22 = z,
+            M23 = Fixed64.Zero,
+            M30 = center.X * (Fixed64.One - x),
+            M31 = center.Y * (Fixed64.One - y),
+            M32 = center.Z * (Fixed64.One - z),
+            M33 = Fixed64.One,
+        };
 
         /// <summary>
-        /// Multiply a matrix by a scalefactor.
+        /// 平移、旋转和缩放矩阵
         /// </summary>
-        /// <param name="matrix1">The matrix.</param>
-        /// <param name="scaleFactor">The scale factor.</param>
-        /// <param name="result">A JMatrix multiplied by the scale factor.</param>
-        public static void Multiply(ref Matrix4X4 matrix1, Fixed64 scaleFactor, out Matrix4X4 result)
+        public static Matrix4X4 TRS(in Vector3D translation, in Quaternions rotation, in Vector3D scale) => Translate(translation.X, translation.Y, translation.Z) * Rotate(rotation.X, rotation.Y, rotation.Z, rotation.W) * Scale(scale.X, scale.Y, scale.Z);
+        #endregion
+
+        #region 隐式转换/显示转换/运算符重载
+#if UNITY_STANDALONE
+        public static implicit operator Matrix4X4(in UnityEngine.Matrix4x4 value) => new(value.m00, value.m01, value.m02, value.m03, value.m10, value.m11, value.m12, value.m13, value.m20, value.m21, value.m22, value.m23, value.m30, value.m31, value.m32, value.m33);
+        public static explicit operator UnityEngine.Matrix4x4(in Matrix4X4 value) => new()
         {
-            Fixed64 num = scaleFactor;
-            result.M11 = matrix1.M11 * num;
-            result.M12 = matrix1.M12 * num;
-            result.M13 = matrix1.M13 * num;
-            result.M14 = matrix1.M14 * num;
+            m00 = (float)value.M00,
+            m01 = (float)value.M01,
+            m02 = (float)value.M02,
+            m03 = (float)value.M03,
+            m10 = (float)value.M10,
+            m11 = (float)value.M11,
+            m12 = (float)value.M12,
+            m13 = (float)value.M13,
+            m20 = (float)value.M20,
+            m21 = (float)value.M21,
+            m22 = (float)value.M22,
+            m23 = (float)value.M23,
+            m30 = (float)value.M30,
+            m31 = (float)value.M31,
+            m32 = (float)value.M32,
+            m33 = (float)value.M33,
+        };
+#endif
 
-            result.M21 = matrix1.M21 * num;
-            result.M22 = matrix1.M22 * num;
-            result.M23 = matrix1.M23 * num;
-            result.M24 = matrix1.M24 * num;
+        public static implicit operator Matrix4X4(in System.Numerics.Matrix4x4 value) => new(value.M11, value.M12, value.M13, value.M14, value.M21, value.M22, value.M23, value.M24, value.M31, value.M32, value.M33, value.M34, value.M41, value.M42, value.M43, value.M44);
+        public static explicit operator System.Numerics.Matrix4x4(in Matrix4X4 value) => new((float)value.M00, (float)value.M01, (float)value.M02, (float)value.M03, (float)value.M10, (float)value.M11, (float)value.M12, (float)value.M13, (float)value.M20, (float)value.M21, (float)value.M22, (float)value.M23, (float)value.M30, (float)value.M31, (float)value.M32, (float)value.M33);
 
-            result.M31 = matrix1.M31 * num;
-            result.M32 = matrix1.M32 * num;
-            result.M33 = matrix1.M33 * num;
-            result.M34 = matrix1.M34 * num;
+        public static Matrix4X4 operator +(in Matrix4X4 value) => value;
+        public static Matrix4X4 operator -(in Matrix4X4 value) => new()
+        {
+            M00 = -value.M00,
+            M01 = -value.M01,
+            M02 = -value.M02,
+            M03 = -value.M03,
+            M10 = -value.M10,
+            M11 = -value.M11,
+            M12 = -value.M12,
+            M13 = -value.M13,
+            M20 = -value.M20,
+            M21 = -value.M21,
+            M22 = -value.M22,
+            M23 = -value.M23,
+            M30 = -value.M30,
+            M31 = -value.M31,
+            M32 = -value.M32,
+            M33 = -value.M33,
+        };
+        public static Matrix4X4 operator +(in Matrix4X4 lhs, in Matrix4X4 rhs) => new()
+        {
+            M00 = lhs.M00 + rhs.M00,
+            M01 = lhs.M01 + rhs.M01,
+            M02 = lhs.M02 + rhs.M02,
+            M03 = lhs.M03 + rhs.M03,
+            M10 = lhs.M10 + rhs.M10,
+            M11 = lhs.M11 + rhs.M11,
+            M12 = lhs.M12 + rhs.M12,
+            M13 = lhs.M13 + rhs.M13,
+            M20 = lhs.M20 + rhs.M20,
+            M21 = lhs.M21 + rhs.M21,
+            M22 = lhs.M22 + rhs.M22,
+            M23 = lhs.M23 + rhs.M23,
+            M30 = lhs.M30 + rhs.M30,
+            M31 = lhs.M31 + rhs.M31,
+            M32 = lhs.M32 + rhs.M32,
+            M33 = lhs.M33 + rhs.M33,
+        };
+        public static Matrix4X4 operator -(in Matrix4X4 lhs, in Matrix4X4 rhs) => new()
+        {
+            M00 = lhs.M00 - rhs.M00,
+            M01 = lhs.M01 - rhs.M01,
+            M02 = lhs.M02 - rhs.M02,
+            M03 = lhs.M03 - rhs.M03,
+            M10 = lhs.M10 - rhs.M10,
+            M11 = lhs.M11 - rhs.M11,
+            M12 = lhs.M12 - rhs.M12,
+            M13 = lhs.M13 - rhs.M13,
+            M20 = lhs.M20 - rhs.M20,
+            M21 = lhs.M21 - rhs.M21,
+            M22 = lhs.M22 - rhs.M22,
+            M23 = lhs.M23 - rhs.M23,
+            M30 = lhs.M30 - rhs.M30,
+            M31 = lhs.M31 - rhs.M31,
+            M32 = lhs.M32 - rhs.M32,
+            M33 = lhs.M33 - rhs.M33,
+        };
 
-            result.M41 = matrix1.M41 * num;
-            result.M42 = matrix1.M42 * num;
-            result.M43 = matrix1.M43 * num;
-            result.M44 = matrix1.M44 * num;
+        public static Matrix4X4 operator *(in Matrix4X4 lhs, in Matrix4X4 rhs) => new()
+        {
+            M00 = lhs.M00 * rhs.M00 + lhs.M01 * rhs.M10 + lhs.M02 * rhs.M20 + lhs.M03 * rhs.M30,
+            M01 = lhs.M00 * rhs.M01 + lhs.M01 * rhs.M11 + lhs.M02 * rhs.M21 + lhs.M03 * rhs.M31,
+            M02 = lhs.M00 * rhs.M02 + lhs.M01 * rhs.M12 + lhs.M02 * rhs.M22 + lhs.M03 * rhs.M32,
+            M03 = lhs.M00 * rhs.M03 + lhs.M01 * rhs.M13 + lhs.M02 * rhs.M23 + lhs.M03 * rhs.M33,
+            M10 = lhs.M10 * rhs.M00 + lhs.M11 * rhs.M10 + lhs.M12 * rhs.M20 + lhs.M13 * rhs.M30,
+            M11 = lhs.M10 * rhs.M01 + lhs.M11 * rhs.M11 + lhs.M12 * rhs.M21 + lhs.M13 * rhs.M31,
+            M12 = lhs.M10 * rhs.M02 + lhs.M11 * rhs.M12 + lhs.M12 * rhs.M22 + lhs.M13 * rhs.M32,
+            M13 = lhs.M10 * rhs.M03 + lhs.M11 * rhs.M13 + lhs.M12 * rhs.M23 + lhs.M13 * rhs.M33,
+            M20 = lhs.M20 * rhs.M00 + lhs.M21 * rhs.M10 + lhs.M22 * rhs.M20 + lhs.M23 * rhs.M30,
+            M21 = lhs.M20 * rhs.M01 + lhs.M21 * rhs.M11 + lhs.M22 * rhs.M21 + lhs.M23 * rhs.M31,
+            M22 = lhs.M20 * rhs.M02 + lhs.M21 * rhs.M12 + lhs.M22 * rhs.M22 + lhs.M23 * rhs.M32,
+            M23 = lhs.M20 * rhs.M03 + lhs.M21 * rhs.M13 + lhs.M22 * rhs.M23 + lhs.M23 * rhs.M33,
+            M30 = lhs.M30 * rhs.M00 + lhs.M31 * rhs.M10 + lhs.M32 * rhs.M20 + lhs.M33 * rhs.M30,
+            M31 = lhs.M30 * rhs.M01 + lhs.M31 * rhs.M11 + lhs.M32 * rhs.M21 + lhs.M33 * rhs.M31,
+            M32 = lhs.M30 * rhs.M02 + lhs.M31 * rhs.M12 + lhs.M32 * rhs.M22 + lhs.M33 * rhs.M32,
+            M33 = lhs.M30 * rhs.M03 + lhs.M31 * rhs.M13 + lhs.M32 * rhs.M23 + lhs.M33 * rhs.M33,
+        };
+        public static Matrix4X4 operator *(in Matrix4X4 lhs, Fixed64 rhs) => new()
+        {
+            M00 = lhs.M00 * rhs,
+            M01 = lhs.M01 * rhs,
+            M02 = lhs.M02 * rhs,
+            M03 = lhs.M03 * rhs,
+            M10 = lhs.M10 * rhs,
+            M11 = lhs.M11 * rhs,
+            M12 = lhs.M12 * rhs,
+            M13 = lhs.M13 * rhs,
+            M20 = lhs.M20 * rhs,
+            M21 = lhs.M21 * rhs,
+            M22 = lhs.M22 * rhs,
+            M23 = lhs.M23 * rhs,
+            M30 = lhs.M30 * rhs,
+            M31 = lhs.M31 * rhs,
+            M32 = lhs.M32 * rhs,
+            M33 = lhs.M33 * rhs,
+        };
+        public static Matrix4X4 operator *(in Matrix4X4 lhs, long rhs) => new()
+        {
+            M00 = lhs.M00 * rhs,
+            M01 = lhs.M01 * rhs,
+            M02 = lhs.M02 * rhs,
+            M03 = lhs.M03 * rhs,
+            M10 = lhs.M10 * rhs,
+            M11 = lhs.M11 * rhs,
+            M12 = lhs.M12 * rhs,
+            M13 = lhs.M13 * rhs,
+            M20 = lhs.M20 * rhs,
+            M21 = lhs.M21 * rhs,
+            M22 = lhs.M22 * rhs,
+            M23 = lhs.M23 * rhs,
+            M30 = lhs.M30 * rhs,
+            M31 = lhs.M31 * rhs,
+            M32 = lhs.M32 * rhs,
+            M33 = lhs.M33 * rhs,
+        };
+        public static Matrix4X4 operator *(Fixed64 lhs, in Matrix4X4 rhs) => new()
+        {
+            M00 = lhs * rhs.M00,
+            M01 = lhs * rhs.M01,
+            M02 = lhs * rhs.M02,
+            M03 = lhs * rhs.M03,
+            M10 = lhs * rhs.M10,
+            M11 = lhs * rhs.M11,
+            M12 = lhs * rhs.M12,
+            M13 = lhs * rhs.M13,
+            M20 = lhs * rhs.M20,
+            M21 = lhs * rhs.M21,
+            M22 = lhs * rhs.M22,
+            M23 = lhs * rhs.M23,
+            M30 = lhs * rhs.M30,
+            M31 = lhs * rhs.M31,
+            M32 = lhs * rhs.M32,
+            M33 = lhs * rhs.M33,
+        };
+        public static Matrix4X4 operator *(long lhs, in Matrix4X4 rhs) => new()
+        {
+            M00 = lhs * rhs.M00,
+            M01 = lhs * rhs.M01,
+            M02 = lhs * rhs.M02,
+            M03 = lhs * rhs.M03,
+            M10 = lhs * rhs.M10,
+            M11 = lhs * rhs.M11,
+            M12 = lhs * rhs.M12,
+            M13 = lhs * rhs.M13,
+            M20 = lhs * rhs.M20,
+            M21 = lhs * rhs.M21,
+            M22 = lhs * rhs.M22,
+            M23 = lhs * rhs.M23,
+            M30 = lhs * rhs.M30,
+            M31 = lhs * rhs.M31,
+            M32 = lhs * rhs.M32,
+            M33 = lhs * rhs.M33,
+        };
+        public static Matrix4X4 operator /(in Matrix4X4 lhs, Fixed64 rhs) => new()
+        {
+            M00 = lhs.M00 / rhs,
+            M01 = lhs.M01 / rhs,
+            M02 = lhs.M02 / rhs,
+            M03 = lhs.M03 / rhs,
+            M10 = lhs.M10 / rhs,
+            M11 = lhs.M11 / rhs,
+            M12 = lhs.M12 / rhs,
+            M13 = lhs.M13 / rhs,
+            M20 = lhs.M20 / rhs,
+            M21 = lhs.M21 / rhs,
+            M22 = lhs.M22 / rhs,
+            M23 = lhs.M23 / rhs,
+            M30 = lhs.M30 / rhs,
+            M31 = lhs.M31 / rhs,
+            M32 = lhs.M32 / rhs,
+            M33 = lhs.M33 / rhs,
+        };
+        public static Matrix4X4 operator /(in Matrix4X4 lhs, long rhs) => new()
+        {
+            M00 = lhs.M00 / rhs,
+            M01 = lhs.M01 / rhs,
+            M02 = lhs.M02 / rhs,
+            M03 = lhs.M03 / rhs,
+            M10 = lhs.M10 / rhs,
+            M11 = lhs.M11 / rhs,
+            M12 = lhs.M12 / rhs,
+            M13 = lhs.M13 / rhs,
+            M20 = lhs.M20 / rhs,
+            M21 = lhs.M21 / rhs,
+            M22 = lhs.M22 / rhs,
+            M23 = lhs.M23 / rhs,
+            M30 = lhs.M30 / rhs,
+            M31 = lhs.M31 / rhs,
+            M32 = lhs.M32 / rhs,
+            M33 = lhs.M33 / rhs,
+        };
+
+        public static bool operator ==(in Matrix4X4 lhs, in Matrix4X4 rhs) => lhs.M00 == rhs.M00 && lhs.M01 == rhs.M01 && lhs.M02 == rhs.M02 && lhs.M03 == rhs.M03 && lhs.M10 == rhs.M10 && lhs.M11 == rhs.M11 && lhs.M12 == rhs.M12 && lhs.M13 == rhs.M13 && lhs.M20 == rhs.M20 && lhs.M21 == rhs.M21 && lhs.M22 == rhs.M22 && lhs.M23 == rhs.M23 && lhs.M30 == rhs.M30 && lhs.M31 == rhs.M31 && lhs.M32 == rhs.M32 && lhs.M33 == rhs.M33;
+        public static bool operator !=(in Matrix4X4 lhs, in Matrix4X4 rhs) => lhs.M00 != rhs.M00 || lhs.M01 != rhs.M01 || lhs.M02 != rhs.M02 || lhs.M03 != rhs.M03 || lhs.M10 != rhs.M10 || lhs.M11 != rhs.M11 || lhs.M12 != rhs.M12 || lhs.M13 != rhs.M13 || lhs.M20 != rhs.M20 || lhs.M21 != rhs.M21 || lhs.M22 != rhs.M22 || lhs.M23 != rhs.M23 || lhs.M30 != rhs.M30 || lhs.M31 != rhs.M31 || lhs.M32 != rhs.M32 || lhs.M33 != rhs.M33;
+        #endregion
+
+        #region 继承/重载
+        public readonly override bool Equals(object obj) => obj is Matrix4X4 other && this == other;
+        public readonly override int GetHashCode() => M00.GetHashCode() ^ M01.GetHashCode() ^ M02.GetHashCode() ^ M03.GetHashCode() ^ M10.GetHashCode() ^ M11.GetHashCode() ^ M12.GetHashCode() ^ M13.GetHashCode() ^ M20.GetHashCode() ^ M21.GetHashCode() ^ M22.GetHashCode() ^ M23.GetHashCode() ^ M30.GetHashCode() ^ M31.GetHashCode() ^ M32.GetHashCode() ^ M33.GetHashCode();
+        public readonly bool Equals(Matrix4X4 other) => this == other;
+        public readonly int CompareTo(Matrix4X4 other)
+        {
+            int match0 = M00.RawValue.CompareTo(other.M00.RawValue);
+            if (match0 != 0)
+                return match0;
+
+            int match1 = M01.RawValue.CompareTo(other.M01.RawValue);
+            if (match1 != 0)
+                return match1;
+
+            int match2 = M02.RawValue.CompareTo(other.M02.RawValue);
+            if (match2 != 0)
+                return match2;
+
+            int match3 = M03.RawValue.CompareTo(other.M03.RawValue);
+            if (match3 != 0)
+                return match3;
+
+            int match4 = M10.RawValue.CompareTo(other.M10.RawValue);
+            if (match4 != 0)
+                return match4;
+
+            int match5 = M11.RawValue.CompareTo(other.M11.RawValue);
+            if (match5 != 0)
+                return match5;
+
+            int match6 = M12.RawValue.CompareTo(other.M12.RawValue);
+            if (match6 != 0)
+                return match6;
+
+            int match7 = M13.RawValue.CompareTo(other.M13.RawValue);
+            if (match7 != 0)
+                return match7;
+
+            int match8 = M20.RawValue.CompareTo(other.M20.RawValue);
+            if (match8 != 0)
+                return match8;
+
+            int match9 = M21.RawValue.CompareTo(other.M21.RawValue);
+            if (match9 != 0)
+                return match9;
+
+            int match10 = M22.RawValue.CompareTo(other.M22.RawValue);
+            if (match10 != 0)
+                return match10;
+
+            int match11 = M23.RawValue.CompareTo(other.M23.RawValue);
+            if (match11 != 0)
+                return match11;
+
+            int match12 = M30.RawValue.CompareTo(other.M30.RawValue);
+            if (match12 != 0)
+                return match12;
+
+            int match13 = M31.RawValue.CompareTo(other.M31.RawValue);
+            if (match13 != 0)
+                return match13;
+
+            int match14 = M32.RawValue.CompareTo(other.M32.RawValue);
+            if (match14 != 0)
+                return match14;
+
+            int match15 = M33.RawValue.CompareTo(other.M33.RawValue);
+            if (match15 != 0)
+                return match15;
+
+            return 0;
         }
 
-        public static Matrix4X4 Rotate(Quaternions quaternion)
-        {
-            Matrix4X4.Rotate(ref quaternion, out var result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a JMatrix representing an orientation from a quaternion.
-        /// </summary>
-        /// <param name="quaternion">The quaternion the matrix should be created from.</param>
-        /// <param name="result">JMatrix representing an orientation.</param>
-        public static void Rotate(ref Quaternions quaternion, out Matrix4X4 result)
-        {
-            // Precalculate coordinate products
-            Fixed64 x = quaternion.X * 2;
-            Fixed64 y = quaternion.Y * 2;
-            Fixed64 z = quaternion.Z * 2;
-            Fixed64 xx = quaternion.X * x;
-            Fixed64 yy = quaternion.Y * y;
-            Fixed64 zz = quaternion.Z * z;
-            Fixed64 xy = quaternion.X * y;
-            Fixed64 xz = quaternion.X * z;
-            Fixed64 yz = quaternion.Y * z;
-            Fixed64 wx = quaternion.W * x;
-            Fixed64 wy = quaternion.W * y;
-            Fixed64 wz = quaternion.W * z;
-
-            // Calculate 3x3 matrix from orthonormal basis
-            result.M11 = Fixed64.One - (yy + zz);
-            result.M21 = xy + wz;
-            result.M31 = xz - wy;
-            result.M41 = Fixed64.Zero;
-            result.M12 = xy - wz;
-            result.M22 = Fixed64.One - (xx + zz);
-            result.M32 = yz + wx;
-            result.M42 = Fixed64.Zero;
-            result.M13 = xz + wy;
-            result.M23 = yz - wx;
-            result.M33 = Fixed64.One - (xx + yy);
-            result.M43 = Fixed64.Zero;
-            result.M14 = Fixed64.Zero;
-            result.M24 = Fixed64.Zero;
-            result.M34 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-        }
-
-        /// <summary>
-        /// Creates the transposed matrix.
-        /// </summary>
-        /// <param name="matrix">The matrix which should be transposed.</param>
-        /// <returns>The transposed JMatrix.</returns>
-        public static Matrix4X4 Transpose(Matrix4X4 matrix)
-        {
-            Matrix4X4 result;
-            Matrix4X4.Transpose(ref matrix, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Creates the transposed matrix.
-        /// </summary>
-        /// <param name="matrix">The matrix which should be transposed.</param>
-        /// <param name="result">The transposed JMatrix.</param>
-        public static void Transpose(ref Matrix4X4 matrix, out Matrix4X4 result)
-        {
-            result.M11 = matrix.M11;
-            result.M12 = matrix.M21;
-            result.M13 = matrix.M31;
-            result.M14 = matrix.M41;
-            result.M21 = matrix.M12;
-            result.M22 = matrix.M22;
-            result.M23 = matrix.M32;
-            result.M24 = matrix.M42;
-            result.M31 = matrix.M13;
-            result.M32 = matrix.M23;
-            result.M33 = matrix.M33;
-            result.M34 = matrix.M43;
-            result.M41 = matrix.M14;
-            result.M42 = matrix.M24;
-            result.M43 = matrix.M34;
-            result.M44 = matrix.M44;
-        }
-
-        /// <summary>
-        /// Multiplies two matrices.
-        /// </summary>
-        /// <param name="value1">The first matrix.</param>
-        /// <param name="value2">The second matrix.</param>
-        /// <returns>The product of both values.</returns>
-        public static Matrix4X4 operator *(Matrix4X4 value1, Matrix4X4 value2)
-        {
-            Matrix4X4 result;
-            Matrix4X4.Multiply(ref value1, ref value2, out result);
-            return result;
-        }
-
-        public Fixed64 Trace()
-        {
-            return this.M11 + this.M22 + this.M33 + this.M44;
-        }
-
-        /// <summary>
-        /// Adds two matrices.
-        /// </summary>
-        /// <param name="value1">The first matrix.</param>
-        /// <param name="value2">The second matrix.</param>
-        /// <returns>The sum of both values.</returns>
-        public static Matrix4X4 operator +(Matrix4X4 value1, Matrix4X4 value2)
-        {
-            Matrix4X4 result;
-            Matrix4X4.Add(ref value1, ref value2, out result);
-            return result;
-        }
-
-        /// <summary>
-        /// Returns a new matrix with the negated elements of the given matrix.
-        /// </summary>
-        /// <param name="value">The source matrix.</param>
-        /// <returns>The negated matrix.</returns>
-        public static Matrix4X4 operator -(Matrix4X4 value)
-        {
-            Matrix4X4 result;
-
-            result.M11 = -value.M11;
-            result.M12 = -value.M12;
-            result.M13 = -value.M13;
-            result.M14 = -value.M14;
-            result.M21 = -value.M21;
-            result.M22 = -value.M22;
-            result.M23 = -value.M23;
-            result.M24 = -value.M24;
-            result.M31 = -value.M31;
-            result.M32 = -value.M32;
-            result.M33 = -value.M33;
-            result.M34 = -value.M34;
-            result.M41 = -value.M41;
-            result.M42 = -value.M42;
-            result.M43 = -value.M43;
-            result.M44 = -value.M44;
-
-            return result;
-        }
-
-        /// <summary>
-        /// Subtracts two matrices.
-        /// </summary>
-        /// <param name="value1">The first matrix.</param>
-        /// <param name="value2">The second matrix.</param>
-        /// <returns>The difference of both values.</returns>
-        public static Matrix4X4 operator -(Matrix4X4 value1, Matrix4X4 value2)
-        {
-            Matrix4X4 result;
-            Matrix4X4.Multiply(ref value2, -Fixed64.One, out value2);
-            Matrix4X4.Add(ref value1, ref value2, out result);
-            return result;
-        }
-
-        public static bool operator ==(Matrix4X4 value1, Matrix4X4 value2)
-        {
-            return value1.M11 == value2.M11 && value1.M12 == value2.M12 && value1.M13 == value2.M13 && value1.M14 == value2.M14 && value1.M21 == value2.M21 && value1.M22 == value2.M22 && value1.M23 == value2.M23 && value1.M24 == value2.M24 && value1.M31 == value2.M31 && value1.M32 == value2.M32 && value1.M33 == value2.M33 && value1.M34 == value2.M34 && value1.M41 == value2.M41 && value1.M42 == value2.M42 && value1.M43 == value2.M43 && value1.M44 == value2.M44;
-        }
-
-        public static bool operator !=(Matrix4X4 value1, Matrix4X4 value2)
-        {
-            return value1.M11 != value2.M11 || value1.M12 != value2.M12 || value1.M13 != value2.M13 || value1.M14 != value2.M14 || value1.M21 != value2.M21 || value1.M22 != value2.M22 || value1.M23 != value2.M23 || value1.M24 != value2.M24 || value1.M31 != value2.M31 || value1.M32 != value2.M32 || value1.M33 != value2.M33 || value1.M34 != value2.M34 || value1.M41 != value2.M41 || value1.M42 != value2.M42 || value1.M43 != value2.M43 || value1.M44 != value2.M44;
-        }
-
-        public bool Equals(Matrix4X4 other)
-        {
-            throw new NotImplementedException();
-        }
-        public int CompareTo(Matrix4X4 other)
-        {
-            throw new NotImplementedException();
-        }
-        public override bool Equals(object obj)
-        {
-            if (!(obj is Matrix4X4))
-                return false;
-            Matrix4X4 other = (Matrix4X4)obj;
-
-            return this.M11 == other.M11 && this.M12 == other.M12 && this.M13 == other.M13 && this.M14 == other.M14 && this.M21 == other.M21 && this.M22 == other.M22 && this.M23 == other.M23 && this.M24 == other.M24 && this.M31 == other.M31 && this.M32 == other.M32 && this.M33 == other.M33 && this.M34 == other.M44 && this.M41 == other.M41 && this.M42 == other.M42 && this.M43 == other.M43 && this.M44 == other.M44;
-        }
-
-        public override int GetHashCode()
-        {
-            return M11.GetHashCode() ^ M12.GetHashCode() ^ M13.GetHashCode() ^ M14.GetHashCode() ^ M21.GetHashCode() ^ M22.GetHashCode() ^ M23.GetHashCode() ^ M24.GetHashCode() ^ M31.GetHashCode() ^ M32.GetHashCode() ^ M33.GetHashCode() ^ M34.GetHashCode() ^ M41.GetHashCode() ^ M42.GetHashCode() ^ M43.GetHashCode() ^ M44.GetHashCode();
-        }
-
-        /// <summary>
-        /// Creates a translation matrix.
-        /// </summary>
-        /// <param name="xPosition">The amount to translate on the X-axis.</param>
-        /// <param name="yPosition">The amount to translate on the Y-axis.</param>
-        /// <param name="zPosition">The amount to translate on the Z-axis.</param>
-        /// <returns>The translation matrix.</returns>
-        public static Matrix4X4 Translate(Fixed64 xPosition, Fixed64 yPosition, Fixed64 zPosition)
-        {
-            Matrix4X4 result;
-
-            result.M11 = Fixed64.One;
-            result.M12 = Fixed64.Zero;
-            result.M13 = Fixed64.Zero;
-            result.M14 = xPosition;
-            result.M21 = Fixed64.Zero;
-            result.M22 = Fixed64.One;
-            result.M23 = Fixed64.Zero;
-            result.M24 = yPosition;
-            result.M31 = Fixed64.Zero;
-            result.M32 = Fixed64.Zero;
-            result.M33 = Fixed64.One;
-            result.M34 = zPosition;
-            result.M41 = Fixed64.Zero;
-            result.M42 = Fixed64.Zero;
-            result.M43 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-
-            return result;
-        }
-
-        public static Matrix4X4 Translate(Vector3D translation)
-        {
-            return Translate(translation.X, translation.Y, translation.Z);
-        }
-
-        /// <summary>
-        /// Creates a scaling matrix.
-        /// </summary>
-        /// <param name="xScale">Value to scale by on the X-axis.</param>
-        /// <param name="yScale">Value to scale by on the Y-axis.</param>
-        /// <param name="zScale">Value to scale by on the Z-axis.</param>
-        /// <returns>The scaling matrix.</returns>
-        public static Matrix4X4 Scale(Fixed64 xScale, Fixed64 yScale, Fixed64 zScale)
-        {
-            Matrix4X4 result;
-
-            result.M11 = xScale;
-            result.M12 = Fixed64.Zero;
-            result.M13 = Fixed64.Zero;
-            result.M14 = Fixed64.Zero;
-            result.M21 = Fixed64.Zero;
-            result.M22 = yScale;
-            result.M23 = Fixed64.Zero;
-            result.M24 = Fixed64.Zero;
-            result.M31 = Fixed64.Zero;
-            result.M32 = Fixed64.Zero;
-            result.M33 = zScale;
-            result.M34 = Fixed64.Zero;
-            result.M41 = Fixed64.Zero;
-            result.M42 = Fixed64.Zero;
-            result.M43 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a scaling matrix with a center point.
-        /// </summary>
-        /// <param name="xScale">Value to scale by on the X-axis.</param>
-        /// <param name="yScale">Value to scale by on the Y-axis.</param>
-        /// <param name="zScale">Value to scale by on the Z-axis.</param>
-        /// <param name="centerPoint">The center point.</param>
-        /// <returns>The scaling matrix.</returns>
-        public static Matrix4X4 Scale(Fixed64 xScale, Fixed64 yScale, Fixed64 zScale, Vector3D centerPoint)
-        {
-            Matrix4X4 result;
-
-            Fixed64 tx = centerPoint.X * (Fixed64.One - xScale);
-            Fixed64 ty = centerPoint.Y * (Fixed64.One - yScale);
-            Fixed64 tz = centerPoint.Z * (Fixed64.One - zScale);
-
-            result.M11 = xScale;
-            result.M12 = Fixed64.Zero;
-            result.M13 = Fixed64.Zero;
-            result.M14 = Fixed64.Zero;
-            result.M21 = Fixed64.Zero;
-            result.M22 = yScale;
-            result.M23 = Fixed64.Zero;
-            result.M24 = Fixed64.Zero;
-            result.M31 = Fixed64.Zero;
-            result.M32 = Fixed64.Zero;
-            result.M33 = zScale;
-            result.M34 = Fixed64.Zero;
-            result.M41 = tx;
-            result.M42 = ty;
-            result.M43 = tz;
-            result.M44 = Fixed64.One;
-
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a scaling matrix.
-        /// </summary>
-        /// <param name="scales">The vector containing the amount to scale by on each axis.</param>
-        /// <returns>The scaling matrix.</returns>
-        public static Matrix4X4 Scale(Vector3D scales)
-        {
-            return Scale(scales.X, scales.Y, scales.Z);
-        }
-
-        /// <summary>
-        /// Creates a scaling matrix with a center point.
-        /// </summary>
-        /// <param name="scales">The vector containing the amount to scale by on each axis.</param>
-        /// <param name="centerPoint">The center point.</param>
-        /// <returns>The scaling matrix.</returns>
-        public static Matrix4X4 Scale(Vector3D scales, Vector3D centerPoint)
-        {
-            return Scale(scales.X, scales.Y, scales.Z, centerPoint);
-        }
-
-        /// <summary>
-        /// Creates a uniform scaling matrix that scales equally on each axis.
-        /// </summary>
-        /// <param name="scale">The uniform scaling factor.</param>
-        /// <returns>The scaling matrix.</returns>
-        public static Matrix4X4 Scale(Fixed64 scale)
-        {
-            return Scale(scale, scale, scale);
-        }
-
-        /// <summary>
-        /// Creates a uniform scaling matrix that scales equally on each axis with a center point.
-        /// </summary>
-        /// <param name="scale">The uniform scaling factor.</param>
-        /// <param name="centerPoint">The center point.</param>
-        /// <returns>The scaling matrix.</returns>
-        public static Matrix4X4 Scale(Fixed64 scale, Vector3D centerPoint)
-        {
-            return Scale(scale, scale, scale, centerPoint);
-        }
-
-        /// <summary>
-        /// Creates a matrix for rotating points around the X-axis.
-        /// </summary>
-        /// <param name="radians">The amount, in radians, by which to rotate around the X-axis.</param>
-        /// <returns>The rotation matrix.</returns>
-        public static Matrix4X4 RotateX(Fixed64 radians)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            // [  1  0  0  0 ]
-            // [  0  c  s  0 ]
-            // [  0 -s  c  0 ]
-            // [  0  0  0  1 ]
-            Matrix4X4 result;
-            result.M11 = Fixed64.One;
-            result.M12 = Fixed64.Zero;
-            result.M13 = Fixed64.Zero;
-            result.M14 = Fixed64.Zero;
-            result.M21 = Fixed64.Zero;
-            result.M22 = cos;
-            result.M23 = sin;
-            result.M24 = Fixed64.Zero;
-            result.M31 = Fixed64.Zero;
-            result.M32 = -sin;
-            result.M33 = cos;
-            result.M34 = Fixed64.Zero;
-            result.M41 = Fixed64.Zero;
-            result.M42 = Fixed64.Zero;
-            result.M43 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a matrix for rotating points around the X-axis, from a center point.
-        /// </summary>
-        /// <param name="radians">The amount, in radians, by which to rotate around the X-axis.</param>
-        /// <param name="centerPoint">The center point.</param>
-        /// <returns>The rotation matrix.</returns>
-        public static Matrix4X4 RotateX(Fixed64 radians, Vector3D centerPoint)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-            var y = centerPoint.Y * (Fixed64.One - cos) + centerPoint.Z * sin;
-            var z = centerPoint.Z * (Fixed64.One - cos) - centerPoint.Y * sin;
-
-            // [  1  0  0  0 ]
-            // [  0  c  s  0 ]
-            // [  0 -s  c  0 ]
-            // [  0  y  z  1 ]
-            Matrix4X4 result;
-            result.M11 = Fixed64.One;
-            result.M12 = Fixed64.Zero;
-            result.M13 = Fixed64.Zero;
-            result.M14 = Fixed64.Zero;
-            result.M21 = Fixed64.Zero;
-            result.M22 = cos;
-            result.M23 = sin;
-            result.M24 = Fixed64.Zero;
-            result.M31 = Fixed64.Zero;
-            result.M32 = -sin;
-            result.M33 = cos;
-            result.M34 = Fixed64.Zero;
-            result.M41 = Fixed64.Zero;
-            result.M42 = y;
-            result.M43 = z;
-            result.M44 = Fixed64.One;
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a matrix for rotating points around the Y-axis.
-        /// </summary>
-        /// <param name="radians">The amount, in radians, by which to rotate around the Y-axis.</param>
-        /// <returns>The rotation matrix.</returns>
-        public static Matrix4X4 RotateY(Fixed64 radians)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            // [  c  0 -s  0 ]
-            // [  0  1  0  0 ]
-            // [  s  0  c  0 ]
-            // [  0  0  0  1 ]
-            Matrix4X4 result;
-            result.M11 = cos;
-            result.M12 = Fixed64.Zero;
-            result.M13 = -sin;
-            result.M14 = Fixed64.Zero;
-            result.M21 = Fixed64.Zero;
-            result.M22 = Fixed64.One;
-            result.M23 = Fixed64.Zero;
-            result.M24 = Fixed64.Zero;
-            result.M31 = sin;
-            result.M32 = Fixed64.Zero;
-            result.M33 = cos;
-            result.M34 = Fixed64.Zero;
-            result.M41 = Fixed64.Zero;
-            result.M42 = Fixed64.Zero;
-            result.M43 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a matrix for rotating points around the Y-axis, from a center point.
-        /// </summary>
-        /// <param name="radians">The amount, in radians, by which to rotate around the Y-axis.</param>
-        /// <param name="centerPoint">The center point.</param>
-        /// <returns>The rotation matrix.</returns>
-        public static Matrix4X4 RotateY(Fixed64 radians, Vector3D centerPoint)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-            var x = centerPoint.X * (Fixed64.One - cos) - centerPoint.Z * sin;
-            var z = centerPoint.X * (Fixed64.One - cos) + centerPoint.X * sin;
-
-            // [  c  0 -s  0 ]
-            // [  0  1  0  0 ]
-            // [  s  0  c  0 ]
-            // [  x  0  z  1 ]
-            Matrix4X4 result;
-            result.M11 = cos;
-            result.M12 = Fixed64.Zero;
-            result.M13 = -sin;
-            result.M14 = Fixed64.Zero;
-            result.M21 = Fixed64.Zero;
-            result.M22 = Fixed64.One;
-            result.M23 = Fixed64.Zero;
-            result.M24 = Fixed64.Zero;
-            result.M31 = sin;
-            result.M32 = Fixed64.Zero;
-            result.M33 = cos;
-            result.M34 = Fixed64.Zero;
-            result.M41 = x;
-            result.M42 = Fixed64.Zero;
-            result.M43 = z;
-            result.M44 = Fixed64.One;
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a matrix for rotating points around the Z-axis.
-        /// </summary>
-        /// <param name="radians">The amount, in radians, by which to rotate around the Z-axis.</param>
-        /// <returns>The rotation matrix.</returns>
-        public static Matrix4X4 RotateZ(Fixed64 radians)
-        {
-            var cos = Maths.Cos(radians);
-            var sin = Maths.Sin(radians);
-
-            // [  c  s  0  0 ]
-            // [ -s  c  0  0 ]
-            // [  0  0  1  0 ]
-            // [  0  0  0  1 ]
-            Matrix4X4 result;
-            result.M11 = cos;
-            result.M12 = sin;
-            result.M13 = Fixed64.Zero;
-            result.M14 = Fixed64.Zero;
-            result.M21 = -sin;
-            result.M22 = cos;
-            result.M23 = Fixed64.Zero;
-            result.M24 = Fixed64.Zero;
-            result.M31 = Fixed64.Zero;
-            result.M32 = Fixed64.Zero;
-            result.M33 = Fixed64.One;
-            result.M34 = Fixed64.Zero;
-            result.M41 = Fixed64.Zero;
-            result.M42 = Fixed64.Zero;
-            result.M43 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a matrix for rotating points around the Z-axis, from a center point.
-        /// </summary>
-        /// <param name="radians">The amount, in radians, by which to rotate around the Z-axis.</param>
-        /// <param name="centerPoint">The center point.</param>
-        /// <returns>The rotation matrix.</returns>
-        public static Matrix4X4 RotateZ(Fixed64 radians, Vector3D centerPoint)
-        {
-            var c = Maths.Cos(radians);
-            var s = Maths.Sin(radians);
-
-            // [  c  s  0  0 ]
-            // [ -s  c  0  0 ]
-            // [  0  0  1  0 ]
-            // [  x  y  0  1 ]
-            Matrix4X4 result;
-            result.M11 = c;
-            result.M12 = s;
-            result.M13 = Fixed64.Zero;
-            result.M14 = Fixed64.Zero;
-            result.M21 = -s;
-            result.M22 = c;
-            result.M23 = Fixed64.Zero;
-            result.M24 = Fixed64.Zero;
-            result.M31 = Fixed64.Zero;
-            result.M32 = Fixed64.Zero;
-            result.M33 = Fixed64.One;
-            result.M34 = Fixed64.Zero;
-            result.M41 = Fixed64.Zero;
-            result.M42 = Fixed64.Zero;
-            result.M43 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-            return result;
-        }
-
-        /// <summary>
-        /// Creates a matrix which rotates around the given axis by the given angle.
-        /// </summary>
-        /// <param name="axis">The axis.</param>
-        /// <param name="angle">The angle.</param>
-        /// <param name="result">The resulting rotation matrix</param>
-        public static void AxisAngle(ref Vector3D axis, Fixed64 angle, out Matrix4X4 result)
-        {
-            // a: angle
-            // x, y, z: unit vector for axis.
-            //
-            // Rotation matrix M can compute by using below equation.
-            //
-            //        T               T
-            //  M = uu + (cos a)( I-uu ) + (sin a)S
-            //
-            // Where:
-            //
-            //  u = ( x, y, z )
-            //
-            //      [  0 -z  y ]
-            //  S = [  z  0 -x ]
-            //      [ -y  x  0 ]
-            //
-            //      [ 1 0 0 ]
-            //  I = [ 0 1 0 ]
-            //      [ 0 0 1 ]
-            //
-            //
-            //     [  xx+cosa*(1-xx)   yx-cosa*yx-sina*z zx-cosa*xz+sina*y ]
-            // M = [ xy-cosa*yx+sina*z    yy+cosa(1-yy)  yz-cosa*yz-sina*x ]
-            //     [ zx-cosa*zx-sina*y zy-cosa*zy+sina*x   zz+cosa*(1-zz)  ]
-            //
-            Fixed64 x = axis.X, y = axis.Y, z = axis.Z;
-            Fixed64 sa = Maths.Sin(angle), ca = Maths.Cos(angle);
-            Fixed64 xx = x * x, yy = y * y, zz = z * z;
-            Fixed64 xy = x * y, xz = x * z, yz = y * z;
-
-            result.M11 = xx + ca * (Fixed64.One - xx);
-            result.M12 = xy - ca * xy + sa * z;
-            result.M13 = xz - ca * xz - sa * y;
-            result.M14 = Fixed64.Zero;
-            result.M21 = xy - ca * xy - sa * z;
-            result.M22 = yy + ca * (Fixed64.One - yy);
-            result.M23 = yz - ca * yz + sa * x;
-            result.M24 = Fixed64.Zero;
-            result.M31 = xz - ca * xz + sa * y;
-            result.M32 = yz - ca * yz - sa * x;
-            result.M33 = zz + ca * (Fixed64.One - zz);
-            result.M34 = Fixed64.Zero;
-            result.M41 = Fixed64.Zero;
-            result.M42 = Fixed64.Zero;
-            result.M43 = Fixed64.Zero;
-            result.M44 = Fixed64.One;
-        }
-
-        /// <summary>
-        /// Creates a matrix which rotates around the given axis by the given angle.
-        /// </summary>
-        /// <param name="axis">The axis.</param>
-        /// <param name="angle">The angle.</param>
-        /// <returns>The resulting rotation matrix</returns>
-        public static Matrix4X4 AngleAxis(Fixed64 angle, Vector3D axis)
-        {
-            AxisAngle(ref axis, angle, out var result);
-            return result;
-        }
-
-        public override string ToString()
-        {
-            return $"{M11.RawValue}|{M12.RawValue}|{M13.RawValue}|{M14.RawValue}|{M21.RawValue}|{M22.RawValue}|{M23.RawValue}|{M24.RawValue}|{M31.RawValue}|{M32.RawValue}|{M33.RawValue}|{M34.RawValue}|{M41.RawValue}|{M42.RawValue}|{M43.RawValue}|{M44.RawValue}";
-        }
-
-        public static void TRS(Vector3D translation, Quaternions rotation, Vector3D scale, out Matrix4X4 matrix)
-        {
-            matrix = Translate(translation) * Rotate(rotation) * Scale(scale);
-        }
-
-        public static Matrix4X4 TRS(Vector3D translation, Quaternions rotation, Vector3D scale)
-        {
-            TRS(translation, rotation, scale, out var result);
-            return result;
-        }
-
-        //public static TSMatrix4x4 TransformToMatrix(ref TSTransform transform)
-        //{
-        //    TSMatrix4x4 result;
-        //    TRS(transform.localPosition, transform.localRotation, transform.localScale, out result);
-        //    return result;
-        //}
-
-        /// <summary>
-        /// Sets the length of the vector to zero.
-        /// </summary>
-        /// <summary>
-        /// Transforms a vector by the given matrix.
-        /// </summary>
-        /// <param name="position">The vector to transform.</param>
-        /// <param name="matrix">The transform matrix.</param>
-        /// <returns>The transformed vector.</returns>
-
-        #region public static JVector Transform(JVector position, JMatrix matrix)
-        public static Vector4D Transform(Vector4D position, Matrix4X4 matrix)
-        {
-            Transform(ref position, ref matrix, out var result);
-            return result;
-        }
-
-        public static Vector4D Transform(Vector3D position, Matrix4X4 matrix)
-        {
-            Transform(ref position, ref matrix, out var result);
-            return result;
-        }
-
-        /// <summary>
-        /// Transforms a vector by the given matrix.
-        /// </summary>
-        /// <param name="vector">The vector to transform.</param>
-        /// <param name="matrix">The transform matrix.</param>
-        /// <param name="result">The transformed vector.</param>
-        public static void Transform(ref Vector3D vector, ref Matrix4X4 matrix, out Vector4D result)
-        {
-            result.X = vector.X * matrix.M11 + vector.Y * matrix.M12 + vector.Z * matrix.M13 + matrix.M14;
-            result.Y = vector.X * matrix.M21 + vector.Y * matrix.M22 + vector.Z * matrix.M23 + matrix.M24;
-            result.Z = vector.X * matrix.M31 + vector.Y * matrix.M32 + vector.Z * matrix.M33 + matrix.M34;
-            result.W = vector.X * matrix.M41 + vector.Y * matrix.M42 + vector.Z * matrix.M43 + matrix.M44;
-        }
-
-        public static void Transform(ref Vector4D vector, ref Matrix4X4 matrix, out Vector4D result)
-        {
-            result.X = vector.X * matrix.M11 + vector.Y * matrix.M12 + vector.Z * matrix.M13 + vector.W * matrix.M14;
-            result.Y = vector.X * matrix.M21 + vector.Y * matrix.M22 + vector.Z * matrix.M23 + vector.W * matrix.M24;
-            result.Z = vector.X * matrix.M31 + vector.Y * matrix.M32 + vector.Z * matrix.M33 + vector.W * matrix.M34;
-            result.W = vector.X * matrix.M41 + vector.Y * matrix.M42 + vector.Z * matrix.M43 + vector.W * matrix.M44;
-        }
+        public readonly override string ToString() => $"({M00}|{M01}|{M02}|{M03}, {M10}|{M11}|{M12}|{M13}, {M20}|{M21}|{M22}|{M23}, {M30}|{M31}|{M32}|{M33})";
+        public readonly string ToString(string format) => $"({M00.ToString(format)}|{M01.ToString(format)}|{M02.ToString(format)}|{M03.ToString(format)}, {M10.ToString(format)}|{M11.ToString(format)}|{M12.ToString(format)}|{M13.ToString(format)}, {M20.ToString(format)}|{M21.ToString(format)}|{M22.ToString(format)}|{M23.ToString(format)}, {M30.ToString(format)}|{M31.ToString(format)}|{M32.ToString(format)}|{M33.ToString(format)})";
+        public readonly string ToString(IFormatProvider provider) => $"({M00.ToString(provider)}|{M01.ToString(provider)}|{M02.ToString(provider)}|{M03.ToString(provider)}, {M10.ToString(provider)}|{M11.ToString(provider)}|{M12.ToString(provider)}|{M13.ToString(provider)}, {M20.ToString(provider)}|{M21.ToString(provider)}|{M22.ToString(provider)}|{M23.ToString(provider)}, {M30.ToString(provider)}|{M31.ToString(provider)}|{M32.ToString(provider)}|{M33.ToString(provider)})";
+        public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}|{M01.ToString(format, provider)}|{M02.ToString(format, provider)}|{M03.ToString(format, provider)}, {M10.ToString(format, provider)}|{M11.ToString(format, provider)}|{M12.ToString(format, provider)}|{M13.ToString(format, provider)}, {M20.ToString(format, provider)}|{M21.ToString(format, provider)}|{M22.ToString(format, provider)}|{M23.ToString(format, provider)}, {M30.ToString(format, provider)}|{M31.ToString(format, provider)}|{M32.ToString(format, provider)}|{M33.ToString(format, provider)})";
         #endregion
     }
 }

@@ -13,7 +13,11 @@
 
         public const string TryCatch = "EEVEE_TRY_CATCH";
 
+#if DEBUG || UNITY_EDITOR
         public static bool HasTryCatch =>
+#else
+        public const bool HasTryCatch =
+#endif
 #if EEVEE_TRY_CATCH
             true;
 #else

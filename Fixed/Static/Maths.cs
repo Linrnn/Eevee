@@ -868,7 +868,7 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        #region Vector3D/Quaternions/Matrix3X3 相互转换
+        #region Vector3D/Quaternions/Matrix3X3/Matrix4X4 相互转换
         /// <summary>
         /// 返回欧拉角的角度角
         /// </summary>
@@ -977,7 +977,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数3*3矩阵
         /// </summary>
-        public static Matrix3X3 AngleAxisMatrix(in Vector3D axis, Fixed64 rad)
+        public static Matrix3X3 AngleAxisMatrix3X3(in Vector3D axis, Fixed64 rad)
         {
             var sin = Sin(rad);
             var cos = Cos(rad);
@@ -1003,7 +1003,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数3*3矩阵
         /// </summary>
-        public static Matrix3X3 AngleAxisMatrixDeg(in Vector3D axis, Fixed64 deg)
+        public static Matrix3X3 AngleAxisMatrix3X3Deg(in Vector3D axis, Fixed64 deg)
         {
             var sin = SinDeg(deg);
             var cos = CosDeg(deg);
@@ -1030,110 +1030,265 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入弧度，从旋转矩阵创建3*3矩阵
         /// </summary>
-        public static Matrix3X3 CreateMatrix(Fixed64 yaw, Fixed64 pitch, Fixed64 roll) => Matrix3X3.Create(CreateQuaternion(yaw, pitch, roll));
+        public static Matrix3X3 CreateMatrix(Fixed64 yaw, Fixed64 pitch, Fixed64 roll) => Matrix3X3.Rotate(CreateQuaternion(yaw, pitch, roll));
 
-        public static Matrix3X3 CreateRotationX(Fixed64 rad)
+        /// <summary>
+        /// 创建一个绕x轴旋转点的矩阵
+        /// </summary>
+        public static Matrix3X3 RotationMatrix3X3X(Fixed64 rad) => RotateXMatrix3X3(Cos(rad), Sin(rad));
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix3X3 RotationMatrix3X3Y(Fixed64 rad) => RotateYMatrix3X3(Cos(rad), Sin(rad));
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix3X3 RotationMatrix3X3Z(Fixed64 rad) => RotateZMatrix3X3(Cos(rad), Sin(rad));
+
+        /// <summary>
+        /// 创建一个绕x轴旋转点的矩阵
+        /// </summary>
+        public static Matrix3X3 RotationMatrix3X3XDeg(Fixed64 deg) => RotateXMatrix3X3(CosDeg(deg), SinDeg(deg));
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix3X3 RotationMatrix3X3YDeg(Fixed64 deg) => RotateYMatrix3X3(CosDeg(deg), SinDeg(deg));
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix3X3 RotationMatrix3X3ZDeg(Fixed64 deg) => RotateZMatrix3X3(CosDeg(deg), SinDeg(deg));
+
+        private static Matrix3X3 RotateXMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
+        {
+            M00 = Fixed64.One,
+            M01 = Fixed64.Zero,
+            M02 = Fixed64.Zero,
+            M10 = Fixed64.Zero,
+            M11 = cos,
+            M12 = sin,
+            M20 = Fixed64.Zero,
+            M21 = -sin,
+            M22 = cos,
+        };
+        private static Matrix3X3 RotateYMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
+        {
+            M00 = cos,
+            M01 = Fixed64.Zero,
+            M02 = -sin,
+            M10 = Fixed64.Zero,
+            M11 = Fixed64.One,
+            M12 = Fixed64.Zero,
+            M20 = sin,
+            M21 = Fixed64.Zero,
+            M22 = cos,
+        };
+        private static Matrix3X3 RotateZMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
+        {
+            M00 = cos,
+            M01 = sin,
+            M02 = Fixed64.Zero,
+            M10 = -sin,
+            M11 = cos,
+            M12 = Fixed64.Zero,
+            M20 = Fixed64.Zero,
+            M21 = Fixed64.Zero,
+            M22 = Fixed64.One,
+        };
+        #endregion
+
+        #region 返回Matrix4X4
+        /// <summary>
+        /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数4*4矩阵
+        /// </summary>
+        public static Matrix4X4 AxisAngleMatrix4X4(in Vector3D axis, Fixed64 rad) => AxisAngleMatrix4X4(in axis, Sin(rad), Cos(rad));
+        /// <summary>
+        /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数4*4矩阵
+        /// </summary>
+        public static Matrix4X4 AxisAngleMatrix4X4Deg(in Vector3D axis, Fixed64 deg) => AxisAngleMatrix4X4(in axis, SinDeg(deg), CosDeg(deg));
+
+        /// <summary>
+        /// 创建一个绕x轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateXMatrix4X4(Fixed64 rad) => RotateXMatrix4X4(Cos(rad), Sin(rad), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕x轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateXMatrix4X4(Fixed64 rad, in Vector3D position)
         {
             var cos = Cos(rad);
             var sin = Sin(rad);
-            return new Matrix3X3
-            {
-                M00 = Fixed64.One,
-                M01 = Fixed64.Zero,
-                M02 = Fixed64.Zero,
-                M10 = Fixed64.Zero,
-                M11 = cos,
-                M12 = sin,
-                M20 = Fixed64.Zero,
-                M21 = -sin,
-                M22 = cos,
-            };
+            var one = Fixed64.One - cos;
+            var m31 = position.Y * one + position.Z * sin;
+            var m32 = position.Z * one - position.Y * sin;
+            return RotateXMatrix4X4(cos, sin, m31, m32);
         }
-        public static Matrix3X3 CreateRotationY(Fixed64 rad)
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateYMatrix4X4(Fixed64 rad) => RotateYMatrix4X4(Cos(rad), Sin(rad), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateYMatrix4X4(Fixed64 rad, in Vector3D position)
         {
             var cos = Cos(rad);
             var sin = Sin(rad);
-            return new Matrix3X3
-            {
-                M00 = cos,
-                M01 = Fixed64.Zero,
-                M02 = -sin,
-                M10 = Fixed64.Zero,
-                M11 = Fixed64.One,
-                M12 = Fixed64.Zero,
-                M20 = sin,
-                M21 = Fixed64.Zero,
-                M22 = cos,
-            };
+            var one = Fixed64.One - cos;
+            var m30 = position.X * one - position.Z * sin;
+            var m32 = position.X * one + position.X * sin;
+            return RotateYMatrix4X4(cos, sin, m30, m32);
         }
-        public static Matrix3X3 CreateRotationZ(Fixed64 rad)
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateZMatrix4X4(Fixed64 rad) => RotateZMatrix4X4(Cos(rad), Sin(rad), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateZMatrix4X4(Fixed64 rad, in Vector3D position)
         {
             var cos = Cos(rad);
             var sin = Sin(rad);
-            return new Matrix3X3
-            {
-                M00 = cos,
-                M01 = sin,
-                M02 = Fixed64.Zero,
-                M10 = -sin,
-                M11 = cos,
-                M12 = Fixed64.Zero,
-                M20 = Fixed64.Zero,
-                M21 = Fixed64.Zero,
-                M22 = Fixed64.One,
-            };
+            var one = Fixed64.One - cos;
+            var m30 = position.X * one + position.Y * sin;
+            var m31 = position.Y * one - position.X * sin;
+            return RotateZMatrix4X4(cos, sin, m30, m31);
         }
-        public static Matrix3X3 CreateRotationXDeg(Fixed64 deg)
+
+        /// <summary>
+        /// 创建一个绕x轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateXMatrix4X4Deg(Fixed64 deg) => RotateXMatrix4X4(CosDeg(deg), SinDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕x轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateXMatrix4X4Deg(Fixed64 deg, in Vector3D position)
         {
             var cos = CosDeg(deg);
             var sin = SinDeg(deg);
-            return new Matrix3X3
-            {
-                M00 = Fixed64.One,
-                M01 = Fixed64.Zero,
-                M02 = Fixed64.Zero,
-                M10 = Fixed64.Zero,
-                M11 = cos,
-                M12 = sin,
-                M20 = Fixed64.Zero,
-                M21 = -sin,
-                M22 = cos,
-            };
+            var one = Fixed64.One - cos;
+            var m31 = position.Y * one + position.Z * sin;
+            var m32 = position.Z * one - position.Y * sin;
+            return RotateXMatrix4X4(cos, sin, m31, m32);
         }
-        public static Matrix3X3 CreateRotationYDeg(Fixed64 deg)
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateYMatrix4X4Deg(Fixed64 deg) => RotateYMatrix4X4(CosDeg(deg), SinDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateYMatrix4X4Deg(Fixed64 deg, in Vector3D position)
         {
             var cos = CosDeg(deg);
             var sin = SinDeg(deg);
-            return new Matrix3X3
-            {
-                M00 = cos,
-                M01 = Fixed64.Zero,
-                M02 = -sin,
-                M10 = Fixed64.Zero,
-                M11 = Fixed64.One,
-                M12 = Fixed64.Zero,
-                M20 = sin,
-                M21 = Fixed64.Zero,
-                M22 = cos,
-            };
+            var one = Fixed64.One - cos;
+            var m30 = position.X * one - position.Z * sin;
+            var m32 = position.X * one + position.X * sin;
+            return RotateYMatrix4X4(cos, sin, m30, m32);
         }
-        public static Matrix3X3 CreateRotationZDeg(Fixed64 deg)
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateZMatrix4X4Deg(Fixed64 deg) => RotateZMatrix4X4(CosDeg(deg), SinDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateZMatrix4X4Deg(Fixed64 deg, in Vector3D position)
         {
             var cos = CosDeg(deg);
             var sin = SinDeg(deg);
-            return new Matrix3X3
+            var one = Fixed64.One - cos;
+            var m30 = position.X * one + position.Y * sin;
+            var m31 = position.Y * one - position.X * sin;
+            return RotateZMatrix4X4(cos, sin, m30, m31);
+        }
+
+        private static Matrix4X4 AxisAngleMatrix4X4(in Vector3D axis, Fixed64 sin, Fixed64 cos)
+        {
+            var xx = axis.X.Sqr();
+            var yy = axis.Y.Sqr();
+            var zz = axis.Z.Sqr();
+            var xy = axis.X * axis.Y;
+            var xz = axis.X * axis.Z;
+            var yz = axis.Y * axis.Z;
+            return new Matrix4X4
             {
-                M00 = cos,
-                M01 = sin,
-                M02 = Fixed64.Zero,
-                M10 = -sin,
-                M11 = cos,
-                M12 = Fixed64.Zero,
-                M20 = Fixed64.Zero,
-                M21 = Fixed64.Zero,
-                M22 = Fixed64.One,
+                M00 = xx + cos * (Fixed64.One - xx),
+                M01 = xy - cos * xy + sin * axis.Z,
+                M02 = xz - cos * xz - sin * axis.Y,
+                M03 = Fixed64.Zero,
+                M10 = xy - cos * xy - sin * axis.Z,
+                M11 = yy + cos * (Fixed64.One - yy),
+                M12 = yz - cos * yz + sin * axis.X,
+                M13 = Fixed64.Zero,
+                M20 = xz - cos * xz + sin * axis.Y,
+                M21 = yz - cos * yz - sin * axis.X,
+                M22 = zz + cos * (Fixed64.One - zz),
+                M23 = Fixed64.Zero,
+                M30 = Fixed64.Zero,
+                M31 = Fixed64.Zero,
+                M32 = Fixed64.Zero,
+                M33 = Fixed64.One,
             };
         }
+        private static Matrix4X4 RotateXMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m31, Fixed64 m32) => new()
+        {
+            M00 = Fixed64.One,
+            M01 = Fixed64.Zero,
+            M02 = Fixed64.Zero,
+            M03 = Fixed64.Zero,
+            M10 = Fixed64.Zero,
+            M11 = cos,
+            M12 = sin,
+            M13 = Fixed64.Zero,
+            M20 = Fixed64.Zero,
+            M21 = -sin,
+            M22 = cos,
+            M23 = Fixed64.Zero,
+            M30 = Fixed64.Zero,
+            M31 = m31,
+            M32 = m32,
+            M33 = Fixed64.One,
+        };
+        private static Matrix4X4 RotateYMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m30, Fixed64 m32) => new()
+        {
+            M00 = cos,
+            M01 = Fixed64.Zero,
+            M02 = -sin,
+            M03 = Fixed64.Zero,
+            M10 = Fixed64.Zero,
+            M11 = Fixed64.One,
+            M12 = Fixed64.Zero,
+            M13 = Fixed64.Zero,
+            M20 = sin,
+            M21 = Fixed64.Zero,
+            M22 = cos,
+            M23 = Fixed64.Zero,
+            M30 = m30,
+            M31 = Fixed64.Zero,
+            M32 = m32,
+            M33 = Fixed64.One,
+        };
+        private static Matrix4X4 RotateZMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m30, Fixed64 m31) => new()
+        {
+            M00 = cos,
+            M01 = sin,
+            M02 = Fixed64.Zero,
+            M03 = Fixed64.Zero,
+            M10 = -sin,
+            M11 = cos,
+            M12 = Fixed64.Zero,
+            M13 = Fixed64.Zero,
+            M20 = Fixed64.Zero,
+            M21 = Fixed64.Zero,
+            M22 = Fixed64.One,
+            M23 = Fixed64.Zero,
+            M30 = m30,
+            M31 = m31,
+            M32 = Fixed64.Zero,
+            M33 = Fixed64.One,
+        };
         #endregion
         #endregion
     }

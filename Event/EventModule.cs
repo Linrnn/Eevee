@@ -38,7 +38,8 @@ namespace Eevee.Event
         #endregion
 
         // todo Eevee _listeners，_waitWrappers，_invokeWrappers 未接入 EPool
-        private readonly Dictionary<int, List<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为需要保证listener的有序性
+        // todo Eevee _listeners 未接入 FixedDictionary
+        private readonly Dictionary<int, List<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为listener需要有序性
         private readonly List<Wrapper> _waitWrappers = new(32); // 等待执行的事件
         private readonly List<Wrapper> _invokeWrappers = new(32); // 执行中的事件
 
