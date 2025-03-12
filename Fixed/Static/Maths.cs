@@ -488,12 +488,17 @@ namespace Eevee.Fixed
         public static bool IsPowerOf2(ulong a) => a != 0 && (a & a - 1) == 0;
         #endregion
 
-        #region Fixed64/Vector2D/Vector3D/Vector4D/Quaternions 关联操作
+        #region Fixed64/Vector2D/Vector3D/Vector4D/Quaternions/Rectangle 关联操作
         #region 基础插值
         /// <summary>
         /// 计算线性参数amount在[lsh，rsh]范围内产生插值
         /// </summary>
         public static Fixed64 InverseLerp(Fixed64 from, Fixed64 to, Fixed64 value) => from == to ? Fixed64.Zero : ((value - from) / (to - from)).Clamp01();
+        public static Vector2D PointToNormalized(in Rectangle rect, in Vector2D point) => new()
+        {
+            X = InverseLerp(rect.X, rect.XMax, point.X),
+            Y = InverseLerp(rect.Y, rect.YMax, point.Y),
+        };
 
         /// <summary>
         /// 线性插值
@@ -511,6 +516,14 @@ namespace Eevee.Fixed
         /// 线性插值
         /// </summary>
         public static Vector4D Lerp(in Vector4D from, in Vector4D to, Fixed64 percent) => LerpUnClamp(in from, in to, percent.Clamp01());
+        /// <summary>
+        /// 线性插值
+        /// </summary>
+        public static Vector2D NormalizedToPoint(in Rectangle rect, in Vector2D normalized) => new()
+        {
+            X = Lerp(rect.X, rect.XMax, normalized.X),
+            Y = Lerp(rect.Y, rect.YMax, normalized.Y),
+        };
         /// <summary>
         /// 线性插值
         /// </summary>

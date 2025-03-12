@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Eevee.Define;
+using System;
 
 namespace Eevee.Fixed
 {
@@ -20,9 +21,15 @@ namespace Eevee.Fixed
         public Fixed64 M00;
         public Fixed64 M01;
         public Fixed64 M02;
+#if UNITY_EDITOR
+        [UnityEngine.Space]
+#endif
         public Fixed64 M10;
         public Fixed64 M11;
         public Fixed64 M12;
+#if UNITY_EDITOR
+        [UnityEngine.Space]
+#endif
         public Fixed64 M20;
         public Fixed64 M21;
         public Fixed64 M22;
@@ -456,9 +463,9 @@ namespace Eevee.Fixed
             return 0;
         }
 
-        public readonly override string ToString() => $"({M00}|{M01}|{M02}, {M10}|{M11}|{M12}, {M20}|{M21}|{M22})";
-        public readonly string ToString(string format) => $"({M00.ToString(format)}|{M01.ToString(format)}|{M02.ToString(format)}, {M10.ToString(format)}|{M11.ToString(format)}|{M12.ToString(format)}, {M20.ToString(format)}|{M21.ToString(format)}|{M22.ToString(format)})";
-        public readonly string ToString(IFormatProvider provider) => $"({M00.ToString(provider)}|{M01.ToString(provider)}|{M02.ToString(provider)}, {M10.ToString(provider)}|{M11.ToString(provider)}|{M12.ToString(provider)}, {M20.ToString(provider)}|{M21.ToString(provider)}|{M22.ToString(provider)})";
+        public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
+        public readonly string ToString(string format) => ToString(format, Format.Use);
+        public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
         public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}|{M01.ToString(format, provider)}|{M02.ToString(format, provider)}, {M10.ToString(format, provider)}|{M11.ToString(format, provider)}|{M12.ToString(format, provider)}, {M20.ToString(format, provider)}|{M21.ToString(format, provider)}|{M22.ToString(format, provider)})";
         #endregion
     }

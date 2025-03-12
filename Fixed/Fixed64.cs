@@ -1,4 +1,5 @@
-﻿using Eevee.Log;
+﻿using Eevee.Define;
+using Eevee.Log;
 using System;
 using System.Collections.Generic;
 
@@ -419,9 +420,9 @@ namespace Eevee.Fixed
         public readonly bool Equals(Fixed64 other) => RawValue == other.RawValue;
         public readonly int CompareTo(Fixed64 other) => RawValue.CompareTo(other.RawValue);
 
-        public readonly override string ToString() => ((double)this).ToString("0.#######");
-        public readonly string ToString(string format) => ((double)this).ToString(format);
-        public readonly string ToString(IFormatProvider provider) => ((double)this).ToString(provider);
+        public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
+        public readonly string ToString(string format) => ToString(format, Format.Use);
+        public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
         public readonly string ToString(string format, IFormatProvider provider) => ((double)this).ToString(format, provider);
         #endregion
     }

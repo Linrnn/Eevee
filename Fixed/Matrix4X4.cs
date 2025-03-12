@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Eevee.Define;
+using System;
 
 namespace Eevee.Fixed
 {
@@ -22,14 +23,23 @@ namespace Eevee.Fixed
         public Fixed64 M01;
         public Fixed64 M02;
         public Fixed64 M03;
+#if UNITY_EDITOR
+        [UnityEngine.Space]
+#endif
         public Fixed64 M10;
         public Fixed64 M11;
         public Fixed64 M12;
         public Fixed64 M13;
+#if UNITY_EDITOR
+        [UnityEngine.Space]
+#endif
         public Fixed64 M20;
         public Fixed64 M21;
         public Fixed64 M22;
         public Fixed64 M23;
+#if UNITY_EDITOR
+        [UnityEngine.Space]
+#endif
         public Fixed64 M30;
         public Fixed64 M31;
         public Fixed64 M32;
@@ -714,9 +724,9 @@ namespace Eevee.Fixed
             return 0;
         }
 
-        public readonly override string ToString() => $"({M00}|{M01}|{M02}|{M03}, {M10}|{M11}|{M12}|{M13}, {M20}|{M21}|{M22}|{M23}, {M30}|{M31}|{M32}|{M33})";
-        public readonly string ToString(string format) => $"({M00.ToString(format)}|{M01.ToString(format)}|{M02.ToString(format)}|{M03.ToString(format)}, {M10.ToString(format)}|{M11.ToString(format)}|{M12.ToString(format)}|{M13.ToString(format)}, {M20.ToString(format)}|{M21.ToString(format)}|{M22.ToString(format)}|{M23.ToString(format)}, {M30.ToString(format)}|{M31.ToString(format)}|{M32.ToString(format)}|{M33.ToString(format)})";
-        public readonly string ToString(IFormatProvider provider) => $"({M00.ToString(provider)}|{M01.ToString(provider)}|{M02.ToString(provider)}|{M03.ToString(provider)}, {M10.ToString(provider)}|{M11.ToString(provider)}|{M12.ToString(provider)}|{M13.ToString(provider)}, {M20.ToString(provider)}|{M21.ToString(provider)}|{M22.ToString(provider)}|{M23.ToString(provider)}, {M30.ToString(provider)}|{M31.ToString(provider)}|{M32.ToString(provider)}|{M33.ToString(provider)})";
+        public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
+        public readonly string ToString(string format) => ToString(format, Format.Use);
+        public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
         public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}|{M01.ToString(format, provider)}|{M02.ToString(format, provider)}|{M03.ToString(format, provider)}, {M10.ToString(format, provider)}|{M11.ToString(format, provider)}|{M12.ToString(format, provider)}|{M13.ToString(format, provider)}, {M20.ToString(format, provider)}|{M21.ToString(format, provider)}|{M22.ToString(format, provider)}|{M23.ToString(format, provider)}, {M30.ToString(format, provider)}|{M31.ToString(format, provider)}|{M32.ToString(format, provider)}|{M33.ToString(format, provider)})";
         #endregion
     }

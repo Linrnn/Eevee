@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Eevee.Define;
+using System;
 
 namespace Eevee.Fixed
 {
@@ -50,9 +51,9 @@ namespace Eevee.Fixed
             return 0;
         }
 
-        public readonly override string ToString() => $"[Origin:{Origin}, Direction:{Direction})]";
-        public readonly string ToString(string format) => $"[Origin:{Origin.ToString(format)}, Direction:{Direction.ToString(format)})]";
-        public readonly string ToString(IFormatProvider provider) => $"[Origin:{Origin.ToString(provider)}, Direction:{Direction.ToString(provider)})]";
+        public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
+        public readonly string ToString(string format) => ToString(format, Format.Use);
+        public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
         public readonly string ToString(string format, IFormatProvider provider) => $"[Origin:{Origin.ToString(format, provider)}, Direction:{Direction.ToString(format, provider)})]";
         #endregion
     }

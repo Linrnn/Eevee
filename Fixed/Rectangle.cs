@@ -1,121 +1,75 @@
-﻿using System;
-using System.Globalization;
+﻿using Eevee.Define;
+using System;
 
 namespace Eevee.Fixed
 {
-    public struct Rectangle : IEquatable<Rectangle>, IComparable<Rectangle>
+    /// <summary>
+    /// 确定性的矩形
+    /// </summary>
+    [Serializable]
+    public struct Rectangle : IEquatable<Rectangle>, IComparable<Rectangle>, IFormattable
     {
-        public Fixed64 MinX;
-        public Fixed64 MinY;
+        #region 字段/初始化
+        public static readonly Rectangle Zero = new(0, 0, 0, 0);
+
+        public Fixed64 X; // 等价于XMin
+        public Fixed64 Y; // 等价于YMin
         public Fixed64 Width;
         public Fixed64 Height;
 
-        public Rectangle(Fixed64 x, Fixed64 y, Fixed64 width, Fixed64 height)
+        public Rectangle(Fixed64 xMin, Fixed64 yMin, Fixed64 width, Fixed64 height)
         {
-            MinX = x;
-            MinY = y;
+            X = xMin;
+            Y = yMin;
             Width = width;
             Height = height;
         }
-
-        public Rectangle(Vector2D position, Vector2D size)
+        public Rectangle(in Vector2D position, in Vector2D size)
         {
-            MinX = position.X;
-            MinY = position.Y;
+            X = position.X;
+            Y = position.Y;
             Width = size.X;
             Height = size.Y;
         }
 
-        public Rectangle(Rectangle source)
+        public void Set(Fixed64 xMin, Fixed64 yMin, Fixed64 width, Fixed64 height)
         {
-            MinX = source.MinX;
-            MinY = source.MinY;
-            Width = source.Width;
-            Height = source.Height;
-        }
-
-        public static Rectangle zero => new Rectangle(Fixed64.Zero, Fixed64.Zero, Fixed64.Zero, Fixed64.Zero);
-
-        public static Rectangle MinMaxRect(Fixed64 xmin, Fixed64 ymin, Fixed64 xmax, Fixed64 ymax)
-        {
-            return new Rectangle(xmin, ymin, xmax - xmin, ymax - ymin);
-        }
-
-        public void Set(Fixed64 x, Fixed64 y, Fixed64 width, Fixed64 height)
-        {
-            MinX = x;
-            MinY = y;
+            X = xMin;
+            Y = yMin;
             Width = width;
             Height = height;
         }
-
-        public Fixed64 x
+        public void Set(in Vector2D position, in Vector2D size)
         {
-            get { return MinX; }
-            set { MinX = value; }
+            X = position.X;
+            Y = position.Y;
+            Width = size.X;
+            Height = size.Y;
         }
+        #endregion
 
-        public Fixed64 y
+        #region 基础方法
+        public Vector2D Position
         {
-            get { return MinY; }
-            set { MinY = value; }
-        }
-
-        public Vector2D position
-        {
-            get { return new Vector2D(MinX, MinY); }
-            set
-            {
-                MinX = value.X;
-                MinY = value.Y;
-            }
-        }
-
-        public Vector2D center
-        {
-            get { return new Vector2D(x + Width / 2f, y + Height / 2f); }
-            set
-            {
-                MinX = value.X - Width / 2f;
-                MinY = value.Y - Height / 2f;
-            }
-        }
-
-        public Vector2D min
-        {
-            get { return new Vector2D(X, Y); }
+            readonly get => new(X, Y);
             set
             {
                 X = value.X;
                 Y = value.Y;
             }
         }
-
-        public Vector2D max
+        public Vector2D Center
         {
-            get { return new Vector2D(xMax, yMax); }
+            readonly get => new(X + (Width >> 1), Y + (Height >> 1));
             set
             {
-                xMax = value.X;
-                yMax = value.Y;
+                X = value.X - (Width >> 1);
+                Y = value.Y - (Height >> 1);
             }
         }
-
-        public Fixed64 width
+        public Vector2D Size
         {
-            get { return Width; }
-            set { Width = value; }
-        }
-
-        public Fixed64 height
-        {
-            get { return Height; }
-            set { Height = value; }
-        }
-
-        public Vector2D size
-        {
-            get { return new Vector2D(Width, Height); }
+            readonly get => new(Width, Height);
             set
             {
                 Width = value.X;
@@ -123,158 +77,154 @@ namespace Eevee.Fixed
             }
         }
 
-        public Fixed64 X
+        public Vector2D Min
         {
-            get { return MinX; }
+            readonly get => new(X, Y);
             set
             {
-                Fixed64 oldxmax = xMax;
-                MinX = value;
-                Width = oldxmax - MinX;
+                XMin = value.X;
+                YMin = value.Y;
             }
         }
-        public Fixed64 Y
+        public Fixed64 XMin
         {
-            get { return MinY; }
+            readonly get => Width + X;
             set
             {
-                Fixed64 oldymax = yMax;
-                MinY = value;
-                Height = oldymax - MinY;
+                Width = XMax - value;
+                X = value; // “X”会影响“XMax”的值，所以要后修改“X”
             }
         }
-        public Fixed64 xMax
+        public Fixed64 YMin
         {
-            get { return Width + MinX; }
-            set { Width = value - MinX; }
-        }
-        public Fixed64 yMax
-        {
-            get { return Height + MinY; }
-            set { Height = value - MinY; }
-        }
-
-        public bool Contains(Vector2D point)
-        {
-            return (point.X >= X) && (point.X < xMax) && (point.Y >= Y) && (point.Y < yMax);
-        }
-
-        // Returns true if the /x/ and /y/ components of /point/ is a point inside this rectangle.
-        public bool Contains(Vector3D point)
-        {
-            return (point.X >= X) && (point.X < xMax) && (point.Y >= Y) && (point.Y < yMax);
-        }
-
-        public bool Contains(Vector3D point, bool allowInverse)
-        {
-            if (!allowInverse)
+            readonly get => Height + Y;
+            set
             {
-                return Contains(point);
+                Height = YMax - value;
+                Y = value; // “Y”会影响“YMax”的值，所以要后修改“Y”
             }
-
-            bool xAxis = width < 0f && (point.X <= X) && (point.X > xMax) || width >= 0f && (point.X >= X) && (point.X < xMax);
-            bool yAxis = height < 0f && (point.Y <= Y) && (point.Y > yMax) || height >= 0f && (point.Y >= Y) && (point.Y < yMax);
-            return xAxis && yAxis;
         }
 
-        // Swaps min and max if min was greater than max.
-        private static Rectangle OrderMinMax(Rectangle rect)
+        public Vector2D Max
         {
-            if (rect.X > rect.xMax)
+            readonly get => new(XMax, YMax);
+            set
             {
-                Fixed64 temp = rect.X;
-                rect.X = rect.xMax;
-                rect.xMax = temp;
+                XMax = value.X;
+                YMax = value.Y;
             }
-
-            if (rect.Y > rect.yMax)
-            {
-                Fixed64 temp = rect.Y;
-                rect.Y = rect.yMax;
-                rect.yMax = temp;
-            }
-
-            return rect;
+        }
+        public Fixed64 XMax
+        {
+            readonly get => Width + X;
+            set => Width = value - X;
+        }
+        public Fixed64 YMax
+        {
+            readonly get => Height + Y;
+            set => Height = value - Y;
         }
 
-        public bool Overlaps(Rectangle other)
+        public static Rectangle MinMaxRect(Fixed64 xMin, Fixed64 yMin, Fixed64 xMax, Fixed64 yMax) => new(xMin, yMin, xMax - xMin, yMax - yMin);
+        private readonly Rectangle OrderMinMax()
         {
-            return (other.xMax > X && other.X < xMax && other.yMax > Y && other.Y < yMax);
+            var max = Max;
+            var value = this;
+            if (X > max.X)
+                (value.X, value.XMax) = (max.X, X);
+            if (Y > max.Y)
+                (value.Y, value.YMax) = (max.Y, Y);
+            return value;
         }
 
-        public bool Overlaps(Rectangle other, bool allowInverse)
-        {
-            Rectangle self = this;
-            if (allowInverse)
-            {
-                self = OrderMinMax(self);
-                other = OrderMinMax(other);
-            }
+        /// <summary>
+        /// 矩形重叠
+        /// </summary>
+        /// <param name="other">另一个矩形</param>
+        /// <param name="inverse">允许宽度为负数</param>
+        public readonly bool Overlaps(in Rectangle other, bool inverse) => inverse ? OrderMinMax().Overlaps(other.OrderMinMax()) : Overlaps(in other);
+        /// <summary>
+        /// 矩形重叠
+        /// </summary>
+        public readonly bool Overlaps(in Rectangle other) => other.XMax > X && other.X < XMax && other.YMax > Y && other.Y < YMax;
 
-            return self.Overlaps(other);
-        }
+        /// <summary>
+        /// 矩形包含点
+        /// </summary>
+        public readonly bool Contains(in Vector2D point) => Contains(point.X, point.Y);
+        /// <summary>
+        /// 矩形包含点
+        /// </summary>
+        public readonly bool Contains(in Vector3D point) => Contains(point.X, point.Y);
+        /// <summary>
+        /// 矩形包含点
+        /// </summary>
+        /// <param name="x">X轴坐标</param>
+        /// <param name="y">Y轴坐标</param>
+        /// <param name="inverse">允许宽度为负数</param>
+        public readonly bool Contains(Fixed64 x, Fixed64 y, bool inverse)
+        {
+            if (!inverse)
+                return Contains(x, y);
 
-        public static Vector2D NormalizedToPoint(Rectangle rectangle, Vector2D normalizedRectCoordinates)
-        {
-            return new Vector2D(Maths.Lerp(rectangle.x, rectangle.xMax, normalizedRectCoordinates.X), Maths.Lerp(rectangle.y, rectangle.yMax, normalizedRectCoordinates.Y));
-        }
-
-        public static Vector2D PointToNormalized(Rectangle rectangle, Vector2D point)
-        {
-            return new Vector2D(Maths.InverseLerp(rectangle.x, rectangle.xMax, point.X), Maths.InverseLerp(rectangle.y, rectangle.yMax, point.Y));
-        }
-
-        // Returns true if the rectangles are different.
-        public static bool operator !=(Rectangle lhs, Rectangle rhs)
-        {
-            // Returns true in the presence of NaN values.
-            return !(lhs == rhs);
-        }
-
-        // Returns true if the rectangles are the same.
-        public static bool operator ==(Rectangle lhs, Rectangle rhs)
-        {
-            // Returns false in the presence of NaN values.
-            return lhs.x == rhs.x && lhs.y == rhs.y && lhs.width == rhs.width && lhs.height == rhs.height;
-        }
-
-        public override int GetHashCode()
-        {
-            return x.GetHashCode() ^ (width.GetHashCode() << 2) ^ (y.GetHashCode() >> 2) ^ (height.GetHashCode() >> 1);
-        }
-
-        public int CompareTo(Rectangle other)
-        {
-            throw new NotImplementedException();
-        }
-        public override bool Equals(object other)
-        {
-            if (!(other is Rectangle))
+            var xMax = XMax;
+            if ((Width.RawValue >= 0 || x > X || x <= xMax) && (Width.RawValue < 0 || x < X || x >= xMax))
                 return false;
 
-            return Equals((Rectangle)other);
+            var yMax = YMax;
+            if ((Height.RawValue >= 0 || y > Y || y <= yMax) && (Height.RawValue < 0 || y < Y || y >= yMax))
+                return false;
+
+            return true;
+        }
+        /// <summary>
+        /// 矩形包含点
+        /// </summary>
+        public readonly bool Contains(Fixed64 x, Fixed64 y) => x >= X && x < XMax && y >= Y && y < YMax;
+        #endregion
+
+        #region 隐式转换/显示转换/运算符重载
+#if UNITY_STANDALONE
+        public static implicit operator Rectangle(in UnityEngine.Rect value) => new(value.xMin, value.yMin, value.width, value.height);
+        public static explicit operator UnityEngine.Rect(in Rectangle value) => new((float)value.X, (float)value.Y, (float)value.Width, (float)value.Height);
+
+        public static implicit operator Rectangle(in UnityEngine.RectInt value) => new(value.xMin, value.yMin, value.width, value.height);
+        public static explicit operator UnityEngine.RectInt(in Rectangle value) => new((int)value.X, (int)value.Y, (int)value.Width, (int)value.Height);
+#endif
+
+        public static bool operator ==(in Rectangle lhs, in Rectangle rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Width == rhs.Width && lhs.Height == rhs.Height;
+        public static bool operator !=(in Rectangle lhs, in Rectangle rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Width != rhs.Width || lhs.Height != rhs.Height;
+        #endregion
+
+        #region 继承/重载
+        public readonly override bool Equals(object obj) => obj is Rectangle other && this == other;
+        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() ^ Width.GetHashCode() ^ Height.GetHashCode();
+        public readonly bool Equals(Rectangle other) => this == other;
+        public readonly int CompareTo(Rectangle other)
+        {
+            int match0 = X.RawValue.CompareTo(other.X.RawValue);
+            if (match0 != 0)
+                return match0;
+
+            int match1 = Y.RawValue.CompareTo(other.Y.RawValue);
+            if (match1 != 0)
+                return match1;
+
+            int match2 = Width.RawValue.CompareTo(other.Width.RawValue);
+            if (match2 != 0)
+                return match2;
+
+            int match3 = Height.RawValue.CompareTo(other.Height.RawValue);
+            if (match3 != 0)
+                return match3;
+
+            return 0;
         }
 
-        public bool Equals(Rectangle other)
-        {
-            return x.Equals(other.x) && y.Equals(other.y) && width.Equals(other.width) && height.Equals(other.height);
-        }
-
-        public override string ToString()
-        {
-            return ToString(null, CultureInfo.InvariantCulture.NumberFormat);
-        }
-
-        public string ToString(string format)
-        {
-            return ToString(format, CultureInfo.InvariantCulture.NumberFormat);
-        }
-
-        public string ToString(string format, IFormatProvider formatProvider)
-        {
-            if (string.IsNullOrEmpty(format))
-                format = "F2";
-            return string.Format("(x:{0}, y:{1}, width:{2}, height:{3})", x.ToString(format, formatProvider), y.ToString(format, formatProvider), width.ToString(format, formatProvider), height.ToString(format, formatProvider));
-        }
+        public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
+        public readonly string ToString(string format) => ToString(format, Format.Use);
+        public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
+        public readonly string ToString(string format, IFormatProvider provider) => $"(x:{X.ToString(format, provider)}, y:{Y.ToString(format, provider)}, w:{Width.ToString(format, provider)}, h:{Height.ToString(format, provider)})";
+        #endregion
     }
 }
