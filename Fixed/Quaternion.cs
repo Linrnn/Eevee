@@ -7,24 +7,24 @@ namespace Eevee.Fixed
     /// 确定性的四元数
     /// </summary>
     [Serializable]
-    public struct Quaternions : IEquatable<Quaternions>, IComparable<Quaternions>, IFormattable
+    public struct Quaternion : IEquatable<Quaternion>, IComparable<Quaternion>, IFormattable
     {
         #region 字段/初始化
-        public static readonly Quaternions Identity = new(0, 0, 0, 1);
+        public static readonly Quaternion Identity = new(0, 0, 0, 1);
 
         public Fixed64 X;
         public Fixed64 Y;
         public Fixed64 Z;
         public Fixed64 W;
 
-        public Quaternions(Fixed64 x, Fixed64 y, Fixed64 z, Fixed64 w)
+        public Quaternion(Fixed64 x, Fixed64 y, Fixed64 z, Fixed64 w)
         {
             X = x;
             Y = y;
             Z = z;
             W = w;
         }
-        public Quaternions(in Vector3D xyz, Fixed64 w)
+        public Quaternion(in Vector3D xyz, Fixed64 w)
         {
             X = xyz.X;
             Y = xyz.Y;
@@ -32,6 +32,28 @@ namespace Eevee.Fixed
             W = w;
         }
 
+        public Fixed64 this[int index]
+        {
+            readonly get => index switch
+            {
+                0 => X,
+                1 => Y,
+                2 => Z,
+                3 => W,
+                _ => throw new IndexOutOfRangeException($"Invalid Quaternion index:{index}!"),
+            };
+            set
+            {
+                switch (index)
+                {
+                    case 0: X = value; break;
+                    case 1: Y = value; break;
+                    case 2: Z = value; break;
+                    case 3: W = value; break;
+                    default: throw new IndexOutOfRangeException($"Invalid Quaternion index:{index}!");
+                }
+            }
+        }
         public void Set(Fixed64 x, Fixed64 y, Fixed64 z, Fixed64 w)
         {
             X = x;
@@ -61,7 +83,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 返回该向量的模长为1的向量
         /// </summary>
-        public readonly Quaternions Normalized() => this * Magnitude().Reciprocal();
+        public readonly Quaternion Normalized() => this * Magnitude().Reciprocal();
         /// <summary>
         /// 使该向量的模长为1
         /// </summary>
@@ -70,27 +92,27 @@ namespace Eevee.Fixed
         /// <summary>
         /// 两个旋转之间的点积
         /// </summary>
-        public static Fixed64 Dot(in Quaternions lhs, in Quaternions rhs) => lhs.W * rhs.W + lhs.X * rhs.X + lhs.Y * rhs.Y + lhs.Z * rhs.Z;
+        public static Fixed64 Dot(in Quaternion lhs, in Quaternion rhs) => lhs.W * rhs.W + lhs.X * rhs.X + lhs.Y * rhs.Y + lhs.Z * rhs.Z;
 
         /// <summary>
         /// 绝对值
         /// </summary>
-        public readonly Quaternions Abs() => new(X.Abs(), Y.Abs(), Z.Abs(), W.Abs());
+        public readonly Quaternion Abs() => new(X.Abs(), Y.Abs(), Z.Abs(), W.Abs());
         /// <summary>
         /// 共轭
         /// </summary>
-        public readonly Quaternions Conjugate() => new(-X, -Y, -Z, W);
+        public readonly Quaternion Conjugate() => new(-X, -Y, -Z, W);
         /// <summary>
         /// 反转
         /// </summary>
-        public readonly Quaternions Inverse() => Conjugate() / SqrMagnitude();
+        public readonly Quaternion Inverse() => Conjugate() / SqrMagnitude();
 
-        public static Quaternions FromToRotation(in Vector3D fromDirection, in Vector3D toDirection)
+        public static Quaternion FromToRotation(in Vector3D fromDirection, in Vector3D toDirection)
         {
             var cross = Vector3D.Cross(in fromDirection, in toDirection);
             var dot = Vector3D.Dot(in fromDirection, in toDirection);
             var magnitude = (fromDirection.SqrMagnitude() * toDirection.SqrMagnitude()).Sqr();
-            var quaternion = new Quaternions(cross.X, cross.Y, cross.Z, dot + magnitude);
+            var quaternion = new Quaternion(cross.X, cross.Y, cross.Z, dot + magnitude);
             return quaternion.Normalized();
         }
         public void SetFromToRotation(in Vector3D fromDirection, in Vector3D toDirection) => this = FromToRotation(in fromDirection, in toDirection);
@@ -98,20 +120,20 @@ namespace Eevee.Fixed
 
         #region 隐式转换/显示转换/运算符重载
 #if UNITY_STANDALONE
-        public static implicit operator Quaternions(in UnityEngine.Quaternion value) => new(value.x, value.y, value.z, value.w);
-        public static explicit operator UnityEngine.Quaternion(in Quaternions value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
+        public static implicit operator Quaternion(in UnityEngine.Quaternion value) => new(value.x, value.y, value.z, value.w);
+        public static explicit operator UnityEngine.Quaternion(in Quaternion value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
 #endif
 
-        public static implicit operator Quaternions(in System.Numerics.Quaternion value) => new(value.X, value.Y, value.Z, value.W);
-        public static explicit operator System.Numerics.Quaternion(in Quaternions value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
+        public static implicit operator Quaternion(in System.Numerics.Quaternion value) => new(value.X, value.Y, value.Z, value.W);
+        public static explicit operator System.Numerics.Quaternion(in Quaternion value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
 
-        public static Quaternions operator +(in Quaternions value) => value;
-        public static Quaternions operator -(in Quaternions value) => new(-value.X, -value.Y, -value.Z, -value.W);
-        public static Quaternions operator +(in Quaternions lhs, in Quaternions rhs) => new(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
-        public static Quaternions operator -(in Quaternions lhs, in Quaternions rhs) => new(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);
+        public static Quaternion operator +(in Quaternion value) => value;
+        public static Quaternion operator -(in Quaternion value) => new(-value.X, -value.Y, -value.Z, -value.W);
+        public static Quaternion operator +(in Quaternion lhs, in Quaternion rhs) => new(lhs.X + rhs.X, lhs.Y + rhs.Y, lhs.Z + rhs.Z, lhs.W + rhs.W);
+        public static Quaternion operator -(in Quaternion lhs, in Quaternion rhs) => new(lhs.X - rhs.X, lhs.Y - rhs.Y, lhs.Z - rhs.Z, lhs.W - rhs.W);
 
-        public static Vector3D operator *(in Vector3D lhs, in Quaternions rhs) => rhs * lhs;
-        public static Vector3D operator *(in Quaternions lhs, in Vector3D rhs)
+        public static Vector3D operator *(in Vector3D lhs, in Quaternion rhs) => rhs * lhs;
+        public static Vector3D operator *(in Quaternion lhs, in Vector3D rhs)
         {
             var x2 = lhs.X << 1;
             var y2 = lhs.Y << 1;
@@ -132,29 +154,29 @@ namespace Eevee.Fixed
                 Z = (xz - wy) * rhs.X + (yz + wx) * rhs.Y + (Fixed64.One - xx - yy) * rhs.Z,
             };
         }
-        public static Quaternions operator *(in Quaternions lhs, in Quaternions rhs) => new()
+        public static Quaternion operator *(in Quaternion lhs, in Quaternion rhs) => new()
         {
             X = lhs.X * rhs.W + lhs.W * rhs.X + lhs.Y * rhs.Z - lhs.Z * rhs.Y,
             Y = lhs.Y * rhs.W + lhs.W * rhs.Y + lhs.Z * rhs.X - lhs.X * rhs.Z,
             Z = lhs.Z * rhs.W + lhs.W * rhs.Z + lhs.X * rhs.Y - lhs.Y * rhs.X,
             W = lhs.W * rhs.W - lhs.X * rhs.X - lhs.Y * rhs.Y - lhs.Z * rhs.Z,
         };
-        public static Quaternions operator *(in Quaternions lhs, Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
-        public static Quaternions operator *(in Quaternions lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
-        public static Quaternions operator *(Fixed64 lhs, in Quaternions rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
-        public static Quaternions operator *(long lhs, in Quaternions rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
-        public static Quaternions operator /(in Quaternions lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
-        public static Quaternions operator /(in Quaternions lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
+        public static Quaternion operator *(in Quaternion lhs, Fixed64 rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
+        public static Quaternion operator *(in Quaternion lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
+        public static Quaternion operator *(Fixed64 lhs, in Quaternion rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
+        public static Quaternion operator *(long lhs, in Quaternion rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
+        public static Quaternion operator /(in Quaternion lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
+        public static Quaternion operator /(in Quaternion lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
 
-        public static bool operator ==(in Quaternions lhs, in Quaternions rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;
-        public static bool operator !=(in Quaternions lhs, in Quaternions rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z || lhs.W != rhs.W;
+        public static bool operator ==(in Quaternion lhs, in Quaternion rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;
+        public static bool operator !=(in Quaternion lhs, in Quaternion rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.Z != rhs.Z || lhs.W != rhs.W;
         #endregion
 
         #region 继承/重载
-        public readonly override bool Equals(object obj) => obj is Quaternions other && this == other;
+        public readonly override bool Equals(object obj) => obj is Quaternion other && this == other;
         public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode() ^ W.GetHashCode();
-        public readonly bool Equals(Quaternions other) => this == other;
-        public readonly int CompareTo(Quaternions other)
+        public readonly bool Equals(Quaternion other) => this == other;
+        public readonly int CompareTo(Quaternion other)
         {
             int match0 = X.RawValue.CompareTo(other.X.RawValue);
             if (match0 != 0)

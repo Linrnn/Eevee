@@ -34,6 +34,6 @@ namespace Eevee.Random
         Vector3D InSphere(Fixed64 radius);
 
         Vector3D GetEulerAngles();
-        Quaternions GetQuaternion();
+        Quaternion GetQuaternion();
     }
 }

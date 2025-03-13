@@ -37,6 +37,6 @@ namespace Eevee.Random
         public static Vector3D InSphere(Fixed64 radius) => RandomProxy.Impl.InSphere(radius);
 
         public static Vector3D EulerAngles() => RandomProxy.Impl.GetEulerAngles();
-        public static Quaternions Quaternion() => RandomProxy.Impl.GetQuaternion();
+        public static Quaternion Quaternion() => RandomProxy.Impl.GetQuaternion();
     }
 }

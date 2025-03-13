@@ -1,5 +1,6 @@
 ﻿using Eevee.Define;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -51,7 +52,9 @@ namespace Eevee.Fixed
         #region 基础方法
         public Vector2D Position
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => new(X, Y);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 X = value.X;
@@ -60,7 +63,9 @@ namespace Eevee.Fixed
         }
         public Vector2D Center
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => new(X + (Width >> 1), Y + (Height >> 1));
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 X = value.X - (Width >> 1);
@@ -69,7 +74,9 @@ namespace Eevee.Fixed
         }
         public Vector2D Size
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => new(Width, Height);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 Width = value.X;
@@ -79,7 +86,9 @@ namespace Eevee.Fixed
 
         public Vector2D Min
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => new(X, Y);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 XMin = value.X;
@@ -88,7 +97,9 @@ namespace Eevee.Fixed
         }
         public Fixed64 XMin
         {
-            readonly get => Width + X;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => X;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 Width = XMax - value;
@@ -97,7 +108,9 @@ namespace Eevee.Fixed
         }
         public Fixed64 YMin
         {
-            readonly get => Height + Y;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            readonly get => Y;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 Height = YMax - value;
@@ -107,7 +120,9 @@ namespace Eevee.Fixed
 
         public Vector2D Max
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => new(XMax, YMax);
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 XMax = value.X;
@@ -116,12 +131,16 @@ namespace Eevee.Fixed
         }
         public Fixed64 XMax
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => Width + X;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Width = value - X;
         }
         public Fixed64 YMax
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => Height + Y;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set => Height = value - Y;
         }
 
@@ -155,7 +174,11 @@ namespace Eevee.Fixed
         /// <summary>
         /// 矩形包含点
         /// </summary>
-        public readonly bool Contains(in Vector3D point) => Contains(point.X, point.Y);
+        public readonly bool ContainsXY(in Vector3D point) => Contains(point.X, point.Y);
+        /// <summary>
+        /// 矩形包含点
+        /// </summary>
+        public readonly bool ContainsXZ(in Vector3D point) => Contains(point.X, point.Z);
         /// <summary>
         /// 矩形包含点
         /// </summary>
@@ -180,6 +203,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 矩形包含点
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(Fixed64 x, Fixed64 y) => x >= X && x < XMax && y >= Y && y < YMax;
         #endregion
 

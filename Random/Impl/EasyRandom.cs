@@ -170,7 +170,7 @@ namespace Eevee.Random
             var z = RandomFixed64(Maths.Deg360);
             return new Vector3D(x, y, z);
         }
-        public virtual Quaternions GetQuaternion()
+        public virtual Quaternion GetQuaternion()
         {
             var number = RandomFixed64(Fixed64.One);
             var rad0 = RandomFixed64(Maths.Rad360);
@@ -184,7 +184,7 @@ namespace Eevee.Random
             var z = sqrt1 * Maths.Cos(rad1);
 
             var scale = (w.Sqr() + x.Sqr() + y.Sqr() + z.Sqr()).Sqrt().Reciprocal();
-            return new Quaternions(w * scale, x * scale, y * scale, z * scale);
+            return new Quaternion(w * scale, x * scale, y * scale, z * scale);
         }
         #endregion
 

@@ -130,7 +130,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 转换成四元数
         /// </summary>
-        public readonly Quaternions AsQuaternion()
+        public readonly Quaternion AsQuaternion()
         {
             var trace = Trace();
 
@@ -138,7 +138,7 @@ namespace Eevee.Fixed
             {
                 var sqrt = (trace + Fixed64.One).Sqrt();
                 var half = Fixed64.Half / sqrt;
-                return new Quaternions
+                return new Quaternion
                 {
                     W = sqrt >> 1,
                     X = (M12 - M21) * half,
@@ -151,7 +151,7 @@ namespace Eevee.Fixed
             {
                 var sqrt = (Fixed64.One + M00 - M11 - M22).Sqrt();
                 var half = Fixed64.Half / sqrt;
-                return new Quaternions
+                return new Quaternion
                 {
                     X = sqrt >> 1,
                     Y = (M01 + M10) * half,
@@ -164,7 +164,7 @@ namespace Eevee.Fixed
             {
                 var sqrt = (Fixed64.One + M11 - M00 - M22).Sqrt();
                 var half = Fixed64.Half / sqrt;
-                return new Quaternions
+                return new Quaternion
                 {
                     X = (M01 + M10) * half,
                     Y = sqrt >> 1,
@@ -176,7 +176,7 @@ namespace Eevee.Fixed
             {
                 var sqrt = (Fixed64.One + M22 - M00 - M11).Sqrt();
                 var half = Fixed64.Half / sqrt;
-                return new Quaternions
+                return new Quaternion
                 {
                     X = (M20 + M02) * half,
                     Y = (M21 + M12) * half,
@@ -188,11 +188,11 @@ namespace Eevee.Fixed
         /// <summary>
         /// 使用指定的“forward”和“upwards”方向创建四元数
         /// </summary>
-        public static Quaternions LookRotation(in Vector3D forward) => LookRotation(in forward, in Vector3D.Up);
+        public static Quaternion LookRotation(in Vector3D forward) => LookRotation(in forward, in Vector3D.Up);
         /// <summary>
         /// 使用指定的“forward”和“upwards”方向创建四元数
         /// </summary>
-        public static Quaternions LookRotation(in Vector3D forward, in Vector3D upwards) => LookAt(in forward, in upwards).AsQuaternion();
+        public static Quaternion LookRotation(in Vector3D forward, in Vector3D upwards) => LookAt(in forward, in upwards).AsQuaternion();
 
         /// <summary>
         /// 绝对值
@@ -264,7 +264,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入四元数，从旋转矩阵创建3*3矩阵
         /// </summary>
-        public static Matrix3X3 Rotate(in Quaternions quaternion)
+        public static Matrix3X3 Rotate(in Quaternion quaternion)
         {
             var xx = quaternion.X.Sqr();
             var yy = quaternion.Y.Sqr();

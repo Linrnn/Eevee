@@ -321,7 +321,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 旋转矩阵
         /// </summary>
-        public static Matrix4X4 Rotate(in Quaternions rotation) => Rotate(rotation.X, rotation.Y, rotation.Z, rotation.W);
+        public static Matrix4X4 Rotate(in Quaternion rotation) => Rotate(rotation.X, rotation.Y, rotation.Z, rotation.W);
         /// <summary>
         /// 旋转矩阵
         /// </summary>
@@ -424,7 +424,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 平移、旋转和缩放矩阵
         /// </summary>
-        public static Matrix4X4 TRS(in Vector3D translation, in Quaternions rotation, in Vector3D scale) => Translate(translation.X, translation.Y, translation.Z) * Rotate(rotation.X, rotation.Y, rotation.Z, rotation.W) * Scale(scale.X, scale.Y, scale.Z);
+        public static Matrix4X4 TRS(in Vector3D translation, in Quaternion rotation, in Vector3D scale) => Translate(translation.X, translation.Y, translation.Z) * Rotate(rotation.X, rotation.Y, rotation.Z, rotation.W) * Scale(scale.X, scale.Y, scale.Z);
         #endregion
 
         #region 隐式转换/显示转换/运算符重载

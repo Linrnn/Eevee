@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -488,11 +489,12 @@ namespace Eevee.Fixed
         public static bool IsPowerOf2(ulong a) => a != 0 && (a & a - 1) == 0;
         #endregion
 
-        #region Fixed64/Vector2D/Vector3D/Vector4D/Quaternions/Rectangle 关联操作
+        #region Fixed64/Vector2D/Vector3D/Vector4D/Quaternion/Rectangle 关联操作
         #region 基础插值
         /// <summary>
         /// 计算线性参数amount在[lsh，rsh]范围内产生插值
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 InverseLerp(Fixed64 from, Fixed64 to, Fixed64 value) => from == to ? Fixed64.Zero : ((value - from) / (to - from)).Clamp01();
         public static Vector2D PointToNormalized(in Rectangle rect, in Vector2D point) => new()
         {
@@ -503,6 +505,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 线性插值
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 Lerp(Fixed64 from, Fixed64 to, Fixed64 percent) => LerpUnClamp(from, to, percent.Clamp01());
         /// <summary>
         /// 线性插值
@@ -527,15 +530,16 @@ namespace Eevee.Fixed
         /// <summary>
         /// 线性插值
         /// </summary>
-        public static Quaternions Lerp(in Quaternions from, in Quaternions to, Fixed64 percent) => LerpUnClamp(in from, in to, percent.Clamp01());
+        public static Quaternion Lerp(in Quaternion from, in Quaternion to, Fixed64 percent) => LerpUnClamp(in from, in to, percent.Clamp01());
         /// <summary>
         /// 球面线性插值
         /// </summary>
-        public static Quaternions SLerp(in Quaternions from, in Quaternions to, Fixed64 percent) => SLerpUnClamp(in from, in to, percent.Clamp01());
+        public static Quaternion SLerp(in Quaternion from, in Quaternion to, Fixed64 percent) => SLerpUnClamp(in from, in to, percent.Clamp01());
 
         /// <summary>
         /// 线性插值
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 LerpUnClamp(Fixed64 from, Fixed64 to, Fixed64 percent) => from + (to - from) * percent;
         /// <summary>
         /// 线性插值
@@ -552,13 +556,13 @@ namespace Eevee.Fixed
         /// <summary>
         /// 线性插值
         /// </summary>
-        public static Quaternions LerpUnClamp(in Quaternions from, in Quaternions to, Fixed64 percent) => (from + (to - from) * percent).Normalized();
+        public static Quaternion LerpUnClamp(in Quaternion from, in Quaternion to, Fixed64 percent) => (from + (to - from) * percent).Normalized();
         /// <summary>
         /// 球面线性插值
         /// </summary>
-        public static Quaternions SLerpUnClamp(in Quaternions from, in Quaternions to, Fixed64 percent)
+        public static Quaternion SLerpUnClamp(in Quaternion from, in Quaternion to, Fixed64 percent)
         {
-            var dot = Quaternions.Dot(in from, in to);
+            var dot = Quaternion.Dot(in from, in to);
             var abs = dot < Fixed64.Zero ? -to : to;
             var rad = Acos(dot.Abs());
             var quaternion = Sin((Fixed64.One - percent) * rad) * from + Sin(percent * rad) * abs;
@@ -568,6 +572,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 移动到目标，类似LerpUnClamp
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 MoveTowards(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
         {
             var delta = to - from;
@@ -629,9 +634,9 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入角度角，将from向to旋转
         /// </summary>
-        public static Quaternions RotateTowards(in Quaternions from, in Quaternions to, Fixed64 maxDelta)
+        public static Quaternion RotateTowards(in Quaternion from, in Quaternion to, Fixed64 maxDelta)
         {
-            var dot = Quaternions.Dot(in from, in to);
+            var dot = Quaternion.Dot(in from, in to);
             var abs = dot < Fixed64.Zero ? -to : to;
             var rad = Acos(dot.Abs());
             var theta = rad << 1;
@@ -651,6 +656,7 @@ namespace Eevee.Fixed
         /// Catmull-Rom插值<br/>
         /// 参考链接：http://www.mvps.org/directx/articles/catmull/
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 LerpCatmullRom(Fixed64 v0, Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 a)
         {
             var sqr = a.Sqr();
@@ -700,6 +706,7 @@ namespace Eevee.Fixed
             var cube = sqr * a;
             return ((v0 - v1 << 1) + t0 + t1) * cube + ((v1 - v0) * 3 - (t0 << 1) - t1) * sqr + t0 * a + v0;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         /// <summary>
         /// Hermite插值
         /// </summary>
@@ -731,6 +738,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 LerpSmoothStep(Fixed64 v0, Fixed64 v1, Fixed64 a) => LerpHermite(v0, Fixed64.Zero, v1, Fixed64.Zero, a.Clamp01());
         /// <summary>
         /// 平滑插值（自然的动画，淡入淡出和其他过渡非常有用）
@@ -776,7 +784,7 @@ namespace Eevee.Fixed
         /// 返回两个旋转之间的夹角，返回无符号弧度<br/>
         /// 值域：[0, π]
         /// </summary>
-        public static Fixed64 AngleRad(in Quaternions lhs, in Quaternions rhs)
+        public static Fixed64 AngleRad(in Quaternion lhs, in Quaternion rhs)
         {
             var rad = Rad0To2Pi(in lhs, in rhs);
             return rad > Rad180 ? Rad360 - rad : rad;
@@ -796,7 +804,7 @@ namespace Eevee.Fixed
         /// 返回两个旋转之间的夹角，返回无符号角度<br/>
         /// 值域：[0°, 180°]
         /// </summary>
-        public static Fixed64 Angle(in Quaternions lhs, in Quaternions rhs)
+        public static Fixed64 Angle(in Quaternion lhs, in Quaternion rhs)
         {
             var deg = Deg0To360(in lhs, in rhs);
             return deg > Deg180 ? Deg360 - deg : deg;
@@ -824,7 +832,7 @@ namespace Eevee.Fixed
         /// 返回两个旋转之间的角度，返回弧度<br/>
         /// 值域：[-π, π]
         /// </summary>
-        public static Fixed64 SignedAngleRad(in Quaternions lhs, in Quaternions rhs)
+        public static Fixed64 SignedAngleRad(in Quaternion lhs, in Quaternion rhs)
         {
             var rad = Rad0To2Pi(in lhs, in rhs);
             return rad > Rad180 ? rad - Rad360 : rad;
@@ -852,15 +860,15 @@ namespace Eevee.Fixed
         /// 返回两个旋转之间的夹角，返回角度<br/>
         /// 值域：[-180°, 180°]
         /// </summary>
-        public static Fixed64 SignedAngle(in Quaternions lhs, in Quaternions rhs)
+        public static Fixed64 SignedAngle(in Quaternion lhs, in Quaternion rhs)
         {
             var deg = Deg0To360(in lhs, in rhs);
             return deg > Deg180 ? deg - Deg360 : deg;
         }
 
-        private static Fixed64 Rad0To2Pi(in Quaternions lhs, in Quaternions rhs) => Acos(Cos(in lhs, in rhs)) >> 1;
-        private static Fixed64 Deg0To360(in Quaternions lhs, in Quaternions rhs) => AcosDeg(Cos(in lhs, in rhs)) >> 1;
-        private static Fixed64 Cos(in Quaternions lhs, in Quaternions rhs)
+        private static Fixed64 Rad0To2Pi(in Quaternion lhs, in Quaternion rhs) => Acos(Cos(in lhs, in rhs)) >> 1;
+        private static Fixed64 Deg0To360(in Quaternion lhs, in Quaternion rhs) => AcosDeg(Cos(in lhs, in rhs)) >> 1;
+        private static Fixed64 Cos(in Quaternion lhs, in Quaternion rhs)
         {
             var inverse = lhs.Inverse();
             return inverse.W * rhs.W - inverse.X * rhs.X - inverse.Y * rhs.Y - inverse.Z * rhs.Z;
@@ -881,11 +889,11 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        #region Vector3D/Quaternions/Matrix3X3/Matrix4X4 相互转换
+        #region Vector3D/Quaternion/Matrix3X3/Matrix4X4 相互转换
         /// <summary>
         /// 返回欧拉角的角度角
         /// </summary>
-        public static Vector3D EulerAngles(in Quaternions quaternion)
+        public static Vector3D EulerAngles(in Quaternion quaternion)
         {
             var ySqr = quaternion.Y.Sqr();
             var t0 = Fixed64.One - (ySqr + quaternion.Z.Sqr() << 1);
@@ -911,39 +919,39 @@ namespace Eevee.Fixed
             Z = -Atan2Deg(matrix.M10, matrix.M00),
         };
 
-        #region 返回Quaternions
+        #region 返回Quaternion
         /// <summary>
         /// 返回一个四元数，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
         /// </summary>
-        public static Quaternions Euler(in Vector3D eulerAngles) => CreateQuaternionDeg(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
+        public static Quaternion Euler(in Vector3D eulerAngles) => CreateQuaternionDeg(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
         /// <summary>
         /// 返回一个四元数，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
         /// </summary>
-        public static Quaternions Euler(Fixed64 x, Fixed64 y, Fixed64 z) => CreateQuaternionDeg(y, x, z);
+        public static Quaternion Euler(Fixed64 x, Fixed64 y, Fixed64 z) => CreateQuaternionDeg(y, x, z);
 
         /// <summary>
         /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数
         /// </summary>
-        public static Quaternions AngleAxisQuaternion(in Vector3D axis, Fixed64 rad)
+        public static Quaternion AngleAxisQuaternion(in Vector3D axis, Fixed64 rad)
         {
             var half = rad >> 1;
             var xyz = axis.Normalized() * Sin(half);
-            return new Quaternions(in xyz, Cos(half));
+            return new Quaternion(in xyz, Cos(half));
         }
         /// <summary>
         /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数
         /// </summary>
-        public static Quaternions AngleAxisQuaternionDeg(in Vector3D axis, Fixed64 deg)
+        public static Quaternion AngleAxisQuaternionDeg(in Vector3D axis, Fixed64 deg)
         {
             var half = deg >> 1;
             var xyz = axis.Normalized() * SinDeg(half);
-            return new Quaternions(in xyz, CosDeg(half));
+            return new Quaternion(in xyz, CosDeg(half));
         }
 
         /// <summary>
         /// 输入弧度，从旋转矩阵创建四元数
         /// </summary>
-        public static Quaternions CreateQuaternion(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        public static Quaternion CreateQuaternion(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
             var rh = roll >> 1;
             var rs = Sin(rh);
@@ -954,7 +962,7 @@ namespace Eevee.Fixed
             var yh = yaw >> 1;
             var ys = Sin(yh);
             var yc = Cos(yh);
-            return new Quaternions
+            return new Quaternion
             {
                 X = yc * ps * rc + ys * pc * rs,
                 Y = ys * pc * rc - yc * ps * rs,
@@ -965,7 +973,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入角度，从旋转矩阵创建四元数
         /// </summary>
-        public static Quaternions CreateQuaternionDeg(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        public static Quaternion CreateQuaternionDeg(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
             var rh = roll >> 1;
             var rs = SinDeg(rh);
@@ -976,7 +984,7 @@ namespace Eevee.Fixed
             var yh = yaw >> 1;
             var ys = SinDeg(yh);
             var yc = CosDeg(yh);
-            return new Quaternions
+            return new Quaternion
             {
                 X = yc * ps * rc + ys * pc * rs,
                 Y = ys * pc * rc - yc * ps * rs,
