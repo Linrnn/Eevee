@@ -93,20 +93,29 @@ namespace Eevee.Fixed
         public readonly bool SameSide(in Vector3D lsh, in Vector3D rhs) => GetSide(in lsh) == GetSide(in rhs);
 
         /// <summary>
-        /// 射线与平面是否相交
+        /// 射线与平面的交点
         /// </summary>
         public readonly bool RayCast(in Ray3D ray, out Fixed64 enter)
         {
-            var dnDot = Vector3D.Dot(ray.Direction, Normal);
+            var dnDot = Vector3D.Dot(in ray.Direction, in Normal);
             if (dnDot.RawValue == 0)
             {
                 enter = Fixed64.Zero;
                 return false;
             }
 
-            var ondDot = -Vector3D.Dot(ray.Origin, Normal) - Distance;
-            enter = ondDot / dnDot;
+            var onDot = Vector3D.Dot(in ray.Origin, in Normal);
+            enter = (-onDot - Distance) / dnDot;
             return enter.RawValue > 0;
+        }
+        /// <summary>
+        /// 射线与平面的交点
+        /// </summary>
+        public readonly bool RayCast(in Ray3D ray, out Vector3D point)
+        {
+            bool cast = RayCast(in ray, out Fixed64 enter);
+            point = cast ? ray.GetPoint(enter) : Vector3D.Zero;
+            return cast;
         }
         #endregion
 

@@ -11,7 +11,7 @@ namespace Eevee.Fixed
     {
         #region 字段/初始化
         public Vector3D Origin;
-        public Vector3D Direction;
+        public Vector3D Direction; // 必须是单位向量
 
         public Ray3D(in Vector3D origin, in Vector3D direction)
         {
@@ -21,7 +21,7 @@ namespace Eevee.Fixed
         #endregion
 
         #region 基础方法
-        public readonly Vector3D GetPoint(Fixed64 distance) => Origin + Direction.ClampMagnitude(distance);
+        public readonly Vector3D GetPoint(Fixed64 distance) => Origin + Direction * distance;
         #endregion
 
         #region 隐式转换/显示转换/运算符重载

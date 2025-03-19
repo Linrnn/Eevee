@@ -178,13 +178,13 @@ namespace Eevee.Random
             var sqrt0 = (Fixed64.One - number).Sqrt();
             var sqrt1 = number.Sqrt();
 
-            var w = sqrt0 * Maths.Sin(rad0);
-            var x = sqrt0 * Maths.Cos(rad0);
-            var y = sqrt1 * Maths.Sin(rad1);
-            var z = sqrt1 * Maths.Cos(rad1);
+            var x = sqrt0 * Maths.Sin(rad0);
+            var y = sqrt0 * Maths.Cos(rad0);
+            var z = sqrt1 * Maths.Sin(rad1);
+            var w = sqrt1 * Maths.Cos(rad1);
 
-            var scale = (w.Sqr() + x.Sqr() + y.Sqr() + z.Sqr()).Sqrt().Reciprocal();
-            return new Quaternion(w * scale, x * scale, y * scale, z * scale);
+            var scale = (x.Sqr() + y.Sqr() + z.Sqr() + w.Sqr()).Sqrt().Reciprocal();
+            return new Quaternion(x * scale, y * scale, z * scale, w * scale);
         }
         #endregion
 
@@ -221,12 +221,9 @@ namespace Eevee.Random
             }
             else
             {
-                uint high = RandomUInt32(0, uint.MaxValue);
+                uint high = RandomUInt32(0, (uint)(diff >> 32));
                 uint low = RandomUInt32(0, uint.MaxValue);
                 ulong value = (ulong)high << 32 | low;
-
-                if (value > diff)
-                    return minInclusive + low;
                 return minInclusive + value;
             }
         }

@@ -77,30 +77,40 @@ namespace Eevee.Fixed
         public static Fixed64 Distance(in Vector2D lhs, in Vector2D rhs) => (lhs - rhs).SqrMagnitude().Sqrt();
 
         /// <summary>
-        /// 返回副本，其大小被限制为输入值
+        /// 返回副本，缩放模长
         /// </summary>
-        public readonly Vector2D ClampMagnitude(Fixed64 maxDelta)
+        public readonly Vector2D ScaleMagnitude(Fixed64 scale)
         {
-            switch (maxDelta.RawValue)
-            {
-                case < 0: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
-                case 0: return Zero;
-            }
+            if (scale.RawValue == 0)
+                return Zero;
 
             var sqrMagnitude = SqrMagnitude();
             if (sqrMagnitude.RawValue == 0)
                 return Zero;
 
-            var sqrMaxLength = maxDelta.Sqr();
-            if (sqrMaxLength >= sqrMagnitude)
+            return this * (scale / sqrMagnitude.Sqrt());
+        }
+        /// <summary>
+        /// 返回副本，其大小被限制为输入值
+        /// </summary>
+        public readonly Vector2D ClampMagnitude(Fixed64 maxDelta)
+        {
+            if (maxDelta.RawValue == 0)
+                return Zero;
+
+            var sqrMagnitude = SqrMagnitude();
+            if (sqrMagnitude.RawValue == 0)
+                return Zero;
+
+            if (sqrMagnitude <= maxDelta.Sqr())
                 return this;
 
-            return this * (sqrMaxLength / sqrMagnitude).Sqrt();
+            return this * (maxDelta / sqrMagnitude.Sqrt());
         }
         /// <summary>
         /// 返回该向量的模长为1的向量
         /// </summary>
-        public readonly Vector2D Normalized() => this * Magnitude().Reciprocal();
+        public readonly Vector2D Normalized() => this / Magnitude();
         /// <summary>
         /// 使该向量的模长为1
         /// </summary>
@@ -187,7 +197,11 @@ namespace Eevee.Fixed
         public static Vector2D operator *(in Vector2D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs);
         public static Vector2D operator *(Fixed64 lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
         public static Vector2D operator *(long lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
-        public static Vector2D operator /(in Vector2D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs);
+        public static Vector2D operator /(in Vector2D lhs, Fixed64 rhs)
+        {
+            var reciprocal = rhs.Reciprocal();
+            return new Vector2D(lhs.X * reciprocal, lhs.Y * reciprocal);
+        }
         public static Vector2D operator /(in Vector2D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs);
 
         public static bool operator ==(in Vector2D lhs, in Vector2D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y;

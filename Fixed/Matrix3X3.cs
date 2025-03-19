@@ -389,18 +389,22 @@ namespace Eevee.Fixed
             M21 = lhs * rhs.M21,
             M22 = lhs * rhs.M22,
         };
-        public static Matrix3X3 operator /(in Matrix3X3 lhs, Fixed64 rhs) => new()
+        public static Matrix3X3 operator /(in Matrix3X3 lhs, Fixed64 rhs)
         {
-            M00 = lhs.M00 / rhs,
-            M01 = lhs.M01 / rhs,
-            M02 = lhs.M02 / rhs,
-            M10 = lhs.M10 / rhs,
-            M11 = lhs.M11 / rhs,
-            M12 = lhs.M12 / rhs,
-            M20 = lhs.M20 / rhs,
-            M21 = lhs.M21 / rhs,
-            M22 = lhs.M22 / rhs,
-        };
+            var reciprocal = rhs.Reciprocal();
+            return new Matrix3X3
+            {
+                M00 = lhs.M00 * reciprocal,
+                M01 = lhs.M01 * reciprocal,
+                M02 = lhs.M02 * reciprocal,
+                M10 = lhs.M10 * reciprocal,
+                M11 = lhs.M11 * reciprocal,
+                M12 = lhs.M12 * reciprocal,
+                M20 = lhs.M20 * reciprocal,
+                M21 = lhs.M21 * reciprocal,
+                M22 = lhs.M22 * reciprocal,
+            };
+        }
         public static Matrix3X3 operator /(in Matrix3X3 lhs, long rhs) => new()
         {
             M00 = lhs.M00 / rhs,
@@ -466,7 +470,7 @@ namespace Eevee.Fixed
         public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
         public readonly string ToString(string format) => ToString(format, Format.Use);
         public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
-        public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}|{M01.ToString(format, provider)}|{M02.ToString(format, provider)}, {M10.ToString(format, provider)}|{M11.ToString(format, provider)}|{M12.ToString(format, provider)}, {M20.ToString(format, provider)}|{M21.ToString(format, provider)}|{M22.ToString(format, provider)})";
+        public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}, {M01.ToString(format, provider)}, {M02.ToString(format, provider)} | {M10.ToString(format, provider)}, {M11.ToString(format, provider)}, {M12.ToString(format, provider)} | {M20.ToString(format, provider)}, {M21.ToString(format, provider)}, {M22.ToString(format, provider)})";
         #endregion
     }
 }

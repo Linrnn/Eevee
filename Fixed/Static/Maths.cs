@@ -437,20 +437,20 @@ namespace Eevee.Fixed
                 throw new ArgumentOutOfRangeException(nameof(a), $"x：{a}≤0，无法计算对数");
             }
 
-            long xrv = a.RawValue;
+            long arv = a.RawValue;
             long y = 0;
-            while (xrv < Const.One)
+            while (arv < Const.One)
             {
-                xrv <<= 1;
-                --y;
+                arv <<= 1;
+                y -= Const.One;
             }
-            while (xrv >= Const.One << 1)
+            while (arv >= Const.One << 1)
             {
-                xrv >>= 1;
-                ++y;
+                arv >>= 1;
+                y += Const.One;
             }
 
-            var z = new Fixed64(xrv);
+            var z = new Fixed64(arv);
             long b = 1L << Const.FractionalBits - 1;
             for (int i = 0; i < Const.FractionalBits; ++i)
             {
@@ -626,7 +626,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 与MoveTowards相同，返回角度
         /// </summary>
-        public static Fixed64 MoveTowardsAngleDeg(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
+        public static Fixed64 MoveTowardsAngle(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
         {
             var newTarget = from + DeltaAngleDeg(from, to);
             return MoveTowards(from, newTarget, maxDelta);
@@ -636,18 +636,10 @@ namespace Eevee.Fixed
         /// </summary>
         public static Quaternion RotateTowards(in Quaternion from, in Quaternion to, Fixed64 maxDelta)
         {
-            var dot = Quaternion.Dot(in from, in to);
-            var abs = dot < Fixed64.Zero ? -to : to;
-            var rad = Acos(dot.Abs());
-            var theta = rad << 1;
-
-            maxDelta *= Deg2Rad;
-            if (maxDelta >= theta)
-                return abs;
-
-            maxDelta /= theta;
-            var quaternion = Sin((Fixed64.One - maxDelta) * rad) * from + Sin(maxDelta * rad) * abs;
-            return quaternion * Sin(rad).Reciprocal();
+            var num = Angle(in from, in to);
+            if (num.RawValue == 0)
+                return to;
+            return SLerpUnClamp(in from, in to, Fixed64.Min(Fixed64.One, maxDelta / num));
         }
         #endregion
 
@@ -866,8 +858,8 @@ namespace Eevee.Fixed
             return deg > Deg180 ? deg - Deg360 : deg;
         }
 
-        private static Fixed64 Rad0To2Pi(in Quaternion lhs, in Quaternion rhs) => Acos(Cos(in lhs, in rhs)) >> 1;
-        private static Fixed64 Deg0To360(in Quaternion lhs, in Quaternion rhs) => AcosDeg(Cos(in lhs, in rhs)) >> 1;
+        private static Fixed64 Rad0To2Pi(in Quaternion lhs, in Quaternion rhs) => Acos(Cos(in lhs, in rhs)) << 1;
+        private static Fixed64 Deg0To360(in Quaternion lhs, in Quaternion rhs) => AcosDeg(Cos(in lhs, in rhs)) << 1;
         private static Fixed64 Cos(in Quaternion lhs, in Quaternion rhs)
         {
             var inverse = lhs.Inverse();

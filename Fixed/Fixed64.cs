@@ -276,8 +276,8 @@ namespace Eevee.Fixed
 
         #region 隐式转换/显示转换/运算符重载
         public static implicit operator Fixed64(long value) => new(value << Const.FractionalBits);
-        public static implicit operator Fixed64(float value) => new((long)(value * Const.One));
-        public static implicit operator Fixed64(double value) => new((long)(value * Const.One));
+        public static implicit operator Fixed64(float value) => new((long)((decimal)value * Const.One)); // 处理大数丢失整数部分
+        public static implicit operator Fixed64(double value) => new((long)((decimal)value * Const.One)); // 处理大数丢失整数部分
         public static implicit operator Fixed64(in decimal value) => new((long)(value * Const.One));
 
         public static explicit operator short(Fixed64 value) => (short)(value.RawValue >> Const.FractionalBits);
@@ -303,15 +303,17 @@ namespace Eevee.Fixed
         public static Fixed64 operator -(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue - rhs.RawValue);
         public static Fixed64 operator *(Fixed64 lhs, Fixed64 rhs)
         {
-            long li = lhs.RawValue >> Const.FractionalBits;
-            long lf = lhs.RawValue & Const.FractionalPart;
-            long ri = rhs.RawValue >> Const.FractionalBits;
-            long rf = rhs.RawValue & Const.FractionalPart;
+            long la = Math.Abs(lhs.RawValue);
+            long ra = Math.Abs(rhs.RawValue);
+            long li = la >> Const.FractionalBits;
+            long lf = la & Const.FractionalPart;
+            long ri = ra >> Const.FractionalBits;
+            long rf = ra & Const.FractionalPart;
 
             long ii = li * ri << Const.FractionalBits;
             long fi = li * rf + lf * ri;
             ulong ff = (ulong)lf * (ulong)rf >> Const.FractionalBits; // lf*rf可能会溢出，所以转成ulong
-            return new Fixed64(ii + fi + (long)ff);
+            return lhs.Sign() == rhs.Sign() ? new Fixed64(ii + fi + (long)ff) : new Fixed64(-ii - fi - (long)ff);
         }
         public static Fixed64 operator *(Fixed64 lhs, long rhs) => new(lhs.RawValue * rhs);
         public static Fixed64 operator *(long lhs, Fixed64 rhs) => new(lhs * rhs.RawValue);

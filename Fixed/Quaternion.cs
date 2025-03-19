@@ -81,18 +81,18 @@ namespace Eevee.Fixed
         public readonly Fixed64 Magnitude() => SqrMagnitude().Sqrt();
 
         /// <summary>
-        /// 返回该向量的模长为1的向量
+        /// 返回该四元数的模长为1的向量
         /// </summary>
-        public readonly Quaternion Normalized() => this * Magnitude().Reciprocal();
+        public readonly Quaternion Normalized() => this / Magnitude();
         /// <summary>
-        /// 使该向量的模长为1
+        /// 使该四元数的模长为1
         /// </summary>
         public void Normalize() => this = Normalized();
 
         /// <summary>
-        /// 两个旋转之间的点积
+        /// 两个四元数之间的点积
         /// </summary>
-        public static Fixed64 Dot(in Quaternion lhs, in Quaternion rhs) => lhs.W * rhs.W + lhs.X * rhs.X + lhs.Y * rhs.Y + lhs.Z * rhs.Z;
+        public static Fixed64 Dot(in Quaternion lhs, in Quaternion rhs) => lhs.X * rhs.X + lhs.Y * rhs.Y + lhs.Z * rhs.Z + lhs.W * rhs.W;
 
         /// <summary>
         /// 绝对值
@@ -107,12 +107,12 @@ namespace Eevee.Fixed
         /// </summary>
         public readonly Quaternion Inverse() => Conjugate() / SqrMagnitude();
 
-        public static Quaternion FromToRotation(in Vector3D fromDirection, in Vector3D toDirection)
+        public static Quaternion FromToRotation(in Vector3D from, in Vector3D to)
         {
-            var cross = Vector3D.Cross(in fromDirection, in toDirection);
-            var dot = Vector3D.Dot(in fromDirection, in toDirection);
-            var magnitude = (fromDirection.SqrMagnitude() * toDirection.SqrMagnitude()).Sqr();
-            var quaternion = new Quaternion(cross.X, cross.Y, cross.Z, dot + magnitude);
+            var cross = Vector3D.Cross(in from, in to);
+            var dot = Vector3D.Dot(in from, in to);
+            var sqrt = (from.SqrMagnitude() * to.SqrMagnitude()).Sqrt();
+            var quaternion = new Quaternion(cross.X, cross.Y, cross.Z, dot + sqrt);
             return quaternion.Normalized();
         }
         public void SetFromToRotation(in Vector3D fromDirection, in Vector3D toDirection) => this = FromToRotation(in fromDirection, in toDirection);
@@ -165,7 +165,11 @@ namespace Eevee.Fixed
         public static Quaternion operator *(in Quaternion lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
         public static Quaternion operator *(Fixed64 lhs, in Quaternion rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
         public static Quaternion operator *(long lhs, in Quaternion rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
-        public static Quaternion operator /(in Quaternion lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
+        public static Quaternion operator /(in Quaternion lhs, Fixed64 rhs)
+        {
+            var reciprocal = rhs.Reciprocal();
+            return new Quaternion(lhs.X * reciprocal, lhs.Y * reciprocal, lhs.Z * reciprocal, lhs.W * reciprocal);
+        }
         public static Quaternion operator /(in Quaternion lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
 
         public static bool operator ==(in Quaternion lhs, in Quaternion rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;

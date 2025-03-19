@@ -91,30 +91,40 @@ namespace Eevee.Fixed
         public static Fixed64 Distance(in Vector3D lhs, in Vector3D rhs) => (lhs - rhs).SqrMagnitude().Sqrt();
 
         /// <summary>
-        /// 返回副本，其大小被限制为输入值
+        /// 返回副本，缩放模长
         /// </summary>
-        public readonly Vector3D ClampMagnitude(Fixed64 maxDelta)
+        public readonly Vector3D ScaleMagnitude(Fixed64 scale)
         {
-            switch (maxDelta.RawValue)
-            {
-                case < 0: throw new ArgumentOutOfRangeException(nameof(maxDelta), $"{maxDelta} < 0");
-                case 0: return Zero;
-            }
+            if (scale.RawValue == 0)
+                return Zero;
 
             var sqrMagnitude = SqrMagnitude();
             if (sqrMagnitude.RawValue == 0)
                 return Zero;
 
-            var sqrMaxLength = maxDelta.Sqr();
-            if (sqrMaxLength >= sqrMagnitude)
+            return this * (scale / sqrMagnitude.Sqrt());
+        }
+        /// <summary>
+        /// 返回副本，其大小被限制为输入值
+        /// </summary>
+        public readonly Vector3D ClampMagnitude(Fixed64 maxDelta)
+        {
+            if (maxDelta.RawValue == 0)
+                return Zero;
+
+            var sqrMagnitude = SqrMagnitude();
+            if (sqrMagnitude.RawValue == 0)
+                return Zero;
+
+            if (sqrMagnitude <= maxDelta.Sqr())
                 return this;
 
-            return this * (sqrMaxLength / sqrMagnitude).Sqrt();
+            return this * (maxDelta / sqrMagnitude.Sqrt());
         }
         /// <summary>
         /// 返回该向量的模长为1的向量
         /// </summary>
-        public readonly Vector3D Normalized() => this * Magnitude().Reciprocal();
+        public readonly Vector3D Normalized() => this / Magnitude();
         /// <summary>
         /// 使该向量的模长为1
         /// </summary>
@@ -153,7 +163,7 @@ namespace Eevee.Fixed
         public static Vector3D Reflect(in Vector3D inDirection, in Vector3D inNormal)
         {
             var dot = Dot(in inDirection, in inNormal) << 1;
-            return new Vector3D(inDirection.X - dot * inNormal.X, inDirection.Y - dot * inNormal.Y, inDirection.Z - dot * inNormal.Z);
+            return inDirection - inNormal * dot;
         }
         /// <summary>
         /// 将向量投影到另一个向量上
@@ -170,7 +180,15 @@ namespace Eevee.Fixed
         /// <summary>
         /// 将向量投影到由法线定义的平面上（法线与该平面正交）
         /// </summary>
-        public static Vector3D ProjectOnPlane(in Vector3D direction, in Vector3D planeNormal) => direction - Project(in direction, in planeNormal);
+        public static Vector3D ProjectOnPlane(in Vector3D direction, in Vector3D planeNormal)
+        {
+            var sqrMagnitude = planeNormal.SqrMagnitude();
+            if (sqrMagnitude.RawValue <= Const.Epsilon)
+                return Zero;
+
+            var project = Project(in direction, in planeNormal);
+            return direction - project;
+        }
 
         /// <summary>
         /// 区间值更正
@@ -225,7 +243,11 @@ namespace Eevee.Fixed
         public static Vector3D operator *(in Vector3D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs);
         public static Vector3D operator *(Fixed64 lhs, in Vector3D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
         public static Vector3D operator *(long lhs, in Vector3D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
-        public static Vector3D operator /(in Vector3D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs);
+        public static Vector3D operator /(in Vector3D lhs, Fixed64 rhs)
+        {
+            var reciprocal = rhs.Reciprocal();
+            return new Vector3D(lhs.X * reciprocal, lhs.Y * reciprocal, lhs.Z * reciprocal);
+        }
         public static Vector3D operator /(in Vector3D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs);
 
         public static bool operator ==(in Vector3D lhs, in Vector3D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z;

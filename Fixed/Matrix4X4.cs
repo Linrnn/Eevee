@@ -608,25 +608,29 @@ namespace Eevee.Fixed
             M32 = lhs * rhs.M32,
             M33 = lhs * rhs.M33,
         };
-        public static Matrix4X4 operator /(in Matrix4X4 lhs, Fixed64 rhs) => new()
+        public static Matrix4X4 operator /(in Matrix4X4 lhs, Fixed64 rhs)
         {
-            M00 = lhs.M00 / rhs,
-            M01 = lhs.M01 / rhs,
-            M02 = lhs.M02 / rhs,
-            M03 = lhs.M03 / rhs,
-            M10 = lhs.M10 / rhs,
-            M11 = lhs.M11 / rhs,
-            M12 = lhs.M12 / rhs,
-            M13 = lhs.M13 / rhs,
-            M20 = lhs.M20 / rhs,
-            M21 = lhs.M21 / rhs,
-            M22 = lhs.M22 / rhs,
-            M23 = lhs.M23 / rhs,
-            M30 = lhs.M30 / rhs,
-            M31 = lhs.M31 / rhs,
-            M32 = lhs.M32 / rhs,
-            M33 = lhs.M33 / rhs,
-        };
+            var reciprocal = rhs.Reciprocal();
+            return new Matrix4X4
+            {
+                M00 = lhs.M00 * reciprocal,
+                M01 = lhs.M01 * reciprocal,
+                M02 = lhs.M02 * reciprocal,
+                M03 = lhs.M03 * reciprocal,
+                M10 = lhs.M10 * reciprocal,
+                M11 = lhs.M11 * reciprocal,
+                M12 = lhs.M12 * reciprocal,
+                M13 = lhs.M13 * reciprocal,
+                M20 = lhs.M20 * reciprocal,
+                M21 = lhs.M21 * reciprocal,
+                M22 = lhs.M22 * reciprocal,
+                M23 = lhs.M23 * reciprocal,
+                M30 = lhs.M30 * reciprocal,
+                M31 = lhs.M31 * reciprocal,
+                M32 = lhs.M32 * reciprocal,
+                M33 = lhs.M33 * reciprocal,
+            };
+        }
         public static Matrix4X4 operator /(in Matrix4X4 lhs, long rhs) => new()
         {
             M00 = lhs.M00 / rhs,
@@ -727,7 +731,7 @@ namespace Eevee.Fixed
         public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
         public readonly string ToString(string format) => ToString(format, Format.Use);
         public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
-        public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}|{M01.ToString(format, provider)}|{M02.ToString(format, provider)}|{M03.ToString(format, provider)}, {M10.ToString(format, provider)}|{M11.ToString(format, provider)}|{M12.ToString(format, provider)}|{M13.ToString(format, provider)}, {M20.ToString(format, provider)}|{M21.ToString(format, provider)}|{M22.ToString(format, provider)}|{M23.ToString(format, provider)}, {M30.ToString(format, provider)}|{M31.ToString(format, provider)}|{M32.ToString(format, provider)}|{M33.ToString(format, provider)})";
+        public readonly string ToString(string format, IFormatProvider provider) => $"({M00.ToString(format, provider)}, {M01.ToString(format, provider)}, {M02.ToString(format, provider)}, {M03.ToString(format, provider)} | {M10.ToString(format, provider)}, {M11.ToString(format, provider)}, {M12.ToString(format, provider)}, {M13.ToString(format, provider)} | {M20.ToString(format, provider)}, {M21.ToString(format, provider)}, {M22.ToString(format, provider)}, {M23.ToString(format, provider)} | {M30.ToString(format, provider)}, {M31.ToString(format, provider)}, {M32.ToString(format, provider)}, {M33.ToString(format, provider)})";
         #endregion
     }
 }
