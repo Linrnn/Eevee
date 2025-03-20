@@ -618,19 +618,11 @@ namespace Eevee.Fixed
         /// <summary>
         /// 与MoveTowards相同，返回弧度
         /// </summary>
-        public static Fixed64 MoveTowardsAngleRad(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
-        {
-            var newTarget = from + DeltaAngleRad(from, to);
-            return MoveTowards(from, newTarget, maxDelta);
-        }
+        public static Fixed64 MoveTowardsAngleRad(Fixed64 from, Fixed64 to, Fixed64 maxDelta) => MoveTowards(from, from + DeltaAngleRad(from, to), maxDelta);
         /// <summary>
         /// 与MoveTowards相同，返回角度
         /// </summary>
-        public static Fixed64 MoveTowardsAngle(Fixed64 from, Fixed64 to, Fixed64 maxDelta)
-        {
-            var newTarget = from + DeltaAngleDeg(from, to);
-            return MoveTowards(from, newTarget, maxDelta);
-        }
+        public static Fixed64 MoveTowardsAngle(Fixed64 from, Fixed64 to, Fixed64 maxDelta) => MoveTowards(from, from + DeltaAngleDeg(from, to), maxDelta);
         /// <summary>
         /// 输入角度角，将from向to旋转
         /// </summary>
@@ -766,19 +758,19 @@ namespace Eevee.Fixed
         /// 返回两个向量之间的夹角，返回无符号弧度<br/>
         /// 值域：[0, π]
         /// </summary>
-        public static Fixed64 AngleRad(in Vector2D lhs, in Vector2D rhs) => Acos(Vector2D.Dot(lhs.Normalized(), rhs.Normalized()));
+        public static Fixed64 AngleRad(in Vector2D lhs, in Vector2D rhs) => Dot(in lhs, in rhs, out var cos) ? Acos(cos) : Fixed64.Zero;
         /// <summary>
         /// 返回两个向量之间的夹角，返回无符号弧度<br/>
         /// 值域：[0, π]
         /// </summary>
-        public static Fixed64 AngleRad(in Vector3D lhs, in Vector3D rhs) => Acos(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
+        public static Fixed64 AngleRad(in Vector3D lhs, in Vector3D rhs) => Dot(in lhs, in rhs, out var cos) ? Acos(cos) : Fixed64.Zero;
         /// <summary>
         /// 返回两个旋转之间的夹角，返回无符号弧度<br/>
         /// 值域：[0, π]
         /// </summary>
         public static Fixed64 AngleRad(in Quaternion lhs, in Quaternion rhs)
         {
-            var rad = Rad0To2Pi(in lhs, in rhs);
+            var rad = Rad(in lhs, in rhs);
             return rad > Rad180 ? Rad360 - rad : rad;
         }
 
@@ -786,19 +778,19 @@ namespace Eevee.Fixed
         /// 返回两个向量之间的夹角，返回无符号角度<br/>
         /// 值域：[0°, 180°]
         /// </summary>
-        public static Fixed64 Angle(in Vector2D lhs, in Vector2D rhs) => AcosDeg(Vector2D.Dot(lhs.Normalized(), rhs.Normalized()));
+        public static Fixed64 Angle(in Vector2D lhs, in Vector2D rhs) => Dot(in lhs, in rhs, out var cos) ? AcosDeg(cos) : Fixed64.Zero;
         /// <summary>
         /// 返回两个向量之间的夹角，返回无符号角度<br/>
         /// 值域：[0°, 180°]
         /// </summary>
-        public static Fixed64 Angle(in Vector3D lhs, in Vector3D rhs) => AcosDeg(Vector3D.Dot(lhs.Normalized(), rhs.Normalized()));
+        public static Fixed64 Angle(in Vector3D lhs, in Vector3D rhs) => Dot(in lhs, in rhs, out var cos) ? AcosDeg(cos) : Fixed64.Zero;
         /// <summary>
         /// 返回两个旋转之间的夹角，返回无符号角度<br/>
         /// 值域：[0°, 180°]
         /// </summary>
         public static Fixed64 Angle(in Quaternion lhs, in Quaternion rhs)
         {
-            var deg = Deg0To360(in lhs, in rhs);
+            var deg = Deg(in lhs, in rhs);
             return deg > Deg180 ? Deg360 - deg : deg;
         }
 
@@ -813,12 +805,10 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 SignedAngleRad(in Vector3D lhs, in Vector3D rhs, in Vector3D axis)
         {
-            var lshNorm = lhs.Normalized();
-            var rshNorm = rhs.Normalized();
-            var rad = Acos(Vector3D.Dot(in lshNorm, in rshNorm));
-            var cross = Vector3D.Cross(in lshNorm, in rshNorm);
+            var rad = AngleRad(in lhs, in rhs);
+            var cross = Vector3D.Cross(in lhs, in rhs);
             var dot = Vector3D.Dot(in axis, in cross);
-            return rad * dot.Sign();
+            return rad * dot.No0Sign();
         }
         /// <summary>
         /// 返回两个旋转之间的角度，返回弧度<br/>
@@ -826,7 +816,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 SignedAngleRad(in Quaternion lhs, in Quaternion rhs)
         {
-            var rad = Rad0To2Pi(in lhs, in rhs);
+            var rad = Rad(in lhs, in rhs);
             return rad > Rad180 ? rad - Rad360 : rad;
         }
 
@@ -834,19 +824,17 @@ namespace Eevee.Fixed
         /// 返回两个向量之间的夹角，返回角度<br/>
         /// 值域：[-180°, 180°]
         /// </summary>
-        public static Fixed64 SignedAngle(in Vector2D lhs, in Vector2D rhs) => Angle(lhs, rhs) * Vector2D.Cross(in lhs, in rhs).Sign();
+        public static Fixed64 SignedAngle(in Vector2D lhs, in Vector2D rhs) => Angle(in lhs, in rhs) * Vector2D.Cross(in lhs, in rhs).Sign();
         /// <summary>
         /// 返回两个向量之间的夹角，返回角度<br/>
         /// 值域：[-180°, 180°]
         /// </summary>
         public static Fixed64 SignedAngle(in Vector3D lhs, in Vector3D rhs, in Vector3D axis)
         {
-            var lshNorm = lhs.Normalized();
-            var rshNorm = rhs.Normalized();
-            var deg = AcosDeg(Vector3D.Dot(in lshNorm, in rshNorm));
-            var cross = Vector3D.Cross(in lshNorm, in rshNorm);
+            var deg = Angle(in lhs, in rhs);
+            var cross = Vector3D.Cross(in lhs, in rhs);
             var dot = Vector3D.Dot(in axis, in cross);
-            return deg * dot.Sign();
+            return deg * dot.No0Sign();
         }
         /// <summary>
         /// 返回两个旋转之间的夹角，返回角度<br/>
@@ -854,12 +842,55 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 SignedAngle(in Quaternion lhs, in Quaternion rhs)
         {
-            var deg = Deg0To360(in lhs, in rhs);
+            var deg = Deg(in lhs, in rhs);
             return deg > Deg180 ? deg - Deg360 : deg;
         }
 
-        private static Fixed64 Rad0To2Pi(in Quaternion lhs, in Quaternion rhs) => Acos(Cos(in lhs, in rhs)) << 1;
-        private static Fixed64 Deg0To360(in Quaternion lhs, in Quaternion rhs) => AcosDeg(Cos(in lhs, in rhs)) << 1;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool Dot(in Vector2D lhs, in Vector2D rhs, out Fixed64 cos)
+        {
+            if (lhs == Vector2D.Zero || rhs == Vector2D.Zero)
+            {
+                cos = Fixed64.Zero;
+                return false;
+            }
+
+            var magnitude = (lhs.SqrMagnitude() * rhs.SqrMagnitude()).Sqrt();
+            if (magnitude.RawValue == 0)
+            {
+                cos = Fixed64.Zero;
+                return false;
+            }
+
+            var dot = Vector2D.Dot(in lhs, in rhs);
+            cos = (dot / magnitude).Clamp(-Fixed64.One, Fixed64.One);
+            return true;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool Dot(in Vector3D lhs, in Vector3D rhs, out Fixed64 cos)
+        {
+            if (lhs == Vector3D.Zero || rhs == Vector3D.Zero)
+            {
+                cos = Fixed64.Zero;
+                return false;
+            }
+
+            var magnitude = (lhs.SqrMagnitude() * rhs.SqrMagnitude()).Sqrt();
+            if (magnitude.RawValue == 0)
+            {
+                cos = Fixed64.Zero;
+                return false;
+            }
+
+            var dot = Vector3D.Dot(in lhs, in rhs);
+            cos = (dot / magnitude).Clamp(-Fixed64.One, Fixed64.One);
+            return true;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Fixed64 Rad(in Quaternion lhs, in Quaternion rhs) => Acos(Cos(in lhs, in rhs)) << 1;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Fixed64 Deg(in Quaternion lhs, in Quaternion rhs) => AcosDeg(Cos(in lhs, in rhs)) << 1;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Fixed64 Cos(in Quaternion lhs, in Quaternion rhs)
         {
             var inverse = lhs.Inverse();
@@ -1071,6 +1102,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Matrix3X3 RotationMatrix3X3ZDeg(Fixed64 deg) => RotateZMatrix3X3(CosDeg(deg), SinDeg(deg));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Matrix3X3 RotateXMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = Fixed64.One,
@@ -1083,6 +1115,7 @@ namespace Eevee.Fixed
             M21 = -sin,
             M22 = cos,
         };
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Matrix3X3 RotateYMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = cos,
@@ -1095,6 +1128,7 @@ namespace Eevee.Fixed
             M21 = Fixed64.Zero,
             M22 = cos,
         };
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Matrix3X3 RotateZMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = cos,
@@ -1217,6 +1251,7 @@ namespace Eevee.Fixed
             return RotateZMatrix4X4(cos, sin, m30, m31);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Matrix4X4 AxisAngleMatrix4X4(in Vector3D axis, Fixed64 sin, Fixed64 cos)
         {
             var xx = axis.X.Sqr();
@@ -1245,6 +1280,7 @@ namespace Eevee.Fixed
                 M33 = Fixed64.One,
             };
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Matrix4X4 RotateXMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m31, Fixed64 m32) => new()
         {
             M00 = Fixed64.One,
@@ -1264,6 +1300,7 @@ namespace Eevee.Fixed
             M32 = m32,
             M33 = Fixed64.One,
         };
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Matrix4X4 RotateYMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m30, Fixed64 m32) => new()
         {
             M00 = cos,
@@ -1283,6 +1320,7 @@ namespace Eevee.Fixed
             M32 = m32,
             M33 = Fixed64.One,
         };
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Matrix4X4 RotateZMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m30, Fixed64 m31) => new()
         {
             M00 = cos,

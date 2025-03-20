@@ -104,6 +104,10 @@ namespace Eevee.Fixed
         /// </summary>
         public readonly Fixed64 Trace() => M00 + M11 + M22;
         /// <summary>
+        /// 模长
+        /// </summary>
+        public readonly Fixed64 SqrMagnitude() => M00.Sqr() + M01.Sqr() + M02.Sqr() + M10.Sqr() + M11.Sqr() + M12.Sqr() + M20.Sqr() + M21.Sqr() + M22.Sqr();
+        /// <summary>
         /// 行列式
         /// </summary>
         public readonly Fixed64 Determinant() => M00 * M11 * M22 + M01 * M12 * M20 + M02 * M10 * M21 - M02 * M11 * M20 - M00 * M12 * M21 - M01 * M10 * M22;
@@ -227,14 +231,17 @@ namespace Eevee.Fixed
         /// <summary>
         /// 反转
         /// </summary>
-        public readonly Matrix3X3 Inverse()
+        public readonly bool Inverse(out Matrix3X3 matrix)
         {
             var determinant = Determinant();
-            if (determinant == Fixed64.Zero)
-                return new Matrix3X3(in Vector3D.Infinity, in Vector3D.Infinity, in Vector3D.Infinity);
+            if (determinant.RawValue == 0)
+            {
+                matrix = new Matrix3X3(in Vector3D.Infinity, in Vector3D.Infinity, in Vector3D.Infinity);
+                return false;
+            }
 
             var reciprocal = determinant.Reciprocal();
-            return new Matrix3X3
+            matrix = new Matrix3X3
             {
                 M00 = (M11 * M22 - M12 * M21) * reciprocal,
                 M01 = (M02 * M21 - M01 * M22) * reciprocal,
@@ -246,6 +253,7 @@ namespace Eevee.Fixed
                 M21 = (M01 * M20 - M21 * M00) * reciprocal,
                 M22 = (M00 * M11 - M10 * M01) * reciprocal,
             };
+            return true;
         }
         /// <summary>
         /// 创建“LookAt”矩阵

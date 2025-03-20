@@ -2,6 +2,7 @@
 using Eevee.Log;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -35,6 +36,12 @@ namespace Eevee.Fixed
         /// 小于0，返回-1
         /// </summary>
         public readonly int Sign() => Math.Sign(RawValue);
+        /// <summary>
+        /// 符号<br/>
+        /// 大于等于0，返回1<br/>
+        /// 小于0，返回-1
+        /// </summary>
+        public readonly int No0Sign() => RawValue >= 0 ? 1 : -1;
         /// <summary>
         /// 绝对值
         /// </summary>
@@ -130,10 +137,12 @@ namespace Eevee.Fixed
         /// <summary>
         /// 较小值
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 Min(Fixed64 lsh, Fixed64 rsh) => lsh < rsh ? lsh : rsh;
         /// <summary>
         /// 较小值
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 Min(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
         {
             var value = lsh < msh ? lsh : msh;
@@ -143,10 +152,12 @@ namespace Eevee.Fixed
         /// <summary>
         /// 较大值
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 Max(Fixed64 lsh, Fixed64 rsh) => lsh > rsh ? lsh : rsh;
         /// <summary>
         /// 较大值
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 Max(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
         {
             var value = lsh > msh ? lsh : msh;
@@ -290,16 +301,25 @@ namespace Eevee.Fixed
         public static explicit operator double(Fixed64 value) => value.RawValue / (double)Const.One;
         public static explicit operator decimal(Fixed64 value) => value.RawValue / (decimal)Const.One;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator >>(Fixed64 lhs, int rhs) => new(lhs.RawValue >> rhs);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator <<(Fixed64 lhs, int rhs) => new(lhs.RawValue << rhs);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator ~(Fixed64 lhs) => new(~lhs.RawValue);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator +(Fixed64 value) => value;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator -(Fixed64 value) => new(-value.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator ++(Fixed64 value) => new(value.RawValue + Const.One);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator --(Fixed64 value) => new(value.RawValue - Const.One);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator +(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue + rhs.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator -(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue - rhs.RawValue);
         public static Fixed64 operator *(Fixed64 lhs, Fixed64 rhs)
         {
@@ -315,7 +335,9 @@ namespace Eevee.Fixed
             ulong ff = (ulong)lf * (ulong)rf >> Const.FractionalBits; // lf*rf可能会溢出，所以转成ulong
             return lhs.Sign() == rhs.Sign() ? new Fixed64(ii + fi + (long)ff) : new Fixed64(-ii - fi - (long)ff);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator *(Fixed64 lhs, long rhs) => new(lhs.RawValue * rhs);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator *(long lhs, Fixed64 rhs) => new(lhs * rhs.RawValue);
         public static Fixed64 operator /(Fixed64 lhs, Fixed64 rhs)
         {
@@ -405,14 +427,22 @@ namespace Eevee.Fixed
             bool sameSign = Math.Sign(lhs.RawValue) == Math.Sign(rhs.RawValue);
             return new Fixed64(sameSign ? quotient : -quotient);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator /(Fixed64 lhs, long rhs) => new(lhs.RawValue / rhs);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator %(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue % rhs.RawValue);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue == rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue != rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue >= rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue <= rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue > rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue < rhs.RawValue;
         #endregion
 

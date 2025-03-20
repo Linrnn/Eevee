@@ -144,7 +144,9 @@ namespace Eevee.Fixed
             set => Height = value - Y;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Rectangle MinMaxRect(Fixed64 xMin, Fixed64 yMin, Fixed64 xMax, Fixed64 yMax) => new(xMin, yMin, xMax - xMin, yMax - yMin);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private readonly Rectangle OrderMinMax()
         {
             var max = Max;
@@ -165,19 +167,53 @@ namespace Eevee.Fixed
         /// <summary>
         /// 矩形重叠
         /// </summary>
-        public readonly bool Overlaps(in Rectangle other) => other.XMax > X && other.X < XMax && other.YMax > Y && other.Y < YMax;
+        public readonly bool Overlaps(in Rectangle other) => X < other.XMax && XMax > other.X && Y < other.YMax && YMax > other.Y;
+        /// <summary>
+        /// 矩形重叠区域
+        /// </summary>
+        /// <param name="other">另一个矩形</param>
+        /// <param name="inverse">允许宽度为负数</param>
+        /// <param name="area">重叠区域</param>
+        public readonly bool OverlapsArea(in Rectangle other, bool inverse, out Rectangle area) => inverse ? OrderMinMax().OverlapsArea(other.OrderMinMax(), out area) : OverlapsArea(in other, out area);
+        /// <summary>
+        /// 矩形重叠区域
+        /// </summary>
+        public readonly bool OverlapsArea(in Rectangle other, out Rectangle area)
+        {
+            var xMin = Fixed64.Max(X, other.X);
+            var xMax = Fixed64.Min(XMax, other.XMax);
+            if (xMin >= xMax)
+            {
+                area = Zero;
+                return false;
+            }
+
+            var yMin = Fixed64.Max(Y, other.Y);
+            var yMax = Fixed64.Min(YMax, other.YMax);
+            if (yMin >= yMax)
+            {
+                area = Zero;
+                return false;
+            }
+
+            area = MinMaxRect(xMin, yMin, xMax, yMax);
+            return true;
+        }
 
         /// <summary>
         /// 矩形包含点
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(in Vector2D point) => Contains(point.X, point.Y);
         /// <summary>
         /// 矩形包含点
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool ContainsXY(in Vector3D point) => Contains(point.X, point.Y);
         /// <summary>
         /// 矩形包含点
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool ContainsXZ(in Vector3D point) => Contains(point.X, point.Z);
         /// <summary>
         /// 矩形包含点

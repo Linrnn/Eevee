@@ -143,6 +143,10 @@ namespace Eevee.Fixed
         /// </summary>
         public readonly Fixed64 Trace() => M00 + M11 + M22 + M33;
         /// <summary>
+        /// 模长
+        /// </summary>
+        public readonly Fixed64 SqrMagnitude() => M00.Sqr() + M01.Sqr() + M02.Sqr() + M03.Sqr() + M10.Sqr() + M11.Sqr() + M12.Sqr() + M13.Sqr() + M20.Sqr() + M21.Sqr() + M22.Sqr() + M23.Sqr() + M30.Sqr() + M31.Sqr() + M32.Sqr() + M33.Sqr();
+        /// <summary>
         /// 行列式
         /// </summary>
         public readonly Fixed64 Determinant()
@@ -244,11 +248,14 @@ namespace Eevee.Fixed
         /// <summary>
         /// 反转
         /// </summary>
-        public readonly Matrix4X4 Inverse()
+        public readonly bool Inverse(out Matrix4X4 matrix)
         {
             var determinant = Determinant();
-            if (determinant == Fixed64.Zero)
-                return new Matrix4X4(in Vector4D.Infinity, in Vector4D.Infinity, in Vector4D.Infinity, in Vector4D.Infinity);
+            if (determinant.RawValue == 0)
+            {
+                matrix = new Matrix4X4(in Vector4D.Infinity, in Vector4D.Infinity, in Vector4D.Infinity, in Vector4D.Infinity);
+                return false;
+            }
 
             var num00 = M22 * M33 - M23 * M32;
             var num01 = M21 * M33 - M23 * M31;
@@ -270,7 +277,7 @@ namespace Eevee.Fixed
             var num17 = M10 * M21 - M11 * M20;
 
             var reciprocal = determinant.Reciprocal();
-            return new Matrix4X4
+            matrix = new Matrix4X4
             {
                 M00 = (M11 * num00 - M12 * num01 + M13 * num02) * reciprocal,
                 M10 = (-M10 * num00 + M12 * num03 - M13 * num04) * reciprocal,
@@ -289,6 +296,7 @@ namespace Eevee.Fixed
                 M23 = (-M00 * num13 + M01 * num15 - M03 * num17) * reciprocal,
                 M33 = (M00 * num14 - M01 * num16 + M02 * num17) * reciprocal,
             };
+            return true;
         }
 
         /// <summary>
