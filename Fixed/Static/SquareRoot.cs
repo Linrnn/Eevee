@@ -1,4 +1,5 @@
 ﻿using Eevee.Log;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -38,6 +39,7 @@ namespace Eevee.Fixed
         };
         #endregion
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static long Count(long value) // 计算
         {
             if (value >= 0)
@@ -47,6 +49,7 @@ namespace Eevee.Fixed
             return 0;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long UseTable(int value) // 查表法
         {
             return value switch
@@ -66,6 +69,7 @@ namespace Eevee.Fixed
                 _ => _table[value] >> 4,
             };
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long UseNewton(long value) // 牛顿迭代法
         {
             long x0 = 1;
@@ -82,6 +86,7 @@ namespace Eevee.Fixed
 
             return x0;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long UseBitBinary(long value) // 二分法，先计算大致区间
         {
             int midBit = Const.FullBits >> 2;
@@ -110,6 +115,7 @@ namespace Eevee.Fixed
 
             return mid;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long UseBinary(long value) // 二分法
         {
             long start = 0;
@@ -129,6 +135,7 @@ namespace Eevee.Fixed
             return mid;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long BitFrom24To30(int x, byte i, byte o)
         {
             long x0 = _table[x >> i] << o;
@@ -136,12 +143,14 @@ namespace Eevee.Fixed
             long x2 = x1 + 1 + x / x1 >> 1;
             return x2 * x2 > x ? x2 - 1 : x2;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long BitFrom16To22(int x, byte i, byte o)
         {
             long x0 = _table[x >> i] << o;
             long x1 = x0 + 1 + x / x0 >> 1;
             return x1 * x1 > x ? x1 - 1 : x1;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long BitFrom08To14(int x, byte i, byte o, byte l)
         {
             long x0 = (_table[x >> i] >> o) + l;

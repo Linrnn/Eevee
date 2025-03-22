@@ -112,7 +112,7 @@ namespace Eevee.Fixed
         public readonly Fixed64 Cube() => this * this * this;
 
         /// <summary>
-        /// 区间[0, 1]值更正（如果出区间，值取最近）
+        /// 值域：[0, 1]
         /// </summary>
         public readonly Fixed64 Clamp01() => RawValue switch
         {
@@ -121,10 +121,26 @@ namespace Eevee.Fixed
             _ => this,
         };
         /// <summary>
-        /// 区间值更正（如果出区间，值取最近）
+        /// 值域：[-1, 1]
+        /// </summary>
+        public readonly Fixed64 ClampNg1() => RawValue switch
+        {
+            < -Const.One => -One,
+            > Const.One => One,
+            _ => this,
+        };
+        /// <summary>
+        /// 值域：[-value, value]
+        /// </summary>
+        public readonly Fixed64 Clamp(Fixed64 value) => Clamp(-value, value);
+        /// <summary>
+        /// 值域：[min, max]
         /// </summary>
         public readonly Fixed64 Clamp(Fixed64 min, Fixed64 max)
         {
+            if (min > max)
+                LogRelay.Error($"[Fixed] 无效区间：Clamp()，min：{min} > max：{max}");
+
             if (RawValue < min.RawValue)
                 return min;
 

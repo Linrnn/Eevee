@@ -1,4 +1,6 @@
-﻿namespace Eevee.Fixed
+﻿using System.Runtime.CompilerServices;
+
+namespace Eevee.Fixed
 {
     /// <summary>
     /// 三角函数<br/>
@@ -23,6 +25,7 @@
             -121645100408832000, // 19! = 121645100408832000
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Fixed64 Sine(Fixed64 rad, int times = 5)
         {
             var sum = rad;
@@ -55,6 +58,7 @@
             2432902008176640000, // 20! = 2432902008176640000
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Fixed64 Cosine(Fixed64 rad, int times = 5)
         {
             var sum = Fixed64.One;
@@ -101,6 +105,7 @@
             1531329465290625,
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Fixed64 Cotangent(Fixed64 rad, int times = 7)
         {
             var reciprocal = rad.Reciprocal();
@@ -158,6 +163,7 @@
             2080374784, // 1328346084409344000 / 638512875 = 2080374784
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Fixed64 ArcSine(Fixed64 value, int times = 16)
         {
             var sum = value;
@@ -199,6 +205,7 @@
             -39,
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Fixed64 Arctangent(Fixed64 value, int times = 20)
         {
             var sum = value;
@@ -214,6 +221,7 @@
             return sum;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Fixed64 Arctangent0To45(Fixed64 value, int times = 30)
         {
             var sqr = value.Sqr();

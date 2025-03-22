@@ -239,12 +239,12 @@ namespace Eevee.Random
         private Vector2D RandomVector2D(in Vector2D from, in Vector2D to)
         {
             var percent = RandomFixed64(Fixed64.One);
-            return Maths.LerpUnClamp(in from, in to, percent);
+            return Lerp.LinearUnClamp(in from, in to, percent);
         }
         private Vector3D RandomVector3D(in Vector3D from, in Vector3D to)
         {
             var percent = RandomFixed64(Fixed64.One);
-            return Maths.LerpUnClamp(in from, in to, percent);
+            return Lerp.LinearUnClamp(in from, in to, percent);
         }
 
         private ulong L2Ul(long num) => num >= 0 ? (ulong)num + long.MaxValue + 1 : (ulong)(num - long.MinValue);
