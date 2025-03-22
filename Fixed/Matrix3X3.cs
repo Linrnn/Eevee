@@ -104,9 +104,13 @@ namespace Eevee.Fixed
         /// </summary>
         public readonly Fixed64 Trace() => M00 + M11 + M22;
         /// <summary>
-        /// 模长
+        /// 模长的平方
         /// </summary>
         public readonly Fixed64 SqrMagnitude() => M00.Sqr() + M01.Sqr() + M02.Sqr() + M10.Sqr() + M11.Sqr() + M12.Sqr() + M20.Sqr() + M21.Sqr() + M22.Sqr();
+        /// <summary>
+        /// 模长
+        /// </summary>
+        public readonly Fixed64 Magnitude() => SqrMagnitude().Sqrt();
         /// <summary>
         /// 行列式
         /// </summary>

@@ -287,7 +287,7 @@ namespace Eevee.Fixed
         };
         /// <summary>
         /// 计算反正切，返回弧度<br/>
-        /// 值域：(-π/2, π/2)
+        /// 值域：(-π, π]
         /// </summary>
         public static Fixed64 Atan2(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
@@ -307,7 +307,7 @@ namespace Eevee.Fixed
         };
         /// <summary>
         /// 计算反正切，返回角度<br/>
-        /// 值域：(-90°, 90°)
+        /// 值域：(-180°, 180°]
         /// </summary>
         public static Fixed64 Atan2Deg(Fixed64 y, Fixed64 x) => x.RawValue switch
         {
@@ -913,24 +913,27 @@ namespace Eevee.Fixed
         #endregion
 
         #region Vector3D/Quaternion/Matrix3X3/Matrix4X4 相互转换
+        #region 返回Vector3D
         /// <summary>
-        /// 返回欧拉角的角度角
+        /// 返回欧拉角的角度角<br/>
+        /// 左手坐标系（与Unity坐标系一致）
         /// </summary>
         public static Vector3D EulerAngles(in Quaternion quaternion)
         {
-            var ySqr = quaternion.Y.Sqr();
-            var t0 = Fixed64.One - (ySqr + quaternion.Z.Sqr() << 1);
-            var t1 = quaternion.X * quaternion.Y - quaternion.W * quaternion.Z << 1;
-            var t2 = -quaternion.X * quaternion.Z - quaternion.W * quaternion.Y << 1;
-            var t3 = quaternion.Y * quaternion.Z - quaternion.W * quaternion.X << 1;
-            var t4 = Fixed64.One - (quaternion.X.Sqr() + ySqr << 1);
+            var xSqr = quaternion.X.Sqr();
+            var pitchDeg = quaternion.X * quaternion.W - quaternion.Y * quaternion.Z << 1;
+            var yawNum = quaternion.Y * quaternion.W + quaternion.X * quaternion.Z;
+            var yawDen = Fixed64.Half - quaternion.Y.Sqr() - xSqr;
+            var rollNum = quaternion.X * quaternion.Y + quaternion.Z * quaternion.W;
+            var rollDen = Fixed64.Half - xSqr - quaternion.Z.Sqr();
 
-            return new Vector3D
+            var euler = new Vector3D
             {
-                X = -Atan2Deg(t3, t4),
-                Y = -AsinDeg(t2.Clamp(-Fixed64.One, Fixed64.One)),
-                Z = -Atan2Deg(t1, t0),
+                X = AsinDeg(pitchDeg.Clamp(-Fixed64.One, Fixed64.One)), // Pitch：θ，俯仰角
+                Y = Atan2Deg(yawNum, yawDen), // Yaw：ψ，偏航角
+                Z = Atan2Deg(rollNum, rollDen), // Roll：φ，翻滚角
             };
+            return MakePositive(in euler);
         }
         /// <summary>
         /// 返回欧拉角的角度角
@@ -942,20 +945,45 @@ namespace Eevee.Fixed
             Z = -Atan2Deg(matrix.M10, matrix.M00),
         };
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector3D MakePositive(in Vector3D euler)
+        {
+            var less = -9 / Pi / 500;
+            var greater = Deg360 + less;
+            return new Vector3D()
+            {
+                X = MakePositive(euler.X, less, greater),
+                Y = MakePositive(euler.Y, less, greater),
+                Z = MakePositive(euler.Z, less, greater),
+            };
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Fixed64 MakePositive(Fixed64 check, Fixed64 less, Fixed64 greater)
+        {
+            if (check < less)
+                return check + Deg360;
+            if (check > greater)
+                return check - Deg360;
+            return check;
+        }
+        #endregion
+
         #region 返回Quaternion
         /// <summary>
-        /// 返回一个四元数，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
+        /// 返回一个四元数，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度<br/>
+        /// 左手坐标系（与Unity坐标系一致）
         /// </summary>
-        public static Quaternion Euler(in Vector3D eulerAngles) => CreateQuaternionDeg(eulerAngles.Y, eulerAngles.X, eulerAngles.Z);
+        public static Quaternion Euler(in Vector3D euler) => CreateQDeg(euler.Y, euler.X, euler.Z);
         /// <summary>
-        /// 返回一个四元数，它围绕z轴旋转z度、围绕x轴旋转x度、围绕y轴旋转y度
+        /// 返回一个四元数，它围绕x轴旋转x度、围绕y轴旋转y度、围绕z轴旋转z度<br/>
+        /// 左手坐标系（与Unity坐标系一致）
         /// </summary>
-        public static Quaternion Euler(Fixed64 x, Fixed64 y, Fixed64 z) => CreateQuaternionDeg(y, x, z);
+        public static Quaternion Euler(Fixed64 x, Fixed64 y, Fixed64 z) => CreateQDeg(y, x, z);
 
         /// <summary>
         /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数
         /// </summary>
-        public static Quaternion AngleAxisQuaternion(in Vector3D axis, Fixed64 rad)
+        public static Quaternion AngleAxisQRad(Fixed64 rad, in Vector3D axis)
         {
             var half = rad >> 1;
             var xyz = axis.Normalized() * Sin(half);
@@ -964,64 +992,70 @@ namespace Eevee.Fixed
         /// <summary>
         /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数
         /// </summary>
-        public static Quaternion AngleAxisQuaternionDeg(in Vector3D axis, Fixed64 deg)
+        public static Quaternion AngleAxisQ(Fixed64 deg, in Vector3D axis)
         {
             var half = deg >> 1;
             var xyz = axis.Normalized() * SinDeg(half);
             return new Quaternion(in xyz, CosDeg(half));
         }
 
-        /// <summary>
-        /// 输入弧度，从旋转矩阵创建四元数
-        /// </summary>
-        public static Quaternion CreateQuaternion(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        /// <param name="yaw">偏航角</param>
+        /// <param name="pitch">俯仰角</param>
+        /// <param name="roll">翻滚角</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Quaternion CreateQ(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
             var rh = roll >> 1;
-            var rs = Sin(rh);
-            var rc = Cos(rh);
             var ph = pitch >> 1;
-            var ps = Sin(ph);
-            var pc = Cos(ph);
             var yh = yaw >> 1;
-            var ys = Sin(yh);
-            var yc = Cos(yh);
+
+            var sy = Sin(yh);
+            var cy = Cos(yh);
+            var sp = Sin(ph);
+            var cp = Cos(ph);
+            var sr = Sin(rh);
+            var cr = Cos(rh);
+
             return new Quaternion
             {
-                X = yc * ps * rc + ys * pc * rs,
-                Y = ys * pc * rc - yc * ps * rs,
-                Z = yc * pc * rs - ys * ps * rc,
-                W = yc * pc * rc + ys * ps * rs,
+                X = cy * sp * cr + sy * cp * sr,
+                Y = sy * cp * cr - cy * sp * sr,
+                Z = cy * cp * sr - sy * sp * cr,
+                W = cy * cp * cr + sy * sp * sr,
             };
         }
-        /// <summary>
-        /// 输入角度，从旋转矩阵创建四元数
-        /// </summary>
-        public static Quaternion CreateQuaternionDeg(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
+        /// <param name="yaw">偏航角</param>
+        /// <param name="pitch">俯仰角</param>
+        /// <param name="roll">翻滚角</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Quaternion CreateQDeg(Fixed64 yaw, Fixed64 pitch, Fixed64 roll)
         {
-            var rh = roll >> 1;
-            var rs = SinDeg(rh);
-            var rc = CosDeg(rh);
-            var ph = pitch >> 1;
-            var ps = SinDeg(ph);
-            var pc = CosDeg(ph);
             var yh = yaw >> 1;
-            var ys = SinDeg(yh);
-            var yc = CosDeg(yh);
+            var ph = pitch >> 1;
+            var rh = roll >> 1;
+
+            var sy = SinDeg(yh);
+            var cy = CosDeg(yh);
+            var sp = SinDeg(ph);
+            var cp = CosDeg(ph);
+            var sr = SinDeg(rh);
+            var cr = CosDeg(rh);
+
             return new Quaternion
             {
-                X = yc * ps * rc + ys * pc * rs,
-                Y = ys * pc * rc - yc * ps * rs,
-                Z = yc * pc * rs - ys * ps * rc,
-                W = yc * pc * rc + ys * ps * rs,
+                X = cy * sp * cr + sy * cp * sr,
+                Y = sy * cp * cr - cy * sp * sr,
+                Z = cy * cp * sr - sy * sp * cr,
+                W = cy * cp * cr + sy * sp * sr,
             };
         }
         #endregion
 
         #region 返回Matrix3X3
         /// <summary>
-        /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数3*3矩阵
+        /// 输入弧度，创建一个围绕“axis”旋转“rad”的3*3矩阵
         /// </summary>
-        public static Matrix3X3 AngleAxisMatrix3X3(in Vector3D axis, Fixed64 rad)
+        public static Matrix3X3 AngleM3(Fixed64 rad, in Vector3D axis)
         {
             var sin = Sin(rad);
             var cos = Cos(rad);
@@ -1045,9 +1079,9 @@ namespace Eevee.Fixed
             };
         }
         /// <summary>
-        /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数3*3矩阵
+        /// 输入角度，创建一个围绕“axis”旋转“deg”的3*3矩阵
         /// </summary>
-        public static Matrix3X3 AngleAxisMatrix3X3Deg(in Vector3D axis, Fixed64 deg)
+        public static Matrix3X3 AngleM3Deg(Fixed64 deg, in Vector3D axis)
         {
             var sin = SinDeg(deg);
             var cos = CosDeg(deg);
@@ -1070,40 +1104,39 @@ namespace Eevee.Fixed
                 M22 = zz + cos * (Fixed64.One - zz),
             };
         }
-
         /// <summary>
         /// 输入弧度，从旋转矩阵创建3*3矩阵
         /// </summary>
-        public static Matrix3X3 CreateMatrix(Fixed64 yaw, Fixed64 pitch, Fixed64 roll) => Matrix3X3.Rotate(CreateQuaternion(yaw, pitch, roll));
+        public static Matrix3X3 CreateMatrix3X3(Fixed64 yaw, Fixed64 pitch, Fixed64 roll) => Matrix3X3.Rotate(CreateQ(yaw, pitch, roll));
 
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
         /// </summary>
-        public static Matrix3X3 RotationMatrix3X3X(Fixed64 rad) => RotateXMatrix3X3(Cos(rad), Sin(rad));
+        public static Matrix3X3 RotationXMat3(Fixed64 rad) => RotateX(Cos(rad), Sin(rad));
         /// <summary>
         /// 创建一个绕y轴旋转点的矩阵
         /// </summary>
-        public static Matrix3X3 RotationMatrix3X3Y(Fixed64 rad) => RotateYMatrix3X3(Cos(rad), Sin(rad));
+        public static Matrix3X3 RotationYMat3(Fixed64 rad) => RotateY(Cos(rad), Sin(rad));
         /// <summary>
         /// 创建一个绕z轴旋转点的矩阵
         /// </summary>
-        public static Matrix3X3 RotationMatrix3X3Z(Fixed64 rad) => RotateZMatrix3X3(Cos(rad), Sin(rad));
+        public static Matrix3X3 RotationZMat3(Fixed64 rad) => RotateZ(Cos(rad), Sin(rad));
 
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
         /// </summary>
-        public static Matrix3X3 RotationMatrix3X3XDeg(Fixed64 deg) => RotateXMatrix3X3(CosDeg(deg), SinDeg(deg));
+        public static Matrix3X3 RotationXMat3Deg(Fixed64 deg) => RotateX(CosDeg(deg), SinDeg(deg));
         /// <summary>
         /// 创建一个绕y轴旋转点的矩阵
         /// </summary>
-        public static Matrix3X3 RotationMatrix3X3YDeg(Fixed64 deg) => RotateYMatrix3X3(CosDeg(deg), SinDeg(deg));
+        public static Matrix3X3 RotationYMat3Deg(Fixed64 deg) => RotateY(CosDeg(deg), SinDeg(deg));
         /// <summary>
         /// 创建一个绕z轴旋转点的矩阵
         /// </summary>
-        public static Matrix3X3 RotationMatrix3X3ZDeg(Fixed64 deg) => RotateZMatrix3X3(CosDeg(deg), SinDeg(deg));
+        public static Matrix3X3 RotationZMat3Deg(Fixed64 deg) => RotateZ(CosDeg(deg), SinDeg(deg));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Matrix3X3 RotateXMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
+        private static Matrix3X3 RotateX(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = Fixed64.One,
             M01 = Fixed64.Zero,
@@ -1116,7 +1149,7 @@ namespace Eevee.Fixed
             M22 = cos,
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Matrix3X3 RotateYMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
+        private static Matrix3X3 RotateY(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = cos,
             M01 = Fixed64.Zero,
@@ -1129,7 +1162,7 @@ namespace Eevee.Fixed
             M22 = cos,
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Matrix3X3 RotateZMatrix3X3(Fixed64 cos, Fixed64 sin) => new()
+        private static Matrix3X3 RotateZ(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = cos,
             M01 = sin,
@@ -1145,114 +1178,116 @@ namespace Eevee.Fixed
 
         #region 返回Matrix4X4
         /// <summary>
-        /// 输入弧度，创建一个围绕“axis”旋转“rad”度的四元数4*4矩阵
+        /// 输入弧度，创建一个围绕“axis”旋转“rad”的4*4矩阵
         /// </summary>
-        public static Matrix4X4 AxisAngleMatrix4X4(in Vector3D axis, Fixed64 rad) => AxisAngleMatrix4X4(in axis, Sin(rad), Cos(rad));
+        public static Matrix4X4 AxisAngleM4(Fixed64 rad, in Vector3D axis) => AxisAngle(Sin(rad), Cos(rad), in axis);
         /// <summary>
-        /// 输入角度，创建一个围绕“axis”旋转“deg”度的四元数4*4矩阵
+        /// 输入角度，创建一个围绕“axis”旋转“deg”的4*4矩阵
         /// </summary>
-        public static Matrix4X4 AxisAngleMatrix4X4Deg(in Vector3D axis, Fixed64 deg) => AxisAngleMatrix4X4(in axis, SinDeg(deg), CosDeg(deg));
+        public static Matrix4X4 AxisAngleM4Deg(Fixed64 deg, in Vector3D axis) => AxisAngle(SinDeg(deg), CosDeg(deg), in axis);
 
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateXMatrix4X4(Fixed64 rad) => RotateXMatrix4X4(Cos(rad), Sin(rad), Fixed64.Zero, Fixed64.Zero);
+        public static Matrix4X4 RotateXMat4(Fixed64 rad) => RotateX(Sin(rad), Cos(rad), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateYMat4(Fixed64 rad) => RotateY(Sin(rad), Cos(rad), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateMat4(Fixed64 rad) => RotateZ(Sin(rad), Cos(rad), Fixed64.Zero, Fixed64.Zero);
+
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateXMatrix4X4(Fixed64 rad, in Vector3D position)
+        public static Matrix4X4 RotateXMat4Deg(Fixed64 deg) => RotateX(SinDeg(deg), CosDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕y轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateYMat4Deg(Fixed64 deg) => RotateY(SinDeg(deg), CosDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        /// <summary>
+        /// 创建一个绕z轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateZMat4Deg(Fixed64 deg) => RotateZ(SinDeg(deg), CosDeg(deg), Fixed64.Zero, Fixed64.Zero);
+
+        /// <summary>
+        /// 创建一个绕x轴旋转点的矩阵
+        /// </summary>
+        public static Matrix4X4 RotateXMat4(Fixed64 rad, in Vector3D position)
         {
-            var cos = Cos(rad);
             var sin = Sin(rad);
+            var cos = Cos(rad);
             var one = Fixed64.One - cos;
             var m31 = position.Y * one + position.Z * sin;
             var m32 = position.Z * one - position.Y * sin;
-            return RotateXMatrix4X4(cos, sin, m31, m32);
+            return RotateX(sin, cos, m31, m32);
         }
         /// <summary>
         /// 创建一个绕y轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateYMatrix4X4(Fixed64 rad) => RotateYMatrix4X4(Cos(rad), Sin(rad), Fixed64.Zero, Fixed64.Zero);
-        /// <summary>
-        /// 创建一个绕y轴旋转点的矩阵
-        /// </summary>
-        public static Matrix4X4 RotateYMatrix4X4(Fixed64 rad, in Vector3D position)
+        public static Matrix4X4 RotateYMat4(Fixed64 rad, in Vector3D position)
         {
-            var cos = Cos(rad);
             var sin = Sin(rad);
+            var cos = Cos(rad);
             var one = Fixed64.One - cos;
             var m30 = position.X * one - position.Z * sin;
             var m32 = position.X * one + position.X * sin;
-            return RotateYMatrix4X4(cos, sin, m30, m32);
+            return RotateY(sin, cos, m30, m32);
         }
         /// <summary>
         /// 创建一个绕z轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateZMatrix4X4(Fixed64 rad) => RotateZMatrix4X4(Cos(rad), Sin(rad), Fixed64.Zero, Fixed64.Zero);
-        /// <summary>
-        /// 创建一个绕z轴旋转点的矩阵
-        /// </summary>
-        public static Matrix4X4 RotateZMatrix4X4(Fixed64 rad, in Vector3D position)
+        public static Matrix4X4 RotateZMat4(Fixed64 rad, in Vector3D position)
         {
-            var cos = Cos(rad);
             var sin = Sin(rad);
+            var cos = Cos(rad);
             var one = Fixed64.One - cos;
             var m30 = position.X * one + position.Y * sin;
             var m31 = position.Y * one - position.X * sin;
-            return RotateZMatrix4X4(cos, sin, m30, m31);
+            return RotateZ(sin, cos, m30, m31);
         }
 
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateXMatrix4X4Deg(Fixed64 deg) => RotateXMatrix4X4(CosDeg(deg), SinDeg(deg), Fixed64.Zero, Fixed64.Zero);
-        /// <summary>
-        /// 创建一个绕x轴旋转点的矩阵
-        /// </summary>
-        public static Matrix4X4 RotateXMatrix4X4Deg(Fixed64 deg, in Vector3D position)
+        public static Matrix4X4 RotateXMat4Deg(Fixed64 deg, in Vector3D position)
         {
-            var cos = CosDeg(deg);
             var sin = SinDeg(deg);
+            var cos = CosDeg(deg);
             var one = Fixed64.One - cos;
             var m31 = position.Y * one + position.Z * sin;
             var m32 = position.Z * one - position.Y * sin;
-            return RotateXMatrix4X4(cos, sin, m31, m32);
+            return RotateX(sin, cos, m31, m32);
         }
         /// <summary>
         /// 创建一个绕y轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateYMatrix4X4Deg(Fixed64 deg) => RotateYMatrix4X4(CosDeg(deg), SinDeg(deg), Fixed64.Zero, Fixed64.Zero);
-        /// <summary>
-        /// 创建一个绕y轴旋转点的矩阵
-        /// </summary>
-        public static Matrix4X4 RotateYMatrix4X4Deg(Fixed64 deg, in Vector3D position)
+        public static Matrix4X4 RotateYMat4Deg(Fixed64 deg, in Vector3D position)
         {
-            var cos = CosDeg(deg);
             var sin = SinDeg(deg);
+            var cos = CosDeg(deg);
             var one = Fixed64.One - cos;
             var m30 = position.X * one - position.Z * sin;
             var m32 = position.X * one + position.X * sin;
-            return RotateYMatrix4X4(cos, sin, m30, m32);
+            return RotateY(sin, cos, m30, m32);
         }
         /// <summary>
         /// 创建一个绕z轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateZMatrix4X4Deg(Fixed64 deg) => RotateZMatrix4X4(CosDeg(deg), SinDeg(deg), Fixed64.Zero, Fixed64.Zero);
-        /// <summary>
-        /// 创建一个绕z轴旋转点的矩阵
-        /// </summary>
-        public static Matrix4X4 RotateZMatrix4X4Deg(Fixed64 deg, in Vector3D position)
+        public static Matrix4X4 RotateZMat4Deg(Fixed64 deg, in Vector3D position)
         {
-            var cos = CosDeg(deg);
             var sin = SinDeg(deg);
+            var cos = CosDeg(deg);
             var one = Fixed64.One - cos;
             var m30 = position.X * one + position.Y * sin;
             var m31 = position.Y * one - position.X * sin;
-            return RotateZMatrix4X4(cos, sin, m30, m31);
+            return RotateZ(sin, cos, m30, m31);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Matrix4X4 AxisAngleMatrix4X4(in Vector3D axis, Fixed64 sin, Fixed64 cos)
+        private static Matrix4X4 AxisAngle(Fixed64 sin, Fixed64 cos, in Vector3D axis)
         {
             var xx = axis.X.Sqr();
             var yy = axis.Y.Sqr();
@@ -1281,7 +1316,7 @@ namespace Eevee.Fixed
             };
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Matrix4X4 RotateXMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m31, Fixed64 m32) => new()
+        private static Matrix4X4 RotateX(Fixed64 sin, Fixed64 cos, Fixed64 m31, Fixed64 m32) => new()
         {
             M00 = Fixed64.One,
             M01 = Fixed64.Zero,
@@ -1301,7 +1336,7 @@ namespace Eevee.Fixed
             M33 = Fixed64.One,
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Matrix4X4 RotateYMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m30, Fixed64 m32) => new()
+        private static Matrix4X4 RotateY(Fixed64 sin, Fixed64 cos, Fixed64 m30, Fixed64 m32) => new()
         {
             M00 = cos,
             M01 = Fixed64.Zero,
@@ -1321,7 +1356,7 @@ namespace Eevee.Fixed
             M33 = Fixed64.One,
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Matrix4X4 RotateZMatrix4X4(Fixed64 cos, Fixed64 sin, Fixed64 m30, Fixed64 m31) => new()
+        private static Matrix4X4 RotateZ(Fixed64 sin, Fixed64 cos, Fixed64 m30, Fixed64 m31) => new()
         {
             M00 = cos,
             M01 = sin,

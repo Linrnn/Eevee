@@ -152,7 +152,7 @@ namespace Eevee.Fixed
         public readonly override string ToString() => ToString(Format.Fractional, Format.Use);
         public readonly string ToString(string format) => ToString(format, Format.Use);
         public readonly string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
-        public readonly string ToString(string format, IFormatProvider provider) => $"[{Normal.ToString(format, provider)}, {Distance.ToString(format, provider)}]";
+        public readonly string ToString(string format, IFormatProvider provider) => $"[Normal:{Normal.ToString(format, provider)}, Distance:{Distance.ToString(format, provider)}]";
         #endregion
     }
 }

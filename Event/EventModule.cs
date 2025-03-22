@@ -11,7 +11,7 @@ namespace Eevee.Event
     /// </summary>
     public sealed class EventModule
     {
-        #region Type
+        #region 类型
         private readonly struct Wrapper
         {
             internal readonly int EventId;
@@ -37,14 +37,16 @@ namespace Eevee.Event
         }
         #endregion
 
+        #region 字段
         // todo Eevee _listeners，_waitWrappers，_invokeWrappers 未接入 EPool
         // todo Eevee _listeners 未接入 FixedDictionary
         private readonly Dictionary<int, List<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为listener需要有序性
         private readonly List<Wrapper> _waitWrappers = new(32); // 等待执行的事件
         private readonly List<Wrapper> _invokeWrappers = new(32); // 执行中的事件
+        #endregion
 
+        #region 生命周期，需要外部调用
         /// <summary>
-        /// 生命周期，需要外部调用<br/>
         /// 处理 Enqueue() 产生的队列
         /// </summary>
         public void Update()
@@ -72,7 +74,9 @@ namespace Eevee.Event
             _waitWrappers.Clear();
             _invokeWrappers.Clear();
         }
+        #endregion
 
+        #region 处理监听
         /// <summary>
         /// 添加监听
         /// </summary>
@@ -92,7 +96,9 @@ namespace Eevee.Event
             if (_listeners.TryGetValue(eventId, out var listeners))
                 listeners.Remove(listener);
         }
+        #endregion
 
+        #region 派发/入队列
         /// <summary>
         /// 实时派发事件
         /// </summary>
@@ -120,7 +126,9 @@ namespace Eevee.Event
             else
                 LogRelay.Warn($"[Event] EventId:{eventId} is repeat");
         }
+        #endregion
 
+        #region 执行
         private void Invokes<TContext>(int eventId, TContext context) where TContext : IEventContext
         {
             if (_listeners.TryGetValue(eventId, out var listeners))
@@ -171,5 +179,6 @@ namespace Eevee.Event
                 default: return false;
             }
         }
+        #endregion
     }
 }

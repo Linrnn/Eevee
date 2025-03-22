@@ -29,6 +29,7 @@ namespace Eevee.Event
         // todo Eevee _listeners 未接入 FixedDictionary
         private readonly Dictionary<ulong, Wrapper> _listeners = new(32);
 
+        #region Add
         /// <summary>
         /// 添加监听<br/>
         /// 可能无法收到延迟派发的事件<br/>
@@ -55,7 +56,9 @@ namespace Eevee.Event
         {
             Register(module, eventId, listener);
         }
+        #endregion
 
+        #region Remove
         /// <summary>
         /// 移除监听
         /// </summary>
@@ -86,7 +89,9 @@ namespace Eevee.Event
         {
             UnAllRegister();
         }
+        #endregion
 
+        #region Private
         private ulong GetKey(EventModule module, Delegate listener)
         {
             int hashCode1 = module.GetHashCode();
@@ -118,7 +123,6 @@ namespace Eevee.Event
             else
                 LogRelay.Warn($"[Event] listener isn't exist, EventId:{eventId}");
         }
-
         private void UnAllRegister()
         {
             foreach (var pair in _listeners)
@@ -129,5 +133,6 @@ namespace Eevee.Event
 
             _listeners.Clear();
         }
+        #endregion
     }
 }
