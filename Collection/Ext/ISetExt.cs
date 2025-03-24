@@ -49,8 +49,12 @@ namespace Eevee.Collection
                         source.Add(item);
                     break;
 
-                default: // 存在GC，慎重调用
-                    source.UnionWith(input); break;
+                case FixedOrderSet<T> fixedOrderSet:
+                    foreach (var item in fixedOrderSet)
+                        source.Add(item);
+                    break;
+
+                default: source.UnionWith(input); break; // 存在GC，慎重调用
             }
         }
     }

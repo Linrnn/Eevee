@@ -1,4 +1,4 @@
-﻿using Eevee.Log;
+﻿using Eevee.Debug;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,10 +7,7 @@ namespace Eevee.Collection
 {
     public static class IEnumerableExt
     {
-        public static bool Has<T>(this IEnumerable<T> source, T item)
-        {
-            return source.Contains(item);
-        }
+        public static bool Has<T>(this IEnumerable<T> source, T item) => source.Contains(item);
 
         /// <summary>
         /// foreach IEnumerable`1.GetEnumerator() 会引发GC，故封装 0GC 方法
@@ -43,6 +40,11 @@ namespace Eevee.Collection
                         return item;
                     break;
 
+                case FixedOrderSet<T> fixedOrderSet:
+                    foreach (var item in fixedOrderSet)
+                        return item;
+                    break;
+
                 default: // 存在GC，慎重调用
                     foreach (var item in source)
                         return item;
@@ -72,5 +74,8 @@ namespace Eevee.Collection
                 default: return source.ToArray(); // 存在GC，慎重调用
             }
         }
+
+        public static string JoinString<T>(this IEnumerable<T> source) => $"[{LogString(source)}]";
+        public static string LogString<T>(this IEnumerable<T> source, char separator = ',') => string.Join(separator, source);
     }
 }

@@ -53,9 +53,7 @@ namespace Eevee.Collection
             #endregion
 
             #region IDisposable
-            public readonly void Dispose()
-            {
-            }
+            public readonly void Dispose() { }
             #endregion
 
             private bool MoveNextRare()

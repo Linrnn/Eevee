@@ -1,5 +1,5 @@
-﻿using Eevee.Define;
-using Eevee.Log;
+﻿using Eevee.Debug;
+using Eevee.Define;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -138,8 +138,7 @@ namespace Eevee.Fixed
         /// </summary>
         public readonly Fixed64 Clamp(Fixed64 min, Fixed64 max)
         {
-            if (min > max)
-                LogRelay.Error($"[Fixed] 无效区间：Clamp()，min：{min} > max：{max}");
+            Assert.IsLessEqual(min, max, "无效区间：Clamp()，min：{0} > max：{1}", min, max, string.Empty);
 
             if (RawValue < min.RawValue)
                 return min;

@@ -1,4 +1,4 @@
-﻿using Eevee.Log;
+﻿using Eevee.Debug;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
@@ -42,11 +42,8 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static long Count(long value) // 计算
         {
-            if (value >= 0)
-                return value <= int.MaxValue ? UseTable((int)value) : UseNewton(value);
-
-            LogRelay.Fail($"[Fixed] SquareRoot.Count()，value：{value}是负数，无法开方");
-            return 0;
+            Assert.IsGreaterEqual(value, 0, "SquareRoot.Count()，value：{0}是负数，无法开方", value, string.Empty, string.Empty);
+            return value <= int.MaxValue ? UseTable((int)value) : UseNewton(value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

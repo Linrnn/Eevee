@@ -1,6 +1,7 @@
 ﻿using Eevee.Collection;
+using Eevee.Debug;
 using Eevee.Define;
-using Eevee.Log;
+using Eevee.Pool;
 using System;
 using System.Collections.Generic;
 
@@ -47,7 +48,7 @@ namespace Eevee.Event
 
         #region 生命周期，需要外部调用
         /// <summary>
-        /// 处理 Enqueue() 产生的队列
+        /// 处理“this.Enqueue()”产生的队列
         /// </summary>
         public void Update()
         {
@@ -58,7 +59,7 @@ namespace Eevee.Event
             _waitWrappers.Clear();
 
             foreach (var wrapper in _invokeWrappers)
-                Invokes(wrapper.EventId, wrapper.Context);
+                Invokes(wrapper.EventId, wrapper.Context, true);
 
             _invokeWrappers.Clear(); // Wrapper.Context 是引用类型，不Clear会导致 _invokeWrappers 一直持有 Context
         }
@@ -67,6 +68,9 @@ namespace Eevee.Event
         /// </summary>
         public void Disable()
         {
+            if (!_listeners.IsEmpty())
+                LogRelay.Warn($"[Event] Listeners.Count is {_listeners.Count}, need clear!");
+
             foreach (var pair in _listeners)
                 pair.Value.Clear();
 
@@ -102,21 +106,21 @@ namespace Eevee.Event
         /// <summary>
         /// 实时派发事件
         /// </summary>
-        public void Dispatch<TContext>(int eventId, TContext context) where TContext : IEventContext
+        public void Dispatch<TContext>(int eventId, TContext context, bool recycle = false) where TContext : IEventContext
         {
-            Invokes(eventId, context);
+            Invokes(eventId, context, recycle);
         }
         /// <summary>
         /// 实时派发事件
         /// </summary>
         public void Dispatch(int eventId)
         {
-            Invokes<IEventContext>(eventId, null);
+            Invokes<IEventContext>(eventId, null, false);
         }
 
         /// <summary>
         /// 延迟派发事件<br/>
-        /// context 不建议是 struct，因为会触发 Box
+        /// “context”不建议是“struct”，因为会触发“Box”
         /// </summary>
         public void Enqueue(int eventId, IEventContext context = null, bool allowRepeat = true)
         {
@@ -129,38 +133,37 @@ namespace Eevee.Event
         #endregion
 
         #region 执行
-        private void Invokes<TContext>(int eventId, TContext context) where TContext : IEventContext
+        private void Invokes<TContext>(int eventId, TContext context, bool recycle) where TContext : IEventContext
         {
-            if (_listeners.TryGetValue(eventId, out var listeners))
+            if (!_listeners.TryGetValue(eventId, out var listeners))
+                return;
+
+            // todo Eevee 需要拷贝listeners
+            foreach (var listener in listeners)
             {
-                foreach (var listener in listeners)
+                if (Macro.HasTryCatch)
                 {
-                    bool success = true;
-
-                    if (Macro.HasTryCatch)
+                    try
                     {
-                        try
-                        {
-                            success = Invoke(listener, in context);
-                        }
-                        catch (Exception exception)
-                        {
-                            LogRelay.Fail($"[Event] Invokes fail, EventId:{eventId}\n{exception}");
-                        }
+                        bool success = Invoke(listener, context);
+                        if (!success)
+                            LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
+                        else if (recycle)
+                            (context as IRecyclable)?.Recycle();
                     }
-                    else
+                    catch (Exception exception)
                     {
-                        success = Invoke(listener, in context);
+                        LogRelay.Fail($"[Event] Invokes fail, EventId:{eventId}\n{exception}");
                     }
-
-                    if (!success)
-                    {
-                        LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
-                    }
+                }
+                else
+                {
+                    bool success = Invoke(listener, context);
+                    Assert.IsTrue(success, "EventId:{0}, context isn't {1}", eventId, typeof(TContext), string.Empty);
                 }
             }
         }
-        private bool Invoke<TContext>(Delegate listener, in TContext context) where TContext : IEventContext
+        private bool Invoke<TContext>(Delegate listener, TContext context) where TContext : IEventContext
         {
             switch (listener)
             {

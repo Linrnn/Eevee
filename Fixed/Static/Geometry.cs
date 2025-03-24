@@ -25,7 +25,7 @@ namespace Eevee.Fixed
         public static Fixed64 AngleRad(in Quaternion lhs, in Quaternion rhs)
         {
             var rad = Rad(in lhs, in rhs);
-            return rad > Maths.Rad180 ? Maths.Rad360 - rad : rad;
+            return rad.RawValue > Const.Rad180 ? Maths.Rad360 - rad : rad;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Eevee.Fixed
         public static Fixed64 Angle(in Quaternion lhs, in Quaternion rhs)
         {
             var deg = Deg(in lhs, in rhs);
-            return deg > Maths.Deg180 ? Maths.Deg360 - deg : deg;
+            return deg.RawValue > Const.Deg180 ? Maths.Deg360 - deg : deg;
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Eevee.Fixed
         public static Fixed64 SignedAngleRad(in Quaternion lhs, in Quaternion rhs)
         {
             var rad = Rad(in lhs, in rhs);
-            return rad > Maths.Rad180 ? rad - Maths.Rad360 : rad;
+            return rad.RawValue > Const.Rad180 ? rad - Maths.Rad360 : rad;
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace Eevee.Fixed
         public static Fixed64 SignedAngle(in Quaternion lhs, in Quaternion rhs)
         {
             var deg = Deg(in lhs, in rhs);
-            return deg > Maths.Deg180 ? deg - Maths.Deg360 : deg;
+            return deg.RawValue > Const.Deg180 ? deg - Maths.Deg360 : deg;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

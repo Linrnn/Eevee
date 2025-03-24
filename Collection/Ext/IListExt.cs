@@ -1,4 +1,4 @@
-﻿using Eevee.Log;
+﻿using Eevee.Debug;
 using Eevee.Random;
 using System.Collections.Generic;
 
@@ -123,11 +123,10 @@ namespace Eevee.Collection
 
                 default:
                     int end = index + count;
-                    if (end <= source.Count)
-                        for (int left = index, right = end - 1; left < right; ++left, --right)
-                            (source[left], source[right]) = (source[right], source[left]);
-                    else
-                        LogRelay.Error($"[Collection] Reverse fail, index + count > length, index:{index}, count:{count}, length:{source.Count}");
+                    Assert.IsLessEqual(end, source.Count, "Reverse fail, index + count > length, index:{0}, count:{1}, length:{2}", index, count, source.Count);
+
+                    for (int left = index, right = end - 1; left < right; ++left, --right)
+                        (source[left], source[right]) = (source[right], source[left]);
                     break;
             }
         }
@@ -194,6 +193,11 @@ namespace Eevee.Collection
                         source.Insert(index++, item);
                     break;
 
+                case FixedOrderSet<T> fixedOrderSet:
+                    foreach (var item in fixedOrderSet)
+                        source.Insert(index++, item);
+                    break;
+
                 default: // 存在GC，慎重调用
                     foreach (var item in input)
                         source.Insert(index++, item);
@@ -209,11 +213,7 @@ namespace Eevee.Collection
         public static void RemoveRange<T>(this IList<T> source, int index, int count)
         {
             int end = index + count;
-            if (end > source.Count)
-            {
-                LogRelay.Error($"[Collection] RemoveRange fail, index + count > end, index:{index}, count:{count}, length:{source.Count}");
-                return;
-            }
+            Assert.IsLessEqual(end, source.Count, "RemoveRange fail, index + count > end, index:{0}, count:{1}, length:{2}", index, count, source.Count);
 
             switch (source)
             {

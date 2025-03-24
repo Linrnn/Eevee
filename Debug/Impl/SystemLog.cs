@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Eevee.Log
+namespace Eevee.Debug
 {
     /// <summary>
     /// 使用 Console.WriteLine 实现 ILog

@@ -2,7 +2,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Eevee.Log
+namespace Eevee.Debug
 {
     /// <summary>
     /// Log转发

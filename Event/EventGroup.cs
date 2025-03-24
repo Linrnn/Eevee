@@ -1,4 +1,4 @@
-﻿using Eevee.Log;
+﻿using Eevee.Debug;
 using System;
 using System.Collections.Generic;
 
@@ -33,7 +33,7 @@ namespace Eevee.Event
         /// <summary>
         /// 添加监听<br/>
         /// 可能无法收到延迟派发的事件<br/>
-        /// 如果需要接收延迟事件，可以将TContext修改为IEEventContext
+        /// 如果需要接收延迟事件，可以将“TContext”修改为“IEEventContext”
         /// </summary>
         public void AddListener<TContext>(EventModule module, int eventId, Action<TContext> listener) where TContext : IEventContext
         {
@@ -42,7 +42,7 @@ namespace Eevee.Event
         /// <summary>
         /// 添加监听<br/>
         /// 可以收到延迟派发的事件<br/>
-        /// context 不建议是 struct，因为会触发 Box
+        /// “context”不建议是“struct”，因为会触发“Box”
         /// </summary>
         public void AddListener(EventModule module, int eventId, Action<IEventContext> listener)
         {
@@ -56,6 +56,57 @@ namespace Eevee.Event
         {
             Register(module, eventId, listener);
         }
+
+        /// <summary>
+        /// 添加监听，执行一次后移除事件<br/>
+        /// 可能无法收到延迟派发的事件<br/>
+        /// 如果需要接收延迟事件，可以将“TContext”修改为“IEEventContext”
+        /// </summary>
+        public void AddOnceListener<TContext>(EventModule module, int eventId, Action<TContext> listener) where TContext : IEventContext
+        {
+            Action<TContext> remove = null;
+            remove = _ =>
+            {
+                RemoveListener(module, eventId, listener);
+                RemoveListener(module, eventId, remove);
+            };
+
+            AddListener(module, eventId, listener);
+            AddListener(module, eventId, remove);
+        }
+        /// <summary>
+        /// 添加监听，执行一次后移除事件<br/>
+        /// 可以收到延迟派发的事件<br/>
+        /// “context”不建议是“struct”，因为会触发“Box”
+        /// </summary>
+        public void AddOnceListener(EventModule module, int eventId, Action<IEventContext> listener)
+        {
+            Action<IEventContext> remove = null;
+            remove = _ =>
+            {
+                RemoveListener(module, eventId, listener);
+                RemoveListener(module, eventId, remove);
+            };
+
+            AddListener(module, eventId, listener);
+            AddListener(module, eventId, remove);
+        }
+        /// <summary>
+        /// 添加监听，执行一次后移除事件<br/>
+        /// 可以收到延迟派发的事件
+        /// </summary>
+        public void AddOnceListener(EventModule module, int eventId, Action listener)
+        {
+            Action remove = null;
+            remove = () =>
+            {
+                RemoveListener(module, eventId, listener);
+                RemoveListener(module, eventId, remove);
+            };
+
+            AddListener(module, eventId, listener);
+            AddListener(module, eventId, remove);
+        }
         #endregion
 
         #region Remove
@@ -68,7 +119,7 @@ namespace Eevee.Event
         }
         /// <summary>
         /// 移除监听<br/>
-        /// context 不建议是 struct，因为会触发 Box
+        /// “context”不建议是“struct”，因为会触发“Box”
         /// </summary>
         public void RemoveListener(EventModule module, int eventId, Action<IEventContext> listener)
         {
@@ -103,16 +154,10 @@ namespace Eevee.Event
         private void Register(EventModule module, int eventId, Delegate listener)
         {
             ulong key = GetKey(module, listener);
+            Assert.IsFalse(_listeners.ContainsKey(key), "listener is exist, EventId:{0}", eventId, string.Empty, string.Empty);
 
-            if (_listeners.ContainsKey(key))
-            {
-                LogRelay.Error($"[Event] listener is exist, EventId:{eventId}");
-            }
-            else
-            {
-                _listeners.Add(key, new Wrapper(module, eventId, listener));
-                module.Register(eventId, listener);
-            }
+            _listeners.Add(key, new Wrapper(module, eventId, listener));
+            module.Register(eventId, listener);
         }
         private void UnRegister(EventModule module, int eventId, Delegate listener)
         {

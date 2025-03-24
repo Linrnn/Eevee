@@ -1,36 +1,24 @@
-﻿using Eevee.Log;
+﻿using Eevee.Debug;
 using System.Collections.Generic;
 
 namespace Eevee.Collection
 {
     public static class ICollectionExt
     {
-        public static bool IsEmpty<T>(this ICollection<T> source)
-        {
-            return source.Count == 0;
-        }
+        public static bool IsEmpty<T>(this ICollection<T> source) => source.Count == 0;
 
-        public static bool IsNullOrEmpty<T>(this ICollection<T> source)
-        {
-            return source == null || source.Count == 0;
-        }
+        public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source == null || source.Count == 0;
 
         public static void Clean<T>(this ICollection<T> source) => source.Clear();
 
         public static void Update<T>(this ICollection<T> source, IList<T> input, int inputIndex, int inputCount)
         {
             int end = inputIndex + inputCount;
-            if (end > input.Count)
-            {
-                LogRelay.Error($"[Collection] Update fail, index + count > end, index:{inputIndex}, count:{inputCount}, length:{input.Count}");
-                return;
-            }
+            Assert.IsLessEqual(end, input.Count, "Update fail, index + count > end, index:{0}, count:{1}, length:{2}", inputIndex, inputCount, input.Count);
 
             source.Clear();
             for (int i = inputIndex; i < end; ++i)
-            {
                 source.Add(input[i]);
-            }
         }
 
         /// <summary>
@@ -103,6 +91,11 @@ namespace Eevee.Collection
                         source.Add(item);
                     break;
 
+                case FixedOrderSet<T> fixedOrderSet:
+                    foreach (var item in fixedOrderSet)
+                        source.Add(item);
+                    break;
+
                 default: // 存在GC，慎重调用
                     foreach (var item in input)
                         source.Add(item);
@@ -149,6 +142,11 @@ namespace Eevee.Collection
 
                 case WeakOrderList<T> weakOrderList:
                     foreach (var item in weakOrderList)
+                        source.Remove(item);
+                    break;
+
+                case FixedOrderSet<T> fixedOrderSet:
+                    foreach (var item in fixedOrderSet)
                         source.Remove(item);
                     break;
 

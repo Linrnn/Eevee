@@ -11,6 +11,7 @@
         public const string Editor = "UNITY_EDITOR";
         public const string Standalone = "UNITY_STANDALONE";
 
+        public const string Assert = "EEVEE_ASSERT";
         public const string TryCatch = "EEVEE_TRY_CATCH";
 
 #if DEBUG || UNITY_EDITOR

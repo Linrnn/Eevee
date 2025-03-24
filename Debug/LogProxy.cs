@@ -1,4 +1,4 @@
-﻿namespace Eevee.Log
+﻿namespace Eevee.Debug
 {
     /// <summary>
     /// Log代理
