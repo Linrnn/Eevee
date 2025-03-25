@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Eevee.Diagnosis;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
@@ -458,11 +459,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Log2(Fixed64 a)
         {
-            if (a.RawValue <= 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(a), $"x：{a}≤0，无法计算对数");
-            }
-
+            Assert.IsGreater<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<Fixed64>(a));
             long arv = a.RawValue;
             long y = 0;
             while (arv < Const.One)

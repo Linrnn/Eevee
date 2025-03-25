@@ -1,5 +1,6 @@
 ﻿using Eevee.Diagnosis;
 using Eevee.Random;
+using System;
 using System.Collections.Generic;
 
 namespace Eevee.Collection
@@ -123,8 +124,7 @@ namespace Eevee.Collection
 
                 default:
                     int end = index + count;
-                    Assert.IsLessEqual(end, source.Count, "Reverse fail, index + count > length, index:{0}, count:{1}, length:{2}", index, count, source.Count);
-
+                    Assert.IsLessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "Reverse fail, index + count > length, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
                     for (int left = index, right = end - 1; left < right; ++left, --right)
                         (source[left], source[right]) = (source[right], source[left]);
                     break;
@@ -213,13 +213,11 @@ namespace Eevee.Collection
         public static void RemoveRange<T>(this IList<T> source, int index, int count)
         {
             int end = index + count;
-            Assert.IsLessEqual(end, source.Count, "RemoveRange fail, index + count > end, index:{0}, count:{1}, length:{2}", index, count, source.Count);
-
+            Assert.IsLessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "RemoveRange fail, index + count > end, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
             switch (source)
             {
                 case List<T> list: list.RemoveRange(index, count); break;
                 case WeakOrderList<T> weakOrderList: weakOrderList.RemoveRange(index, count); break;
-
                 default:
                     for (int i = index, j = end; i < end && j <= count; ++i, ++j)
                         source[i] = source[j];

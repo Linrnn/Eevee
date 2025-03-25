@@ -1,4 +1,5 @@
-﻿using Eevee.Fixed;
+﻿using Eevee.Diagnosis;
+using Eevee.Fixed;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -231,9 +232,7 @@ namespace Eevee.Random
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Fixed64 RandomFixed64(Fixed64 maxInclusive)
         {
-            if (maxInclusive.RawValue < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxInclusive), $"Random fail, {maxInclusive} < 0");
-
+            Assert.IsGreaterEqual<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(maxInclusive, 0, nameof(maxInclusive), "Random fail, {0} < 0", new AssertArgs<Fixed64>(maxInclusive));
             ulong value = RandomUInt64(Const.Zero, (ulong)maxInclusive.RawValue + 1);
             return new Fixed64((long)value);
         }

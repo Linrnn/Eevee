@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Eevee.Diagnosis;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -58,9 +59,7 @@ namespace Eevee.Collection
 
             private bool MoveNextRare()
             {
-                if (_version != _list._version)
-                    throw new InvalidOperationException($"[Collection] MoveNextRare fail, _version != _list._version, _version:{_version},  _list._version:{_list._version}");
-
+                Assert.IsEqual<InvalidOperationException, AssertArgs<int, int>, int>(_version, _list._version, nameof(_version), "MoveNextRare fail, _version != _list._version, _version:{0},  _list._version:{1}", new AssertArgs<int, int>(_version, _list._version));
                 _index = _list._size + 1;
                 _current = default;
                 return false;
@@ -232,9 +231,7 @@ namespace Eevee.Collection
 
         public void InsertRange(int index, IEnumerable<T> enumerable)
         {
-            if (index > _size)
-                throw new ArgumentOutOfRangeException($"[Collection] InsertRange fail, index > count, index:{index}, count:{_size}");
-
+            Assert.IsLessEqual<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, _size, nameof(index), "InsertRange fail, index > count, index:{0}, count:{1}", new AssertArgs<int, int>(index, _size));
             if (enumerable is ICollection<T> collection)
             {
                 int count = collection.Count;

@@ -138,14 +138,11 @@ namespace Eevee.Fixed
         /// </summary>
         public readonly Fixed64 Clamp(Fixed64 min, Fixed64 max)
         {
-            Assert.IsLessEqual(min, max, "无效区间：Clamp()，min：{0} > max：{1}", min, max, string.Empty);
-
+            Assert.IsLessEqual<ArgumentException, AssertArgs<Fixed64, Fixed64>, Fixed64>(min, max, string.Empty, "无效区间：Clamp()，min：{0} > max：{1}", new AssertArgs<Fixed64, Fixed64>(min, max));
             if (RawValue < min.RawValue)
                 return min;
-
             if (RawValue > max.RawValue)
                 return max;
-
             return this;
         }
 

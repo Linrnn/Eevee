@@ -1,4 +1,5 @@
 ﻿using Eevee.Diagnosis;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
@@ -42,7 +43,7 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static long Count(long value) // 计算
         {
-            Assert.IsGreaterEqual(value, 0, "SquareRoot.Count()，value：{0}是负数，无法开方", value, string.Empty, string.Empty);
+            Assert.IsGreaterEqual<ArgumentException, AssertArgs<long>, long>(value, 0, nameof(value), "SquareRoot.Count()，value：{0}是负数，无法开方", new AssertArgs<long>(value));
             return value <= int.MaxValue ? UseTable((int)value) : UseNewton(value);
         }
 

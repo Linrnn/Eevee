@@ -159,7 +159,7 @@ namespace Eevee.Event
                 else
                 {
                     bool success = Invoke(listener, context);
-                    Assert.IsTrue(success, "EventId:{0}, context isn't {1}", eventId, typeof(TContext), string.Empty);
+                    Assert.IsTrue<Exception, AssertArgs<int, Type>>(success, null, "EventId:{0}, context isn't {1}", new AssertArgs<int, Type>(eventId, typeof(TContext)));
                 }
             }
         }

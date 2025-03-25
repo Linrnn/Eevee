@@ -1,4 +1,5 @@
 ﻿using Eevee.Diagnosis;
+using System;
 
 namespace Eevee.Fixed
 {
@@ -44,25 +45,24 @@ namespace Eevee.Fixed
         /// </summary>
         public static int GetNumber(int min)
         {
-            Assert.IsGreaterEqual(min, 0, "获取质数传入参数错误：{0}", min, string.Empty, string.Empty);
-
+            Assert.IsGreaterEqual<ArgumentException, AssertArgs<int>, int>(min, 0, nameof(min), "获取质数传入参数错误：{0}<0", new AssertArgs<int>(min));
             foreach (int prime in _primes)
                 if (prime >= min)
                     return prime;
-
             for (int i = min | 1; i < int.MaxValue; i += 2)
                 if (NumberIs(i) && ((i - 1) % HashPrime != 0))
                     return i;
-
             return min;
         }
+        /// <summary>
+        /// 拓展
+        /// </summary>
         public static int Expand(int oldSize)
         {
             int newSize = oldSize << 1;
             if (oldSize >= MaxPrimeArrayLength || (uint)newSize <= MaxPrimeArrayLength)
                 return GetNumber(newSize);
-
-            Assert.IsNotEqual(MaxPrimeArrayLength, GetNumber(MaxPrimeArrayLength), "Invalid MaxPrimeArrayLength", string.Empty, string.Empty, string.Empty);
+            Assert.IsNotEqual<ArgumentException, AssertArgs, int>(MaxPrimeArrayLength, GetNumber(MaxPrimeArrayLength), nameof(MaxPrimeArrayLength), "Invalid MaxPrimeArrayLength");
             return MaxPrimeArrayLength;
         }
     }

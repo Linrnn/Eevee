@@ -1,6 +1,7 @@
 ﻿using Eevee.Define;
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Diagnosis
 {
@@ -13,18 +14,22 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsNull<T0, T1, T2>(object obj, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default)
+        internal static void IsNull<TException, TArgs>(object obj, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
         {
             if (obj != null)
-                throw new Exception($"obj:{obj}\n{string.Format(message, arg0, arg1, arg2)}");
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsNotNull<T0, T1, T2>(object obj, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default)
+        internal static void IsNotNull<TException, TArgs>(object obj, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
         {
             if (obj == null)
-                throw new Exception(string.Format(message, arg0, arg1, arg2));
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
         #endregion
 
@@ -32,18 +37,22 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsTrue<T0, T1, T2>(bool condition, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default)
+        internal static void IsTrue<TException, TArgs>(bool condition, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
         {
             if (!condition)
-                throw new Exception(string.Format(message, arg0, arg1, arg2));
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsFalse<T0, T1, T2>(bool condition, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default)
+        internal static void IsFalse<TException, TArgs>(bool condition, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
         {
             if (condition)
-                throw new Exception(string.Format(message, arg0, arg1, arg2));
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
         #endregion
 
@@ -51,53 +60,93 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsGreater<T, T0, T1, T2>(T lhs, T rhs, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default) where T : IComparable<T>
+        internal static void IsGreater<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TComparable : IComparable<TComparable>
         {
             if (lhs.CompareTo(rhs) <= 0)
-                throw new Exception($"lhs:{lhs}, rhs:{rhs}\n{string.Format(message, arg0, arg1, arg2)}");
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsLess<T, T0, T1, T2>(T lhs, T rhs, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default) where T : IComparable<T>
+        internal static void IsLess<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TComparable : IComparable<TComparable>
         {
             if (lhs.CompareTo(rhs) >= 0)
-                throw new Exception($"lhs:{lhs}, rhs:{rhs}\n{string.Format(message, arg0, arg1, arg2)}");
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
 
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsGreaterEqual<T, T0, T1, T2>(T lhs, T rhs, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default) where T : IComparable<T>
+        internal static void IsGreaterEqual<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TComparable : IComparable<TComparable>
         {
             if (lhs.CompareTo(rhs) < 0)
-                throw new Exception($"lhs:{lhs}, rhs:{rhs}\n{string.Format(message, arg0, arg1, arg2)}");
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsLessEqual<T, T0, T1, T2>(T lhs, T rhs, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default) where T : IComparable<T>
+        internal static void IsLessEqual<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TComparable : IComparable<TComparable>
         {
             if (lhs.CompareTo(rhs) > 0)
-                throw new Exception($"lhs:{lhs}, rhs:{rhs}\n{string.Format(message, arg0, arg1, arg2)}");
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
 
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsEqual<T, T0, T1, T2>(T lhs, T rhs, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default) where T : IEquatable<T>
+        internal static void IsEqual<TException, TArgs, TEquatable>(TEquatable lhs, TEquatable rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TEquatable : IEquatable<TEquatable>
         {
             if (!lhs.Equals(rhs))
-                throw new Exception($"lhs:{lhs}, rhs:{rhs}\n{string.Format(message, arg0, arg1, arg2)}");
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsNotEqual<T, T0, T1, T2>(T lhs, T rhs, string message, T0 arg0 = default, T1 arg1 = default, T2 arg2 = default) where T : IEquatable<T>
+        internal static void IsNotEqual<TException, TArgs, TEquatable>(TEquatable lhs, TEquatable rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TEquatable : IEquatable<TEquatable>
         {
             if (lhs.Equals(rhs))
-                throw new Exception($"lhs:{lhs}, rhs:{rhs}\n{string.Format(message, arg0, arg1, arg2)}");
+                ThrowException<TException, TArgs>(paramName, format, args);
         }
+        #endregion
+
+        #region Helper
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ThrowException<TException, TArgs>(string paramName, string format, TArgs args)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+        {
+            string message = args.BuildMessage(format);
+            var exception = BuildException(typeof(TException), paramName, message);
+            throw exception;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Exception BuildException(Type exception, string paramName, string message) => exception switch
+        {
+            _ when exception == typeof(ArgumentException) => new ArgumentException(message, paramName),
+            _ when exception == typeof(ArgumentNullException) => new ArgumentNullException(paramName, message),
+            _ when exception == typeof(ArgumentOutOfRangeException) => new ArgumentOutOfRangeException(paramName, message),
+            _ when exception == typeof(NullReferenceException) => new NullReferenceException(message),
+            _ when exception == typeof(InvalidOperationException) => new InvalidOperationException(message),
+            _ => new Exception(message),
+        };
         #endregion
     }
 }

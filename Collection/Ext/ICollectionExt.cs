@@ -1,4 +1,5 @@
 ﻿using Eevee.Diagnosis;
+using System;
 using System.Collections.Generic;
 
 namespace Eevee.Collection
@@ -14,8 +15,7 @@ namespace Eevee.Collection
         public static void Update<T>(this ICollection<T> source, IList<T> input, int inputIndex, int inputCount)
         {
             int end = inputIndex + inputCount;
-            Assert.IsLessEqual(end, input.Count, "Update fail, index + count > end, index:{0}, count:{1}, length:{2}", inputIndex, inputCount, input.Count);
-
+            Assert.IsLessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, input.Count, nameof(end), "Update fail, index + count > end, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(inputIndex, inputCount, input.Count));
             source.Clear();
             for (int i = inputIndex; i < end; ++i)
                 source.Add(input[i]);
