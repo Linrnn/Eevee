@@ -1,10 +1,11 @@
 ﻿using Eevee.Fixed;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Random
 {
     /// <summary>
-    /// 便捷实现，子类需要实现 EasyRandom.GetInt()
+    /// 便捷实现，子类需要实现“EasyRandom.GetInt()”
     /// </summary>
     public abstract class EasyRandom : IRandom
     {
@@ -91,7 +92,7 @@ namespace Eevee.Random
             long value = RandomInt64(minInclusive.RawValue, maxExclusive.RawValue);
             return new Fixed64(value);
         }
-        public Fixed64 GetFixed64()
+        public virtual Fixed64 GetFixed64()
         {
             var value = RandomFixed64(Fixed64.One);
             return value;
@@ -130,16 +131,12 @@ namespace Eevee.Random
             return p4;
         }
 
-        public virtual Vector2D OnUnitCircle()
-        {
-            var rad = RandomFixed64(Maths.Rad360);
-            return new Vector2D(Maths.Cos(rad), Maths.Sin(rad));
-        }
+        public virtual Vector2D OnUnitCircle() => RandomUnitCircle();
         public virtual Vector2D InCircle(Fixed64 radius)
         {
-            var rad = RandomFixed64(Maths.Rad360);
-            var r = RandomFixed64(radius);
-            return new Vector2D(Maths.Cos(rad), Maths.Sin(rad)) * r;
+            var circle = RandomUnitCircle();
+            var range = RandomFixed64(radius);
+            return circle * range;
         }
 
         public virtual Vector3D OnUnitSphere()
@@ -197,6 +194,7 @@ namespace Eevee.Random
         protected abstract int GetInt(int minInclusive, int maxExclusive);
 
         #region 工具方法
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private uint RandomUInt32(uint minInclusive, uint maxExclusive)
         {
             int min = (int)(minInclusive + int.MinValue);
@@ -204,6 +202,7 @@ namespace Eevee.Random
             int value = GetInt(min, max);
             return (uint)(value - (long)int.MinValue);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private long RandomInt64(long minInclusive, long maxExclusive)
         {
             ulong min = L2Ul(minInclusive);
@@ -211,6 +210,7 @@ namespace Eevee.Random
             ulong value = RandomUInt64(min, max);
             return Ul2L(value);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong RandomUInt64(ulong minInclusive, ulong maxExclusive)
         {
             ulong diff = maxExclusive - minInclusive;
@@ -228,6 +228,7 @@ namespace Eevee.Random
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Fixed64 RandomFixed64(Fixed64 maxInclusive)
         {
             if (maxInclusive.RawValue < 0)
@@ -236,18 +237,28 @@ namespace Eevee.Random
             ulong value = RandomUInt64(Const.Zero, (ulong)maxInclusive.RawValue + 1);
             return new Fixed64((long)value);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector2D RandomVector2D(in Vector2D from, in Vector2D to)
         {
             var percent = RandomFixed64(Fixed64.One);
             return Lerp.LinearUnClamp(in from, in to, percent);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Vector3D RandomVector3D(in Vector3D from, in Vector3D to)
         {
             var percent = RandomFixed64(Fixed64.One);
             return Lerp.LinearUnClamp(in from, in to, percent);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Vector2D RandomUnitCircle()
+        {
+            var rad = RandomFixed64(Maths.Rad360);
+            return new Vector2D(Maths.Cos(rad), Maths.Sin(rad));
+        }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ulong L2Ul(long num) => num >= 0 ? (ulong)num + long.MaxValue + 1 : (ulong)(num - long.MinValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private long Ul2L(ulong num) => num > long.MaxValue ? (long)(num - long.MaxValue - 1) : (long)num + long.MinValue;
         #endregion
     }

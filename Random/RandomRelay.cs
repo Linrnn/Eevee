@@ -31,9 +31,13 @@ namespace Eevee.Random
         public static Vector2D InTriangle(in Vector2D p0, in Vector2D p1, in Vector2D p2) => RandomProxy.Impl.InTriangle(in p0, in p1, in p2);
 
         public static Vector2D OnUnitCircle() => RandomProxy.Impl.OnUnitCircle();
+        public static Vector2D OnUnitCircle(Fixed64 radius) => RandomProxy.Impl.OnUnitCircle() * radius;
+        public static Vector2D InCircle() => RandomProxy.Impl.InCircle(Fixed64.One);
         public static Vector2D InCircle(Fixed64 radius) => RandomProxy.Impl.InCircle(radius);
 
         public static Vector3D OnUnitSphere() => RandomProxy.Impl.OnUnitSphere();
+        public static Vector3D OnUnitSphere(Fixed64 radius) => RandomProxy.Impl.OnUnitSphere() * radius;
+        public static Vector3D InSphere() => RandomProxy.Impl.InSphere(Fixed64.One);
         public static Vector3D InSphere(Fixed64 radius) => RandomProxy.Impl.InSphere(radius);
 
         public static Vector3D EulerAngles() => RandomProxy.Impl.GetEulerAngles();

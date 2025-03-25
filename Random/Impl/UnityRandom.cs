@@ -4,8 +4,8 @@ using URandom = UnityEngine.Random;
 namespace Eevee.Random
 {
     /// <summary>
-    /// 使用 UnityEngine.Random 实现 IRandom<br/>
-    /// UnityEngine.Random.InitState() 是静态方法，逻辑层不推荐使用 UnityRandom
+    /// 使用“UnityEngine.Random”实现“IRandom”<br/>
+    /// “UnityEngine.Random.InitState()”是静态方法，且无法在多线程调用，所以逻辑层不推荐使用“UnityRandom”
     /// </summary>
     public sealed class UnityRandom : EasyRandom
     {
