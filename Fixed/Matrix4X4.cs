@@ -280,25 +280,24 @@ namespace Eevee.Fixed
             var num16 = M10 * M22 - M12 * M20;
             var num17 = M10 * M21 - M11 * M20;
 
-            var reciprocal = determinant.Reciprocal();
-            matrix = new Matrix4X4
+            matrix = new Matrix4X4 // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
             {
-                M00 = (M11 * num00 - M12 * num01 + M13 * num02) * reciprocal,
-                M10 = (-M10 * num00 + M12 * num03 - M13 * num04) * reciprocal,
-                M20 = (M10 * num01 - M11 * num03 + M13 * num05) * reciprocal,
-                M30 = (-M10 * num02 + M11 * num04 - M12 * num05) * reciprocal,
-                M01 = (-M01 * num00 + M02 * num01 - M03 * num02) * reciprocal,
-                M11 = (M00 * num00 - M02 * num03 + M03 * num04) * reciprocal,
-                M21 = (-M00 * num01 + M01 * num03 - M03 * num05) * reciprocal,
-                M31 = (M00 * num02 - M01 * num04 + M02 * num05) * reciprocal,
-                M02 = (M01 * num06 - M02 * num07 + M03 * num08) * reciprocal,
-                M12 = (-M00 * num06 + M02 * num09 - M03 * num10) * reciprocal,
-                M22 = (M00 * num07 - M01 * num09 + M03 * num11) * reciprocal,
-                M32 = (-M00 * num08 + M01 * num10 - M02 * num11) * reciprocal,
-                M03 = (-M01 * num12 + M02 * num13 - M03 * num14) * reciprocal,
-                M13 = (M00 * num12 - M02 * num15 + M03 * num16) * reciprocal,
-                M23 = (-M00 * num13 + M01 * num15 - M03 * num17) * reciprocal,
-                M33 = (M00 * num14 - M01 * num16 + M02 * num17) * reciprocal,
+                M00 = (M11 * num00 - M12 * num01 + M13 * num02) / determinant,
+                M10 = (-M10 * num00 + M12 * num03 - M13 * num04) / determinant,
+                M20 = (M10 * num01 - M11 * num03 + M13 * num05) / determinant,
+                M30 = (-M10 * num02 + M11 * num04 - M12 * num05) / determinant,
+                M01 = (-M01 * num00 + M02 * num01 - M03 * num02) / determinant,
+                M11 = (M00 * num00 - M02 * num03 + M03 * num04) / determinant,
+                M21 = (-M00 * num01 + M01 * num03 - M03 * num05) / determinant,
+                M31 = (M00 * num02 - M01 * num04 + M02 * num05) / determinant,
+                M02 = (M01 * num06 - M02 * num07 + M03 * num08) / determinant,
+                M12 = (-M00 * num06 + M02 * num09 - M03 * num10) / determinant,
+                M22 = (M00 * num07 - M01 * num09 + M03 * num11) / determinant,
+                M32 = (-M00 * num08 + M01 * num10 - M02 * num11) / determinant,
+                M03 = (-M01 * num12 + M02 * num13 - M03 * num14) / determinant,
+                M13 = (M00 * num12 - M02 * num15 + M03 * num16) / determinant,
+                M23 = (-M00 * num13 + M01 * num15 - M03 * num17) / determinant,
+                M33 = (M00 * num14 - M01 * num16 + M02 * num17) / determinant,
             };
             return true;
         }
@@ -620,29 +619,25 @@ namespace Eevee.Fixed
             M32 = lhs * rhs.M32,
             M33 = lhs * rhs.M33,
         };
-        public static Matrix4X4 operator /(in Matrix4X4 lhs, Fixed64 rhs)
+        public static Matrix4X4 operator /(in Matrix4X4 lhs, Fixed64 rhs) => new() // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
         {
-            var reciprocal = rhs.Reciprocal();
-            return new Matrix4X4
-            {
-                M00 = lhs.M00 * reciprocal,
-                M01 = lhs.M01 * reciprocal,
-                M02 = lhs.M02 * reciprocal,
-                M03 = lhs.M03 * reciprocal,
-                M10 = lhs.M10 * reciprocal,
-                M11 = lhs.M11 * reciprocal,
-                M12 = lhs.M12 * reciprocal,
-                M13 = lhs.M13 * reciprocal,
-                M20 = lhs.M20 * reciprocal,
-                M21 = lhs.M21 * reciprocal,
-                M22 = lhs.M22 * reciprocal,
-                M23 = lhs.M23 * reciprocal,
-                M30 = lhs.M30 * reciprocal,
-                M31 = lhs.M31 * reciprocal,
-                M32 = lhs.M32 * reciprocal,
-                M33 = lhs.M33 * reciprocal,
-            };
-        }
+            M00 = lhs.M00 / rhs,
+            M01 = lhs.M01 / rhs,
+            M02 = lhs.M02 / rhs,
+            M03 = lhs.M03 / rhs,
+            M10 = lhs.M10 / rhs,
+            M11 = lhs.M11 / rhs,
+            M12 = lhs.M12 / rhs,
+            M13 = lhs.M13 / rhs,
+            M20 = lhs.M20 / rhs,
+            M21 = lhs.M21 / rhs,
+            M22 = lhs.M22 / rhs,
+            M23 = lhs.M23 / rhs,
+            M30 = lhs.M30 / rhs,
+            M31 = lhs.M31 / rhs,
+            M32 = lhs.M32 / rhs,
+            M33 = lhs.M33 / rhs,
+        };
         public static Matrix4X4 operator /(in Matrix4X4 lhs, long rhs) => new()
         {
             M00 = lhs.M00 / rhs,

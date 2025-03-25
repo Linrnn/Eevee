@@ -244,18 +244,17 @@ namespace Eevee.Fixed
                 return false;
             }
 
-            var reciprocal = determinant.Reciprocal();
-            matrix = new Matrix3X3
+            matrix = new Matrix3X3 // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
             {
-                M00 = (M11 * M22 - M12 * M21) * reciprocal,
-                M01 = (M02 * M21 - M01 * M22) * reciprocal,
-                M02 = (M01 * M12 - M11 * M02) * reciprocal,
-                M10 = (M12 * M20 - M22 * M10) * reciprocal,
-                M11 = (M00 * M22 - M20 * M02) * reciprocal,
-                M12 = (M02 * M10 - M12 * M00) * reciprocal,
-                M20 = (M10 * M21 - M20 * M11) * reciprocal,
-                M21 = (M01 * M20 - M21 * M00) * reciprocal,
-                M22 = (M00 * M11 - M10 * M01) * reciprocal,
+                M00 = (M11 * M22 - M12 * M21) / determinant,
+                M01 = (M02 * M21 - M01 * M22) / determinant,
+                M02 = (M01 * M12 - M11 * M02) / determinant,
+                M10 = (M12 * M20 - M22 * M10) / determinant,
+                M11 = (M00 * M22 - M20 * M02) / determinant,
+                M12 = (M02 * M10 - M12 * M00) / determinant,
+                M20 = (M10 * M21 - M20 * M11) / determinant,
+                M21 = (M01 * M20 - M21 * M00) / determinant,
+                M22 = (M00 * M11 - M10 * M01) / determinant,
             };
             return true;
         }
@@ -401,22 +400,18 @@ namespace Eevee.Fixed
             M21 = lhs * rhs.M21,
             M22 = lhs * rhs.M22,
         };
-        public static Matrix3X3 operator /(in Matrix3X3 lhs, Fixed64 rhs)
+        public static Matrix3X3 operator /(in Matrix3X3 lhs, Fixed64 rhs) => new() // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
         {
-            var reciprocal = rhs.Reciprocal();
-            return new Matrix3X3
-            {
-                M00 = lhs.M00 * reciprocal,
-                M01 = lhs.M01 * reciprocal,
-                M02 = lhs.M02 * reciprocal,
-                M10 = lhs.M10 * reciprocal,
-                M11 = lhs.M11 * reciprocal,
-                M12 = lhs.M12 * reciprocal,
-                M20 = lhs.M20 * reciprocal,
-                M21 = lhs.M21 * reciprocal,
-                M22 = lhs.M22 * reciprocal,
-            };
-        }
+            M00 = lhs.M00 / rhs,
+            M01 = lhs.M01 / rhs,
+            M02 = lhs.M02 / rhs,
+            M10 = lhs.M10 / rhs,
+            M11 = lhs.M11 / rhs,
+            M12 = lhs.M12 / rhs,
+            M20 = lhs.M20 / rhs,
+            M21 = lhs.M21 / rhs,
+            M22 = lhs.M22 / rhs,
+        };
         public static Matrix3X3 operator /(in Matrix3X3 lhs, long rhs) => new()
         {
             M00 = lhs.M00 / rhs,

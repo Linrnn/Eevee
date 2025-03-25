@@ -165,11 +165,7 @@ namespace Eevee.Fixed
         public static Quaternion operator *(in Quaternion lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
         public static Quaternion operator *(Fixed64 lhs, in Quaternion rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
         public static Quaternion operator *(long lhs, in Quaternion rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
-        public static Quaternion operator /(in Quaternion lhs, Fixed64 rhs)
-        {
-            var reciprocal = rhs.Reciprocal();
-            return new Quaternion(lhs.X * reciprocal, lhs.Y * reciprocal, lhs.Z * reciprocal, lhs.W * reciprocal);
-        }
+        public static Quaternion operator /(in Quaternion lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs); // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
         public static Quaternion operator /(in Quaternion lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
 
         public static bool operator ==(in Quaternion lhs, in Quaternion rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;

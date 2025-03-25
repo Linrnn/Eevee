@@ -427,6 +427,31 @@ namespace Eevee.Fixed
                 _ => Pow2(e * Log2(b)),
             };
         }
+        /// <summary>
+        /// 幂运算/指数运算
+        /// </summary>
+        public static Fixed64 Pow(Fixed64 b, int a)
+        {
+            if (b.RawValue == 0)
+                return Fixed64.Zero;
+
+            if (b.Abs().RawValue > Const.One)
+                return a > 0 ? PrivatePow(b, a) : PrivatePow(b, -a).Reciprocal();
+
+            return a > 0 ? PrivatePow(b.Reciprocal(), a).Reciprocal() : PrivatePow(b.RawValue, -a);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Fixed64 PrivatePow(Fixed64 b, int a)
+        {
+            if (b.RawValue == Const.One || a == 0)
+                return Fixed64.One;
+
+            if (a == 1)
+                return b;
+
+            var pow = PrivatePow(b, a >> 1);
+            return (a & 1) == 0 ? pow.Sqr() : b * pow.Sqr();
+        }
 
         /// <summary>
         /// 返回以2为底的对数

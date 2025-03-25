@@ -214,11 +214,7 @@ namespace Eevee.Fixed
         public static Vector4D operator *(in Vector4D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs, lhs.W * rhs);
         public static Vector4D operator *(Fixed64 lhs, in Vector4D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
         public static Vector4D operator *(long lhs, in Vector4D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z, lhs * rhs.W);
-        public static Vector4D operator /(in Vector4D lhs, Fixed64 rhs)
-        {
-            var reciprocal = rhs.Reciprocal();
-            return new Vector4D(lhs.X * reciprocal, lhs.Y * reciprocal, lhs.Z * reciprocal, lhs.W * reciprocal);
-        }
+        public static Vector4D operator /(in Vector4D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs); // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
         public static Vector4D operator /(in Vector4D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs, lhs.W / rhs);
 
         public static bool operator ==(in Vector4D lhs, in Vector4D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z && lhs.W == rhs.W;

@@ -180,8 +180,8 @@ namespace Eevee.Random
             var z = sqrt1 * Maths.Sin(rad1);
             var w = sqrt1 * Maths.Cos(rad1);
 
-            var scale = (x.Sqr() + y.Sqr() + z.Sqr() + w.Sqr()).Sqrt().Reciprocal();
-            return new Quaternion(x * scale, y * scale, z * scale, w * scale);
+            var magnitude = (x.Sqr() + y.Sqr() + z.Sqr() + w.Sqr()).Sqrt();
+            return new Quaternion(x / magnitude, y / magnitude, z / magnitude, w / magnitude); // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
         }
         #endregion
 

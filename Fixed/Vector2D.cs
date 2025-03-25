@@ -197,11 +197,7 @@ namespace Eevee.Fixed
         public static Vector2D operator *(in Vector2D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs);
         public static Vector2D operator *(Fixed64 lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
         public static Vector2D operator *(long lhs, in Vector2D rhs) => new(lhs * rhs.X, lhs * rhs.Y);
-        public static Vector2D operator /(in Vector2D lhs, Fixed64 rhs)
-        {
-            var reciprocal = rhs.Reciprocal();
-            return new Vector2D(lhs.X * reciprocal, lhs.Y * reciprocal);
-        }
+        public static Vector2D operator /(in Vector2D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs); // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
         public static Vector2D operator /(in Vector2D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs);
 
         public static bool operator ==(in Vector2D lhs, in Vector2D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y;

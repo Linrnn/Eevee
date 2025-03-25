@@ -243,11 +243,7 @@ namespace Eevee.Fixed
         public static Vector3D operator *(in Vector3D lhs, long rhs) => new(lhs.X * rhs, lhs.Y * rhs, lhs.Z * rhs);
         public static Vector3D operator *(Fixed64 lhs, in Vector3D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
         public static Vector3D operator *(long lhs, in Vector3D rhs) => new(lhs * rhs.X, lhs * rhs.Y, lhs * rhs.Z);
-        public static Vector3D operator /(in Vector3D lhs, Fixed64 rhs)
-        {
-            var reciprocal = rhs.Reciprocal();
-            return new Vector3D(lhs.X * reciprocal, lhs.Y * reciprocal, lhs.Z * reciprocal);
-        }
+        public static Vector3D operator /(in Vector3D lhs, Fixed64 rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs); // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
         public static Vector3D operator /(in Vector3D lhs, long rhs) => new(lhs.X / rhs, lhs.Y / rhs, lhs.Z / rhs);
 
         public static bool operator ==(in Vector3D lhs, in Vector3D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.Z == rhs.Z;
