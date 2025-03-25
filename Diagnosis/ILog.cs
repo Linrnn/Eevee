@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Eevee.Debug
+namespace Eevee.Diagnosis
 {
     public interface ILog
     {

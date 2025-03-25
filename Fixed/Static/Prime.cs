@@ -1,4 +1,4 @@
-﻿using Eevee.Debug;
+﻿using Eevee.Diagnosis;
 
 namespace Eevee.Fixed
 {

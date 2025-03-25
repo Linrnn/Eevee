@@ -1,5 +1,5 @@
-﻿using Eevee.Debug;
-using Eevee.Define;
+﻿using Eevee.Define;
+using Eevee.Diagnosis;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;

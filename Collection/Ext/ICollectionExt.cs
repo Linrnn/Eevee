@@ -1,4 +1,4 @@
-﻿using Eevee.Debug;
+﻿using Eevee.Diagnosis;
 using System.Collections.Generic;
 
 namespace Eevee.Collection

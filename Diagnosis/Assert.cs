@@ -2,7 +2,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Eevee.Debug
+namespace Eevee.Diagnosis
 {
     /// <summary>
     /// 断言

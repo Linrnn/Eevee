@@ -1,4 +1,4 @@
-﻿using Eevee.Debug;
+﻿using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System;
 using System.Collections;

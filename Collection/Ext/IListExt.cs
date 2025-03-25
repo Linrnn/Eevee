@@ -1,4 +1,4 @@
-﻿using Eevee.Debug;
+﻿using Eevee.Diagnosis;
 using Eevee.Random;
 using System.Collections.Generic;
 

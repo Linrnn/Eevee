@@ -1,6 +1,6 @@
 ﻿using Eevee.Collection;
-using Eevee.Debug;
 using Eevee.Define;
+using Eevee.Diagnosis;
 using Eevee.Pool;
 using System;
 using System.Collections.Generic;
