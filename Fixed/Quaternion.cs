@@ -119,7 +119,7 @@ namespace Eevee.Fixed
         #endregion
 
         #region 隐式转换/显示转换/运算符重载
-#if UNITY_STANDALONE
+#if UNITY_5_3_OR_NEWER
         public static implicit operator Quaternion(in UnityEngine.Quaternion value) => new(value.x, value.y, value.z, value.w);
         public static explicit operator UnityEngine.Quaternion(in Quaternion value) => new((float)value.X, (float)value.Y, (float)value.Z, (float)value.W);
 #endif

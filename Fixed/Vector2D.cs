@@ -177,7 +177,7 @@ namespace Eevee.Fixed
         #endregion
 
         #region 隐式转换/显示转换/运算符重载
-#if UNITY_STANDALONE
+#if UNITY_5_3_OR_NEWER
         public static implicit operator Vector2D(UnityEngine.Vector2 value) => new(value.x, value.y);
         public static explicit operator UnityEngine.Vector2(in Vector2D value) => new((float)value.X, (float)value.Y);
 

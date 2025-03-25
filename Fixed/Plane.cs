@@ -120,7 +120,7 @@ namespace Eevee.Fixed
         #endregion
 
         #region 隐式转换/显示转换/运算符重载
-#if UNITY_STANDALONE
+#if UNITY_5_3_OR_NEWER
         public static implicit operator Plane(in UnityEngine.Plane value) => new(value.normal, value.distance);
         public static explicit operator UnityEngine.Plane(in Plane value) => new((UnityEngine.Vector3)value.Normal, (float)value.Distance);
 #endif

@@ -1,4 +1,4 @@
-﻿#if UNITY_STANDALONE
+﻿#if UNITY_5_3_OR_NEWER
 using URandom = UnityEngine.Random;
 
 namespace Eevee.Random

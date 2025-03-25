@@ -9,7 +9,7 @@
         public const string Release = "RELEASE";
 
         public const string Editor = "UNITY_EDITOR";
-        public const string Standalone = "UNITY_STANDALONE";
+        public const string Runtime = "UNITY_5_3_OR_NEWER";
 
         public const string Assert = "EEVEE_ASSERT";
         public const string TryCatch = "EEVEE_TRY_CATCH";

@@ -220,7 +220,7 @@ namespace Eevee.Fixed
         #endregion
 
         #region 隐式转换/显示转换/运算符重载
-#if UNITY_STANDALONE
+#if UNITY_5_3_OR_NEWER
         public static implicit operator Vector3D(in UnityEngine.Vector3 value) => new(value.x, value.y, value.z);
         public static explicit operator UnityEngine.Vector3(in Vector3D value) => new((float)value.X, (float)value.Y, (float)value.Z);
 

@@ -71,7 +71,7 @@ namespace Eevee.Collection
         #region Field
         private const int DefaultCapacity = 4;
 
-#if UNITY_STANDALONE
+#if UNITY_5_3_OR_NEWER
         [UnityEngine.SerializeField] private T[] _items;
         [UnityEngine.SerializeField] private int _size;
 #else

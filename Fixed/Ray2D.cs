@@ -25,7 +25,7 @@ namespace Eevee.Fixed
         #endregion
 
         #region 隐式转换/显示转换/运算符重载
-#if UNITY_STANDALONE
+#if UNITY_5_3_OR_NEWER
         public static implicit operator Ray2D(in UnityEngine.Ray2D value) => new(value.origin, value.direction);
         public static explicit operator UnityEngine.Ray2D(in Ray2D value) => new((UnityEngine.Vector2)value.Origin, (UnityEngine.Vector2)value.Direction);
 #endif
