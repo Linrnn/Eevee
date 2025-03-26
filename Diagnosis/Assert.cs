@@ -14,7 +14,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsNull<TException, TArgs>(object obj, string paramName, string format, TArgs args = default)
+        internal static void Null<TException, TArgs>(object obj, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
@@ -24,7 +24,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsNotNull<TException, TArgs>(object obj, string paramName, string format, TArgs args = default)
+        internal static void NotNull<TException, TArgs>(object obj, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
@@ -37,7 +37,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsTrue<TException, TArgs>(bool condition, string paramName, string format, TArgs args = default)
+        internal static void True<TException, TArgs>(bool condition, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
@@ -47,7 +47,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsFalse<TException, TArgs>(bool condition, string paramName, string format, TArgs args = default)
+        internal static void False<TException, TArgs>(bool condition, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
@@ -60,7 +60,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsGreater<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+        internal static void Greater<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
             where TComparable : IComparable<TComparable>
@@ -71,7 +71,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsLess<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+        internal static void Less<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
             where TComparable : IComparable<TComparable>
@@ -83,7 +83,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsGreaterEqual<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+        internal static void GreaterEqual<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
             where TComparable : IComparable<TComparable>
@@ -94,7 +94,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsLessEqual<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
+        internal static void LessEqual<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
             where TComparable : IComparable<TComparable>
@@ -106,7 +106,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsEqual<TException, TArgs, TEquatable>(TEquatable lhs, TEquatable rhs, string paramName, string format, TArgs args = default)
+        internal static void Equal<TException, TArgs, TEquatable>(TEquatable lhs, TEquatable rhs, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
             where TEquatable : IEquatable<TEquatable>
@@ -117,7 +117,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void IsNotEqual<TException, TArgs, TEquatable>(TEquatable lhs, TEquatable rhs, string paramName, string format, TArgs args = default)
+        internal static void NotEqual<TException, TArgs, TEquatable>(TEquatable lhs, TEquatable rhs, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
             where TEquatable : IEquatable<TEquatable>

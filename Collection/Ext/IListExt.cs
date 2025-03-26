@@ -124,7 +124,7 @@ namespace Eevee.Collection
 
                 default:
                     int end = index + count;
-                    Assert.IsLessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "Reverse fail, index + count > length, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
+                    Assert.LessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "Reverse fail, index + count > length, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
                     for (int left = index, right = end - 1; left < right; ++left, --right)
                         (source[left], source[right]) = (source[right], source[left]);
                     break;
@@ -213,7 +213,7 @@ namespace Eevee.Collection
         public static void RemoveRange<T>(this IList<T> source, int index, int count)
         {
             int end = index + count;
-            Assert.IsLessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "RemoveRange fail, index + count > end, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
+            Assert.LessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "RemoveRange fail, index + count > end, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
             switch (source)
             {
                 case List<T> list: list.RemoveRange(index, count); break;

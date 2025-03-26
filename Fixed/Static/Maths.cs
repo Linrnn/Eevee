@@ -459,7 +459,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Log2(Fixed64 a)
         {
-            Assert.IsGreater<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<Fixed64>(a));
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<Fixed64>(a));
             long arv = a.RawValue;
             long y = 0;
             while (arv < Const.One)

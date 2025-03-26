@@ -11,46 +11,6 @@ namespace Eevee.Random
     public abstract class EasyRandom : IRandom
     {
         #region 接口实现
-        public virtual bool GetBoolean()
-        {
-            int value = GetInt(0, 2);
-            return Convert.ToBoolean(value);
-        }
-
-        public virtual sbyte GetSbyte(sbyte minInclusive, sbyte maxExclusive)
-        {
-            if (minInclusive == maxExclusive)
-                return minInclusive;
-
-            int value = GetInt(minInclusive, maxExclusive);
-            return (sbyte)value;
-        }
-        public virtual byte GetByte(byte minInclusive, byte maxExclusive)
-        {
-            if (minInclusive == maxExclusive)
-                return minInclusive;
-
-            int value = GetInt(minInclusive, maxExclusive);
-            return (byte)value;
-        }
-
-        public virtual short GetInt16(short minInclusive, short maxExclusive)
-        {
-            if (minInclusive == maxExclusive)
-                return minInclusive;
-
-            int value = GetInt(minInclusive, maxExclusive);
-            return (short)value;
-        }
-        public virtual ushort GetUInt16(ushort minInclusive, ushort maxExclusive)
-        {
-            if (minInclusive == maxExclusive)
-                return minInclusive;
-
-            int value = GetInt(minInclusive, maxExclusive);
-            return (ushort)value;
-        }
-
         public virtual int GetInt32(int minInclusive, int maxExclusive)
         {
             if (minInclusive == maxExclusive)
@@ -67,7 +27,6 @@ namespace Eevee.Random
             uint value = RandomUInt32(minInclusive, maxExclusive);
             return value;
         }
-
         public virtual long GetInt64(long minInclusive, long maxExclusive)
         {
             if (minInclusive == maxExclusive)
@@ -84,7 +43,6 @@ namespace Eevee.Random
             ulong value = RandomUInt64(minInclusive, maxExclusive);
             return value;
         }
-
         public virtual Fixed64 GetFixed64(Fixed64 minInclusive, Fixed64 maxExclusive)
         {
             if (minInclusive.RawValue == maxExclusive.RawValue)
@@ -92,21 +50,6 @@ namespace Eevee.Random
 
             long value = RandomInt64(minInclusive.RawValue, maxExclusive.RawValue);
             return new Fixed64(value);
-        }
-        public virtual Fixed64 GetFixed64()
-        {
-            var value = RandomFixed64(Fixed64.One);
-            return value;
-        }
-        public virtual Fixed64 GetRad()
-        {
-            var value = RandomFixed64(Maths.Rad360);
-            return value;
-        }
-        public virtual Fixed64 GetDeg()
-        {
-            var value = RandomFixed64(Maths.Deg360);
-            return value;
         }
 
         public virtual Vector2D GetVector2(in Vector2D p0, in Vector2D p1)
@@ -139,7 +82,6 @@ namespace Eevee.Random
             var range = RandomFixed64(radius);
             return circle * range;
         }
-
         public virtual Vector3D OnUnitSphere()
         {
             var rad360 = RandomFixed64(Maths.Rad360);
@@ -157,8 +99,8 @@ namespace Eevee.Random
             var y = RandomFixed64(radius);
             var z = RandomFixed64(radius);
             var r = RandomFixed64(radius);
-            var value = new Vector3D(x, y, z);
-            return value.ClampMagnitude(r);
+            var p = new Vector3D(x, y, z);
+            return p.ClampMagnitude(r.Cube().Sqrt());
         }
 
         public virtual Vector3D GetEulerAngles()
@@ -232,8 +174,8 @@ namespace Eevee.Random
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Fixed64 RandomFixed64(Fixed64 maxInclusive)
         {
-            Assert.IsGreaterEqual<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(maxInclusive, 0, nameof(maxInclusive), "Random fail, {0} < 0", new AssertArgs<Fixed64>(maxInclusive));
-            ulong value = RandomUInt64(Const.Zero, (ulong)maxInclusive.RawValue + 1);
+            Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(maxInclusive, 0, nameof(maxInclusive), "Random fail, {0} < 0", new AssertArgs<Fixed64>(maxInclusive));
+            ulong value = RandomUInt64(0, (ulong)maxInclusive.RawValue + 1);
             return new Fixed64((long)value);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

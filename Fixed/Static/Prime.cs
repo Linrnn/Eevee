@@ -45,7 +45,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int GetNumber(int min)
         {
-            Assert.IsGreaterEqual<ArgumentException, AssertArgs<int>, int>(min, 0, nameof(min), "获取质数传入参数错误：{0}<0", new AssertArgs<int>(min));
+            Assert.GreaterEqual<ArgumentException, AssertArgs<int>, int>(min, 0, nameof(min), "获取质数传入参数错误：{0}<0", new AssertArgs<int>(min));
             foreach (int prime in _primes)
                 if (prime >= min)
                     return prime;
@@ -62,7 +62,7 @@ namespace Eevee.Fixed
             int newSize = oldSize << 1;
             if (oldSize >= MaxPrimeArrayLength || (uint)newSize <= MaxPrimeArrayLength)
                 return GetNumber(newSize);
-            Assert.IsNotEqual<ArgumentException, AssertArgs, int>(MaxPrimeArrayLength, GetNumber(MaxPrimeArrayLength), nameof(MaxPrimeArrayLength), "Invalid MaxPrimeArrayLength");
+            Assert.NotEqual<ArgumentException, AssertArgs, int>(MaxPrimeArrayLength, GetNumber(MaxPrimeArrayLength), nameof(MaxPrimeArrayLength), "Invalid MaxPrimeArrayLength");
             return MaxPrimeArrayLength;
         }
     }
