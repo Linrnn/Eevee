@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace Eevee.Diagnosis
 {
     /// <summary>
-    /// 断言
+    /// 0GC断言
     /// </summary>
     internal readonly struct Assert
     {
@@ -123,6 +123,21 @@ namespace Eevee.Diagnosis
             where TEquatable : IEquatable<TEquatable>
         {
             if (lhs.Equals(rhs))
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
+        #endregion
+
+        #region (T), as T, is T
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void Convert<TException, TArgs, TConvert>(object obj , string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+        {
+            if (obj == null && typeof(TConvert).IsValueType)
+                ThrowException<TException, TArgs>(paramName, format, args);
+            if (obj != null && obj is not TConvert)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
         #endregion

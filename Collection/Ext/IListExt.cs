@@ -1,90 +1,115 @@
 ﻿using Eevee.Diagnosis;
 using Eevee.Random;
-using System;
 using System.Collections.Generic;
 
 namespace Eevee.Collection
 {
     public static class IListExt
     {
-        public static int? GetRandomIndex<T>(this IList<T> source, IRandom random)
+        public static T RandomGet<T>(this IList<T> source, IRandom random)
         {
-            if (source.IsNullOrEmpty())
-                return null;
-
-            int index = random.GetInt32(0, source.Count);
-            return index;
+            bool empty = source.IsNullOrEmpty();
+            int idx = empty ? -1 : random.GetInt32(0, source.Count);
+            return empty ? default : source[idx];
         }
-        public static T GetRandomItem<T>(this IList<T> source, IRandom random)
+        public static bool RandomGet<T>(this IList<T> source, IRandom random, out int index)
         {
-            if (source.IsNullOrEmpty())
-                return default;
-
-            int index = random.GetInt32(0, source.Count);
-            return source[index];
+            bool empty = source.IsNullOrEmpty();
+            index = empty ? -1 : random.GetInt32(0, source.Count);
+            return !empty;
         }
-        public static void GetRandomIndexAndItem<T>(this IList<T> source, IRandom random, out int? index, out T item)
+        public static bool RandomGet<T>(this IList<T> source, IRandom random, out int index, out T item)
         {
-            if (source.IsNullOrEmpty())
-            {
-                item = default;
-                index = null;
-                return;
-            }
-
-            int idx = random.GetInt32(0, source.Count);
-            index = idx;
-            item = source[idx];
+            bool empty = source.IsNullOrEmpty();
+            int idx = empty ? -1 : random.GetInt32(0, source.Count);
+            index = empty ? -1 : idx;
+            item = empty ? default : source[idx];
+            return !empty;
         }
 
-        public static int? LastIndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null)
+        public static int IndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null)
         {
-            return LastIndexOf(source, item, source.Count - 1, source.Count, comparer);
+            return IndexOf(source, item, 0, source.Count, comparer);
         }
-        public static int? LastIndexOf<T>(this IList<T> source, T item, int index, IEqualityComparer<T> comparer = null)
+        public static int IndexOf<T>(this IList<T> source, T item, int index, IEqualityComparer<T> comparer = null)
         {
-            return LastIndexOf(source, item, index, index + 1, comparer);
+            return IndexOf(source, item, index, source.Count - index, comparer);
         }
-        public static int? LastIndexOf<T>(this IList<T> source, T item, int index, int count, IEqualityComparer<T> comparer = null)
+        public static int IndexOf<T>(this IList<T> source, T item, int index, int count, IEqualityComparer<T> comparer = null)
         {
             switch (source)
             {
                 case List<T> list when comparer == null:
+                    int listIndex = list.IndexOf(item, index, count);
+                    return listIndex >= 0 ? listIndex : -1;
+
+                case WeakOrderList<T> weakOrderList when comparer == null:
+                    int weakListIndex = weakOrderList.IndexOf(item, index, count);
+                    return weakListIndex >= 0 ? weakListIndex : -1;
+
+                default:
+                    var equalityComparer = comparer ?? EqualityComparer<T>.Default;
+                    for (int end = index + count, i = index; i < end; ++i)
+                        if (equalityComparer.Equals(item, source[i]))
+                            return i;
+                    return -1;
+            }
+        }
+
+        public static int LastIndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null)
+        {
+            return LastIndexOf(source, item, source.Count - 1, source.Count, comparer);
+        }
+        public static int LastIndexOf<T>(this IList<T> source, T item, int index, IEqualityComparer<T> comparer = null)
+        {
+            return LastIndexOf(source, item, index, index + 1, comparer);
+        }
+        public static int LastIndexOf<T>(this IList<T> source, T item, int index, int count, IEqualityComparer<T> comparer = null)
+        {
+            if (source.Count == 0)
+                return -1;
+            switch (source)
+            {
+                case List<T> list when comparer == null:
                     int listIndex = list.LastIndexOf(item, index, count);
-                    return listIndex >= 0 ? listIndex : null;
+                    return listIndex >= 0 ? listIndex : -1;
 
                 case WeakOrderList<T> weakOrderList when comparer == null:
                     int weakListIndex = weakOrderList.LastIndexOf(item, index, count);
-                    return weakListIndex >= 0 ? weakListIndex : null;
+                    return weakListIndex >= 0 ? weakListIndex : -1;
 
                 default:
                     if (source.IsNullOrEmpty())
-                        return null;
-
+                        return -1;
                     var equalityComparer = comparer ?? EqualityComparer<T>.Default;
                     for (int i = index, end = index - count + 1; i >= end; --i)
                         if (equalityComparer.Equals(item, source[i]))
                             return i;
-
-                    return null;
+                    return -1;
             }
         }
 
-        public static int? BinarySearch<T>(this IList<T> source, T item, IComparer<T> comparer = null)
+        public static void GetRange<T>(this IList<T> source, int index, int count, ICollection<T> output)
+        {
+            for (int end = index + count, i = index; i < end; ++i)
+                output.Add(source[i]);
+        }
+
+        public static int BinarySearch<T>(this IList<T> source, T item, IComparer<T> comparer = null)
         {
             return BinarySearch(source, 0, source.Count, item, comparer);
         }
-        public static int? BinarySearch<T>(this IList<T> source, int index, int count, T item, IComparer<T> comparer = null)
+        public static int BinarySearch<T>(this IList<T> source, int index, int count, T item, IComparer<T> comparer = null)
         {
             switch (source)
             {
                 case List<T> list:
                     int listIndex = list.BinarySearch(index, count, item, comparer);
-                    return listIndex >= 0 ? listIndex : null;
+                    return listIndex >= 0 ? listIndex : -1;
 
                 case WeakOrderList<T> weakOrderList:
                     int weakListIndex = weakOrderList.BinarySearch(index, count, item, comparer);
-                    return weakListIndex >= 0 ? weakListIndex : null;
+                    return weakListIndex >= 0 ? weakListIndex : -1;
 
                 default:
                     var finalComparer = comparer ?? Comparer<T>.Default;
@@ -102,7 +127,7 @@ namespace Eevee.Collection
                             right = median - 1;
                     }
 
-                    return null;
+                    return -1;
             }
         }
 
@@ -123,9 +148,7 @@ namespace Eevee.Collection
                     return;
 
                 default:
-                    int end = index + count;
-                    Assert.LessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "Reverse fail, index + count > length, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
-                    for (int left = index, right = end - 1; left < right; ++left, --right)
+                    for (int end = index + count, left = index, right = end - 1; left < right; ++left, --right)
                         (source[left], source[right]) = (source[right], source[left]);
                     break;
             }
@@ -212,14 +235,12 @@ namespace Eevee.Collection
 
         public static void RemoveRange<T>(this IList<T> source, int index, int count)
         {
-            int end = index + count;
-            Assert.LessEqual<ArgumentOutOfRangeException, AssertArgs<int, int, int>, int>(end, source.Count, nameof(end), "RemoveRange fail, index + count > end, index:{0}, count:{1}, length:{2}", new AssertArgs<int, int, int>(index, count, source.Count));
             switch (source)
             {
                 case List<T> list: list.RemoveRange(index, count); break;
                 case WeakOrderList<T> weakOrderList: weakOrderList.RemoveRange(index, count); break;
                 default:
-                    for (int i = index, j = end; i < end && j <= count; ++i, ++j)
+                    for (int end = index + count, i = index, j = end; i < end && j <= count; ++i, ++j)
                         source[i] = source[j];
                     for (int i = 0; i < count; ++i)
                         RemoveLast(source);

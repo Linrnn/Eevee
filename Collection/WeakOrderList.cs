@@ -81,14 +81,8 @@ namespace Eevee.Collection
         #endregion
 
         #region Constructor
-        public WeakOrderList()
-        {
-            _items = Array.Empty<T>();
-        }
-        public WeakOrderList(int capacity)
-        {
-            _items = ArrayExt.Create<T>(capacity);
-        }
+        public WeakOrderList() => _items = Array.Empty<T>();
+        public WeakOrderList(int capacity) => _items = ArrayExt.Create<T>(capacity);
         public WeakOrderList(IEnumerable<T> enumerable)
         {
             if (enumerable is ICollection<T> collection)
@@ -197,7 +191,11 @@ namespace Eevee.Collection
         object IList.this[int index]
         {
             get => this[index];
-            set => this[index] = (T)value;
+            set
+            {
+                Assert.Convert<ArgumentException, AssertArgs<int, object>, T>(value, nameof(value), "this[].set fail, index:{0}, value:{1}", new AssertArgs<int, object>(index, value));
+                this[index] = (T)value;
+            }
         }
 
         bool IList.Contains(object value) => Contains((T)value);
@@ -205,10 +203,15 @@ namespace Eevee.Collection
 
         int IList.Add(object value)
         {
+            Assert.Convert<ArgumentException, AssertArgs<object>, T>(value, nameof(value), "this[].set fail, value:{0}", new AssertArgs<object>(value));
             Add((T)value);
             return _size - 1;
         }
-        void IList.Insert(int index, object value) => Insert(index, (T)value);
+        void IList.Insert(int index, object value)
+        {
+            Assert.Convert<ArgumentException, AssertArgs<int, object>, T>(value, nameof(value), "Insert fail, index:{0}, value:{1}", new AssertArgs<int, object>(index, value));
+            Insert(index, (T)value);
+        }
         void IList.Remove(object value) => Remove((T)value);
         #endregion
 
@@ -226,6 +229,7 @@ namespace Eevee.Collection
         #endregion
 
         #region Extractable
+        public int IndexOf(T item, int index, int count) => Array.IndexOf(_items, item, index, count);
         public int LastIndexOf(T item, int index, int count) => _size == 0 ? -1 : Array.LastIndexOf(_items, item, index, count);
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer = null) => Array.BinarySearch(_items, index, count, item, comparer);
 
