@@ -135,9 +135,10 @@ namespace Eevee.Diagnosis
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
-            if (obj == null && typeof(TConvert).IsValueType)
+            bool isValueType = typeof(TConvert).IsValueType;
+            if (isValueType && obj == null)
                 ThrowException<TException, TArgs>(paramName, format, args);
-            if (obj != null && obj is not TConvert)
+            if (!isValueType && obj != null && obj is not TConvert)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
         #endregion

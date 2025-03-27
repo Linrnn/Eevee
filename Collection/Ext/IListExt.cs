@@ -155,7 +155,7 @@ namespace Eevee.Collection
         }
 
         /// <summary>
-        /// foreach IEnumerable`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
         public static void InsertRange0GC<T>(this IList<T> source, int sourceIndex, IEnumerable<T> input)
         {

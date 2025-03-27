@@ -159,7 +159,8 @@ namespace Eevee.Event
                 else
                 {
                     bool success = Invoke(listener, context);
-                    Assert.True<Exception, AssertArgs<int, Type>>(success, null, "EventId:{0}, context isn't {1}", new AssertArgs<int, Type>(eventId, typeof(TContext)));
+                    if (!success)
+                        LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
                 }
             }
         }

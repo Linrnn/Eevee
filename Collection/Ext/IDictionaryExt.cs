@@ -5,7 +5,7 @@ namespace Eevee.Collection
     public static class IDictionaryExt
     {
         /// <summary>
-        /// foreach IDictionary`2.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
         public static void Update0GC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input)
         {
@@ -18,7 +18,7 @@ namespace Eevee.Collection
         }
 
         /// <summary>
-        /// foreach IDictionary`2.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
         public static void AddRange0GC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input)
         {

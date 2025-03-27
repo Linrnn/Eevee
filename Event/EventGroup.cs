@@ -154,7 +154,6 @@ namespace Eevee.Event
         private void Register(EventModule module, int eventId, Delegate listener)
         {
             ulong key = GetKey(module, listener);
-            Assert.False<ArgumentException, AssertArgs<int>>(_listeners.ContainsKey(key), nameof(eventId), "listener is exist, EventId:{0}", new AssertArgs<int>(eventId));
             _listeners.Add(key, new Wrapper(module, eventId, listener));
             module.Register(eventId, listener);
         }

@@ -10,7 +10,7 @@ namespace Eevee.Collection
         public static bool Has<T>(this IEnumerable<T> source, T item) => source.Contains(item);
 
         /// <summary>
-        /// foreach IEnumerable`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
         public static T GetFirst0GC<T>(this IEnumerable<T> source)
         {
@@ -55,7 +55,7 @@ namespace Eevee.Collection
         }
 
         /// <summary>
-        /// foreach IEnumerable`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
         public static T[] ToArray0GC<T>(this IEnumerable<T> source)
         {

@@ -5,7 +5,7 @@ namespace Eevee.Collection
     public static class ISetExt
     {
         /// <summary>
-        /// foreach ISet`1.GetEnumerator() 会引发GC，故封装 0GC 方法
+        /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
         public static void Union0GC<T>(this ISet<T> source, IEnumerable<T> input)
         {

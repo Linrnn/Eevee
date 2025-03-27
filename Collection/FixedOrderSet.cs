@@ -1,5 +1,4 @@
-﻿using Eevee.Diagnosis;
-using Eevee.Fixed;
+﻿using Eevee.Fixed;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -387,14 +386,12 @@ namespace Eevee.Collection
             _freeCount = 0;
             _freeIndex = -1;
 
-            Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<int>, int>(capacity, 0, nameof(capacity), "初始化长度错误：{0}", new AssertArgs<int>(capacity));
             if (capacity > 0)
                 Initialize(capacity);
             _orders = new List<T>(capacity);
         }
         public FixedOrderSet(IEnumerable<T> enumerator, IEqualityComparer<T> comparer)
         {
-            Assert.NotNull<ArgumentNullException, AssertArgs>(enumerator, nameof(enumerator), "初始化失败，enumerator不能为空！");
             _comparer = comparer ?? EqualityComparer<T>.Default;
             if (enumerator is FixedOrderSet<T> set && _comparer.Equals(set._comparer))
             {
@@ -453,7 +450,6 @@ namespace Eevee.Collection
             if (_count <= 0)
                 return;
 
-            Assert.NotNull<NullReferenceException, AssertArgs>(_buckets, nameof(_buckets), "_buckets is null!");
             for (int i = 0; i < _buckets.Length; i++)
                 _buckets[i] = -1;
 
@@ -477,11 +473,6 @@ namespace Eevee.Collection
         public void CopyTo(T[] array, int index) => CopyTo(array, index, Count);
         public void CopyTo(T[] array, int index, int length)
         {
-            Assert.NotNull<ArgumentNullException, AssertArgs>(array, nameof(array), "目标数组不能为空");
-            Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, nameof(index), "错误的位置编号：{0}，范围：[0, {1}])", new AssertArgs<int, int>(index, array.Length));
-            Assert.Less<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, array.Length, nameof(index), "错误的位置编号：{0}，范围：[0, {1}])", new AssertArgs<int, int>(index, array.Length));
-            Assert.GreaterEqual<ArgumentException, AssertArgs<int, int, int>, int>(length, 0, nameof(length), "长度不足，Length：{0}，Count：{2}，范围：[0, {1}]", new AssertArgs<int, int, int>(length, Count, array.Length - index));
-            Assert.LessEqual<ArgumentException, AssertArgs<int, int, int>, int>(length, array.Length - index, nameof(length), "长度不足，Length：{0}，Count：{2}，范围：[0, {1}]", new AssertArgs<int, int, int>(length, Count, array.Length - index));
             for (int i = 0, offset = 0; i < _count && offset < length; ++i)
                 array[index + offset++] = _orders[i];
         }

@@ -62,7 +62,6 @@ namespace Eevee.Fixed
             int newSize = oldSize << 1;
             if (oldSize >= MaxPrimeArrayLength || (uint)newSize <= MaxPrimeArrayLength)
                 return GetNumber(newSize);
-            Assert.NotEqual<ArgumentException, AssertArgs, int>(MaxPrimeArrayLength, GetNumber(MaxPrimeArrayLength), nameof(MaxPrimeArrayLength), "Invalid MaxPrimeArrayLength");
             return MaxPrimeArrayLength;
         }
     }

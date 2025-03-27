@@ -1,6 +1,4 @@
-﻿using Eevee.Diagnosis;
-using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -43,10 +41,12 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static long Count(long value) // 计算
         {
-            Assert.GreaterEqual<ArgumentException, AssertArgs<long>, long>(value, 0, nameof(value), "SquareRoot.Count()，value：{0}是负数，无法开方", new AssertArgs<long>(value));
-            return value <= int.MaxValue ? UseTable((int)value) : UseNewton(value);
+            if (value <= int.MaxValue)
+                return UseTable((int)value);
+            return UseNewton(value);
         }
 
+        #region Use
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long UseTable(int value) // 查表法
         {
@@ -132,7 +132,9 @@ namespace Eevee.Fixed
 
             return mid;
         }
+        #endregion
 
+        #region Bit From To
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static long BitFrom24To30(int x, byte i, byte o)
         {
@@ -154,5 +156,6 @@ namespace Eevee.Fixed
             long x0 = (_table[x >> i] >> o) + l;
             return x0 * x0 > x ? x0 - 1 : x0;
         }
+        #endregion
     }
 }
