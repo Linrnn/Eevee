@@ -27,14 +27,8 @@ namespace Eevee.Collection
             return !empty;
         }
 
-        public static int IndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null)
-        {
-            return IndexOf(source, item, 0, source.Count, comparer);
-        }
-        public static int IndexOf<T>(this IList<T> source, T item, int index, IEqualityComparer<T> comparer = null)
-        {
-            return IndexOf(source, item, index, source.Count - index, comparer);
-        }
+        public static int IndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null) => IndexOf(source, item, 0, source.Count, comparer);
+        public static int IndexOf<T>(this IList<T> source, T item, int index, IEqualityComparer<T> comparer = null) => IndexOf(source, item, index, source.Count - index, comparer);
         public static int IndexOf<T>(this IList<T> source, T item, int index, int count, IEqualityComparer<T> comparer = null)
         {
             switch (source)
@@ -49,25 +43,20 @@ namespace Eevee.Collection
 
                 default:
                     var equalityComparer = comparer ?? EqualityComparer<T>.Default;
-                    for (int end = index + count, i = index; i < end; ++i)
+                    for (int end = index + count + 1, i = index; i < end; ++i)
                         if (equalityComparer.Equals(item, source[i]))
                             return i;
                     return -1;
             }
         }
 
-        public static int LastIndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null)
-        {
-            return LastIndexOf(source, item, source.Count - 1, source.Count, comparer);
-        }
-        public static int LastIndexOf<T>(this IList<T> source, T item, int index, IEqualityComparer<T> comparer = null)
-        {
-            return LastIndexOf(source, item, index, index + 1, comparer);
-        }
+        public static int LastIndexOf<T>(this IList<T> source, T item, IEqualityComparer<T> comparer = null) => LastIndexOf(source, item, source.Count - 1, source.Count, comparer);
+        public static int LastIndexOf<T>(this IList<T> source, T item, int index, IEqualityComparer<T> comparer = null) => LastIndexOf(source, item, index, index + 1, comparer);
         public static int LastIndexOf<T>(this IList<T> source, T item, int index, int count, IEqualityComparer<T> comparer = null)
         {
             if (source.Count == 0)
                 return -1;
+
             switch (source)
             {
                 case List<T> list when comparer == null:
@@ -91,7 +80,7 @@ namespace Eevee.Collection
 
         public static void GetRange<T>(this IList<T> source, int index, int count, ICollection<T> output)
         {
-            for (int end = index + count, i = index; i < end; ++i)
+            for (int end = index + count + 1, i = index; i < end; ++i)
                 output.Add(source[i]);
         }
 
@@ -246,6 +235,17 @@ namespace Eevee.Collection
                         RemoveLast(source);
                     break;
             }
+        }
+
+        public static void SetAll<T>(this IList<T> source, T item)
+        {
+            for (int i = 0; i < source.Count; ++i)
+                source[i] = item;
+        }
+        public static void SetAll<T>(this IList<T> source, T item, int index, int count)
+        {
+            for (int end = index + count + 1, i = index; i < end; ++i)
+                source[i] = item;
         }
 
         public static void Sort<T>(this IList<T> source, IComparer<T> comparer = null) => Sort(source, 0, source.Count, comparer);

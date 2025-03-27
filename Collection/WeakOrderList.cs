@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
@@ -15,19 +16,18 @@ namespace Eevee.Collection
     public sealed class WeakOrderList<T> : IList<T>, IReadOnlyList<T>, IList
     {
         #region Type
-        [Serializable]
         public struct Enumerator : IEnumerator<T>
         {
-            private WeakOrderList<T> _list;
+            private readonly WeakOrderList<T> _list;
+            private readonly int _version;
             private int _index;
-            private int _version;
             private T _current;
 
             internal Enumerator(WeakOrderList<T> list)
             {
                 _list = list;
-                _index = 0;
                 _version = list._version;
+                _index = 0;
                 _current = default;
             }
 
@@ -39,8 +39,13 @@ namespace Eevee.Collection
             readonly object IEnumerator.Current => _current;
             public bool MoveNext()
             {
+                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, _list._version, nameof(_version), "MoveNext fail, _version:{0} != _list._version:{1}", new AssertArgs<int, int>(_version, _list._version));
                 if (_version != _list._version || _index >= _list._size)
-                    return MoveNextRare();
+                {
+                    _index = _list._size + 1;
+                    _current = default;
+                    return false;
+                }
 
                 _current = _list._items[_index];
                 ++_index;
@@ -56,17 +61,10 @@ namespace Eevee.Collection
             #region IDisposable
             public readonly void Dispose() { }
             #endregion
-
-            private bool MoveNextRare()
-            {
-                _index = _list._size + 1;
-                _current = default;
-                return false;
-            }
         }
         #endregion
 
-        #region Field
+        #region Field/Constructor
         private const int DefaultCapacity = 4;
 
 #if UNITY_5_3_OR_NEWER
@@ -77,9 +75,7 @@ namespace Eevee.Collection
         private int _size;
 #endif
         private int _version;
-        #endregion
 
-        #region Constructor
         public WeakOrderList() => _items = Array.Empty<T>();
         public WeakOrderList(int capacity) => _items = ArrayExt.Create<T>(capacity);
         public WeakOrderList(IEnumerable<T> enumerable)
@@ -106,15 +102,6 @@ namespace Eevee.Collection
         #endregion
 
         #region Property
-        public T this[int index]
-        {
-            get => _items[index];
-            set
-            {
-                _items[index] = value;
-                ++_version;
-            }
-        }
         public int Capacity
         {
             get => _items.Length;
@@ -123,6 +110,18 @@ namespace Eevee.Collection
         #endregion
 
         #region IList`1
+        public T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _items[index];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            set
+            {
+                _items[index] = value;
+                ++_version;
+            }
+        }
+
         public int IndexOf(T item) => Array.IndexOf(_items, item, 0, _size);
 
         public void Insert(int index, T item)
@@ -150,7 +149,11 @@ namespace Eevee.Collection
         #endregion
 
         #region ICollection`1
-        public int Count => _size;
+        public int Count
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _size;
+        }
         public bool IsReadOnly => false;
 
         public void Add(T item)
@@ -222,6 +225,7 @@ namespace Eevee.Collection
         public int IndexOf(T item, int index, int count) => Array.IndexOf(_items, item, index, count);
         public int LastIndexOf(T item, int index, int count) => _size == 0 ? -1 : Array.LastIndexOf(_items, item, index, count);
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer = null) => Array.BinarySearch(_items, index, count, item, comparer);
+        public void CopyTo(T[] array, int index, int length) => Array.Copy(_items, 0, array, index, length);
 
         public void InsertRange(int index, IEnumerable<T> enumerable)
         {
@@ -276,6 +280,7 @@ namespace Eevee.Collection
         #endregion
 
         #region private
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureCapacity(int capacity)
         {
             if (capacity <= _items.Length)
@@ -284,6 +289,7 @@ namespace Eevee.Collection
             int clamp = Math.Clamp(size, capacity, 2146435071);
             SetCapacity(clamp);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SetCapacity(int capacity)
         {
             if (capacity > _items.Length)

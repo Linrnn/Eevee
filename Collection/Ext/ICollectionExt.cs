@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
     public static class ICollectionExt
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsEmpty<T>(this ICollection<T> source) => source.Count == 0;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source == null || source.Count == 0;
 
         public static void Clean<T>(this ICollection<T> source) => source.Clear();
