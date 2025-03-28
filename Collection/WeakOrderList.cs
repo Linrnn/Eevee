@@ -102,14 +102,6 @@ namespace Eevee.Collection
         #endregion
 
         #region Property
-        public int Capacity
-        {
-            get => _items.Length;
-            set => SetCapacity(value);
-        }
-        #endregion
-
-        #region IList`1
         public T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -121,7 +113,14 @@ namespace Eevee.Collection
                 ++_version;
             }
         }
+        public int Capacity
+        {
+            get => _items.Length;
+            set => SetCapacity(value);
+        }
+        #endregion
 
+        #region IList`1
         public int IndexOf(T item) => Array.IndexOf(_items, item, 0, _size);
 
         public void Insert(int index, T item)
@@ -226,6 +225,7 @@ namespace Eevee.Collection
         public int LastIndexOf(T item, int index, int count) => _size == 0 ? -1 : Array.LastIndexOf(_items, item, index, count);
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer = null) => Array.BinarySearch(_items, index, count, item, comparer);
         public void CopyTo(T[] array, int index, int length) => Array.Copy(_items, 0, array, index, length);
+        public ReadOnlySpan<T> AsSpan() => new(_items, 0, _size);
 
         public void InsertRange(int index, IEnumerable<T> enumerable)
         {

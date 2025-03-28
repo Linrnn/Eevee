@@ -1,7 +1,6 @@
 ﻿using Eevee.Define;
 using Eevee.Diagnosis;
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
@@ -179,70 +178,37 @@ namespace Eevee.Fixed
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(string str, out Fixed64 result)
-        {
-            result = Zero;
-            if (string.IsNullOrWhiteSpace(str))
-                return false;
-
-            int length = str.Length;
-            int start = 0;
-            int end = length - 1;
-            while (start < length && char.IsWhiteSpace(str[start])) // 跳过前导空格
-                ++start;
-            while (end >= start && char.IsWhiteSpace(str[end])) // 跳过尾部空格
-                --end;
-            if (start > end) // 如果全是空格，返回 false
-                return false;
-
-            int i = start;
-            if (str[start] is '+' or '-') // 跳过正负号
-                ++i;
-
-            bool hasFractional = false;
-            int integerPart = 0;
-            int fractionalPart = 0;
-            int fractionalDivisor = 1;
-            for (; i < length; ++i)
-            {
-                char ch = str[i];
-                if (char.IsNumber(ch)) // 处理数字
-                {
-                    int digit = ch - '0';
-                    if (hasFractional)
-                    {
-                        fractionalPart = fractionalPart * 10 + digit;
-                        fractionalDivisor *= 10;
-                    }
-                    else
-                    {
-                        integerPart = integerPart * 10 + digit;
-                    }
-                }
-                else if (ch == '.' && !hasFractional) // 处理小数点
-                {
-                    hasFractional = true;
-                }
-                else
-                {
-                    return false; // 非法字符
-                }
-            }
-
-            if (str[start] == '-')
-                result = -integerPart - (Fixed64)fractionalPart / fractionalDivisor;
-            else
-                result = integerPart + (Fixed64)fractionalPart / fractionalDivisor;
-            return true;
-        }
+        public static bool TryParse(string str, out Fixed64 result) => TryParse(str.AsSpan(), out result);
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(IList<char> str, out Fixed64 result)
+        public static bool TryParse(string str, int start, out Fixed64 result) => TryParse(str.AsSpan(start), out result);
+        /// <summary>
+        /// 尝试解析，将字符串转成Fixed64
+        /// </summary>
+        public static bool TryParse(string str, int start, int count, out Fixed64 result) => TryParse(str.AsSpan(start, count), out result);
+        /// <summary>
+        /// 尝试解析，将字符串转成Fixed64
+        /// </summary>
+        public static bool TryParse(char[] str, out Fixed64 result) => TryParse(new ReadOnlySpan<char>(str), out result);
+        /// <summary>
+        /// 尝试解析，将字符串转成Fixed64
+        /// </summary>
+        public static bool TryParse(char[] str, int start, out Fixed64 result) => TryParse(new ReadOnlySpan<char>(str, start, str?.Length - start ?? 0), out result);
+        /// <summary>
+        /// 尝试解析，将字符串转成Fixed64
+        /// </summary>
+        public static bool TryParse(char[] str, int start, int count, out Fixed64 result) => TryParse(new ReadOnlySpan<char>(str, start, count), out result);
+        /// <summary>
+        /// 尝试解析，将字符串转成Fixed64
+        /// </summary>
+        public static bool TryParse(in ReadOnlySpan<char> str, out Fixed64 result)
         {
             result = Zero;
+            if (str.IsEmpty)
+                return false;
 
-            int length = str.Count;
+            int length = str.Length;
             int start = 0;
             int end = length - 1;
             while (start < length && char.IsWhiteSpace(str[start])) // 跳过前导空格

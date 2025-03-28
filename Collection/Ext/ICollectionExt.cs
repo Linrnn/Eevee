@@ -1,15 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
     public static class ICollectionExt
     {
+        public static bool IsEmpty(ICollection source) => source.Count == 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsEmpty<T>(this ICollection<T> source) => source.Count == 0;
 
+        public static bool IsNullOrEmpty(ICollection source) => source is not { Count: not 0 };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source == null || source.Count == 0;
+        public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source is not { Count: not 0 };
 
         public static void Clean<T>(this ICollection<T> source) => source.Clear();
 
@@ -55,14 +58,14 @@ namespace Eevee.Collection
 
             switch (input)
             {
-                case T[] array:
-                    foreach (var item in array)
-                        source.Add(item);
+                case IReadOnlyList<T> readOnlyList:
+                    for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
+                        source.Add(readOnlyList[i]);
                     break;
 
-                case List<T> list:
-                    foreach (var item in list)
-                        source.Add(item);
+                case IList<T> list:
+                    for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
+                        source.Add(list[i]);
                     break;
 
                 case Stack<T> stack:
@@ -82,16 +85,6 @@ namespace Eevee.Collection
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        source.Add(item);
-                    break;
-
-                case WeakOrderList<T> weakOrderList:
-                    foreach (var item in weakOrderList)
-                        source.Add(item);
-                    break;
-
-                case FixedOrderSet<T> fixedOrderSet:
-                    foreach (var item in fixedOrderSet)
                         source.Add(item);
                     break;
 
@@ -109,14 +102,14 @@ namespace Eevee.Collection
         {
             switch (input)
             {
-                case T[] array:
-                    foreach (var item in array)
-                        source.Remove(item);
+                case IReadOnlyList<T> readOnlyList:
+                    for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
+                        source.Remove(readOnlyList[i]);
                     break;
 
-                case List<T> list:
-                    foreach (var item in list)
-                        source.Remove(item);
+                case IList<T> list:
+                    for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
+                        source.Remove(list[i]);
                     break;
 
                 case Stack<T> stack:
@@ -136,16 +129,6 @@ namespace Eevee.Collection
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        source.Remove(item);
-                    break;
-
-                case WeakOrderList<T> weakOrderList:
-                    foreach (var item in weakOrderList)
-                        source.Remove(item);
-                    break;
-
-                case FixedOrderSet<T> fixedOrderSet:
-                    foreach (var item in fixedOrderSet)
                         source.Remove(item);
                     break;
 

@@ -170,14 +170,14 @@ namespace Eevee.Collection
             int index = sourceIndex;
             switch (input)
             {
-                case T[] array:
-                    foreach (var item in array)
-                        source.Insert(index++, item);
+                case IReadOnlyList<T> readOnlyList:
+                    for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
+                        source.Insert(index++, readOnlyList[i]);
                     break;
 
-                case List<T> list:
-                    foreach (var item in list)
-                        source.Insert(index++, item);
+                case IList<T> list:
+                    for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
+                        source.Insert(index++, list[i]);
                     break;
 
                 case Stack<T> stack:
@@ -197,16 +197,6 @@ namespace Eevee.Collection
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        source.Insert(index++, item);
-                    break;
-
-                case WeakOrderList<T> weakOrderList:
-                    foreach (var item in weakOrderList)
-                        source.Insert(index++, item);
-                    break;
-
-                case FixedOrderSet<T> fixedOrderSet:
-                    foreach (var item in fixedOrderSet)
                         source.Insert(index++, item);
                     break;
 

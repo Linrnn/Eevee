@@ -12,11 +12,16 @@ namespace Eevee.Collection
     /// <summary>
     /// 确定性顺序的集合
     /// </summary>
-    public sealed class FixedOrderSet<T> : ISet<T>, IReadOnlyCollection<T>, ISerializable, IDeserializationCallback
+    [Serializable]
+    public sealed class FixedOrderSet<T> : ISet<T>, IReadOnlyList<T>, ISerializable, IDeserializationCallback
     {
         #region Field/Constructor
         private readonly HashSet<T> _data;
+#if UNITY_5_3_OR_NEWER
+        [UnityEngine.SerializeField] private WeakOrderList<T> _order;
+#else
         private readonly WeakOrderList<T> _order;
+#endif
 
         public FixedOrderSet() : this(0, EqualityComparer<T>.Default) { }
         public FixedOrderSet(int capacity) : this(capacity, EqualityComparer<T>.Default) { }
@@ -32,10 +37,8 @@ namespace Eevee.Collection
             var set = new HashSet<T>(comparer);
             var list = new WeakOrderList<T>();
 
-            // ReSharper disable PossibleMultipleEnumeration
             set.UnionWith0GC(enumerator);
             list.AddRange0GC(enumerator);
-            // ReSharper restore PossibleMultipleEnumeration
 
             _data = set;
             _order = list;
@@ -55,35 +58,92 @@ namespace Eevee.Collection
         }
 
         /// <summary>
-        /// 合并另外一张Set的内容(并集)<br/>
-        /// “this”集合 与 “target”集合 的并集<br/>
-        /// this U target
+        /// 与目标的并集<br/>
+        /// “this”与“other”的并集<br/>
+        /// this U other
         /// </summary>
         public void UnionWith(IEnumerable<T> other) => this.UnionWith0GC(other);
         /// <summary>
-        /// 保留与指定对象的交集<br/>
-        /// “this”集合 与 “target”集合 的交集<br/>
-        /// this ∩ target
+        /// 与目标的交集<br/>
+        /// “this”与“other”的交集<br/>
+        /// this ∩ other
         /// </summary>
         public void IntersectWith(IEnumerable<T> other) => this.IntersectWith0GC(other);
         /// <summary>
-        /// 计算与指定对象的 差集<br/>
-        /// “this”集合 与 “target”集合补集 的交集<br/>
-        /// this ∩ ~target
+        /// 与目标的差集<br/>
+        /// “this”与“other”的补集 的交集<br/>
+        /// this ∩ ~other
         /// </summary>
         public void ExceptWith(IEnumerable<T> other) => this.ExceptWith0GC(other);
         /// <summary>
-        /// 计算与目标集合的异或结果<br/>
-        /// (“this”集合与“target”集合)的并集 与 (“this”集合与“target”集合)的交集的补集 的交集<br/>
-        /// (this U target) ∩ ~(this ∩ target)
+        /// 与目标的异或<br/>
+        /// (“this”与“other”)的并集 与 (“this”与“other”)的交集的补集 的交集<br/>
+        /// (this U other) ∩ ~(this ∩ other)
         /// </summary>
         public void SymmetricExceptWith(IEnumerable<T> other) => this.SymmetricExceptWith0GC(other);
+
+        /// <summary>
+        /// 是目标的子集<br/>
+        /// “this”是“other”的子集<br/>
+        /// this ⊆ other
+        /// </summary>
+        public bool IsSubsetOf(IEnumerable<T> other)
+        {
+            CheckCount();
+            return this.IsSubsetOf0GC(other);
+        }
+        /// <summary>
+        /// 是目标的超集（父集）
+        /// “this”是“other”的超集（父集）<br/>
+        /// this ⊇ other
+        /// </summary>
+        public bool IsSupersetOf(IEnumerable<T> other)
+        {
+            CheckCount();
+            return _data.IsSupersetOf0GC(_order);
+        }
+        /// <summary>
+        /// 是目标的真子集<br/>
+        /// “this”是“other”的真子集<br/>
+        /// this ⊊ other
+        /// </summary>
+        public bool IsProperSubsetOf(IEnumerable<T> other)
+        {
+            CheckCount();
+            return _data.IsProperSubsetOf0GC(_order);
+        }
+        /// <summary>
+        /// 是目标的真超集（父集）
+        /// “this”是“other”的真超集（真父集）<br/>
+        /// this ⊋ other
+        /// </summary>
+        public bool IsProperSupersetOf(IEnumerable<T> other)
+        {
+            CheckCount();
+            return _data.IsProperSupersetOf0GC(_order);
+        }
+
+        /// <summary>
+        /// 与目标重叠
+        /// </summary>
+        public bool Overlaps(IEnumerable<T> other)
+        {
+            CheckCount();
+            return _data.Overlaps0GC(_order);
+        }
+        /// <summary>
+        /// 与目标相同
+        /// </summary>
+        public bool SetEquals(IEnumerable<T> other)
+        {
+            CheckCount();
+            return _data.SetEquals0GC(_order);
+        }
         #endregion
 
         #region 显示接口实现
         bool ICollection<T>.IsReadOnly => false;
 
-        // ReSharper disable once AssignNullToNotNullAttribute
         void ICollection<T>.Add(T item) => Add(item);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -139,60 +199,6 @@ namespace Eevee.Collection
             CheckCount();
             return new WeakOrderList<T>.Enumerator(_order);
         }
-
-        /// <summary>
-        /// 判断是否为目标的 子集
-        /// </summary>
-        public bool IsSubsetOf(IEnumerable<T> other)
-        {
-            CheckCount();
-            return _data.IsSubsetOf(_order);
-        }
-
-        /// <summary>
-        /// 是否为目标的 真子集
-        /// </summary>
-        public bool IsProperSubsetOf(IEnumerable<T> other)
-        {
-            CheckCount();
-            return _data.IsProperSubsetOf(_order);
-        }
-
-        /// <summary>
-        /// 是否为目标的 超集(父集)
-        /// </summary>
-        public bool IsSupersetOf(IEnumerable<T> other)
-        {
-            CheckCount();
-            return _data.IsSupersetOf(_order);
-        }
-
-        /// <summary>
-        /// 是否为目标的 真超集
-        /// </summary>
-        public bool IsProperSupersetOf(IEnumerable<T> other)
-        {
-            CheckCount();
-            return _data.IsProperSupersetOf(_order);
-        }
-
-        /// <summary>
-        /// 判断是否有重叠元素
-        /// </summary>
-        public bool Overlaps(IEnumerable<T> other)
-        {
-            CheckCount();
-            return _data.Overlaps(_order);
-        }
-
-        /// <summary>
-        /// 判断是否与目标集合相同
-        /// </summary>
-        public bool SetEquals(IEnumerable<T> other)
-        {
-            CheckCount();
-            return _data.SetEquals(_order);
-        }
         #endregion
 
         [Conditional(Macro.Debug)]
@@ -207,6 +213,20 @@ namespace Eevee.Collection
         public void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             throw new NotImplementedException();
+        }
+        public T this[int index]
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                CheckCount();
+                return _order[index];
+            }
+        }
+        public ReadOnlySpan<T> AsSpan()
+        {
+            CheckCount();
+            return _order.AsSpan();
         }
     }
 }
