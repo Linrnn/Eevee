@@ -11,7 +11,16 @@ namespace Eevee.Collection
 
         public static T[] Create<T>(int count) => count <= 0 ? Array.Empty<T>() : new T[count];
 
-        public static T[] SharedRent<T>(int capacity) => ArrayPool<T>.Shared.Rent(capacity);
-        public static void SharedReturn<T>(this T[] source) => ArrayPool<T>.Shared.Return(source, true);
+        public static T[] SharedRent<T>(int capacity) => capacity > 0 ? ArrayPool<T>.Shared.Rent(capacity) : Array.Empty<T>();
+        public static void SharedReturn<T>(this T[] source)
+        {
+            if (source == null)
+                return;
+
+            if (ReferenceEquals(source, Array.Empty<T>()))
+                return;
+
+            ArrayPool<T>.Shared.Return(source, true);
+        }
     }
 }

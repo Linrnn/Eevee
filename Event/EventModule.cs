@@ -75,30 +75,6 @@ namespace Eevee.Event
             _listeners.Clear();
             _waitWrappers.Clear();
         }
-        /// <summary>
-        /// 移除空事件
-        /// </summary>
-        public void RemoveEmptyListener()
-        {
-            int keyCount = 0;
-            int[] keys = ArrayExt.SharedRent<int>(_listeners.Count);
-
-            foreach (var pair in _listeners)
-            {
-                if (!pair.Value.IsNullOrEmpty())
-                    continue;
-
-                keys[keyCount++] = pair.Key; // 记录需要移除的Key，避免在遍历过程中修改
-                RefArray.Return(pair.Value);
-            }
-
-            foreach (int key in keys.AsReadOnlySpan(0, keyCount))
-            {
-                _listeners.Remove(key);
-            }
-
-            keys.SharedReturn();
-        }
         #endregion
 
         #region 处理监听
@@ -122,10 +98,19 @@ namespace Eevee.Event
         internal void UnRegister(int eventId, Delegate listener)
         {
             if (!_listeners.TryGetValue(eventId, out var listeners))
+            {
                 return;
+            }
 
             RefArray.Remove(ref listeners, listener);
-            _listeners[eventId] = listeners;
+            if (listeners.Count > 0)
+            {
+                _listeners[eventId] = listeners;
+                return;
+            }
+
+            RefArray.Return(ref listeners);
+            _listeners.Remove(eventId);
         }
         #endregion
 
@@ -167,7 +152,7 @@ namespace Eevee.Event
 
             int listenersCount = listeners.Count;
             var newListeners = ArrayExt.SharedRent<Delegate>(listenersCount);
-            Array.Copy(listeners.Items, newListeners, listenersCount);
+            Array.Copy(listeners.Items, 0, newListeners, 0, listenersCount);
 
             foreach (var listener in newListeners.AsReadOnlySpan(0, listenersCount))
             {

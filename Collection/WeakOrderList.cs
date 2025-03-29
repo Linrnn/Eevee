@@ -68,7 +68,7 @@ namespace Eevee.Collection
         private const int DefaultCapacity = 4;
 
 #if UNITY_5_3_OR_NEWER
-        [UnityEngine.SerializeField] private T[] _items;
+        [UnityEngine.SerializeField] private T[] _items; // 无法接入“ArrayPool`1”，“_items”会被“Mono”序列化，无法归还“ArrayPool`1”
         [UnityEngine.SerializeField] private int _size;
 #else
         private T[] _items;
@@ -78,26 +78,17 @@ namespace Eevee.Collection
 
         public WeakOrderList() => _items = Array.Empty<T>();
         public WeakOrderList(int capacity) => _items = ArrayExt.Create<T>(capacity);
-        public WeakOrderList(IEnumerable<T> enumerable)
+        public WeakOrderList(IEnumerable<T> other)
         {
-            if (enumerable is ICollection<T> collection)
-            {
-                int count = collection.Count;
-                _items = ArrayExt.Create<T>(count);
+            bool hasCount = IEnumerableExt.TryGetNonEnumeratedCount<T>(other, out int count);
+            int capacity = hasCount ? count : DefaultCapacity;
+            _items = ArrayExt.Create<T>(capacity);
+            _size = Math.Max(count, 0);
 
-                if (count <= 0)
-                    return;
-
+            if (other is not ICollection<T> collection)
+                this.AddRange0GC(other);
+            else if (count > 0)
                 collection.CopyTo(_items, 0);
-                _size = count;
-            }
-            else
-            {
-                _size = 0;
-                _items = new T[DefaultCapacity];
-                foreach (var item in enumerable)
-                    Add(item);
-            }
         }
         #endregion
 
@@ -228,9 +219,9 @@ namespace Eevee.Collection
         public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsReadOnlySpan(0, _size);
         public Span<T> AsSpan() => _items.AsSpan(0, _size);
 
-        public void InsertRange(int index, IEnumerable<T> enumerable)
+        internal void InsertRange(int index, IEnumerable<T> other) // 调用“ICollectionExt.AddRange0GC”和“IListExt.InsertRange0GC”替代此接口
         {
-            if (enumerable is ICollection<T> collection)
+            if (other is ICollection<T> collection)
             {
                 int count = collection.Count;
                 if (count > 0)
@@ -246,7 +237,7 @@ namespace Eevee.Collection
             else
             {
                 int idx = index;
-                foreach (var item in enumerable)
+                foreach (var item in other)
                     Insert(idx++, item);
             }
 
@@ -295,10 +286,10 @@ namespace Eevee.Collection
         {
             if (capacity > _items.Length)
             {
-                var newArray = new T[capacity];
+                var items = ArrayExt.Create<T>(capacity);
                 if (_size > 0)
-                    Array.Copy(_items, 0, newArray, 0, _size);
-                _items = newArray;
+                    Array.Copy(_items, 0, items, 0, _size);
+                _items = items;
             }
 
             ++_version;

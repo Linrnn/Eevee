@@ -10,7 +10,7 @@ namespace Eevee.Collection
     {
         public static bool Has<T>(this IEnumerable<T> source, T item) => source.Contains(item);
 
-        public static bool TryGetNonEnumeratedCount<T>(object source, out int count)
+        internal static bool TryGetNonEnumeratedCount<T>(object source, out int count)
         {
             switch (source)
             {
@@ -31,7 +31,7 @@ namespace Eevee.Collection
                     return false;
             }
         }
-        public static bool TryGetEnumeratedCount<T>(object source, out int count)
+        internal static bool TryGetEnumeratedCount<T>(object source, out int count)
         {
             switch (source)
             {

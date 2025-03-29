@@ -13,7 +13,7 @@ namespace Eevee.Collection
 
         internal RefArray(int capacity = DefaultCapacity)
         {
-            Items = capacity > 0 ? ArrayExt.SharedRent<T>(capacity) : Array.Empty<T>();
+            Items = ArrayExt.SharedRent<T>(capacity);
             Count = capacity;
         }
         internal RefArray(T[] items)
@@ -48,7 +48,7 @@ namespace Eevee.Collection
             if (source.IsFull())
             {
                 opArray = ArrayExt.SharedRent<T>(source.Count > 0 ? source.Count << 1 : RefArray<T>.DefaultCapacity);
-                Array.Copy(source.Items, opArray, source.Count);
+                Array.Copy(source.Items, 0, opArray, 0, source.Count);
                 Return(ref source);
             }
 
@@ -73,16 +73,9 @@ namespace Eevee.Collection
             return true;
         }
 
-        internal static void Return<T>(RefArray<T> source)
-        {
-            if (!ReferenceEquals(source.Items, Array.Empty<T>()))
-                source.Items.SharedReturn();
-        }
+        internal static void Return<T>(RefArray<T> source) => source.Items.SharedReturn();
         internal static void Return<T>(ref RefArray<T> source)
         {
-            if (ReferenceEquals(source.Items, Array.Empty<T>()))
-                return;
-
             source.Items.SharedReturn();
             source = new RefArray<T>(null);
         }

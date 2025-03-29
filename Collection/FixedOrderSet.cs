@@ -24,24 +24,17 @@ namespace Eevee.Collection
 
         static FixedOrderSet() => Assert.Convert<ArgumentException, AssertArgs<object>, T, IEquatable<T>>(nameof(T), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(T)));
         public FixedOrderSet() : this(0, EqualityComparer<T>.Default) { }
-        public FixedOrderSet(int capacity) : this(capacity, EqualityComparer<T>.Default) { }
         public FixedOrderSet(IEqualityComparer<T> comparer) : this(0, comparer) { }
-        public FixedOrderSet(IEnumerable<T> enumerator) : this(enumerator, EqualityComparer<T>.Default) { }
-        public FixedOrderSet(int capacity, IEqualityComparer<T> comparer)
+        public FixedOrderSet(int capacity, IEqualityComparer<T> comparer = null)
         {
             _data = new HashSet<T>(capacity, comparer);
             _order = new WeakOrderList<T>(capacity);
         }
-        public FixedOrderSet(IEnumerable<T> enumerator, IEqualityComparer<T> comparer)
+        public FixedOrderSet(IEnumerable<T> other, IEqualityComparer<T> comparer = null)
         {
-            var set = new HashSet<T>(comparer);
-            var list = new WeakOrderList<T>();
-
-            set.UnionWith0GC(enumerator);
-            list.AddRange0GC(enumerator);
-
-            _data = set;
-            _order = list;
+            _data = new HashSet<T>(comparer);
+            _order = new WeakOrderList<T>();
+            this.UnionWith0GC(other);
         }
         #endregion
 
