@@ -127,7 +127,28 @@ namespace Eevee.Diagnosis
         }
         #endregion
 
-        #region (T), as T, is T
+        #region Reference, (T), as T, is T
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void ReferenceEquals<TException, TArgs>(object lhs, object rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+        {
+            if (!ReferenceEquals(lhs, rhs))
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void NotReferenceEquals<TException, TArgs>(object lhs, object rhs, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+        {
+            if (ReferenceEquals(lhs, rhs))
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
+
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
@@ -140,6 +161,29 @@ namespace Eevee.Diagnosis
                 ThrowException<TException, TArgs>(paramName, format, args);
             if (!isValueType && obj != null && obj is not TConvert)
                 ThrowException<TException, TArgs>(paramName, format, args);
+        }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void Convert<TException, TArgs, TParent, TChild>(string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+        {
+            var parentType = typeof(TParent);
+            if (parentType.IsEnum)
+                return;
+            if (parentType.IsClass)
+                return;
+            if (parentType.IsInterface)
+                return;
+
+            var childType = typeof(TChild);
+            if (childType.IsAssignableFrom(parentType))
+                return;
+            if (parentType.IsSubclassOf(childType))
+                return;
+
+            ThrowException<TException, TArgs>(paramName, format, args);
         }
         #endregion
 

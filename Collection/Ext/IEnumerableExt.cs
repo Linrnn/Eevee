@@ -103,27 +103,6 @@ namespace Eevee.Collection
             return default;
         }
 
-        /// <summary>
-        /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
-        /// </summary>
-        public static T[] ToArray0GC<T>(this IEnumerable<T> source)
-        {
-            switch (source)
-            {
-                case ICollection<T> collection:
-                    if (collection.IsNullOrEmpty())
-                        return Array.Empty<T>();
-
-                    var output = new T[collection.Count];
-                    collection.CopyTo(output, 0);
-                    return output;
-
-                case Stack<T> stack: return stack.ToArray();
-                case Queue<T> queue: return queue.ToArray();
-                default: return source.ToArray(); // 存在GC，慎重调用
-            }
-        }
-
         public static string JoinString<T>(this IEnumerable<T> source) => $"[{LogString(source)}]";
         public static string LogString<T>(this IEnumerable<T> source, char separator = ',') => string.Join(separator, source);
     }

@@ -1,6 +1,7 @@
 ﻿using Eevee.Diagnosis;
 using Eevee.Random;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
@@ -167,42 +168,42 @@ namespace Eevee.Collection
                 }
             }
 
-            int index = sourceIndex;
+            int sourceCount = sourceIndex;
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
-                        source.Insert(index++, readOnlyList[i]);
+                        InsertItem(source, readOnlyList[i], ref sourceCount);
                     break;
 
                 case IList<T> list:
                     for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
-                        source.Insert(index++, list[i]);
+                        InsertItem(source, list[i], ref sourceCount);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        source.Insert(index++, item);
+                        InsertItem(source, item, ref sourceCount);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        source.Insert(index++, item);
+                        InsertItem(source, item, ref sourceCount);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        source.Insert(index++, item);
+                        InsertItem(source, item, ref sourceCount);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        source.Insert(index++, item);
+                        InsertItem(source, item, ref sourceCount);
                     break;
 
                 default: // 存在GC，慎重调用
                     foreach (var item in input)
-                        source.Insert(index++, item);
+                        InsertItem(source, item, ref sourceCount);
                     break;
             }
         }
@@ -248,5 +249,8 @@ namespace Eevee.Collection
                 default: LogRelay.Error("[Collection] Sort() 未实现"); break;
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void InsertItem<T>(IList<T> source, T item, ref int length) => source.Insert(length++, item);
     }
 }

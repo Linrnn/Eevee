@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
@@ -10,10 +11,8 @@ namespace Eevee.Collection
         public static void Update0GC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input)
         {
             source.Clear();
-
             if (input == null)
                 return;
-
             AddRange0GC(source, input);
         }
 
@@ -29,19 +28,22 @@ namespace Eevee.Collection
             {
                 case Dictionary<TKey, TValue> dictionary:
                     foreach (var pair in dictionary)
-                        source[pair.Key] = pair.Value;
+                        SetItem(source, in pair);
                     break;
 
                 case SortedDictionary<TKey, TValue> sortedDictionary:
                     foreach (var pair in sortedDictionary)
-                        source[pair.Key] = pair.Value;
+                        SetItem(source, in pair);
                     break;
 
                 default: // 存在GC，慎重调用
                     foreach (var pair in input)
-                        source[pair.Key] = pair.Value;
+                        SetItem(source, in pair);
                     break;
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void SetItem<TKey, TValue>(IDictionary<TKey, TValue> source, in KeyValuePair<TKey, TValue> pair) => source[pair.Key] = pair.Value;
     }
 }

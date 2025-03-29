@@ -23,6 +23,7 @@ namespace Eevee.Collection
         private readonly WeakOrderList<T> _order;
 #endif
 
+        static FixedOrderSet() => Assert.Convert<ArgumentException, AssertArgs<object>, T, IEquatable<T>>(nameof(T), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(T)));
         public FixedOrderSet() : this(0, EqualityComparer<T>.Default) { }
         public FixedOrderSet(int capacity) : this(capacity, EqualityComparer<T>.Default) { }
         public FixedOrderSet(IEqualityComparer<T> comparer) : this(0, comparer) { }

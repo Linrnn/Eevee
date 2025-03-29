@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using Eevee.Diagnosis;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -14,7 +16,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source is not { Count: not 0 };
 
-        public static void Clean<T>(this ICollection<T> source) => source.Clear();
+        public static void CleanAll<T>(this ICollection<T> source) => source.Clear();
 
         public static void Update<T>(this ICollection<T> source, IList<T> input, int inputIndex, int inputCount)
         {
@@ -56,41 +58,42 @@ namespace Eevee.Collection
                 }
             }
 
+            Assert.NotReferenceEquals<InvalidOperationException, AssertArgs>(source, input, nameof(input), "source is reference equals input");
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
-                        source.Add(readOnlyList[i]);
+                        AddItem(source, readOnlyList[i]);
                     break;
 
                 case IList<T> list:
                     for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
-                        source.Add(list[i]);
+                        AddItem(source, list[i]);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        source.Add(item);
+                        AddItem(source, item);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        source.Add(item);
+                        AddItem(source, item);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        source.Add(item);
+                        AddItem(source, item);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        source.Add(item);
+                        AddItem(source, item);
                     break;
 
                 default: // 存在GC，慎重调用
                     foreach (var item in input)
-                        source.Add(item);
+                        AddItem(source, item);
                     break;
             }
         }
@@ -100,43 +103,59 @@ namespace Eevee.Collection
         /// </summary>
         public static void RemoveRange0GC<T>(this ICollection<T> source, in IEnumerable<T> input)
         {
+            if (source.Count == 0)
+            {
+                return;
+            }
+
+            if (ReferenceEquals(source, input))
+            {
+                source.Clear();
+                return;
+            }
+
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
-                        source.Remove(readOnlyList[i]);
+                        RemoveItem(source, readOnlyList[i]);
                     break;
 
                 case IList<T> list:
                     for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
-                        source.Remove(list[i]);
+                        RemoveItem(source, list[i]);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        source.Remove(item);
+                        RemoveItem(source, item);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        source.Remove(item);
+                        RemoveItem(source, item);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        source.Remove(item);
+                        RemoveItem(source, item);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        source.Remove(item);
+                        RemoveItem(source, item);
                     break;
 
                 default: // 存在GC，慎重调用
                     foreach (var item in input)
-                        source.Remove(item);
+                        RemoveItem(source, item);
                     break;
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AddItem<T>(ICollection<T> source, T item) => source.Add(item);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void RemoveItem<T>(ICollection<T> source, T item) => source.Remove(item);
     }
 }
