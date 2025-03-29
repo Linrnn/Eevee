@@ -39,11 +39,8 @@ namespace Eevee.Event
         #endregion
 
         #region 字段
-        // todo Eevee _listeners，_waitWrappers，_invokeWrappers 未接入 EPool
-        // todo Eevee _listeners 未接入 FixedDictionary
-        private readonly Dictionary<int, List<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为listener需要有序性
+        private readonly Dictionary<int, RefArray<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为listener需要有序性
         private readonly List<Wrapper> _waitWrappers = new(32); // 等待执行的事件
-        private readonly List<Wrapper> _invokeWrappers = new(32); // 执行中的事件
         #endregion
 
         #region 生命周期，需要外部调用
@@ -52,16 +49,17 @@ namespace Eevee.Event
         /// </summary>
         public void Update()
         {
-            if (_waitWrappers.Count == 0)
+            int waitWrapperCount = _waitWrappers.Count;
+            if (waitWrapperCount == 0)
                 return;
 
-            _invokeWrappers.Update0GC(_waitWrappers); // 中转一层 _invokeWrappers，可以防止 Dispatch 的过程中，_waitWrappers 被添加
-            _waitWrappers.Clear();
+            var invokeWrappers = ArrayExt.SharedRent<Wrapper>(waitWrapperCount);
+            _waitWrappers.CopyTo(invokeWrappers); // 中转一层“invokeWrappers”，可以防止“Dispatch”的过程中，修改“_waitWrappers”
+            _waitWrappers.Clear(); // “Dispatch”前移除，“Dispatch”过程中可能会修改“_waitWrappers”
 
-            foreach (var wrapper in _invokeWrappers)
-                Invokes(wrapper.EventId, wrapper.Context, true);
-
-            _invokeWrappers.Clear(); // Wrapper.Context 是引用类型，不Clear会导致 _invokeWrappers 一直持有 Context
+            for (int i = 0; i < waitWrapperCount; ++i)
+                Invokes(invokeWrappers[i].EventId, invokeWrappers[i].Context, true);
+            invokeWrappers.SharedReturn();
         }
         /// <summary>
         /// 生命周期，需要外部调用
@@ -72,11 +70,34 @@ namespace Eevee.Event
                 LogRelay.Warn($"[Event] Listeners.Count is {_listeners.Count}, need clear!");
 
             foreach (var pair in _listeners)
-                pair.Value.Clear();
+                RefArray.Return(pair.Value);
 
             _listeners.Clear();
             _waitWrappers.Clear();
-            _invokeWrappers.Clear();
+        }
+        /// <summary>
+        /// 移除空事件
+        /// </summary>
+        public void RemoveEmptyListener()
+        {
+            int keyCount = 0;
+            int[] keys = ArrayExt.SharedRent<int>(_listeners.Count);
+
+            foreach (var pair in _listeners)
+            {
+                if (!pair.Value.IsNullOrEmpty())
+                    continue;
+
+                keys[keyCount++] = pair.Key; // 记录需要移除的Key，避免在遍历过程中修改
+                RefArray.Return(pair.Value);
+            }
+
+            foreach (int key in keys.AsReadOnlySpan(0, keyCount))
+            {
+                _listeners.Remove(key);
+            }
+
+            keys.SharedReturn();
         }
         #endregion
 
@@ -87,18 +108,24 @@ namespace Eevee.Event
         internal void Register(int eventId, Delegate listener)
         {
             if (!_listeners.TryGetValue(eventId, out var listeners))
-                _listeners.Add(eventId, listeners = new List<Delegate>());
+                _listeners.Add(eventId, listeners = new RefArray<Delegate>(null));
 
-            if (!listeners.Contains(listener))
-                listeners.Add(listener);
+            if (listeners.Contains(listener))
+                return;
+
+            RefArray.Add(ref listeners, listener);
+            _listeners[eventId] = listeners;
         }
         /// <summary>
         /// 移除监听
         /// </summary>
         internal void UnRegister(int eventId, Delegate listener)
         {
-            if (_listeners.TryGetValue(eventId, out var listeners))
-                listeners.Remove(listener);
+            if (!_listeners.TryGetValue(eventId, out var listeners))
+                return;
+
+            RefArray.Remove(ref listeners, listener);
+            _listeners[eventId] = listeners;
         }
         #endregion
 
@@ -138,8 +165,11 @@ namespace Eevee.Event
             if (!_listeners.TryGetValue(eventId, out var listeners))
                 return;
 
-            // todo Eevee 需要拷贝listeners
-            foreach (var listener in listeners)
+            int listenersCount = listeners.Count;
+            var newListeners = ArrayExt.SharedRent<Delegate>(listenersCount);
+            Array.Copy(listeners.Items, newListeners, listenersCount);
+
+            foreach (var listener in newListeners.AsReadOnlySpan(0, listenersCount))
             {
                 if (Macro.HasTryCatch)
                 {
@@ -163,6 +193,8 @@ namespace Eevee.Event
                         LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
                 }
             }
+
+            newListeners.SharedReturn();
         }
         private bool Invoke<TContext>(Delegate listener, TContext context) where TContext : IEventContext
         {

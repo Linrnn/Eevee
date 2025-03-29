@@ -34,17 +34,11 @@ namespace Eevee.Collection
         {
             switch (source)
             {
-                case List<T> list when comparer == null:
-                    int listIndex = list.IndexOf(item, index, count);
-                    return listIndex >= 0 ? listIndex : -1;
-
-                case WeakOrderList<T> weakOrderList when comparer == null:
-                    int weakListIndex = weakOrderList.IndexOf(item, index, count);
-                    return weakListIndex >= 0 ? weakListIndex : -1;
-
+                case List<T> list when comparer == null: return list.IndexOf(item, index, count);
+                case WeakOrderList<T> weakOrderList when comparer == null: return weakOrderList.IndexOf(item, index, count);
                 default:
                     var equalityComparer = comparer ?? EqualityComparer<T>.Default;
-                    for (int end = index + count + 1, i = index; i < end; ++i)
+                    for (int end = index + count, i = index; i < end; ++i)
                         if (equalityComparer.Equals(item, source[i]))
                             return i;
                     return -1;
@@ -60,14 +54,8 @@ namespace Eevee.Collection
 
             switch (source)
             {
-                case List<T> list when comparer == null:
-                    int listIndex = list.LastIndexOf(item, index, count);
-                    return listIndex >= 0 ? listIndex : -1;
-
-                case WeakOrderList<T> weakOrderList when comparer == null:
-                    int weakListIndex = weakOrderList.LastIndexOf(item, index, count);
-                    return weakListIndex >= 0 ? weakListIndex : -1;
-
+                case List<T> list when comparer == null: return list.LastIndexOf(item, index, count);
+                case WeakOrderList<T> weakOrderList when comparer == null: return weakOrderList.LastIndexOf(item, index, count);
                 default:
                     if (source.IsNullOrEmpty())
                         return -1;
@@ -251,6 +239,6 @@ namespace Eevee.Collection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void InsertItem<T>(IList<T> source, T item, ref int length) => source.Insert(length++, item);
+        private static void InsertItem<T>(IList<T> source, T item, ref int index) => source.Insert(index++, item);
     }
 }

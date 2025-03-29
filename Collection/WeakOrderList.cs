@@ -8,9 +8,9 @@ namespace Eevee.Collection
 {
     /// <summary>
     /// 弱顺序列表<br/>
-    /// 特色：插入被挤占的元素会挪至最后；最后的元素会往Remove的位置填充<br/>
-    /// 优点：规避 Insert()，Remove() 引发的数组偏移，从而减少耗时<br/>
-    /// 缺点：Insert()，Remove() 会打乱元素的相对位置
+    /// 特点：插入被挤占的元素会挪至最后；最后的元素会往“Remove”的位置填充<br/>
+    /// 优点：规避“Insert”，“Remove”引发的数组偏移，从而减少耗时<br/>
+    /// 缺点：“Insert”，“Remove”会打乱元素的相对位置
     /// </summary>
     [Serializable]
     public sealed class WeakOrderList<T> : IList<T>, IReadOnlyList<T>, IList
@@ -215,7 +215,7 @@ namespace Eevee.Collection
         #endregion
 
         #region Enumerator
-        public Enumerator GetEnumerator() => new(this);
+        public ReadOnlySpan<T>.Enumerator GetEnumerator() => AsReadOnlySpan().GetEnumerator();
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
         #endregion
@@ -225,7 +225,8 @@ namespace Eevee.Collection
         public int LastIndexOf(T item, int index, int count) => _size == 0 ? -1 : Array.LastIndexOf(_items, item, index, count);
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer = null) => Array.BinarySearch(_items, index, count, item, comparer);
         public void CopyTo(T[] array, int index, int length) => Array.Copy(_items, 0, array, index, length);
-        public ReadOnlySpan<T> AsSpan() => new(_items, 0, _size);
+        public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsReadOnlySpan(0, _size);
+        public Span<T> AsSpan() => _items.AsSpan(0, _size);
 
         public void InsertRange(int index, IEnumerable<T> enumerable)
         {

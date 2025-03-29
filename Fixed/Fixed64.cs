@@ -1,4 +1,5 @@
-﻿using Eevee.Define;
+﻿using Eevee.Collection;
+using Eevee.Define;
 using Eevee.Diagnosis;
 using System;
 using System.Runtime.CompilerServices;
@@ -190,15 +191,15 @@ namespace Eevee.Fixed
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(char[] str, out Fixed64 result) => TryParse(new ReadOnlySpan<char>(str), out result);
+        public static bool TryParse(char[] str, out Fixed64 result) => TryParse(str.AsReadOnlySpan(), out result);
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(char[] str, int start, out Fixed64 result) => TryParse(new ReadOnlySpan<char>(str, start, str?.Length - start ?? 0), out result);
+        public static bool TryParse(char[] str, int start, out Fixed64 result) => TryParse(str.AsReadOnlySpan(start, str?.Length - start ?? 0), out result);
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(char[] str, int start, int count, out Fixed64 result) => TryParse(new ReadOnlySpan<char>(str, start, count), out result);
+        public static bool TryParse(char[] str, int start, int count, out Fixed64 result) => TryParse(str.AsReadOnlySpan(start, count), out result);
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>

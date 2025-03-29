@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -38,11 +38,15 @@ namespace Eevee.Collection
                 IEnumerableExt.TryGetEnumeratedCount<T>(input, out inputCount);
             }
 
-            var intersects = ArrayPool<T>.Shared.Rent(inputCount);
-            FillIntersect(source, input, inputCount, intersects);
+            var intersects = ArrayExt.SharedRent<T>(inputCount);
+            var intersectSpan = intersects.AsSpan(0, inputCount);
+
+            FillIntersect(source, input, inputCount, in intersectSpan);
             source.Clear();
-            source.AddRange0GC(intersects);
-            ArrayPool<T>.Shared.Return(intersects, true);
+            foreach (var item in intersectSpan)
+                source.Add(item);
+
+            intersects.SharedReturn();
         }
         /// <summary>
         /// source ∩ ~input<br/>
@@ -78,11 +82,15 @@ namespace Eevee.Collection
                 IEnumerableExt.TryGetEnumeratedCount<T>(input, out inputCount);
             }
 
-            var intersects = ArrayPool<T>.Shared.Rent(inputCount);
-            FillIntersect(source, input, inputCount, intersects);
+            var intersects = ArrayExt.SharedRent<T>(inputCount);
+            var intersectSpan = intersects.AsSpan(0, inputCount);
+
+            FillIntersect(source, input, inputCount, in intersectSpan);
             source.UnionWith0GC(input);
-            source.RemoveRange0GC(intersects);
-            ArrayPool<T>.Shared.Return(intersects, true);
+            foreach (var item in intersectSpan)
+                source.Remove(item);
+
+            intersects.SharedReturn();
         }
 
         /// <summary>
@@ -208,52 +216,52 @@ namespace Eevee.Collection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void FillIntersect<T>(ICollection<T> source, IEnumerable<T> input, int inputCount, IList<T> intersects)
+        private static void FillIntersect<T>(ICollection<T> source, IEnumerable<T> input, int inputCount, in Span<T> intersects)
         {
             int intersectCount = 0;
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int i = 0; i < inputCount; ++i)
-                        FillItem(source, readOnlyList[i], intersects, ref intersectCount);
+                        FillItem(source, readOnlyList[i], in intersects, ref intersectCount);
                     break;
 
                 case IList<T> list:
                     for (int i = 0; i < inputCount; ++i)
-                        FillItem(source, list[i], intersects, ref intersectCount);
+                        FillItem(source, list[i], in intersects, ref intersectCount);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        FillItem(source, item, intersects, ref intersectCount);
+                        FillItem(source, item, in intersects, ref intersectCount);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        FillItem(source, item, intersects, ref intersectCount);
+                        FillItem(source, item, in intersects, ref intersectCount);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        FillItem(source, item, intersects, ref intersectCount);
+                        FillItem(source, item, in intersects, ref intersectCount);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        FillItem(source, item, intersects, ref intersectCount);
+                        FillItem(source, item, in intersects, ref intersectCount);
                     break;
 
                 default: // 存在GC，慎重调用
                     foreach (var item in input)
-                        FillItem(source, item, intersects, ref intersectCount);
+                        FillItem(source, item, in intersects, ref intersectCount);
                     break;
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void FillItem<T>(ICollection<T> source, T item, IList<T> array, ref int length)
+        private static void FillItem<T>(ICollection<T> source, T item, in Span<T> array, ref int index)
         {
             if (source.Contains(item))
-                array[length++] = item;
+                array[index++] = item;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

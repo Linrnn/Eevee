@@ -202,13 +202,21 @@ namespace Eevee.Collection
         #endregion
 
         #region Enumerator
-        public WeakOrderList<T>.Enumerator GetEnumerator()
+        public ReadOnlySpan<T>.Enumerator GetEnumerator()
         {
             CheckCount();
-            return new WeakOrderList<T>.Enumerator(_order);
+            return _order.GetEnumerator();
         }
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            CheckCount();
+            return ((IEnumerable<T>)_order).GetEnumerator();
+        }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            CheckCount();
+            return ((IEnumerable)_order).GetEnumerator();
+        }
         #endregion
 
         #region Extractable
@@ -220,7 +228,7 @@ namespace Eevee.Collection
         public ReadOnlySpan<T> AsSpan()
         {
             CheckCount();
-            return _order.AsSpan();
+            return _order.AsReadOnlySpan();
         }
         #endregion
 
