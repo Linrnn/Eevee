@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 
 namespace Eevee.Collection
 {
@@ -13,7 +12,7 @@ namespace Eevee.Collection
     /// 确定性顺序的集合
     /// </summary>
     [Serializable]
-    public sealed class FixedOrderSet<T> : ISet<T>, IReadOnlyList<T>, ISerializable, IDeserializationCallback
+    public sealed class FixedOrderSet<T> : ISet<T>, IReadOnlyList<T>, ICollection
     {
         #region Field/Constructor
         private readonly HashSet<T> _data;
@@ -142,16 +141,7 @@ namespace Eevee.Collection
         }
         #endregion
 
-        #region 显示接口实现
-        bool ICollection<T>.IsReadOnly => false;
-
-        void ICollection<T>.Add(T item) => Add(item);
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
-        #endregion
-
-        #region 公有属性/方法
+        #region ICollection`1
         public int Count
         {
             get
@@ -160,7 +150,9 @@ namespace Eevee.Collection
                 return _data.Count;
             }
         }
+        public bool IsReadOnly => false;
 
+        void ICollection<T>.Add(T item) => Add(item);
         public bool Remove(T item)
         {
             CheckCount();
@@ -183,38 +175,14 @@ namespace Eevee.Collection
             CheckCount();
             return _data.Contains(item);
         }
-
-        public void CopyTo(T[] array, int index = 0)
+        public void CopyTo(T[] array, int index, int arrayIndex)
         {
             CheckCount();
-            _order.CopyTo(array, index);
-        }
-        public void CopyTo(T[] array, int index, int length)
-        {
-            CheckCount();
-            _order.CopyTo(array, index, length);
-        }
-
-        public WeakOrderList<T>.Enumerator GetEnumerator()
-        {
-            CheckCount();
-            return new WeakOrderList<T>.Enumerator(_order);
+            _order.CopyTo(array, index, arrayIndex);
         }
         #endregion
 
-        [Conditional(Macro.Debug)]
-        [Conditional(Macro.Editor)]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CheckCount() => Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_data.Count, _order.Count, "Count", "Count fail, _data.Count:{0} != _order.Count:{1}", new AssertArgs<int, int>(_data.Count, _order.Count));
-
-        public void OnDeserialization(object sender)
-        {
-            throw new NotImplementedException();
-        }
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            throw new NotImplementedException();
-        }
+        #region IReadOnlyList`1
         public T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -224,10 +192,43 @@ namespace Eevee.Collection
                 return _order[index];
             }
         }
+        #endregion
+
+        #region ICollection
+        bool ICollection.IsSynchronized => false;
+        object ICollection.SyncRoot => this;
+
+        void ICollection.CopyTo(Array array, int index) => ((ICollection)_order).CopyTo(array, index);
+        #endregion
+
+        #region Enumerator
+        public WeakOrderList<T>.Enumerator GetEnumerator()
+        {
+            CheckCount();
+            return new WeakOrderList<T>.Enumerator(_order);
+        }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        #endregion
+
+        #region Extractable
+        public void CopyTo(T[] array, int index = 0)
+        {
+            CheckCount();
+            _order.CopyTo(array, index);
+        }
         public ReadOnlySpan<T> AsSpan()
         {
             CheckCount();
             return _order.AsSpan();
         }
+        #endregion
+
+        #region private
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void CheckCount() => Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_data.Count, _order.Count, "Count", "Count fail, _data.Count:{0} != _order.Count:{1}", new AssertArgs<int, int>(_data.Count, _order.Count));
+        #endregion
     }
 }
