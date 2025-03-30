@@ -41,9 +41,9 @@ namespace Eevee.Collection
             var intersects = ArrayExt.SharedRent<T>(inputCount);
             var intersectSpan = intersects.AsSpan(0, inputCount);
 
-            FillIntersect(source, input, inputCount, in intersectSpan);
+            FillIntersect(source, input, inputCount, in intersectSpan, out int intersectCount);
             source.Clear();
-            foreach (var item in intersectSpan)
+            foreach (var item in intersectSpan[..intersectCount])
                 source.Add(item);
 
             intersects.SharedReturn();
@@ -85,9 +85,9 @@ namespace Eevee.Collection
             var intersects = ArrayExt.SharedRent<T>(inputCount);
             var intersectSpan = intersects.AsSpan(0, inputCount);
 
-            FillIntersect(source, input, inputCount, in intersectSpan);
+            FillIntersect(source, input, inputCount, in intersectSpan, out int intersectCount);
             source.UnionWith0GC(input);
-            foreach (var item in intersectSpan)
+            foreach (var item in intersectSpan[..intersectCount])
                 source.Remove(item);
 
             intersects.SharedReturn();
@@ -110,8 +110,8 @@ namespace Eevee.Collection
             if (hasInputCount && sourceCount > inputCount)
                 return false;
 
-            CountUniqueCount(source, input, false, false, ref inputCount, out int uniqueCount);
-            return sourceCount == uniqueCount;
+            CountUniqueCount(source, input, false, false, ref inputCount, out int uniqueCount, out int _);
+            return sourceCount <= inputCount && sourceCount <= uniqueCount;
         }
         /// <summary>
         /// source ⊇ input<br/>
@@ -123,13 +123,10 @@ namespace Eevee.Collection
                 return true;
 
             bool hasInputCount = IEnumerableExt.TryGetNonEnumeratedCount<T>(input, out int inputCount);
-            if (hasInputCount)
-                if (inputCount == 0)
-                    return true;
-                else if (source.Count < inputCount)
-                    return false;
+            if (hasInputCount && inputCount == 0)
+                return true;
 
-            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount);
+            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
             return inputCount == uniqueCount;
         }
         /// <summary>
@@ -149,8 +146,8 @@ namespace Eevee.Collection
             if (sourceCount == 0)
                 return true;
 
-            CountUniqueCount(source, input, false, false, ref inputCount, out int uniqueCount);
-            return sourceCount < inputCount && sourceCount == uniqueCount;
+            CountUniqueCount(source, input, false, false, ref inputCount, out int uniqueCount, out int _);
+            return sourceCount < inputCount && sourceCount < uniqueCount;
         }
         /// <summary>
         /// source ⊋ input<br/>
@@ -166,13 +163,10 @@ namespace Eevee.Collection
                 return false;
 
             bool hasInputCount = IEnumerableExt.TryGetNonEnumeratedCount<T>(input, out int inputCount);
-            if (hasInputCount)
-                if (inputCount == 0)
-                    return true;
-                else if (sourceCount <= inputCount)
-                    return false;
+            if (hasInputCount && inputCount == 0)
+                return true;
 
-            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount);
+            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
             return sourceCount > inputCount && inputCount == uniqueCount;
         }
 
@@ -192,7 +186,7 @@ namespace Eevee.Collection
             if (hasInputCount && inputCount == 0)
                 return false;
 
-            CountUniqueCount(source, input, true, false, ref inputCount, out int uniqueCount);
+            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
             return uniqueCount > 0;
         }
         /// <summary>
@@ -211,14 +205,14 @@ namespace Eevee.Collection
                 else if (sourceCount == 0)
                     return true;
 
-            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount);
+            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
             return sourceCount == inputCount && sourceCount == uniqueCount;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void FillIntersect<T>(ICollection<T> source, IEnumerable<T> input, int inputCount, in Span<T> intersects)
+        private static void FillIntersect<T>(ICollection<T> source, IEnumerable<T> input, int inputCount, in Span<T> intersects, out int intersectCount)
         {
-            int intersectCount = 0;
+            intersectCount = 0;
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:
@@ -265,16 +259,27 @@ namespace Eevee.Collection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CountUniqueCount<T>(ICollection<T> source, IEnumerable<T> input, bool returnIfUnique, bool returnIfUnFound, ref int inputCount, out int uniqueCount)
+        private static void CountUniqueCount<T>(ICollection<T> source, IEnumerable<T> input, bool returnIfUnique, bool returnIfUnFound, ref int inputCount, out int uniqueCount, out int unFoundCount)
         {
             int sourceCount = source.Count;
-            if (sourceCount == 0 || ReferenceEquals(source, input))
+            if (sourceCount == 0)
+            {
+                if (inputCount < 0)
+                    IEnumerableExt.TryGetEnumeratedCount<T>(input, out inputCount);
+                uniqueCount = 0;
+                unFoundCount = inputCount;
+                return;
+            }
+
+            if (ReferenceEquals(source, input))
             {
                 uniqueCount = sourceCount;
+                unFoundCount = 0;
                 return;
             }
 
             uniqueCount = 0;
+            unFoundCount = 0;
             if (inputCount == 0)
             {
                 return;
@@ -284,55 +289,55 @@ namespace Eevee.Collection
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int i = 0; i < inputCount; ++i)
-                        if (CountUniqueCountItemIsBreak(source, readOnlyList[i], returnIfUnique, returnIfUnFound, ref uniqueCount))
+                        if (CountUniqueCountItemIsBreak(source, readOnlyList[i], returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case IList<T> list:
                     for (int i = 0; i < inputCount; ++i)
-                        if (CountUniqueCountItemIsBreak(source, list[i], returnIfUnique, returnIfUnFound, ref uniqueCount))
+                        if (CountUniqueCountItemIsBreak(source, list[i], returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount))
+                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount))
+                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount))
+                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount))
+                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 default: // 存在GC，慎重调用
                     if (inputCount >= 0)
                         foreach (var item in input)
-                            if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount))
+                            if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                                 break;
                             else { }
                     else if ((inputCount = 0) is { })
                         foreach (var item in input)
-                            if (++inputCount is { } && CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount))
+                            if (++inputCount is { } && CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                                 break;
                     break;
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool CountUniqueCountItemIsBreak<T>(ICollection<T> source, T item, bool returnIfUnique, bool returnIfUnFound, ref int uniqueCount)
+        private static bool CountUniqueCountItemIsBreak<T>(ICollection<T> source, T item, bool returnIfUnique, bool returnIfUnFound, ref int uniqueCount, ref int unFoundCount)
         {
             if (source.Contains(item))
             {
@@ -344,6 +349,7 @@ namespace Eevee.Collection
             }
             else if (returnIfUnFound)
             {
+                ++unFoundCount;
                 return true;
             }
 

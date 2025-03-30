@@ -83,7 +83,7 @@ namespace Eevee.Collection
         public bool IsSubsetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return this.IsSubsetOf0GC(other);
+            return _data.IsSubsetOf0GC(other);
         }
         /// <summary>
         /// 是目标的超集（父集）
@@ -93,7 +93,7 @@ namespace Eevee.Collection
         public bool IsSupersetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.IsSupersetOf0GC(_order);
+            return _data.IsSupersetOf0GC(other);
         }
         /// <summary>
         /// 是目标的真子集<br/>
@@ -103,7 +103,7 @@ namespace Eevee.Collection
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.IsProperSubsetOf0GC(_order);
+            return _data.IsProperSubsetOf0GC(other);
         }
         /// <summary>
         /// 是目标的真超集（父集）
@@ -113,7 +113,7 @@ namespace Eevee.Collection
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.IsProperSupersetOf0GC(_order);
+            return _data.IsProperSupersetOf0GC(other);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace Eevee.Collection
         public bool Overlaps(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.Overlaps0GC(_order);
+            return _data.Overlaps0GC(other);
         }
         /// <summary>
         /// 与目标相同
@@ -130,13 +130,14 @@ namespace Eevee.Collection
         public bool SetEquals(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.SetEquals0GC(_order);
+            return _data.SetEquals0GC(other);
         }
         #endregion
 
         #region ICollection`1
         public int Count
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 CheckCount();
@@ -161,8 +162,10 @@ namespace Eevee.Collection
             CheckCount();
             _data.Clear();
             _order.Clear();
+            CheckCount();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Contains(T item)
         {
             CheckCount();
@@ -213,6 +216,11 @@ namespace Eevee.Collection
         #endregion
 
         #region Extractable
+        public bool CheckEquals() // 检测“_data”与“_order”是否一致
+        {
+            CheckCount();
+            return _data.SetEquals0GC(_order);
+        }
         public void CopyTo(T[] array, int index = 0)
         {
             CheckCount();
