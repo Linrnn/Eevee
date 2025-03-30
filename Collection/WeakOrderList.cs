@@ -128,12 +128,12 @@ namespace Eevee.Collection
         }
         public void RemoveAt(int index)
         {
-            --_size;
+            int size = _size - 1;
+            if (index < size)
+                _items[index] = _items[size];
+            _items[size] = default;
 
-            if (index < _size)
-                _items[index] = _items[_size];
-            _items[_size] = default;
-
+            _size = size;
             ++_version;
         }
         #endregion
@@ -150,8 +150,9 @@ namespace Eevee.Collection
         {
             if (_size == _items.Length)
                 EnsureCapacity(_size + 1);
+            _items[_size] = item;
 
-            _items[_size++] = item;
+            ++_size;
             ++_version;
         }
         public bool Remove(T item)
@@ -226,12 +227,15 @@ namespace Eevee.Collection
                 int count = collection.Count;
                 if (count > 0)
                 {
-                    int end = Math.Max(_size, index + count);
-                    EnsureCapacity(_size + count);
+                    int size = _size + count;
+                    int start = Math.Max(_size, index + count);
+                    int length = size - start;
+                    EnsureCapacity(size);
 
-                    Array.Copy(_items, index, _items, end, count);
+                    if (length > 0)
+                        Array.Copy(_items, index, _items, start, length);
                     collection.CopyTo(_items, index);
-                    _size += count;
+                    _size = size;
                 }
             }
             else
@@ -277,6 +281,7 @@ namespace Eevee.Collection
         {
             if (capacity <= _items.Length)
                 return;
+
             int size = _items.Length == 0 ? DefaultCapacity : _items.Length << 1;
             int clamp = Math.Clamp(size, capacity, 2146435071);
             SetCapacity(clamp);

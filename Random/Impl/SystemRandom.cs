@@ -10,7 +10,7 @@ namespace Eevee.Random
     {
         private readonly SRandom _random;
 
-        public SystemRandom(int seed) => _random = new SRandom(seed);
+        public SystemRandom(int seed = 0) => _random = new SRandom(seed);
 
         protected override int GetInt(int minInclusive, int maxExclusive) => _random.Next(minInclusive, maxExclusive);
     }

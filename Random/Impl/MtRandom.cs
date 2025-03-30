@@ -16,7 +16,7 @@
         private readonly uint[] _mt = new uint[N];
         private int _mti = N + 1;
 
-        public MtRandom(int seed) => Initialize((uint)seed);
+        public MtRandom(int seed = 0) => Initialize((uint)seed);
         protected override int GetInt(int minInclusive, int maxExclusive)
         {
             int range = RangeInt32();

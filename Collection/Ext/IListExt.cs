@@ -69,7 +69,7 @@ namespace Eevee.Collection
 
         public static void GetRange<T>(this IList<T> source, int index, int count, ICollection<T> output)
         {
-            for (int end = index + count + 1, i = index; i < end; ++i)
+            for (int end = index + count, i = index; i < end; ++i)
                 output.Add(source[i]);
         }
 

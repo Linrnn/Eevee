@@ -101,7 +101,7 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void RemoveRange0GC<T>(this ICollection<T> source, in IEnumerable<T> input)
+        public static void RemoveRange0GC<T>(this ICollection<T> source, IEnumerable<T> input)
         {
             if (source.Count == 0)
             {

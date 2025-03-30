@@ -22,5 +22,12 @@ namespace Eevee.Collection
 
             ArrayPool<T>.Shared.Return(source, true);
         }
+        public static void SharedReturn<T>(ref T[] source)
+        {
+            if (source != null && !ReferenceEquals(source, Array.Empty<T>()))
+                ArrayPool<T>.Shared.Return(source, true);
+
+            source = null;
+        }
     }
 }
