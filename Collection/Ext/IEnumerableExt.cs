@@ -47,13 +47,13 @@ namespace Eevee.Collection
                     count = collection.Count;
                     return true;
 
-                case IEnumerable<T> enumerable: // 可能存在GC
-                    count = enumerable.Count();
+                case IEnumerable<T> enumerable:
+                    count = enumerable.Count(); // 迭代器可能存在GC
                     return true;
 
-                case IEnumerable enumerable: // 存在GC，慎重调用
+                case IEnumerable enumerable:
                     count = 0;
-                    foreach (object _ in enumerable)
+                    foreach (object _ in enumerable) // 迭代器可能存在GC
                         ++count;
                     return true;
 
@@ -94,8 +94,8 @@ namespace Eevee.Collection
                         return item;
                     break;
 
-                default: // 存在GC，慎重调用
-                    foreach (var item in source)
+                default:
+                    foreach (var item in source) // 迭代器可能存在GC
                         return item;
                     break;
             }

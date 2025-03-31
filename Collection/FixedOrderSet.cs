@@ -22,16 +22,40 @@ namespace Eevee.Collection
         private readonly WeakOrderList<T> _order;
 #endif
 
-        static FixedOrderSet() => Assert.Convert<ArgumentException, AssertArgs<object>, T, IEquatable<T>>(nameof(T), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(T)));
-        public FixedOrderSet() : this(0, EqualityComparer<T>.Default) { }
-        public FixedOrderSet(IEqualityComparer<T> comparer) : this(0, comparer) { }
-        public FixedOrderSet(int capacity, IEqualityComparer<T> comparer = null)
+        public FixedOrderSet()
         {
+            CheckComparer();
+            _data = new HashSet<T>();
+            _order = new WeakOrderList<T>();
+        }
+        public FixedOrderSet(IEqualityComparer<T> comparer)
+        {
+            CheckComparer(comparer);
+            _data = new HashSet<T>(comparer);
+            _order = new WeakOrderList<T>();
+        }
+        public FixedOrderSet(int capacity)
+        {
+            CheckComparer();
+            _data = new HashSet<T>(capacity);
+            _order = new WeakOrderList<T>(capacity);
+        }
+        public FixedOrderSet(IEnumerable<T> other)
+        {
+            CheckComparer();
+            _data = new HashSet<T>();
+            _order = new WeakOrderList<T>();
+            this.UnionWith0GC(other);
+        }
+        public FixedOrderSet(int capacity, IEqualityComparer<T> comparer)
+        {
+            CheckComparer(comparer);
             _data = new HashSet<T>(capacity, comparer);
             _order = new WeakOrderList<T>(capacity);
         }
-        public FixedOrderSet(IEnumerable<T> other, IEqualityComparer<T> comparer = null)
+        public FixedOrderSet(IEnumerable<T> other, IEqualityComparer<T> comparer)
         {
+            CheckComparer(comparer);
             _data = new HashSet<T>(comparer);
             _order = new WeakOrderList<T>();
             this.UnionWith0GC(other);
@@ -198,7 +222,7 @@ namespace Eevee.Collection
         #endregion
 
         #region Enumerator
-        public ReadOnlySpan<T>.Enumerator GetEnumerator()
+        public WeakOrderList<T>.Enumerator GetEnumerator()
         {
             CheckCount();
             return _order.GetEnumerator();
@@ -216,6 +240,8 @@ namespace Eevee.Collection
         #endregion
 
         #region Extractable
+        public IEqualityComparer<T> Comparer => _data.Comparer;
+
         public bool CheckEquals() // 检测“_data”与“_order”是否一致
         {
             CheckCount();
@@ -234,6 +260,14 @@ namespace Eevee.Collection
         #endregion
 
         #region private
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void CheckComparer(IEqualityComparer<T> comparer = null)
+        {
+            if (comparer == null || comparer == EqualityComparer<T>.Default)
+                Assert.Convert<ArgumentException, AssertArgs<object>, T, IEquatable<T>>(nameof(T), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(T)));
+        }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

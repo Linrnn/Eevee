@@ -9,7 +9,8 @@ namespace Eevee.Random
     /// </summary>
     public sealed class UnityRandom : EasyRandom
     {
-        public UnityRandom(int seed = 0) => URandom.InitState(seed);
+        public UnityRandom() { }
+        public UnityRandom(int seed) => URandom.InitState(seed);
 
         protected override int GetInt(int minInclusive, int maxExclusive) => URandom.Range(minInclusive, maxExclusive);
     }

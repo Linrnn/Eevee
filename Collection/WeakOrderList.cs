@@ -207,7 +207,7 @@ namespace Eevee.Collection
         #endregion
 
         #region Enumerator
-        public ReadOnlySpan<T>.Enumerator GetEnumerator() => AsReadOnlySpan().GetEnumerator();
+        public Enumerator GetEnumerator() => new(this);
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this);
         IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
         #endregion

@@ -36,8 +36,8 @@ namespace Eevee.Collection
                         SetItem(source, in pair);
                     break;
 
-                default: // 存在GC，慎重调用
-                    foreach (var pair in input)
+                default:
+                    foreach (var pair in input) // 迭代器可能存在GC
                         SetItem(source, in pair);
                     break;
             }

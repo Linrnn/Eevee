@@ -91,8 +91,8 @@ namespace Eevee.Collection
                         AddItem(source, item);
                     break;
 
-                default: // 存在GC，慎重调用
-                    foreach (var item in input)
+                default:
+                    foreach (var item in input) // 迭代器可能存在GC
                         AddItem(source, item);
                     break;
             }
@@ -146,8 +146,8 @@ namespace Eevee.Collection
                         RemoveItem(source, item);
                     break;
 
-                default: // 存在GC，慎重调用
-                    foreach (var item in input)
+                default:
+                    foreach (var item in input) // 迭代器可能存在GC
                         RemoveItem(source, item);
                     break;
             }

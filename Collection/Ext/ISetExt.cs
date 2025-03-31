@@ -110,8 +110,8 @@ namespace Eevee.Collection
             if (hasInputCount && sourceCount > inputCount)
                 return false;
 
-            CountUniqueCount(source, input, false, false, ref inputCount, out int uniqueCount, out int _);
-            return sourceCount <= inputCount && sourceCount <= uniqueCount;
+            CountUniqueAndUnFound(source, input, false, ref inputCount, out int uniqueCount, out int unFoundCount);
+            return sourceCount == uniqueCount && unFoundCount >= 0;
         }
         /// <summary>
         /// source ⊇ input<br/>
@@ -126,8 +126,50 @@ namespace Eevee.Collection
             if (hasInputCount && inputCount == 0)
                 return true;
 
-            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
-            return inputCount == uniqueCount;
+            switch (input)
+            {
+                case IReadOnlyList<T> readOnlyList:
+                    for (int i = 0; i < inputCount; ++i)
+                        if (!source.Contains(readOnlyList[i]))
+                            return false;
+                    return true;
+
+                case IList<T> list:
+                    for (int i = 0; i < inputCount; ++i)
+                        if (!source.Contains(list[i]))
+                            return false;
+                    return true;
+
+                case Stack<T> stack:
+                    foreach (var item in stack)
+                        if (!source.Contains(item))
+                            return false;
+                    return true;
+
+                case Queue<T> queue:
+                    foreach (var item in queue)
+                        if (!source.Contains(item))
+                            return false;
+                    return true;
+
+                case HashSet<T> hashSet:
+                    foreach (var item in hashSet)
+                        if (!source.Contains(item))
+                            return false;
+                    return true;
+
+                case SortedSet<T> sortedSet:
+                    foreach (var item in sortedSet)
+                        if (!source.Contains(item))
+                            return false;
+                    return true;
+
+                default:
+                    foreach (var item in input) // 迭代器可能存在GC
+                        if (!source.Contains(item))
+                            return false;
+                    return true;
+            }
         }
         /// <summary>
         /// source ⊊ input<br/>
@@ -146,8 +188,8 @@ namespace Eevee.Collection
             if (sourceCount == 0)
                 return true;
 
-            CountUniqueCount(source, input, false, false, ref inputCount, out int uniqueCount, out int _);
-            return sourceCount < inputCount && sourceCount < uniqueCount;
+            CountUniqueAndUnFound(source, input, false, ref inputCount, out int uniqueCount, out int unFoundCount);
+            return sourceCount == uniqueCount && unFoundCount > 0;
         }
         /// <summary>
         /// source ⊋ input<br/>
@@ -166,8 +208,8 @@ namespace Eevee.Collection
             if (hasInputCount && inputCount == 0)
                 return true;
 
-            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
-            return sourceCount > inputCount && inputCount == uniqueCount;
+            CountUniqueAndUnFound(source, input, true, ref inputCount, out int uniqueCount, out int unFoundCount);
+            return sourceCount > uniqueCount && unFoundCount == 0;
         }
 
         /// <summary>
@@ -186,8 +228,50 @@ namespace Eevee.Collection
             if (hasInputCount && inputCount == 0)
                 return false;
 
-            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
-            return uniqueCount > 0;
+            switch (input)
+            {
+                case IReadOnlyList<T> readOnlyList:
+                    for (int i = 0; i < inputCount; ++i)
+                        if (source.Contains(readOnlyList[i]))
+                            return true;
+                    return false;
+
+                case IList<T> list:
+                    for (int i = 0; i < inputCount; ++i)
+                        if (source.Contains(list[i]))
+                            return true;
+                    return false;
+
+                case Stack<T> stack:
+                    foreach (var item in stack)
+                        if (source.Contains(item))
+                            return true;
+                    return false;
+
+                case Queue<T> queue:
+                    foreach (var item in queue)
+                        if (source.Contains(item))
+                            return true;
+                    return false;
+
+                case HashSet<T> hashSet:
+                    foreach (var item in hashSet)
+                        if (source.Contains(item))
+                            return true;
+                    return false;
+
+                case SortedSet<T> sortedSet:
+                    foreach (var item in sortedSet)
+                        if (source.Contains(item))
+                            return true;
+                    return false;
+
+                default:
+                    foreach (var item in input) // 迭代器可能存在GC
+                        if (source.Contains(item))
+                            return true;
+                    return false;
+            }
         }
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
@@ -199,14 +283,11 @@ namespace Eevee.Collection
 
             int sourceCount = source.Count;
             bool hasInputCount = IEnumerableExt.TryGetNonEnumeratedCount<T>(input, out int inputCount);
-            if (hasInputCount)
-                if (sourceCount != inputCount)
-                    return false;
-                else if (sourceCount == 0)
-                    return true;
+            if (hasInputCount && sourceCount == 0)
+                return inputCount == 0;
 
-            CountUniqueCount(source, input, false, true, ref inputCount, out int uniqueCount, out int _);
-            return sourceCount == inputCount && sourceCount == uniqueCount;
+            CountUniqueAndUnFound(source, input, true, ref inputCount, out int uniqueCount, out int unFoundCount);
+            return sourceCount == uniqueCount && unFoundCount == 0;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -245,8 +326,8 @@ namespace Eevee.Collection
                         FillItem(source, item, in intersects, ref intersectCount);
                     break;
 
-                default: // 存在GC，慎重调用
-                    foreach (var item in input)
+                default:
+                    foreach (var item in input) // 迭代器可能存在GC
                         FillItem(source, item, in intersects, ref intersectCount);
                     break;
             }
@@ -259,7 +340,7 @@ namespace Eevee.Collection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CountUniqueCount<T>(ICollection<T> source, IEnumerable<T> input, bool returnIfUnique, bool returnIfUnFound, ref int inputCount, out int uniqueCount, out int unFoundCount)
+        private static void CountUniqueAndUnFound<T>(ICollection<T> source, IEnumerable<T> input, bool returnIfUnFound, ref int inputCount, out int uniqueCount, out int unFoundCount)
         {
             int sourceCount = source.Count;
             if (sourceCount == 0)
@@ -289,68 +370,67 @@ namespace Eevee.Collection
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int i = 0; i < inputCount; ++i)
-                        if (CountUniqueCountItemIsBreak(source, readOnlyList[i], returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, readOnlyList[i], returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case IList<T> list:
                     for (int i = 0; i < inputCount; ++i)
-                        if (CountUniqueCountItemIsBreak(source, list[i], returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, list[i], returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
-                default: // 存在GC，慎重调用
+                default:
                     if (inputCount >= 0)
-                        foreach (var item in input)
-                            if (CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        foreach (var item in input) // 迭代器可能存在GC
+                            if (CountUniqueAndUnFoundItemIsBreak(source, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                                 break;
                             else { }
                     else if ((inputCount = 0) is { })
-                        foreach (var item in input)
-                            if (++inputCount is { } && CountUniqueCountItemIsBreak(source, item, returnIfUnique, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        foreach (var item in input) // 迭代器可能存在GC
+                            if (++inputCount is { } && CountUniqueAndUnFoundItemIsBreak(source, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                                 break;
                     break;
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool CountUniqueCountItemIsBreak<T>(ICollection<T> source, T item, bool returnIfUnique, bool returnIfUnFound, ref int uniqueCount, ref int unFoundCount)
+        private static bool CountUniqueAndUnFoundItemIsBreak<T>(ICollection<T> source, T item, bool returnIfUnFound, ref int uniqueCount, ref int unFoundCount)
         {
             if (source.Contains(item))
             {
                 ++uniqueCount;
-                if (returnIfUnique)
+            }
+            else
+            {
+                ++unFoundCount;
+                if (returnIfUnFound)
                 {
                     return true;
                 }
-            }
-            else if (returnIfUnFound)
-            {
-                ++unFoundCount;
-                return true;
             }
 
             return false;

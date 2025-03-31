@@ -189,8 +189,8 @@ namespace Eevee.Collection
                         InsertItem(source, item, ref sourceCount);
                     break;
 
-                default: // 存在GC，慎重调用
-                    foreach (var item in input)
+                default:
+                    foreach (var item in input) // 迭代器可能存在GC
                         InsertItem(source, item, ref sourceCount);
                     break;
             }
