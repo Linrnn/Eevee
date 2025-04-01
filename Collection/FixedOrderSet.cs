@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
@@ -15,7 +16,7 @@ namespace Eevee.Collection
     public sealed class FixedOrderSet<T> : ISet<T>, IReadOnlyList<T>, ICollection
     {
         #region Field/Constructor
-        private readonly HashSet<T> _data;
+        private readonly HashSet<T> _collection;
 #if UNITY_5_3_OR_NEWER
         [UnityEngine.SerializeField] private WeakOrderList<T> _order;
 #else
@@ -25,38 +26,38 @@ namespace Eevee.Collection
         public FixedOrderSet()
         {
             CheckComparer();
-            _data = new HashSet<T>();
-            _order = new WeakOrderList<T>();
-        }
-        public FixedOrderSet(IEqualityComparer<T> comparer)
-        {
-            CheckComparer(comparer);
-            _data = new HashSet<T>(comparer);
+            _collection = new HashSet<T>();
             _order = new WeakOrderList<T>();
         }
         public FixedOrderSet(int capacity)
         {
             CheckComparer();
-            _data = new HashSet<T>(capacity);
+            _collection = new HashSet<T>(capacity);
             _order = new WeakOrderList<T>(capacity);
         }
         public FixedOrderSet(IEnumerable<T> other)
         {
             CheckComparer();
-            _data = new HashSet<T>();
+            _collection = new HashSet<T>();
             _order = new WeakOrderList<T>();
             this.UnionWith0GC(other);
+        }
+        public FixedOrderSet(IEqualityComparer<T> comparer)
+        {
+            CheckComparer(comparer);
+            _collection = new HashSet<T>(comparer);
+            _order = new WeakOrderList<T>();
         }
         public FixedOrderSet(int capacity, IEqualityComparer<T> comparer)
         {
             CheckComparer(comparer);
-            _data = new HashSet<T>(capacity, comparer);
+            _collection = new HashSet<T>(capacity, comparer);
             _order = new WeakOrderList<T>(capacity);
         }
         public FixedOrderSet(IEnumerable<T> other, IEqualityComparer<T> comparer)
         {
             CheckComparer(comparer);
-            _data = new HashSet<T>(comparer);
+            _collection = new HashSet<T>(comparer);
             _order = new WeakOrderList<T>();
             this.UnionWith0GC(other);
         }
@@ -66,7 +67,7 @@ namespace Eevee.Collection
         public bool Add(T item)
         {
             CheckCount();
-            if (!_data.Add(item))
+            if (!_collection.Add(item))
                 return false;
 
             _order.Add(item);
@@ -107,7 +108,7 @@ namespace Eevee.Collection
         public bool IsSubsetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.IsSubsetOf0GC(other);
+            return _collection.IsSubsetOf0GC(other);
         }
         /// <summary>
         /// 是目标的超集（父集）
@@ -117,7 +118,7 @@ namespace Eevee.Collection
         public bool IsSupersetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.IsSupersetOf0GC(other);
+            return _collection.IsSupersetOf0GC(other);
         }
         /// <summary>
         /// 是目标的真子集<br/>
@@ -127,7 +128,7 @@ namespace Eevee.Collection
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.IsProperSubsetOf0GC(other);
+            return _collection.IsProperSubsetOf0GC(other);
         }
         /// <summary>
         /// 是目标的真超集（父集）
@@ -137,7 +138,7 @@ namespace Eevee.Collection
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.IsProperSupersetOf0GC(other);
+            return _collection.IsProperSupersetOf0GC(other);
         }
 
         /// <summary>
@@ -146,7 +147,7 @@ namespace Eevee.Collection
         public bool Overlaps(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.Overlaps0GC(other);
+            return _collection.Overlaps0GC(other);
         }
         /// <summary>
         /// 与目标相同
@@ -154,7 +155,7 @@ namespace Eevee.Collection
         public bool SetEquals(IEnumerable<T> other)
         {
             CheckCount();
-            return _data.SetEquals0GC(other);
+            return _collection.SetEquals0GC(other);
         }
         #endregion
 
@@ -165,16 +166,16 @@ namespace Eevee.Collection
             get
             {
                 CheckCount();
-                return _data.Count;
+                return _collection.Count;
             }
         }
-        public bool IsReadOnly => false;
+        bool ICollection<T>.IsReadOnly => false;
 
         void ICollection<T>.Add(T item) => Add(item);
         public bool Remove(T item)
         {
             CheckCount();
-            if (!_data.Remove(item))
+            if (!_collection.Remove(item))
                 return false;
 
             _order.Remove(item);
@@ -184,7 +185,7 @@ namespace Eevee.Collection
         public void Clear()
         {
             CheckCount();
-            _data.Clear();
+            _collection.Clear();
             _order.Clear();
             CheckCount();
         }
@@ -193,12 +194,12 @@ namespace Eevee.Collection
         public bool Contains(T item)
         {
             CheckCount();
-            return _data.Contains(item);
+            return _collection.Contains(item);
         }
-        public void CopyTo(T[] array, int index, int arrayIndex)
+        public void CopyTo(T[] array, int arrayIndex)
         {
             CheckCount();
-            _order.CopyTo(array, index, arrayIndex);
+            _order.CopyTo(array, arrayIndex);
         }
         #endregion
 
@@ -218,7 +219,11 @@ namespace Eevee.Collection
         bool ICollection.IsSynchronized => false;
         object ICollection.SyncRoot => this;
 
-        void ICollection.CopyTo(Array array, int index) => ((ICollection)_order).CopyTo(array, index);
+        void ICollection.CopyTo(Array array, int index)
+        {
+            CheckCount();
+            ((ICollection)_order).CopyTo(array, index);
+        }
         #endregion
 
         #region Enumerator
@@ -240,17 +245,28 @@ namespace Eevee.Collection
         #endregion
 
         #region Extractable
-        public IEqualityComparer<T> Comparer => _data.Comparer;
+        public IEqualityComparer<T> Comparer => _collection.Comparer;
 
+        public void CopyTo(T[] array)
+        {
+            CheckCount();
+            _order.CopyTo(array);
+        }
+        public void CopyTo(T[] array, int index, int count)
+        {
+            CheckCount();
+            _order.CopyTo(0, array, index, count);
+        }
+        public void TrimExcess()
+        {
+            CheckCount();
+            _collection.TrimExcess();
+            CheckCount();
+        }
         public bool CheckEquals() // 检测“_data”与“_order”是否一致
         {
             CheckCount();
-            return _data.SetEquals0GC(_order);
-        }
-        public void CopyTo(T[] array, int index = 0)
-        {
-            CheckCount();
-            _order.CopyTo(array, index);
+            return _collection.SetEquals0GC(_order);
         }
         public ReadOnlySpan<T> AsSpan()
         {
@@ -259,19 +275,19 @@ namespace Eevee.Collection
         }
         #endregion
 
-        #region private
+        #region Private
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckComparer(IEqualityComparer<T> comparer = null)
         {
             if (comparer == null || comparer == EqualityComparer<T>.Default)
-                Assert.Convert<ArgumentException, AssertArgs<object>, T, IEquatable<T>>(nameof(T), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(T)));
+                Assert.Convert<ArgumentException, AssertArgs<object>, T, IEquatable<T>>(nameof(comparer), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(T)));
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CheckCount() => Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_data.Count, _order.Count, "Count", "Count fail, _data.Count:{0} != _order.Count:{1}", new AssertArgs<int, int>(_data.Count, _order.Count));
+        private void CheckCount() => Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_collection.Count, _order.Count, "Count", "Count fail, _data.Count:{0} != _order.Count:{1}", new AssertArgs<int, int>(_collection.Count, _order.Count));
         #endregion
     }
 }

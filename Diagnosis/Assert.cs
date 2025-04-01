@@ -60,6 +60,18 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
+        internal static void Range<TException, TArgs, TComparable>(TComparable value, TComparable min, TComparable max, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TComparable : IComparable<TComparable>
+        {
+            if (value.CompareTo(min) < 0 || value.CompareTo(max) > 0)
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
+
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
         internal static void Greater<TException, TArgs, TComparable>(TComparable lhs, TComparable rhs, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs

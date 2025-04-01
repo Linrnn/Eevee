@@ -31,8 +31,12 @@ namespace Eevee.Collection
                 _current = default;
             }
 
-            #region IEnumerator<T>
-            public readonly T Current => _current;
+            #region IEnumerator`1
+            public readonly T Current
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _current;
+            }
             #endregion
 
             #region IEnumerator
@@ -51,15 +55,15 @@ namespace Eevee.Collection
                 ++_index;
                 return true;
             }
-            public void Reset()
+            public void Reset() => Dispose();
+            #endregion
+
+            #region IDisposable
+            public void Dispose()
             {
                 _index = 0;
                 _current = default;
             }
-            #endregion
-
-            #region IDisposable
-            public readonly void Dispose() { }
             #endregion
         }
         #endregion
@@ -96,10 +100,15 @@ namespace Eevee.Collection
         public T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _items[index];
+            get
+            {
+                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
+                return _items[index];
+            }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
+                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
                 _items[index] = value;
                 ++_version;
             }
@@ -144,7 +153,7 @@ namespace Eevee.Collection
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _size;
         }
-        public bool IsReadOnly => false;
+        bool ICollection<T>.IsReadOnly => false;
 
         public void Add(T item)
         {
@@ -176,11 +185,12 @@ namespace Eevee.Collection
         }
 
         public bool Contains(T item) => _size > 0 && IndexOf(item) >= 0;
-        public void CopyTo(T[] array, int arrayIndex = 0) => Array.Copy(_items, 0, array, arrayIndex, _size);
+        public void CopyTo(T[] array, int arrayIndex) => Array.Copy(_items, 0, array, arrayIndex, _size);
         #endregion
 
         #region IList
         bool IList.IsFixedSize => false;
+        bool IList.IsReadOnly => false;
         object IList.this[int index]
         {
             get => this[index];
@@ -203,7 +213,11 @@ namespace Eevee.Collection
         bool ICollection.IsSynchronized => false;
         object ICollection.SyncRoot => this;
 
-        void ICollection.CopyTo(Array array, int index) => Array.Copy(_items, 0, array, index, _size);
+        void ICollection.CopyTo(Array array, int index)
+        {
+            Assert.Equal<ArgumentException, AssertArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new AssertArgs<object, int>(array.GetType(), array.Rank));
+            Array.Copy(_items, 0, array, index, _size);
+        }
         #endregion
 
         #region Enumerator
@@ -216,7 +230,8 @@ namespace Eevee.Collection
         public int IndexOf(T item, int index, int count) => Array.IndexOf(_items, item, index, count);
         public int LastIndexOf(T item, int index, int count) => _size == 0 ? -1 : Array.LastIndexOf(_items, item, index, count);
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer = null) => Array.BinarySearch(_items, index, count, item, comparer);
-        public void CopyTo(T[] array, int index, int length) => Array.Copy(_items, 0, array, index, length);
+        public void CopyTo(T[] array) => Array.Copy(_items, 0, array, 0, _size);
+        public void CopyTo(int index, T[] array, int arrayIndex, int count) => Array.Copy(_items, index, array, arrayIndex, count);
         public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsReadOnlySpan(0, _size);
         public Span<T> AsSpan() => _items.AsSpan(0, _size);
 
@@ -275,7 +290,7 @@ namespace Eevee.Collection
         }
         #endregion
 
-        #region private
+        #region Private
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureCapacity(int capacity)
         {

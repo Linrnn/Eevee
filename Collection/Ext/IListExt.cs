@@ -1,7 +1,7 @@
 ﻿using Eevee.Diagnosis;
 using Eevee.Random;
+using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
@@ -109,10 +109,7 @@ namespace Eevee.Collection
             }
         }
 
-        public static void Reverse<T>(this IList<T> source)
-        {
-            Reverse(source, 0, source.Count);
-        }
+        public static void Reverse<T>(this IList<T> source) => Reverse(source, 0, source.Count);
         public static void Reverse<T>(this IList<T> source, int index, int count)
         {
             switch (source)
@@ -161,37 +158,37 @@ namespace Eevee.Collection
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
-                        InsertItem(source, readOnlyList[i], ref sourceCount);
+                        source.Insert(sourceCount++, readOnlyList[i]);
                     break;
 
                 case IList<T> list:
                     for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
-                        InsertItem(source, list[i], ref sourceCount);
+                        source.Insert(sourceCount++, list[i]);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        InsertItem(source, item, ref sourceCount);
+                        source.Insert(sourceCount++, item);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        InsertItem(source, item, ref sourceCount);
+                        source.Insert(sourceCount++, item);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        InsertItem(source, item, ref sourceCount);
+                        source.Insert(sourceCount++, item);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        InsertItem(source, item, ref sourceCount);
+                        source.Insert(sourceCount++, item);
                     break;
 
                 default:
                     foreach (var item in input) // 迭代器可能存在GC
-                        InsertItem(source, item, ref sourceCount);
+                        source.Insert(sourceCount++, item);
                     break;
             }
         }
@@ -218,7 +215,7 @@ namespace Eevee.Collection
 
         public static void SetAll<T>(this IList<T> source, T item)
         {
-            for (int i = 0; i < source.Count; ++i)
+            for (int count = source.Count, i = 0; i < count; ++i)
                 source[i] = item;
         }
         public static void SetAll<T>(this IList<T> source, T item, int index, int count)
@@ -232,13 +229,11 @@ namespace Eevee.Collection
         {
             switch (source)
             {
+                case T[] array: Array.Sort(array, index, count, comparer); break;
                 case List<T> list: list.Sort(index, count, comparer); break;
                 case WeakOrderList<T> weakOrderList: weakOrderList.Sort(index, count, comparer); break;
                 default: LogRelay.Error("[Collection] Sort() 未实现"); break;
             }
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void InsertItem<T>(IList<T> source, T item, ref int index) => source.Insert(index++, item);
     }
 }

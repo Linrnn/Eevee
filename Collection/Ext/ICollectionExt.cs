@@ -63,37 +63,37 @@ namespace Eevee.Collection
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
-                        AddItem(source, readOnlyList[i]);
+                        source.Add(readOnlyList[i]);
                     break;
 
                 case IList<T> list:
                     for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
-                        AddItem(source, list[i]);
+                        source.Add(list[i]);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        AddItem(source, item);
+                        source.Add(item);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        AddItem(source, item);
+                        source.Add(item);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        AddItem(source, item);
+                        source.Add(item);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        AddItem(source, item);
+                        source.Add(item);
                     break;
 
                 default:
                     foreach (var item in input) // 迭代器可能存在GC
-                        AddItem(source, item);
+                        source.Add(item);
                     break;
             }
         }
@@ -118,44 +118,39 @@ namespace Eevee.Collection
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int inputCount = readOnlyList.Count, i = 0; i < inputCount; ++i)
-                        RemoveItem(source, readOnlyList[i]);
+                        source.Remove(readOnlyList[i]);
                     break;
 
                 case IList<T> list:
                     for (int inputCount = list.Count, i = 0; i < inputCount; ++i)
-                        RemoveItem(source, list[i]);
+                        source.Remove(list[i]);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        RemoveItem(source, item);
+                        source.Remove(item);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        RemoveItem(source, item);
+                        source.Remove(item);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        RemoveItem(source, item);
+                        source.Remove(item);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        RemoveItem(source, item);
+                        source.Remove(item);
                     break;
 
                 default:
                     foreach (var item in input) // 迭代器可能存在GC
-                        RemoveItem(source, item);
+                        source.Remove(item);
                     break;
             }
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void AddItem<T>(ICollection<T> source, T item) => source.Add(item);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RemoveItem<T>(ICollection<T> source, T item) => source.Remove(item);
     }
 }
