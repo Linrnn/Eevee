@@ -263,7 +263,15 @@ namespace Eevee.Collection
             _collection.TrimExcess();
             CheckCount();
         }
-        public bool CheckEquals() // 检测“_data”与“_order”是否一致
+        public int EnsureCapacity(int capacity)
+        {
+            CheckCount();
+            int size = _collection.EnsureCapacity(capacity);
+            CheckCount();
+            return size;
+        }
+
+        public bool CheckEquals() // 检测“_collection”与“_order”是否一致
         {
             CheckCount();
             return _collection.SetEquals0GC(_order);

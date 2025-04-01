@@ -18,15 +18,15 @@ namespace Eevee.Collection
         #region Type
         public struct Enumerator : IEnumerator<T>
         {
-            private readonly WeakOrderList<T> _list;
+            private readonly WeakOrderList<T> _enumerator;
             private readonly int _version;
             private int _index;
             private T _current;
 
-            internal Enumerator(WeakOrderList<T> list)
+            internal Enumerator(WeakOrderList<T> enumerator)
             {
-                _list = list;
-                _version = list._version;
+                _enumerator = enumerator;
+                _version = enumerator._version;
                 _index = 0;
                 _current = default;
             }
@@ -41,17 +41,18 @@ namespace Eevee.Collection
 
             #region IEnumerator
             readonly object IEnumerator.Current => _current;
+
             public bool MoveNext()
             {
-                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, _list._version, nameof(_version), "MoveNext fail, _version:{0} != _list._version:{1}", new AssertArgs<int, int>(_version, _list._version));
-                if (_version != _list._version || _index >= _list._size)
+                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, _enumerator._version, nameof(_version), "MoveNext fail, _version:{0} != _list._version:{1}", new AssertArgs<int, int>(_version, _enumerator._version));
+                if (_version != _enumerator._version || _index >= _enumerator._size)
                 {
-                    _index = _list._size + 1;
+                    _index = _enumerator._size + 1;
                     _current = default;
                     return false;
                 }
 
-                _current = _list._items[_index];
+                _current = _enumerator._items[_index];
                 ++_index;
                 return true;
             }
@@ -235,6 +236,9 @@ namespace Eevee.Collection
         public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsReadOnlySpan(0, _size);
         public Span<T> AsSpan() => _items.AsSpan(0, _size);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int GetVersion() => _version;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void InsertRange(int index, IEnumerable<T> other) // 调用“ICollectionExt.AddRange0GC”和“IListExt.InsertRange0GC”替代此接口
         {
             if (other is ICollection<T> collection)
