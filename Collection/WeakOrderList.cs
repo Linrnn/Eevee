@@ -227,7 +227,7 @@ namespace Eevee.Collection
         IEnumerator IEnumerable.GetEnumerator() => new Enumerator(this);
         #endregion
 
-        #region Extractable
+        #region Public
         public int IndexOf(T item, int index, int count) => Array.IndexOf(_items, item, index, count);
         public int LastIndexOf(T item, int index, int count) => _size == 0 ? -1 : Array.LastIndexOf(_items, item, index, count);
         public int BinarySearch(int index, int count, T item, IComparer<T> comparer = null) => Array.BinarySearch(_items, index, count, item, comparer);
@@ -236,6 +236,34 @@ namespace Eevee.Collection
         public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsReadOnlySpan(0, _size);
         public Span<T> AsSpan() => _items.AsSpan(0, _size);
 
+        public void RemoveRange(int index, int count)
+        {
+            if (count <= 0)
+                return;
+
+            int end = _size - count;
+            int length = Math.Min(count, end - index);
+
+            Array.Copy(_items, _size - length, _items, index, length);
+            Array.Clear(_items, end, count);
+
+            _size = end;
+            ++_version;
+        }
+        public void Reverse(int index, int count)
+        {
+            Array.Reverse(_items, index, count);
+            ++_version;
+        }
+        public void Sort(IComparer<T> comparer = null) => Sort(0, _size, comparer);
+        public void Sort(int index, int count, IComparer<T> comparer = null)
+        {
+            Array.Sort(_items, index, count, comparer);
+            ++_version;
+        }
+        #endregion
+
+        #region Internal/Private
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int GetVersion() => _version;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -266,35 +294,7 @@ namespace Eevee.Collection
 
             ++_version;
         }
-        public void RemoveRange(int index, int count)
-        {
-            if (count <= 0)
-                return;
 
-            int end = _size - count;
-            int length = Math.Min(count, end - index);
-
-            Array.Copy(_items, _size - length, _items, index, length);
-            Array.Clear(_items, end, count);
-
-            _size = end;
-            ++_version;
-        }
-
-        public void Reverse(int index, int count)
-        {
-            Array.Reverse(_items, index, count);
-            ++_version;
-        }
-        public void Sort(IComparer<T> comparer = null) => Sort(0, _size, comparer);
-        public void Sort(int index, int count, IComparer<T> comparer = null)
-        {
-            Array.Sort(_items, index, count, comparer);
-            ++_version;
-        }
-        #endregion
-
-        #region Private
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureCapacity(int capacity)
         {

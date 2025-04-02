@@ -457,6 +457,51 @@ namespace Eevee.Fixed
         /// <summary>
         /// 返回以2为底的对数
         /// </summary>
+        public static int Log2(int a)
+        {
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<int>, int>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<int>(a));
+            return Log2((uint)a);
+        }
+        /// <summary>
+        /// 返回以2为底的对数
+        /// </summary>
+        public static int Log2(uint a)
+        {
+            uint num = a;
+            int log = 0;
+            if ((num & 0xFFFF0000) != 0) { num >>= 16; log |= 16; }
+            if ((num & 0xFF00) != 0) { num >>= 8; log |= 8; }
+            if ((num & 0xF0) != 0) { num >>= 4; log |= 4; }
+            if ((num & 0xC) != 0) { num >>= 2; log |= 2; }
+            if ((num & 0x2) != 0) { log |= 1; }
+            return log;
+        }
+        /// <summary>
+        /// 返回以2为底的对数
+        /// </summary>
+        public static int Log2(long a)
+        {
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<long>, long>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<long>(a));
+            return Log2((ulong)a);
+        }
+        /// <summary>
+        /// 返回以2为底的对数
+        /// </summary>
+        public static int Log2(ulong a)
+        {
+            ulong num = a;
+            int log = 0;
+            if ((num & 0xFFFFFFFF00000000) != 0) { num >>= 32; log |= 32; }
+            if ((num & 0xFFFF0000) != 0) { num >>= 16; log |= 16; }
+            if ((num & 0xFF00) != 0) { num >>= 8; log |= 8; }
+            if ((num & 0xF0) != 0) { num >>= 4; log |= 4; }
+            if ((num & 0xC) != 0) { num >>= 2; log |= 2; }
+            if ((num & 0x2) != 0) { log |= 1; }
+            return log;
+        }
+        /// <summary>
+        /// 返回以2为底的对数
+        /// </summary>
         public static Fixed64 Log2(Fixed64 a)
         {
             Assert.Greater<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<Fixed64>(a));
@@ -501,19 +546,19 @@ namespace Eevee.Fixed
         /// <summary>
         /// 是否是2的次幂
         /// </summary>
-        public static bool IsPowerOf2(int exp) => exp > 0 && (exp & exp - 1) == 0;
+        public static bool IsPowerOf2(int a) => a > 0 && (a & a - 1) == 0;
         /// <summary>
         /// 是否是2的次幂
         /// </summary>
-        public static bool IsPowerOf2(long exp) => exp > 0 && (exp & exp - 1) == 0;
+        public static bool IsPowerOf2(long a) => a > 0 && (a & a - 1) == 0;
         /// <summary>
         /// 是否是2的次幂
         /// </summary>
-        public static bool IsPowerOf2(ulong exp) => exp != 0 && (exp & exp - 1) == 0;
+        public static bool IsPowerOf2(ulong a) => a != 0 && (a & a - 1) == 0;
         /// <summary>
         /// 是否是2的次幂
         /// </summary>
-        public static bool IsPowerOf2(Fixed64 exp) => IsPowerOf2(exp.RawValue);
+        public static bool IsPowerOf2(Fixed64 a) => IsPowerOf2(a.RawValue);
         #endregion
     }
 }

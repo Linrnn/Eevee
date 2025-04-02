@@ -9,7 +9,6 @@ namespace Eevee.Fixed
     public readonly struct Prime
     {
         private const int HashPrime = 101;
-        private const int MaxPrimeArrayLength = 0x7FEFFFFD; // 小于Array的最大素数
         private static readonly int[] _primes =
         {
             0000003, 0000007, 0000011, 0000017, 0000023, 0000029,
@@ -29,40 +28,30 @@ namespace Eevee.Fixed
         /// <summary>
         /// 判断一个数是否为质数
         /// </summary>
-        public static bool NumberIs(int candidate)
+        public static bool NumberIs(int value)
         {
-            if ((candidate & 1) == 0)
-                return candidate == 2;
+            if ((value & 1) == 0)
+                return value == 2;
 
-            int limit = (int)SquareRoot.Count(candidate);
+            int limit = (int)SquareRoot.Count(value);
             for (int divisor = 3; divisor <= limit; divisor += 2)
-                if (candidate % divisor == 0)
+                if (value % divisor == 0)
                     return false;
             return true;
         }
         /// <summary>
         /// 获取≥min的最小质数
         /// </summary>
-        public static int GetNumber(int min)
+        public static int GetNumber(int value)
         {
-            Assert.GreaterEqual<ArgumentException, AssertArgs<int>, int>(min, 0, nameof(min), "获取质数传入参数错误：{0}<0", new AssertArgs<int>(min));
+            Assert.GreaterEqual<ArgumentException, AssertArgs<int>, int>(value, 0, nameof(value), "获取质数传入参数错误：{0}<0", new AssertArgs<int>(value));
             foreach (int prime in _primes)
-                if (prime >= min)
+                if (prime >= value)
                     return prime;
-            for (int i = min | 1; i < int.MaxValue; i += 2)
+            for (int i = value | 1; i < int.MaxValue; i += 2)
                 if (NumberIs(i) && ((i - 1) % HashPrime != 0))
                     return i;
-            return min;
-        }
-        /// <summary>
-        /// 拓展
-        /// </summary>
-        public static int Expand(int oldSize)
-        {
-            int newSize = oldSize << 1;
-            if (oldSize >= MaxPrimeArrayLength || (uint)newSize <= MaxPrimeArrayLength)
-                return GetNumber(newSize);
-            return MaxPrimeArrayLength;
+            return value;
         }
     }
 }

@@ -244,7 +244,7 @@ namespace Eevee.Collection
         }
         #endregion
 
-        #region Extractable
+        #region Public
         public IEqualityComparer<T> Comparer => _collection.Comparer;
 
         public void CopyTo(T[] array)
@@ -274,6 +274,9 @@ namespace Eevee.Collection
         public bool CheckEquals() // 检测“_collection”与“_order”是否一致
         {
             CheckCount();
+            if (_collection.Count != _order.Count)
+                return false;
+
             return _collection.SetEquals0GC(_order);
         }
         public ReadOnlySpan<T> AsSpan()

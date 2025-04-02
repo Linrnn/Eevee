@@ -57,10 +57,12 @@ namespace Eevee.Collection
             public bool MoveNext()
             {
                 int version = _enumerator._order.GetVersion();
-                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, version, nameof(_version), "MoveNext fail, _version:{0} != _list._version:{1}", new AssertArgs<int, int>(_version, version));
-                if (_version != version || _index >= _enumerator.Count)
+                int count = _enumerator.Count;
+                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, version, nameof(_version), "MoveNext fail, _version:{0} != _enumerator._order._version:{1}", new AssertArgs<int, int>(_version, version));
+
+                if (_version != version || _index >= count)
                 {
-                    _index = _enumerator.Count + 1;
+                    _index = count + 1;
                     _current = default;
                     return false;
                 }
@@ -85,6 +87,110 @@ namespace Eevee.Collection
             public DictionaryEntry Entry => new(_current.Key, _current.Value);
             public object Key => _current.Key;
             public object Value => _current.Value;
+            #endregion
+        }
+
+        public readonly struct ValueCollection : ICollection<TValue>, IReadOnlyCollection<TValue>, ICollection
+        {
+            private readonly FixedOrderDic<TKey, TValue> _enumerator;
+
+            internal ValueCollection(FixedOrderDic<TKey, TValue> enumerator) => _enumerator = enumerator;
+
+            #region ICollection`1
+            public int Count => _enumerator.Count;
+            bool ICollection<TValue>.IsReadOnly => true;
+
+            void ICollection<TValue>.Add(TValue item) => throw new NotSupportedException("ValueCollection`1.Add");
+            bool ICollection<TValue>.Remove(TValue item) => throw new NotSupportedException("ValueCollection`1.Remove");
+            void ICollection<TValue>.Clear() => throw new NotSupportedException("ValueCollection`1.Clear");
+
+            public bool Contains(TValue item) => _enumerator.ContainsValue(item);
+            public void CopyTo(TValue[] array, int arrayIndex)
+            {
+                _enumerator.CheckCount();
+                for (int count = _enumerator.Count, i = 0, j = arrayIndex; i < count; ++i, ++j)
+                    array[j] = _enumerator[_enumerator._order[i]];
+            }
+            #endregion
+
+            #region ICollection
+            bool ICollection.IsSynchronized => false;
+            object ICollection.SyncRoot => _enumerator;
+
+            void ICollection.CopyTo(Array array, int index)
+            {
+                _enumerator.CheckCount();
+                Assert.Equal<ArgumentException, AssertArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new AssertArgs<object, int>(array.GetType(), array.Rank));
+
+                switch (array)
+                {
+                    case TValue[] values: CopyTo(values, index); break;
+                    case object[] objects:
+                        for (int count = _enumerator.Count, i = 0, j = index; i < count; ++i, ++j)
+                            objects[j] = _enumerator[_enumerator._order[i]];
+                        break;
+
+                    default: throw new NotImplementedException($"CopyTo fail, array:{array.GetType().FullName}, type is illegal");
+                }
+            }
+            #endregion
+
+            #region Enumerator
+            public ValueEnumerator GetEnumerator() => new(_enumerator);
+            IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => new ValueEnumerator(_enumerator);
+            IEnumerator IEnumerable.GetEnumerator() => new ValueEnumerator(_enumerator);
+            #endregion
+        }
+
+        public struct ValueEnumerator : IEnumerator<TValue>
+        {
+            private readonly FixedOrderDic<TKey, TValue> _enumerator;
+            private readonly int _version;
+            private int _index;
+            private TValue _current;
+
+            internal ValueEnumerator(FixedOrderDic<TKey, TValue> enumerator)
+            {
+                _enumerator = enumerator;
+                _version = enumerator._order.GetVersion();
+                _index = 0;
+                _current = default;
+            }
+
+            #region IEnumerator`1
+            public readonly TValue Current => _current!;
+            #endregion
+
+            #region IEnumerator
+            readonly object IEnumerator.Current => _current;
+
+            public bool MoveNext()
+            {
+                int version = _enumerator._order.GetVersion();
+                int count = _enumerator.Count;
+                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, version, nameof(_version), "MoveNext fail, _version:{0} != _enumerator._order._version:{1}", new AssertArgs<int, int>(_version, version));
+
+                if (_version != version || _index >= count)
+                {
+                    _index = count + 1;
+                    _current = default;
+                    return false;
+                }
+
+                var key = _enumerator._order[_index];
+                _current = _enumerator._collection[key];
+                ++_index;
+                return true;
+            }
+            public void Reset() => Dispose();
+            #endregion
+
+            #region IDisposable
+            public void Dispose()
+            {
+                _index = 0;
+                _current = default;
+            }
             #endregion
         }
         #endregion
@@ -317,7 +423,7 @@ namespace Eevee.Collection
         IDictionaryEnumerator IDictionary.GetEnumerator() => new Enumerator(this, ReturnType.DictionaryEntry);
         #endregion
 
-        #region Extractable
+        #region Public
         public IEqualityComparer<TKey> Comparer => _collection.Comparer;
 
         public bool ContainsValue(TValue value)
@@ -359,6 +465,9 @@ namespace Eevee.Collection
         public bool CheckEquals() // 检测“_collection”与“_order”是否一致
         {
             CheckCount();
+            if (_collection.Count != _order.Count)
+                return false;
+
             foreach (var pair in _collection) // 因为“_order”可能有重复项，所以不遍历“_order”
                 if (!_order.Contains(pair.Key))
                     return false;
@@ -379,10 +488,10 @@ namespace Eevee.Collection
             return _order;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private WeakOrderList<TValue> GetValues()
+        private ValueCollection GetValues()
         {
-            // todo eevee GetValues 未实现
-            throw new NotImplementedException();
+            CheckCount();
+            return new ValueCollection(this);
         }
 
         [Conditional(Macro.Debug)]
