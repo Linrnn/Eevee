@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -27,8 +28,9 @@ namespace EeveeEditor.Collection
                 return height;
 
             var sizeProperty = property.FindPropertyRelative(Size);
-            int scale = sizeProperty.intValue + 4;
-            return height * scale;
+            float elementHeight = height + 2;
+            int scale = Math.Max(sizeProperty.intValue, 1);
+            return height * 3 + elementHeight * scale;
         }
     }
 }

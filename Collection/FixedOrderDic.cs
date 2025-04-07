@@ -90,7 +90,7 @@ namespace Eevee.Collection
             #endregion
         }
 
-        public readonly struct ValueCollection : ICollection<TValue>, IReadOnlyCollection<TValue>, ICollection
+        private readonly struct ValueCollection : ICollection<TValue>, IReadOnlyCollection<TValue>, ICollection
         {
             private readonly FixedOrderDic<TKey, TValue> _enumerator;
 
@@ -136,13 +136,13 @@ namespace Eevee.Collection
             #endregion
 
             #region Enumerator
-            public ValueEnumerator GetEnumerator() => new(_enumerator);
+            internal ValueEnumerator GetEnumerator() => new(_enumerator);
             IEnumerator<TValue> IEnumerable<TValue>.GetEnumerator() => new ValueEnumerator(_enumerator);
             IEnumerator IEnumerable.GetEnumerator() => new ValueEnumerator(_enumerator);
             #endregion
         }
 
-        public struct ValueEnumerator : IEnumerator<TValue>
+        private struct ValueEnumerator : IEnumerator<TValue>
         {
             private readonly FixedOrderDic<TKey, TValue> _enumerator;
             private readonly int _version;
@@ -349,7 +349,7 @@ namespace Eevee.Collection
         #endregion
 
         #region IReadOnlyList`1
-        public TKey this[int index]
+        TKey IReadOnlyList<TKey>.this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
@@ -431,6 +431,16 @@ namespace Eevee.Collection
             CheckCount();
             return _collection.ContainsValue(value);
         }
+        public bool TryAdd(TKey key, TValue value)
+        {
+            CheckCount();
+            if (!_collection.TryAdd(key, value))
+                return false;
+
+            _order.Add(key);
+            CheckCount();
+            return true;
+        }
         public bool Remove(TKey key, out TValue value)
         {
             CheckCount();
@@ -446,18 +456,21 @@ namespace Eevee.Collection
         {
             CheckCount();
             _collection.TrimExcess();
+            _order.Capacity = Count;
             CheckCount();
         }
         public void TrimExcess(int capacity)
         {
             CheckCount();
             _collection.TrimExcess(capacity);
+            _order.Capacity = capacity;
             CheckCount();
         }
         public int EnsureCapacity(int capacity)
         {
             CheckCount();
             int size = _collection.EnsureCapacity(capacity);
+            _order.Capacity = size;
             CheckCount();
             return size;
         }
@@ -477,6 +490,11 @@ namespace Eevee.Collection
         {
             CheckCount();
             return _order.AsReadOnlySpan();
+        }
+        public IEnumerable<KeyValuePair<TKey, TValue>> AsPair()
+        {
+            CheckCount();
+            return this;
         }
         #endregion
 

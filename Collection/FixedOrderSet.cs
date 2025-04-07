@@ -4,7 +4,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
@@ -261,12 +260,14 @@ namespace Eevee.Collection
         {
             CheckCount();
             _collection.TrimExcess();
+            _order.Capacity = Count;
             CheckCount();
         }
         public int EnsureCapacity(int capacity)
         {
             CheckCount();
             int size = _collection.EnsureCapacity(capacity);
+            _order.Capacity = size;
             CheckCount();
             return size;
         }

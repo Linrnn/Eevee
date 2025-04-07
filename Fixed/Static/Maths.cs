@@ -459,7 +459,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(int a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<int>, int>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<int>(a));
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<int>, int>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<int>(a));
             return Log2((uint)a);
         }
         /// <summary>
@@ -467,6 +467,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(uint a)
         {
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<uint>, uint>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<uint>(a));
             uint num = a;
             int log = 0;
             if ((num & 0xFFFF0000) != 0) { num >>= 16; log |= 16; }
@@ -481,7 +482,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(long a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<long>, long>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<long>(a));
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<long>, long>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<long>(a));
             return Log2((ulong)a);
         }
         /// <summary>
@@ -489,6 +490,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(ulong a)
         {
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<ulong>, ulong>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<ulong>(a));
             ulong num = a;
             int log = 0;
             if ((num & 0xFFFFFFFF00000000) != 0) { num >>= 32; log |= 32; }
