@@ -270,9 +270,27 @@ namespace Eevee.Fixed
         public static implicit operator Fixed64(double value) => new((long)((decimal)value * Const.One)); // 处理大数丢失整数部分
         public static implicit operator Fixed64(in decimal value) => new((long)(value * Const.One));
 
-        public static explicit operator short(Fixed64 value) => (short)(value.RawValue >> Const.FractionalBits);
-        public static explicit operator int(Fixed64 value) => (int)(value.RawValue >> Const.FractionalBits);
-        public static explicit operator long(Fixed64 value) => value.RawValue >> Const.FractionalBits;
+        public static explicit operator short(Fixed64 value)
+        {
+            short integerPart = (short)(value.RawValue >> Const.FractionalBits);
+            if (integerPart < 0 && (value.RawValue & Const.FractionalPart) != 0)
+                ++integerPart;
+            return integerPart;
+        }
+        public static explicit operator int(Fixed64 value)
+        {
+            int integerPart = (int)(value.RawValue >> Const.FractionalBits);
+            if (integerPart < 0 && (value.RawValue & Const.FractionalPart) != 0)
+                ++integerPart;
+            return integerPart;
+        }
+        public static explicit operator long(Fixed64 value)
+        {
+            long integerPart = value.RawValue >> Const.FractionalBits;
+            if (integerPart < 0 && (value.RawValue & Const.FractionalPart) != 0)
+                ++integerPart;
+            return integerPart;
+        }
         public static explicit operator ushort(Fixed64 value) => (ushort)(value.RawValue >> Const.FractionalBits);
         public static explicit operator uint(Fixed64 value) => (uint)(value.RawValue >> Const.FractionalBits);
         public static explicit operator ulong(Fixed64 value) => (ulong)(value.RawValue >> Const.FractionalBits);
@@ -284,8 +302,6 @@ namespace Eevee.Fixed
         public static Fixed64 operator >>(Fixed64 lhs, int rhs) => new(lhs.RawValue >> rhs);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator <<(Fixed64 lhs, int rhs) => new(lhs.RawValue << rhs);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Fixed64 operator ~(Fixed64 lhs) => new(~lhs.RawValue);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator +(Fixed64 value) => value;
@@ -299,7 +315,16 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator +(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue + rhs.RawValue);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed64 operator +(Fixed64 lhs, long rhs) => new(lhs.RawValue + (rhs << Const.FractionalBits));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed64 operator +(long lhs, Fixed64 rhs) => new((lhs << Const.FractionalBits) + rhs.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator -(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue - rhs.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed64 operator -(Fixed64 lhs, long rhs) => new(lhs.RawValue - (rhs << Const.FractionalBits));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed64 operator -(long lhs, Fixed64 rhs) => new((lhs << Const.FractionalBits) - rhs.RawValue);
+
         public static Fixed64 operator *(Fixed64 lhs, Fixed64 rhs)
         {
             long la = Math.Abs(lhs.RawValue);
@@ -410,19 +435,47 @@ namespace Eevee.Fixed
         public static Fixed64 operator /(Fixed64 lhs, long rhs) => new(lhs.RawValue / rhs);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator %(Fixed64 lhs, Fixed64 rhs) => new(lhs.RawValue % rhs.RawValue);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed64 operator %(Fixed64 lhs, long rhs) => new(lhs.RawValue % (rhs << Const.FractionalBits));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue == rhs.RawValue;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(Fixed64 lhs, long rhs) => lhs.RawValue == rhs << Const.FractionalBits;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator ==(long lhs, Fixed64 rhs) => lhs << Const.FractionalBits == rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue != rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(Fixed64 lhs, long rhs) => lhs.RawValue != rhs << Const.FractionalBits;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator !=(long lhs, Fixed64 rhs) => lhs << Const.FractionalBits != rhs.RawValue;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue >= rhs.RawValue;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >=(Fixed64 lhs, long rhs) => lhs.RawValue >= rhs << Const.FractionalBits;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >=(long lhs, Fixed64 rhs) => lhs << Const.FractionalBits >= rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <=(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue <= rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <=(Fixed64 lhs, long rhs) => lhs.RawValue <= rhs << Const.FractionalBits;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <=(long lhs, Fixed64 rhs) => lhs << Const.FractionalBits <= rhs.RawValue;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator >(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue > rhs.RawValue;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >(Fixed64 lhs, long rhs) => lhs.RawValue > rhs << Const.FractionalBits;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator >(long lhs, Fixed64 rhs) => lhs << Const.FractionalBits > rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator <(Fixed64 lhs, Fixed64 rhs) => lhs.RawValue < rhs.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <(Fixed64 lhs, long rhs) => lhs.RawValue < rhs << Const.FractionalBits;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool operator <(long lhs, Fixed64 rhs) => lhs << Const.FractionalBits < rhs.RawValue;
         #endregion
 
         #region 继承/重载
