@@ -1,44 +1,53 @@
 ﻿using Eevee.Diagnosis;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Eevee.Pool
 {
-    internal readonly struct ICollectionPool<TCollection, TElement> where TCollection : class, ICollection<TElement>, new()
+    public readonly struct ICollectionPool<TCollection> where TCollection : class, new()
     {
-        internal const int PoolMaxCount = 128;
-        private static Stack<TCollection> _pools;
-
-        internal static TCollection Alloc() => PrivateAlloc();
-        internal static TCollection Alloc(ref TCollection collection)
+        public static TCollection Alloc()
         {
-            Assert.Null<InvalidOperationException, AssertArgs<Type, int>>(collection, nameof(collection), "collection isn't null, Type:{0}, HashCode:{1}", new AssertArgs<Type, int>(collection.GetType(), collection.GetHashCode()));
-            return collection = PrivateAlloc();
-        }
-
-        internal static void Release(TCollection collection) => PrivateRelease(collection);
-        internal static void Release(ref TCollection collection)
-        {
-            PrivateRelease(collection);
-            collection = null;
-        }
-
-        internal static void Clean() => _pools?.Clear();
-
-        private static TCollection PrivateAlloc()
-        {
-            if (_pools != null && _pools.TryPop(out var collection))
+            if (ICollectionPool.Value(typeof(TCollection))?.GetPool<TCollection>() is { } pool && pool.TryPop(out var collection))
                 return collection;
             return new TCollection();
         }
-        private static void PrivateRelease(TCollection collection)
+        public static void Release(TCollection collection)
         {
-            Assert.False<InvalidOperationException, AssertArgs<Type, int>>(_pools?.Contains(collection) ?? false, nameof(collection), "Pools is Contains, Type:{0}, HashCode:{1}", new AssertArgs<Type, int>(collection.GetType(), collection.GetHashCode()));
-            collection.Clear();
+            var value = ICollectionPool.Value(typeof(TCollection));
+            Assert.False<InvalidOperationException, AssertArgs<Type, int>>(value?.GetPool<TCollection>()?.Contains(collection) ?? false, nameof(collection), "Pools is Contains, Type:{0}, HashCode:{1}", new AssertArgs<Type, int>(collection.GetType(), collection.GetHashCode()));
 
-            _pools ??= new Stack<TCollection>();
-            if (_pools.Count < PoolMaxCount)
-                _pools.Push(collection);
+            var newValue = value ?? ICollectionPool.SetMaxCount<TCollection>(ICollectionPoolValue.ConstMaxCount);
+            if (!newValue.IsFull())
+                newValue.GetPool<TCollection>().Push(collection);
         }
+    }
+
+    public readonly struct ICollectionPool
+    {
+        private static Dictionary<Type, ICollectionPoolValue> _pools;
+        internal static ICollectionPoolValue Value(Type key) => _pools?.GetValueOrDefault(key);
+
+        public static ICollectionPoolValue SetMaxCount<TCollection>(int maxCount)
+        {
+            var key = typeof(TCollection);
+            _pools ??= new Dictionary<Type, ICollectionPoolValue>();
+            if (!_pools.ContainsKey(key))
+                _pools.Add(key, new ICollectionPoolValue(ICollectionPoolValue.NewPool<TCollection>()));
+
+            var value = _pools[key];
+            value.MaxCount = maxCount;
+            return value;
+        }
+        public static void SetAllMaxCount(int maxCount)
+        {
+            if (_pools != null)
+                foreach (var pair in _pools)
+                    pair.Value.MaxCount = maxCount;
+        }
+
+        public static void Clean<TCollection>(int maxCount) => _pools?.Remove(typeof(TCollection));
+        public static void CleanAll() => _pools = null;
     }
 }
