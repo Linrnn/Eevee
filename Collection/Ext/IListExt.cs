@@ -73,6 +73,31 @@ namespace Eevee.Collection
                 output.Add(source[i]);
         }
 
+        public static T GetMin<T>(this IList<T> source) where T : IComparable<T>
+        {
+            var value = source[0];
+            for (int count = source.Count, i = 1; i < count; ++i)
+            {
+                var item = source[i];
+                if (item.CompareTo(value) < 0)
+                    value = item;
+            }
+
+            return value;
+        }
+        public static T GetMax<T>(this IList<T> source) where T : IComparable<T>
+        {
+            var value = source[0];
+            for (int count = source.Count, i = 1; i < count; ++i)
+            {
+                var item = source[i];
+                if (item.CompareTo(value) > 0)
+                    value = item;
+            }
+
+            return value;
+        }
+
         public static int BinarySearch<T>(this IList<T> source, T item, IComparer<T> comparer = null)
         {
             return BinarySearch(source, 0, source.Count, item, comparer);
