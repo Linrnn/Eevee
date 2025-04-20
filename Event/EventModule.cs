@@ -66,7 +66,7 @@ namespace Eevee.Event
         /// </summary>
         public void Disable()
         {
-            if (!_listeners.IsEmpty())
+            if (_listeners.Count > 0)
                 LogRelay.Warn($"[Event] Listeners.Count is {_listeners.Count}, need clear!");
 
             foreach (var pair in _listeners)
@@ -163,7 +163,8 @@ namespace Eevee.Event
                         bool success = Invoke(listener, context);
                         if (!success)
                             LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
-                        else if (recycle)
+                        if (recycle)
+                            // ReSharper disable once SuspiciousTypeConversion.Global
                             (context as IRecyclable)?.Recycle();
                     }
                     catch (Exception exception)
