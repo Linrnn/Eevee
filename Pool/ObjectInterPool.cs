@@ -7,7 +7,7 @@ namespace Eevee.Pool
     /// <summary>
     /// 基于接口实现的对象池
     /// </summary>
-    public sealed class ObjectInterPool<T> where T : class, IObjectRelease, new()
+    public sealed class ObjectInterPool<T> where T : class, new()
     {
         private Stack<T> _pool;
         public bool ReleaseCheck;
@@ -32,11 +32,9 @@ namespace Eevee.Pool
             else
             {
                 newObj = new T();
-                // ReSharper disable once SuspiciousTypeConversion.Global
                 (newObj as IObjectCreate)?.OnCreate();
             }
 
-            // ReSharper disable once SuspiciousTypeConversion.Global
             (newObj as IObjectAlloc)?.OnAlloc();
             return newObj;
         }
@@ -53,19 +51,17 @@ namespace Eevee.Pool
                 throw new InvalidOperationException("Trying to release an object that has already been released to the pool.");
 
             _pool ??= new Stack<T>();
-            element?.OnRelease();
+            (element as IObjectRelease)?.OnRelease();
 
             if (_pool.Count < MaxCount)
                 _pool.Push(element);
             else
-                // ReSharper disable once SuspiciousTypeConversion.Global
                 (element as IObjectDestroy)?.OnDestroy();
         }
         public void Clear()
         {
             if (_pool != null && typeof(IObjectDestroy).IsAssignableFrom(typeof(T)))
                 foreach (var obj in _pool)
-                    // ReSharper disable once SuspiciousTypeConversion.Global
                     (obj as IObjectDestroy)?.OnDestroy();
 
             _pool?.Clear();
