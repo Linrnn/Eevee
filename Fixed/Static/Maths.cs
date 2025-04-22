@@ -433,7 +433,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Pow(Fixed64 b, int a)
         {
-            if (b.RawValue == 0)
+            if (b.RawValue == Const.Zero)
                 return Fixed64.Zero;
 
             if (b.Abs().RawValue > Const.One)

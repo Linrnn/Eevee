@@ -23,23 +23,23 @@ namespace Eevee.Fixed
         public Vector4D(Fixed64 x)
         {
             X = x;
-            Y = Fixed64.Zero;
-            Z = Fixed64.Zero;
-            W = Fixed64.Zero;
+            Y = default;
+            Z = default;
+            W = default;
         }
         public Vector4D(Fixed64 x, Fixed64 y)
         {
             X = x;
             Y = y;
-            Z = Fixed64.Zero;
-            W = Fixed64.Zero;
+            Z = default;
+            W = default;
         }
         public Vector4D(Fixed64 x, Fixed64 y, Fixed64 z)
         {
             X = x;
             Y = y;
             Z = z;
-            W = Fixed64.Zero;
+            W = default;
         }
         public Vector4D(Fixed64 x, Fixed64 y, Fixed64 z, Fixed64 w)
         {

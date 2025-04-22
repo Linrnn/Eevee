@@ -28,14 +28,14 @@ namespace Eevee.Fixed
         public Vector3D(Fixed64 x)
         {
             X = x;
-            Y = Fixed64.Zero;
-            Z = Fixed64.Zero;
+            Y = default;
+            Z = default;
         }
         public Vector3D(Fixed64 x, Fixed64 y)
         {
             X = x;
             Y = y;
-            Z = Fixed64.Zero;
+            Z = default;
         }
         public Vector3D(Fixed64 x, Fixed64 y, Fixed64 z)
         {

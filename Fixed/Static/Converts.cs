@@ -233,12 +233,12 @@ namespace Eevee.Fixed
         private static Matrix3X3 RotateX(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = Fixed64.One,
-            M01 = Fixed64.Zero,
-            M02 = Fixed64.Zero,
-            M10 = Fixed64.Zero,
+            M01 = default,
+            M02 = default,
+            M10 = default,
             M11 = cos,
             M12 = sin,
-            M20 = Fixed64.Zero,
+            M20 = default,
             M21 = -sin,
             M22 = cos,
         };
@@ -246,13 +246,13 @@ namespace Eevee.Fixed
         private static Matrix3X3 RotateY(Fixed64 cos, Fixed64 sin) => new()
         {
             M00 = cos,
-            M01 = Fixed64.Zero,
+            M01 = default,
             M02 = -sin,
-            M10 = Fixed64.Zero,
+            M10 = default,
             M11 = Fixed64.One,
-            M12 = Fixed64.Zero,
+            M12 = default,
             M20 = sin,
-            M21 = Fixed64.Zero,
+            M21 = default,
             M22 = cos,
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -260,12 +260,12 @@ namespace Eevee.Fixed
         {
             M00 = cos,
             M01 = sin,
-            M02 = Fixed64.Zero,
+            M02 = default,
             M10 = -sin,
             M11 = cos,
-            M12 = Fixed64.Zero,
-            M20 = Fixed64.Zero,
-            M21 = Fixed64.Zero,
+            M12 = default,
+            M20 = default,
+            M21 = default,
             M22 = Fixed64.One,
         };
         #endregion
@@ -283,28 +283,28 @@ namespace Eevee.Fixed
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateXMat4(Fixed64 rad) => RotateX(Maths.Sin(rad), Maths.Cos(rad), Fixed64.Zero, Fixed64.Zero);
+        public static Matrix4X4 RotateXMat4(Fixed64 rad) => RotateX(Maths.Sin(rad), Maths.Cos(rad), default, default);
         /// <summary>
         /// 创建一个绕y轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateYMat4(Fixed64 rad) => RotateY(Maths.Sin(rad), Maths.Cos(rad), Fixed64.Zero, Fixed64.Zero);
+        public static Matrix4X4 RotateYMat4(Fixed64 rad) => RotateY(Maths.Sin(rad), Maths.Cos(rad), default, default);
         /// <summary>
         /// 创建一个绕z轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateMat4(Fixed64 rad) => RotateZ(Maths.Sin(rad), Maths.Cos(rad), Fixed64.Zero, Fixed64.Zero);
+        public static Matrix4X4 RotateMat4(Fixed64 rad) => RotateZ(Maths.Sin(rad), Maths.Cos(rad), default, default);
 
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateXMat4Deg(Fixed64 deg) => RotateX(Maths.SinDeg(deg), Maths.CosDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        public static Matrix4X4 RotateXMat4Deg(Fixed64 deg) => RotateX(Maths.SinDeg(deg), Maths.CosDeg(deg), default, default);
         /// <summary>
         /// 创建一个绕y轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateYMat4Deg(Fixed64 deg) => RotateY(Maths.SinDeg(deg), Maths.CosDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        public static Matrix4X4 RotateYMat4Deg(Fixed64 deg) => RotateY(Maths.SinDeg(deg), Maths.CosDeg(deg), default, default);
         /// <summary>
         /// 创建一个绕z轴旋转点的矩阵
         /// </summary>
-        public static Matrix4X4 RotateZMat4Deg(Fixed64 deg) => RotateZ(Maths.SinDeg(deg), Maths.CosDeg(deg), Fixed64.Zero, Fixed64.Zero);
+        public static Matrix4X4 RotateZMat4Deg(Fixed64 deg) => RotateZ(Maths.SinDeg(deg), Maths.CosDeg(deg), default, default);
 
         /// <summary>
         /// 创建一个绕x轴旋转点的矩阵
@@ -394,18 +394,18 @@ namespace Eevee.Fixed
                 M00 = xx + cos * (Fixed64.One - xx),
                 M01 = xy - cos * xy + sin * axis.Z,
                 M02 = xz - cos * xz - sin * axis.Y,
-                M03 = Fixed64.Zero,
+                M03 = default,
                 M10 = xy - cos * xy - sin * axis.Z,
                 M11 = yy + cos * (Fixed64.One - yy),
                 M12 = yz - cos * yz + sin * axis.X,
-                M13 = Fixed64.Zero,
+                M13 = default,
                 M20 = xz - cos * xz + sin * axis.Y,
                 M21 = yz - cos * yz - sin * axis.X,
                 M22 = zz + cos * (Fixed64.One - zz),
-                M23 = Fixed64.Zero,
-                M30 = Fixed64.Zero,
-                M31 = Fixed64.Zero,
-                M32 = Fixed64.Zero,
+                M23 = default,
+                M30 = default,
+                M31 = default,
+                M32 = default,
                 M33 = Fixed64.One,
             };
         }
@@ -413,18 +413,18 @@ namespace Eevee.Fixed
         private static Matrix4X4 RotateX(Fixed64 sin, Fixed64 cos, Fixed64 m31, Fixed64 m32) => new()
         {
             M00 = Fixed64.One,
-            M01 = Fixed64.Zero,
-            M02 = Fixed64.Zero,
-            M03 = Fixed64.Zero,
-            M10 = Fixed64.Zero,
+            M01 = default,
+            M02 = default,
+            M03 = default,
+            M10 = default,
             M11 = cos,
             M12 = sin,
-            M13 = Fixed64.Zero,
-            M20 = Fixed64.Zero,
+            M13 = default,
+            M20 = default,
             M21 = -sin,
             M22 = cos,
-            M23 = Fixed64.Zero,
-            M30 = Fixed64.Zero,
+            M23 = default,
+            M30 = default,
             M31 = m31,
             M32 = m32,
             M33 = Fixed64.One,
@@ -433,19 +433,19 @@ namespace Eevee.Fixed
         private static Matrix4X4 RotateY(Fixed64 sin, Fixed64 cos, Fixed64 m30, Fixed64 m32) => new()
         {
             M00 = cos,
-            M01 = Fixed64.Zero,
+            M01 = default,
             M02 = -sin,
-            M03 = Fixed64.Zero,
-            M10 = Fixed64.Zero,
+            M03 = default,
+            M10 = default,
             M11 = Fixed64.One,
-            M12 = Fixed64.Zero,
-            M13 = Fixed64.Zero,
+            M12 = default,
+            M13 = default,
             M20 = sin,
-            M21 = Fixed64.Zero,
+            M21 = default,
             M22 = cos,
-            M23 = Fixed64.Zero,
+            M23 = default,
             M30 = m30,
-            M31 = Fixed64.Zero,
+            M31 = default,
             M32 = m32,
             M33 = Fixed64.One,
         };
@@ -454,19 +454,19 @@ namespace Eevee.Fixed
         {
             M00 = cos,
             M01 = sin,
-            M02 = Fixed64.Zero,
-            M03 = Fixed64.Zero,
+            M02 = default,
+            M03 = default,
             M10 = -sin,
             M11 = cos,
-            M12 = Fixed64.Zero,
-            M13 = Fixed64.Zero,
-            M20 = Fixed64.Zero,
-            M21 = Fixed64.Zero,
+            M12 = default,
+            M13 = default,
+            M20 = default,
+            M21 = default,
             M22 = Fixed64.One,
-            M23 = Fixed64.Zero,
+            M23 = default,
             M30 = m30,
             M31 = m31,
-            M32 = Fixed64.Zero,
+            M32 = default,
             M33 = Fixed64.One,
         };
         #endregion

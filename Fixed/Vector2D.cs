@@ -25,7 +25,7 @@ namespace Eevee.Fixed
         public Vector2D(Fixed64 x)
         {
             X = x;
-            Y = Fixed64.Zero;
+            Y = default;
         }
         public Vector2D(Fixed64 x, Fixed64 y)
         {

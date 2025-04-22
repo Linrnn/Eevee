@@ -100,7 +100,7 @@ namespace Eevee.Fixed
             var dnDot = Vector3D.Dot(in ray.Direction, in Normal);
             if (dnDot.RawValue == 0)
             {
-                enter = Fixed64.Zero;
+                enter = default;
                 return false;
             }
 

@@ -105,14 +105,14 @@ namespace Eevee.Fixed
         {
             if (lhs == Vector2D.Zero || rhs == Vector2D.Zero)
             {
-                cos = Fixed64.Zero;
+                cos = default;
                 return false;
             }
 
             var magnitude = (lhs.SqrMagnitude() * rhs.SqrMagnitude()).Sqrt();
             if (magnitude.RawValue == 0)
             {
-                cos = Fixed64.Zero;
+                cos = default;
                 return false;
             }
 
@@ -125,14 +125,14 @@ namespace Eevee.Fixed
         {
             if (lhs == Vector3D.Zero || rhs == Vector3D.Zero)
             {
-                cos = Fixed64.Zero;
+                cos = default;
                 return false;
             }
 
             var magnitude = (lhs.SqrMagnitude() * rhs.SqrMagnitude()).Sqrt();
             if (magnitude.RawValue == 0)
             {
-                cos = Fixed64.Zero;
+                cos = default;
                 return false;
             }
 

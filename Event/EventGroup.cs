@@ -25,7 +25,7 @@ namespace Eevee.Event
         }
         #endregion
 
-        private readonly Dictionary<ulong, Wrapper> _listeners = new(32);
+        private readonly Dictionary<int, Wrapper> _listeners = new(32);
 
         #region Add
         /// <summary>
@@ -141,23 +141,20 @@ namespace Eevee.Event
         #endregion
 
         #region Private
-        private ulong GetKey(EventModule module, Delegate listener)
+        private int GetKey(EventModule module, int eventId, Delegate listener)
         {
-            int hashCode1 = module.GetHashCode();
-            int hashCode2 = listener.GetHashCode();
-            ulong key = (ulong)(uint)hashCode1 << 32 | (uint)hashCode2; // (ulong)-1 = 18446744073709551615，(uint)-1 = 4294967295，结果不一致
-            return key;
+            return HashCode.Combine(module.GetHashCode(), eventId, listener.GetHashCode());
         }
 
         private void Register(EventModule module, int eventId, Delegate listener)
         {
-            ulong key = GetKey(module, listener);
+            int key = GetKey(module, eventId, listener);
             _listeners.Add(key, new Wrapper(module, eventId, listener));
             module.Register(eventId, listener);
         }
         private void UnRegister(EventModule module, int eventId, Delegate listener)
         {
-            ulong key = GetKey(module, listener);
+            int key = GetKey(module, eventId, listener);
 
             if (_listeners.Remove(key))
                 module.UnRegister(eventId, listener);

@@ -150,30 +150,50 @@ namespace Eevee.Fixed
         /// 较小值
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Fixed64 Min(Fixed64 lsh, Fixed64 rsh) => lsh < rsh ? lsh : rsh;
+        public static Fixed64 Min(Fixed64 a, Fixed64 rsh) => a < rsh ? a : rsh;
         /// <summary>
         /// 较小值
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Fixed64 Min(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
+        public static Fixed64 Min(Fixed64 a, Fixed64 b, Fixed64 c)
         {
-            var value = lsh < msh ? lsh : msh;
-            return value < rsh ? value : rsh;
+            var value = a < b ? a : b;
+            return value < c ? value : c;
+        }
+        /// <summary>
+        /// 较小值
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed64 Min(Fixed64 a, Fixed64 b, Fixed64 c, Fixed64 d)
+        {
+            var v0 = a < b ? a : b;
+            var v1 = c < d ? c : d;
+            return v0 < v1 ? v0 : v1;
         }
 
         /// <summary>
         /// 较大值
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Fixed64 Max(Fixed64 lsh, Fixed64 rsh) => lsh > rsh ? lsh : rsh;
+        public static Fixed64 Max(Fixed64 a, Fixed64 rsh) => a > rsh ? a : rsh;
         /// <summary>
         /// 较大值
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Fixed64 Max(Fixed64 lsh, Fixed64 msh, Fixed64 rsh)
+        public static Fixed64 Max(Fixed64 a, Fixed64 b, Fixed64 c)
         {
-            var value = lsh > msh ? lsh : msh;
-            return value > rsh ? value : rsh;
+            var value = a > b ? a : b;
+            return value > c ? value : c;
+        }
+        /// <summary>
+        /// 较大值
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Fixed64 Max(Fixed64 a, Fixed64 b, Fixed64 c, Fixed64 d)
+        {
+            var v0 = a > b ? a : b;
+            var v1 = c > d ? c : d;
+            return v0 > v1 ? v0 : v1;
         }
 
         /// <summary>
@@ -205,7 +225,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static bool TryParse(in ReadOnlySpan<char> str, out Fixed64 result)
         {
-            result = Zero;
+            result = default;
             if (str.IsEmpty)
                 return false;
 
