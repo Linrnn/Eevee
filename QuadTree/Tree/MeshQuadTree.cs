@@ -15,7 +15,7 @@ namespace Eevee.QuadTree
     {
         #region 数据/构造方法
         private const int ChildCount = 4;
-        public const bool ShowLog = false;
+        public static bool ShowLog = false;
         private static readonly int[] _logCheckIds = Array.Empty<int>(); // 需要检测的EntityId，null/空数组：不限制检测
 
         public readonly AABB2DInt MaxBounds; // 最大包围盒
