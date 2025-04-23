@@ -84,9 +84,9 @@ namespace Eevee.Collection
             #endregion
 
             #region IDictionaryEnumerator
-            public DictionaryEntry Entry => new(_current.Key, _current.Value);
-            public object Key => _current.Key;
-            public object Value => _current.Value;
+            public readonly DictionaryEntry Entry => new(_current.Key, _current.Value);
+            public readonly object Key => _current.Key;
+            public readonly object Value => _current.Value;
             #endregion
         }
 
@@ -253,7 +253,7 @@ namespace Eevee.Collection
         public FixedOrderDic(IEnumerable<KeyValuePair<TKey, TValue>> other, IEqualityComparer<TKey> comparer)
         {
             CheckComparer();
-            _collection = new Dictionary<TKey, TValue>();
+            _collection = new Dictionary<TKey, TValue>(comparer);
             _order = new WeakOrderList<TKey>();
             this.AddRange0GC(other);
         }

@@ -21,7 +21,7 @@ namespace EeveeEditor.Collection
             EditorGUI.PropertyField(position, itemsProperty, label);
             EditorGUI.EndDisabledGroup();
         }
-        internal static float GetPropertyHeight(float height, SerializedProperty property, GUIContent label)
+        internal static float GetPropertyHeight(float height, SerializedProperty property, GUIContent _)
         {
             var itemsProperty = property.FindPropertyRelative(Items);
             if (!itemsProperty.isExpanded)

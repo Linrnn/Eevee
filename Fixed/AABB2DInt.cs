@@ -1,5 +1,6 @@
 ﻿using Eevee.Define;
 using System;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -71,20 +72,33 @@ namespace Eevee.Fixed
         #endregion
 
         #region 基础方法
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Left() => X - W; // 左
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Right() => X + W; // 右
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Bottom() => Y - H; // 下
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Top() => Y + H; // 上
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt Center() => new(X, Y); // 中心点
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt Size() => new(W << 1, H << 1); // 尺寸
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt HalfSize() => new(W, H); // 一半的尺寸
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt Min() => new(Left(), Bottom()); // 左下角
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt Max() => new(Right(), Top()); // 右上角
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt LeftBottom() => new(Left(), Bottom()); // 左下角
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt RightBottom() => new(Right(), Bottom()); // 右下角
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt RightTop() => new(Right(), Top()); // 右上角
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角 
 
         public bool ContainPoint(Vector2DInt point) => Left() <= point.X && Right() >= point.X && Bottom() <= point.Y && Top() >= point.Y;

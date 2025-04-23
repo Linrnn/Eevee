@@ -45,7 +45,7 @@ namespace Eevee.QuadTree
             int top = maxBounds.Top();
             for (int depth = 1; depth < depthCount; ++depth)
             {
-                int length = 1 << depth << depth; // 4的depth次方
+                int length = 1 << depth << depth; // length = 4^depth
                 var nodes = new QuadNode[length];
 
                 HalfBoundsSizes[depth] = HalfBoundsSizes[depth - 1] / 2;
@@ -140,12 +140,12 @@ namespace Eevee.QuadTree
             if (Root.IsEmpty())
                 return;
 
-            GetRectangleCorner(in rect, in dir, out var leftBottom, out var rightBottom, out var rightTop, out var leftTop);
-            var width = Fixed64.Max((rightTop.X - leftBottom.X).Abs(), (leftTop.X - rightBottom.X).Abs());
-            var height = Fixed64.Max((rightTop.Y - leftBottom.Y).Abs(), (leftTop.Y - rightBottom.Y).Abs());
+            GetRectangleCorner(in rect, in dir, out var lb, out var b, out var lt, out var rt);
+            var width = Fixed64.Max((rt.X - lb.X).Abs(), (lt.X - b.X).Abs());
+            var height = Fixed64.Max((rt.Y - lb.Y).Abs(), (lt.Y - b.Y).Abs());
 
             var aabb = new AABB2DInt(rect.Center(), new Vector2DInt((int)(width >> 1), (int)(height >> 1)));
-            var checker = new QueryRectangleChecker(in aabb, in leftBottom, in rightBottom, in rightTop, in leftTop);
+            var checker = new QueryRectangleChecker(in aabb, in lb, in b, in rt, in lt);
             RecursiveQuery(in checker, in rect, elements);
         }
         public void QueryQuadrangle(in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements) // 搜索单个四边形
@@ -171,8 +171,8 @@ namespace Eevee.QuadTree
             if (node.IsEmpty())
                 return;
 
-            for (int i = 0; i < node.Count; ++i)
-                elements.Add(node.Elements[i]);
+            foreach (var element in node.Elements.AsReadOnlySpan())
+                elements.Add(element);
 
             if (!node.Children.IsNullOrEmpty())
                 foreach (var child in node.Children)
@@ -192,14 +192,9 @@ namespace Eevee.QuadTree
         private void RecursiveQueryParent<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQueryIntersectChecker
         {
             for (var point = node; point != null; point = point.Parent)
-            {
-                for (int i = 0; i < point.Count; ++i)
-                {
-                    var element = point.Elements[i];
+                foreach (var element in node.Elements.AsReadOnlySpan())
                     if (checker.CheckElement(in element.AABB))
                         elements.Add(element);
-                }
-            }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void RecursiveQueryChildren<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQueryIntersectChecker
@@ -207,17 +202,14 @@ namespace Eevee.QuadTree
             if (node.IsEmpty())
                 return;
 
-            if (node.Count > 0)
+            if (node.Elements.Count > 0)
             {
                 if (!checker.CheckNode(in node.LooseBounds))
                     return;
 
-                for (int i = 0; i < node.Count; ++i)
-                {
-                    var element = node.Elements[i];
+                foreach (var element in node.Elements.AsReadOnlySpan())
                     if (checker.CheckElement(in element.AABB))
                         elements.Add(element);
-                }
             }
 
             if (!node.Children.IsNullOrEmpty())
@@ -250,7 +242,7 @@ namespace Eevee.QuadTree
             return null;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void GetRectangleCorner(in AABB2DInt box, in Vector2D dir, out Vector2D leftBottom, out Vector2D rightBottom, out Vector2D rightTop, out Vector2D leftTop) // 获得矩形的四个角
+        private void GetRectangleCorner(in AABB2DInt box, in Vector2D dir, out Vector2D lb, out Vector2D rb, out Vector2D lt, out Vector2D rt) // 获得矩形的四个角
         {
             // 计算方向向量的垂直向量
             var dir3D = new Vector3D(dir.X, dir.Y);
@@ -264,10 +256,10 @@ namespace Eevee.QuadTree
             var yh = normal.Y * box.H;
 
             // 计算矩形的四个角坐标
-            leftBottom = new Vector2D(box.X - xw - xh, box.Y - yw - yh);
-            rightBottom = new Vector2D(box.X + xw - xh, box.Y + yw - yh);
-            rightTop = new Vector2D(box.X + xw + xh, box.Y + yw + yh);
-            leftTop = new Vector2D(box.X - xw + xh, box.Y - yw + yh);
+            lb = new Vector2D(box.X - xw - xh, box.Y - yw - yh);
+            rb = new Vector2D(box.X + xw - xh, box.Y + yw - yh);
+            lt = new Vector2D(box.X - xw + xh, box.Y - yw + yh);
+            rt = new Vector2D(box.X + xw + xh, box.Y + yw + yh);
         }
 
         public void Clean()

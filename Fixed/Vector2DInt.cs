@@ -4,7 +4,7 @@ using System;
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 确定性的二维向量
+    /// 二维整数向量
     /// </summary>
     [Serializable]
     public struct Vector2DInt : IEquatable<Vector2DInt>, IComparable<Vector2DInt>, IFormattable
@@ -25,7 +25,7 @@ namespace Eevee.Fixed
         public Vector2DInt(int x)
         {
             X = x;
-            Y = default;
+            Y = 0;
         }
         public Vector2DInt(int x, int y)
         {

@@ -62,7 +62,7 @@ namespace Eevee.Pool
                     pair.Value.MaxCount = maxCount;
         }
 
-        public void Clean<TCollection>(int maxCount) => Pools?.Remove(typeof(TCollection));
+        public void Clean<TCollection>() => Pools?.Remove(typeof(TCollection));
         public void CleanAll() => Pools = null;
         #endregion
 

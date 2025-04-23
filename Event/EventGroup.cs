@@ -62,15 +62,15 @@ namespace Eevee.Event
         /// </summary>
         public void AddOnceListener<TContext>(EventModule module, int eventId, Action<TContext> listener) where TContext : IEventContext
         {
-            Action<TContext> remove = null;
-            remove = _ =>
+            AddListener(module, eventId, listener);
+            AddListener(module, eventId, (Action<TContext>)Remove);
+            return;
+
+            void Remove(TContext _)
             {
                 RemoveListener(module, eventId, listener);
-                RemoveListener(module, eventId, remove);
-            };
-
-            AddListener(module, eventId, listener);
-            AddListener(module, eventId, remove);
+                RemoveListener<TContext>(module, eventId, Remove);
+            }
         }
         /// <summary>
         /// 添加监听，执行一次后移除事件<br/>
@@ -79,15 +79,15 @@ namespace Eevee.Event
         /// </summary>
         public void AddOnceListener(EventModule module, int eventId, Action<IEventContext> listener)
         {
-            Action<IEventContext> remove = null;
-            remove = _ =>
+            AddListener(module, eventId, listener);
+            AddListener(module, eventId, Remove);
+            return;
+
+            void Remove(IEventContext _)
             {
                 RemoveListener(module, eventId, listener);
-                RemoveListener(module, eventId, remove);
-            };
-
-            AddListener(module, eventId, listener);
-            AddListener(module, eventId, remove);
+                RemoveListener(module, eventId, Remove);
+            }
         }
         /// <summary>
         /// 添加监听，执行一次后移除事件<br/>
@@ -95,15 +95,15 @@ namespace Eevee.Event
         /// </summary>
         public void AddOnceListener(EventModule module, int eventId, Action listener)
         {
-            Action remove = null;
-            remove = () =>
+            AddListener(module, eventId, listener);
+            AddListener(module, eventId, Remove);
+            return;
+
+            void Remove()
             {
                 RemoveListener(module, eventId, listener);
-                RemoveListener(module, eventId, remove);
-            };
-
-            AddListener(module, eventId, listener);
-            AddListener(module, eventId, remove);
+                RemoveListener(module, eventId, Remove);
+            }
         }
         #endregion
 

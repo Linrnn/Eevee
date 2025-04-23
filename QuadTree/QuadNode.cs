@@ -36,8 +36,6 @@ namespace Eevee.QuadTree
             IdxY = y;
             Parent = parent;
         }
-
-        public int Count => Elements.Count; // 当前节点存的数量
         public AABB2DInt CountChildBounds(int index) // 计算子包围盒
         {
             int half = Bounds.W >> 1;
