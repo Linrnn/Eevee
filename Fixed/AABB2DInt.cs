@@ -29,7 +29,6 @@ namespace Eevee.Fixed
             W = right - left >> 1;
             H = top - bottom >> 1;
         }
-
         public AABB2DInt(Vector2DInt center, int extent)
         {
             X = center.X;
@@ -37,37 +36,12 @@ namespace Eevee.Fixed
             W = extent;
             H = extent;
         }
-        public AABB2DInt(Vector2DInt center, Fixed64 extent)
-        {
-            int e = (int)extent;
-            X = center.X;
-            Y = center.Y;
-            W = e;
-            H = e;
-        }
-        public AABB2DInt(in Vector2D center, Fixed64 extent)
-        {
-            int e = (int)extent;
-
-            X = (int)center.X;
-            Y = (int)center.Y;
-            W = e;
-            H = e;
-        }
-
         public AABB2DInt(Vector2DInt center, Vector2DInt extent)
         {
             X = center.X;
             Y = center.Y;
             W = extent.X;
             H = extent.Y;
-        }
-        public AABB2DInt(in Vector2D center, in Vector2D extent)
-        {
-            X = (int)center.X;
-            Y = (int)center.Y;
-            W = (int)extent.X;
-            H = (int)extent.Y;
         }
         #endregion
 
@@ -102,7 +76,6 @@ namespace Eevee.Fixed
         public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角 
 
         public bool ContainPoint(Vector2DInt point) => Left() <= point.X && Right() >= point.X && Bottom() <= point.Y && Top() >= point.Y;
-        public bool ContainPoint(in Vector2D point) => Left() <= point.X && Right() >= point.X && Bottom() <= point.Y && Top() >= point.Y;
         public bool Contain(in AABB2DInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 是否包含aabb
 
         public bool Intersect_Box_Circle(in AABB2DInt circle) => IntersectBoxAndCircle(in this, in circle); // 检测aabb与圆是否相交

@@ -61,7 +61,9 @@ namespace EeveeEditor.QuadTree
 
             internal TreeInfo(int funcEnum, in EditorQuadDrawAsset boxAsset, in EditorQuadDrawAsset circleAsset, float alpha)
             {
-                bool circle = (funcEnum & QuadTreeManager.CircleEnum) > 0;
+                // todo eevee
+                //bool circle = (funcEnum & QuadTreeManager.CircleEnum) > 0;
+                bool circle = false;
                 var color = GetColor(funcEnum);
                 color.a = alpha;
 

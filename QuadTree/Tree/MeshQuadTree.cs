@@ -9,37 +9,38 @@ using System.Runtime.CompilerServices;
 namespace Eevee.QuadTree
 {
     /// <summary>
-    /// 四叉树 + 网格法
+    /// 网格法 + 四叉树
     /// </summary>
     public sealed class MeshQuadTree
     {
         #region 数据/构造方法
         private const int ChildCount = 4;
         public static bool ShowLog = false;
-        private static readonly int[] _logCheckIds = Array.Empty<int>(); // 需要检测的EntityId，null/空数组：不限制检测
+        private static readonly int[] _logCheckIds = Array.Empty<int>(); // 需要检测的Index，null/空数组：不限制检测
 
-        public readonly AABB2DInt MaxBounds; // 最大包围盒
-        public readonly Vector2DInt[] HalfBoundsSizes; // 每一层的边界尺寸（四分之一的面积，方便后续计算）
-        public readonly QuadNode[][] Nodes; // 所有节点
-        public readonly QuadNode Root; // 根节点
-        public readonly int MaxDepth; // 最大深度
-        public readonly bool IsCircle;
         public readonly int TreeId;
+        public readonly int MaxDepth; // 最大深度
+        public readonly AABB2DInt MaxBounds; // 最大包围盒
+        public readonly QuadShape Shape;
 
-        public MeshQuadTree(in AABB2DInt maxBounds, int depthCount, bool circle, int treeId)
+        internal readonly QuadNode Root; // 根节点
+        internal readonly QuadNode[][] Nodes; // 所有节点
+        internal readonly Vector2DInt[] HalfBoundsSizes; // 每一层的边界尺寸（四分之一的面积，方便后续计算）
+
+        public MeshQuadTree(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBounds)
         {
             var root = new QuadNode(in maxBounds, in maxBounds, 0, 0, 0, 0, null); // 先屏蔽松散四叉树，搜索有问题
 
-            MaxBounds = maxBounds;
-            HalfBoundsSizes = new Vector2DInt[depthCount];
-            Nodes = new QuadNode[depthCount][];
-            Root = root;
-            MaxDepth = depthCount - 1;
-            IsCircle = circle;
             TreeId = treeId;
+            MaxDepth = depthCount - 1;
+            MaxBounds = maxBounds;
+            Shape = shape;
 
+            Root = root;
+            Nodes = new QuadNode[depthCount][];
+            Nodes[0] = new[] { root };
+            HalfBoundsSizes = new Vector2DInt[depthCount];
             HalfBoundsSizes[0] = root.Bounds.HalfSize();
-            Nodes[0] = new[] { root, };
 
             int left = maxBounds.Left();
             int top = maxBounds.Top();
@@ -118,10 +119,11 @@ namespace Eevee.QuadTree
             if (Root.IsEmpty())
                 return;
 
-            if (IsCircle)
-                RecursiveQuery(new QueryBoxNodeCircleChecker(in box), in box, elements);
-            else
-                RecursiveQuery(new QueryBoxNodeBoxChecker(in box), in box, elements);
+            switch (Shape)
+            {
+                case QuadShape.Circle: RecursiveQuery(new QueryBoxNodeCircleChecker(in box), in box, elements); break;
+                case QuadShape.AABB: RecursiveQuery(new QueryBoxNodeBoxChecker(in box), in box, elements); break;
+            }
         }
         public void QueryCircle(in AABB2DInt circle, ICollection<QuadElement> elements) // 查询单个圆
         {
@@ -130,10 +132,12 @@ namespace Eevee.QuadTree
 
             if (circle.Contain(in MaxBounds))
                 RecursiveAdd(Root, elements);
-            else if (IsCircle)
-                RecursiveQuery(new QueryCircleNodeCircleChecker(in circle), in circle, elements);
-            else
-                RecursiveQuery(new QueryCircleNodeBoxChecker(in circle), in circle, elements);
+
+            switch (Shape)
+            {
+                case QuadShape.Circle: RecursiveQuery(new QueryCircleNodeCircleChecker(in circle), in circle, elements); break;
+                case QuadShape.AABB: RecursiveQuery(new QueryCircleNodeBoxChecker(in circle), in circle, elements); break;
+            }
         }
         public void QueryRectangle(in AABB2DInt rect, in Vector2D dir, ICollection<QuadElement> elements) // 搜索单个有向矩形
         {

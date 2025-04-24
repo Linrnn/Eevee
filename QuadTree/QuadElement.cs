@@ -14,7 +14,7 @@ namespace Eevee.QuadTree
         public readonly int Index;
         public readonly AABB2DInt AABB;
 
-        public QuadElement(in AABB2DInt aabb, int index)
+        public QuadElement(int index, in AABB2DInt aabb)
         {
             Index = index;
             AABB = aabb;

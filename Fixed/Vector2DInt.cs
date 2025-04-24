@@ -142,14 +142,14 @@ namespace Eevee.Fixed
         public static explicit operator Vector2DInt(UnityEngine.Vector2 value) => new((int)value.x, (int)value.y);
 
         public static implicit operator UnityEngine.Vector2Int(Vector2DInt value) => new(value.X, value.Y);
-        public static explicit operator Vector2DInt(UnityEngine.Vector2Int value) => new(value.x, value.y);
+        public static implicit operator Vector2DInt(UnityEngine.Vector2Int value) => new(value.x, value.y);
 #endif
-
-        public static implicit operator Vector2D(Vector2DInt value) => new(value.X, value.Y);
-        public static explicit operator Vector2DInt(in Vector2D value) => new((int)value.X, (int)value.Y);
 
         public static implicit operator System.Numerics.Vector2(Vector2DInt value) => new(value.X, value.Y);
         public static explicit operator Vector2DInt(System.Numerics.Vector2 value) => new((int)value.X, (int)value.Y);
+
+        public static implicit operator Vector2D(Vector2DInt value) => new(value.X, value.Y);
+        public static explicit operator Vector2DInt(in Vector2D value) => new((int)value.X, (int)value.Y);
 
         public static Vector2DInt operator +(Vector2DInt value) => value;
         public static Vector2DInt operator -(Vector2DInt value) => new(-value.X, -value.Y);
@@ -158,7 +158,7 @@ namespace Eevee.Fixed
 
         public static Vector2DInt operator *(Vector2DInt lhs, int rhs) => new(lhs.X * rhs, lhs.Y * rhs);
         public static Vector2DInt operator *(int lhs, Vector2DInt rhs) => new(lhs * rhs.X, lhs * rhs.Y);
-        public static Vector2DInt operator /(Vector2DInt lhs, int rhs) => new(lhs.X / rhs, lhs.Y / rhs); // “Fixed64.Reciprocal()”在大数运算下，会丢失精度
+        public static Vector2DInt operator /(Vector2DInt lhs, int rhs) => new(lhs.X / rhs, lhs.Y / rhs);
 
         public static bool operator ==(Vector2DInt lhs, Vector2DInt rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y;
         public static bool operator !=(Vector2DInt lhs, Vector2DInt rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y;
