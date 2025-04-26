@@ -25,7 +25,7 @@ namespace Eevee.QuadTree
 
         internal readonly QuadNode Root; // 根节点
         internal readonly QuadNode[][] Nodes; // 所有节点
-        internal readonly Vector2DInt[] HalfBoundsSizes; // 每一层的边界尺寸（四分之一的面积，方便后续计算）
+        internal readonly Vector2DInt[] HalfBounds; // 每一层的边界尺寸（四分之一的面积，方便后续计算）
 
         public MeshQuadTree(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBounds)
         {
@@ -39,8 +39,8 @@ namespace Eevee.QuadTree
             Root = root;
             Nodes = new QuadNode[depthCount][];
             Nodes[0] = new[] { root };
-            HalfBoundsSizes = new Vector2DInt[depthCount];
-            HalfBoundsSizes[0] = root.Bounds.HalfSize();
+            HalfBounds = new Vector2DInt[depthCount];
+            HalfBounds[0] = root.Bounds.HalfSize();
 
             int left = maxBounds.Left();
             int top = maxBounds.Top();
@@ -49,7 +49,7 @@ namespace Eevee.QuadTree
                 int length = 1 << depth << depth; // length = 4^depth
                 var nodes = new QuadNode[length];
 
-                HalfBoundsSizes[depth] = HalfBoundsSizes[depth - 1] / 2;
+                HalfBounds[depth] = HalfBounds[depth - 1] / 2;
                 Nodes[depth] = nodes;
 
                 for (int i = 0; i < length; i += ChildCount)
@@ -150,7 +150,7 @@ namespace Eevee.QuadTree
 
             var aabb = new AABB2DInt(rect.Center(), new Vector2DInt((int)(width >> 1), (int)(height >> 1)));
             var checker = new QueryRectangleChecker(in aabb, in lb, in b, in rt, in lt);
-            RecursiveQuery(in checker, in rect, elements);
+            RecursiveQuery(in checker, in aabb, elements);
         }
         public void QueryQuadrangle(in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements) // 搜索单个四边形
         {
@@ -162,7 +162,7 @@ namespace Eevee.QuadTree
             var minY = Fixed64.Min(lb.Y, lt.Y, rb.Y, rt.Y);
             var maxY = Fixed64.Max(lb.Y, lt.Y, rb.Y, rt.Y);
 
-            var aabb = new AABB2DInt((int)minX, (int)maxY, (int)maxX, (int)minY);
+            var aabb = AABB2DInt.Create((int)minX, (int)maxY, (int)maxX, (int)minY);
             var checker = new QueryQuadrangleChecker(in aabb, in lb, in rb, in rt, in lt);
             RecursiveQuery(in checker, in aabb, elements);
         }
@@ -224,13 +224,12 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public QuadNode GetNode(in AABB2DInt aabb)
         {
-            var intersect = aabb.Intersect(in MaxBounds); // 处理边界，减少触发LooseBounds.Contain的次数
-            if (intersect.W < 0 || intersect.H < 0)
+            if (!aabb.Intersect(in MaxBounds, out var intersect)) // 处理边界，减少触发LooseBounds.Contain的次数
                 return null;
 
             for (int depth = MaxDepth; depth >= 0; --depth)
             {
-                var size = HalfBoundsSizes[depth];
+                var size = HalfBounds[depth];
                 if (size.X < intersect.W || size.Y < intersect.H)
                     continue;
 

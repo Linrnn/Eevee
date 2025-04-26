@@ -29,8 +29,8 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 继承/重载
-        public override int GetHashCode() => HashCode.Combine(Index, AABB.GetHashCode());
-        public override bool Equals(object other) => other is QuadElement element && element == this;
+        public override bool Equals(object obj) => obj is QuadElement other && this == other;
+        public override int GetHashCode() => Index ^ AABB.GetHashCode();
         public int CompareTo(QuadElement other)
         {
             int match0 = Index.CompareTo(other.Index);

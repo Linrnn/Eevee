@@ -36,18 +36,14 @@ namespace Eevee.QuadTree
             IdxY = y;
             Parent = parent;
         }
-        public AABB2DInt CountChildBounds(int index) // 计算子包围盒
+        public AABB2DInt CountChildBounds(int index) => index switch // 计算子包围盒
         {
-            int half = Bounds.W >> 1;
-            return index switch
-            {
-                0 => new AABB2DInt(Bounds.X - half, Bounds.Y + half, half), // 左上
-                1 => new AABB2DInt(Bounds.X + half, Bounds.Y + half, half), // 右上
-                2 => new AABB2DInt(Bounds.X - half, Bounds.Y - half, half), // 左下
-                3 => new AABB2DInt(Bounds.X + half, Bounds.Y - half, half), // 右下
-                _ => throw new Exception($"childZIndex:{index} 异常"),
-            };
-        }
+            0 => Bounds.LeftTopAABB(), // 左上
+            1 => Bounds.RightTopAABB(), // 右上
+            2 => Bounds.LeftBottomAABB(), // 左下
+            3 => Bounds.RightBottomAABB(), // 右下
+            _ => throw new Exception($"index:{index}，越界"),
+        };
 
         public void Add(in QuadElement element)
         {

@@ -470,5 +470,9 @@ namespace Eevee.Fixed
             M33 = Fixed64.One,
         };
         #endregion
+
+        #region 返回AABB2DInt/Rectangle
+        public static Rectangle AsRectangle(in AABB2DInt aabb) => new(aabb.Min(), aabb.Size());
+        #endregion
     }
 }

@@ -55,52 +55,46 @@ namespace EeveeEditor.QuadTree
 
         private readonly struct TreeInfo
         {
-            internal readonly int FuncEnum;
+            internal readonly int TreeId;
             internal readonly Color Color;
             internal readonly Sprite Asset;
 
-            internal TreeInfo(int funcEnum, in EditorQuadDrawAsset boxAsset, in EditorQuadDrawAsset circleAsset, float alpha)
+            internal TreeInfo(int treeId, in EditorQuadDrawAsset boxAsset, in EditorQuadDrawAsset circleAsset, float alpha)
             {
                 // todo eevee
                 //bool circle = (funcEnum & QuadTreeManager.CircleEnum) > 0;
                 bool circle = false;
-                var color = GetColor(funcEnum);
+                var color = GetColor(treeId);
                 color.a = alpha;
 
-                FuncEnum = funcEnum;
+                TreeId = treeId;
                 Color = color;
                 Asset = circle ? circleAsset.Asset : boxAsset.Asset;
             }
-
-            private static Color GetColor(int func)
+            private static Color GetColor(int treeId) => treeId switch
             {
-                return func switch
-                {
-                    // todo eevee
-                    //int.None => Color.clear,
-                    //int.GuardBox => Color.green,
-                    //int.GuardArea => Color.red,
-                    //int.Region => Color.yellow,
-                    //int.Shop => Color.white,
-                    //int.InRange => Color.yellow,
-                    //int.WidgetBox => Color.black,
-                    //int.EffectBox => Color.blue,
-                    _ => Color.clear,
-                };
-            }
+                // todo eevee
+                //int.None => Color.clear,
+                //int.GuardBox => Color.green,
+                //int.GuardArea => Color.red,
+                //int.Region => Color.yellow,
+                //int.Shop => Color.white,
+                //int.InRange => Color.yellow,
+                //int.WidgetBox => Color.black,
+                //int.EffectBox => Color.blue,
+                _ => Color.clear,
+            };
         }
 
         private readonly struct SubTreeInfo
         {
-            internal readonly int FuncEnum;
-            internal readonly int SubTree;
+            internal readonly int TreeId;
             internal readonly Color Color;
             internal readonly Sprite Asset;
 
-            internal SubTreeInfo(in TreeInfo treeInfo, int subTree)
+            internal SubTreeInfo(in TreeInfo treeInfo)
             {
-                FuncEnum = treeInfo.FuncEnum;
-                SubTree = subTree;
+                TreeId = treeInfo.TreeId;
                 Color = treeInfo.Color;
                 Asset = treeInfo.Asset;
             }
@@ -109,43 +103,33 @@ namespace EeveeEditor.QuadTree
         [Serializable]
         private struct DrawElement : IComparable<DrawElement>
         {
-            [SerializeField] internal int EntityId;
             [SerializeField] internal AABB2DInt Box;
-            [SerializeField] internal int FuncEnum;
-            [SerializeField] internal int SubTree;
+            [SerializeField] internal int TreeId;
+            [SerializeField] internal int Index;
             internal readonly Color Color;
             internal readonly Sprite Asset;
 
             internal DrawElement(in QuadElement element, in SubTreeInfo treeInfo)
             {
-                EntityId = element.Index;
                 Box = element.AABB;
-                FuncEnum = treeInfo.FuncEnum;
-                SubTree = treeInfo.SubTree;
+                Index = element.Index;
+                TreeId = treeInfo.TreeId;
                 Color = treeInfo.Color;
                 Asset = treeInfo.Asset;
             }
             public readonly int CompareTo(DrawElement other)
             {
-                int match0 = Box.W - other.Box.W;
+                int match0 = Box.Center().CompareTo(other.Box.Center());
                 if (match0 != 0)
                     return match0;
 
-                int match1 = Box.H - other.Box.H;
+                int match1 = TreeId.CompareTo(other.TreeId);
                 if (match1 != 0)
                     return match1;
 
-                int match2 = FuncEnum - other.FuncEnum;
+                int match2 = Index.CompareTo(other.Index);
                 if (match2 != 0)
                     return match2;
-
-                int match3 = SubTree - other.SubTree;
-                if (match3 != 0)
-                    return match3;
-
-                int match4 = EntityId - other.EntityId;
-                if (match4 != 0)
-                    return match4;
 
                 return 0;
             }
@@ -269,7 +253,7 @@ namespace EeveeEditor.QuadTree
                 var treeInfo = new TreeInfo(pair.Key, in _boxAsset, in _circleAsset, _alpha);
                 for (int length = trees.Length, i = 0; i < length; ++i)
                     if ((1 << i & treeEnum) > 0)
-                        ReadyElements(trees[i], new SubTreeInfo(in treeInfo, i));
+                        ReadyElements(trees[i], new SubTreeInfo(in treeInfo));
             }
         }
         private void DrawTrees()
@@ -306,7 +290,7 @@ namespace EeveeEditor.QuadTree
         }
         private void DrawElements(GameObject go, in DrawElement element, int i)
         {
-            go.name = $"{element.FuncEnum} Sub:{element.SubTree} Id:{element.EntityId} i:{i}";
+            go.name = $"{element.TreeId} Id:{element.Index} i:{i}";
 
             go.transform.SetSiblingIndex(i);
             go.transform.position = new Vector3(element.Box.X / 128F, _height, element.Box.Y / 128F);

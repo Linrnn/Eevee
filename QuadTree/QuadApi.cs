@@ -11,7 +11,9 @@ namespace Eevee.QuadTree
     {
         None,
         Circle, // 圆形
-        AABB, // 对齐包围盒
+        AABB, // 轴对齐包围盒
+        OBB, // 定向包围盒
+        Polygon, // 任意多边形（仅包含凸多边形）
     }
 
     /// <summary>

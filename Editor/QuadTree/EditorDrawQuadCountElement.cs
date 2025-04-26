@@ -130,7 +130,7 @@ namespace EeveeEditor.QuadTree
                 if (tree == null)
                     continue;
 
-                _depthCounts = new DepthCount[tree.HalfBoundsSizes.Length - 1]; // 不计算最后一层
+                _depthCounts = new DepthCount[tree.HalfBounds.Length - 1]; // 不计算最后一层
                 break;
             }
         }

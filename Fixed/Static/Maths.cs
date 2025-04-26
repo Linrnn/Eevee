@@ -5,7 +5,8 @@ using System.Runtime.CompilerServices;
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 数学相关
+    /// 数学相关<br/>
+    /// 英文单词参考链接：https://uniteasy.com/post/960/
     /// </summary>
     public readonly struct Maths
     {

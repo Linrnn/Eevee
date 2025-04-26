@@ -152,6 +152,59 @@ namespace Eevee.Fixed
         }
         #endregion
 
+        #region 向量旋转
+        public static Vector2D Rotate(in Vector2D point, Fixed64 rad)
+        {
+            var cos = Maths.Cos(rad);
+            var sin = Maths.Sin(rad);
+            return new Vector2D
+            {
+                X = point.X * cos - point.Y * sin,
+                Y = point.X * sin + point.Y * cos,
+            };
+        }
+        public static Vector2D Rotate(Vector2DInt point, Fixed64 rad)
+        {
+            var cos = Maths.Cos(rad);
+            var sin = Maths.Sin(rad);
+            return new Vector2D
+            {
+                X = point.X * cos - point.Y * sin,
+                Y = point.X * sin + point.Y * cos,
+            };
+        }
+        public static Vector2D RotateDeg(in Vector2D point, Fixed64 deg)
+        {
+            var cos = Maths.CosDeg(deg);
+            var sin = Maths.SinDeg(deg);
+            return new Vector2D
+            {
+                X = point.X * cos - point.Y * sin,
+                Y = point.X * sin + point.Y * cos,
+            };
+        }
+        public static Vector2D RotateDeg(Vector2DInt point, Fixed64 deg)
+        {
+            var cos = Maths.CosDeg(deg);
+            var sin = Maths.SinDeg(deg);
+            return new Vector2D
+            {
+                X = point.X * cos - point.Y * sin,
+                Y = point.X * sin + point.Y * cos,
+            };
+        }
+
+        public static Fixed64 RotateX(in Vector2D point, Fixed64 rad) => point.X * Maths.Cos(rad) - point.Y * Maths.Sin(rad);
+        public static Fixed64 RotateX(Vector2DInt point, Fixed64 rad) => point.X * Maths.Cos(rad) - point.Y * Maths.Sin(rad);
+        public static Fixed64 RotateXDeg(in Vector2D point, Fixed64 deg) => point.X * Maths.CosDeg(deg) - point.Y * Maths.SinDeg(deg);
+        public static Fixed64 RotateXDeg(Vector2DInt point, Fixed64 deg) => point.X * Maths.CosDeg(deg) - point.Y * Maths.SinDeg(deg);
+
+        public static Fixed64 RotateY(in Vector2D point, Fixed64 rad) => point.X * Maths.Sin(rad) + point.Y * Maths.Cos(rad);
+        public static Fixed64 RotateY(Vector2DInt point, Fixed64 rad) => point.X * Maths.Sin(rad) + point.Y * Maths.Cos(rad);
+        public static Fixed64 RotateYDeg(in Vector2D point, Fixed64 deg) => point.X * Maths.SinDeg(deg) + point.Y * Maths.CosDeg(deg);
+        public static Fixed64 RotateYDeg(Vector2DInt point, Fixed64 deg) => point.X * Maths.SinDeg(deg) + point.Y * Maths.CosDeg(deg);
+        #endregion
+
         /// <summary>
         /// 重心/质心
         /// </summary>
