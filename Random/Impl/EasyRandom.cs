@@ -43,7 +43,7 @@ namespace Eevee.Random
         }
         public virtual Fixed64 GetFixed64(Fixed64 minInclusive, Fixed64 maxExclusive)
         {
-            if (minInclusive.RawValue == maxExclusive.RawValue)
+            if (minInclusive == maxExclusive)
                 return minInclusive;
 
             long value = RandomInt64(minInclusive.RawValue, maxExclusive.RawValue);

@@ -262,19 +262,19 @@ namespace Eevee.Fixed
         public readonly bool Equals(Rectangle other) => this == other;
         public readonly int CompareTo(Rectangle other)
         {
-            int match0 = X.RawValue.CompareTo(other.X.RawValue);
+            int match0 = X.CompareTo(other.X);
             if (match0 != 0)
                 return match0;
 
-            int match1 = Y.RawValue.CompareTo(other.Y.RawValue);
+            int match1 = Y.CompareTo(other.Y);
             if (match1 != 0)
                 return match1;
 
-            int match2 = Width.RawValue.CompareTo(other.Width.RawValue);
+            int match2 = Width.CompareTo(other.Width);
             if (match2 != 0)
                 return match2;
 
-            int match3 = Height.RawValue.CompareTo(other.Height.RawValue);
+            int match3 = Height.CompareTo(other.Height);
             if (match3 != 0)
                 return match3;
 

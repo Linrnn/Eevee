@@ -500,8 +500,11 @@ namespace Eevee.Fixed
 
         #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Fixed64 other && other.RawValue == RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly override int GetHashCode() => RawValue.GetHashCode();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Equals(Fixed64 other) => RawValue == other.RawValue;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly int CompareTo(Fixed64 other) => RawValue.CompareTo(other.RawValue);
 
         public readonly override string ToString() => ToString(Format.Fractional, Format.Use);

@@ -435,39 +435,39 @@ namespace Eevee.Fixed
         public readonly bool Equals(Matrix3X3 other) => this == other;
         public readonly int CompareTo(Matrix3X3 other)
         {
-            int match0 = M00.RawValue.CompareTo(other.M00.RawValue);
+            int match0 = M00.CompareTo(other.M00);
             if (match0 != 0)
                 return match0;
 
-            int match1 = M01.RawValue.CompareTo(other.M01.RawValue);
+            int match1 = M01.CompareTo(other.M01);
             if (match1 != 0)
                 return match1;
 
-            int match2 = M02.RawValue.CompareTo(other.M02.RawValue);
+            int match2 = M02.CompareTo(other.M02);
             if (match2 != 0)
                 return match2;
 
-            int match3 = M10.RawValue.CompareTo(other.M10.RawValue);
+            int match3 = M10.CompareTo(other.M10);
             if (match3 != 0)
                 return match3;
 
-            int match4 = M11.RawValue.CompareTo(other.M11.RawValue);
+            int match4 = M11.CompareTo(other.M11);
             if (match4 != 0)
                 return match4;
 
-            int match5 = M12.RawValue.CompareTo(other.M12.RawValue);
+            int match5 = M12.CompareTo(other.M12);
             if (match5 != 0)
                 return match5;
 
-            int match6 = M20.RawValue.CompareTo(other.M20.RawValue);
+            int match6 = M20.CompareTo(other.M20);
             if (match6 != 0)
                 return match6;
 
-            int match7 = M21.RawValue.CompareTo(other.M21.RawValue);
+            int match7 = M21.CompareTo(other.M21);
             if (match7 != 0)
                 return match7;
 
-            int match8 = M22.RawValue.CompareTo(other.M22.RawValue);
+            int match8 = M22.CompareTo(other.M22);
             if (match8 != 0)
                 return match8;
 

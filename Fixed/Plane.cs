@@ -142,7 +142,7 @@ namespace Eevee.Fixed
             if (match0 != 0)
                 return match0;
 
-            int match1 = Distance.RawValue.CompareTo(other.Distance.RawValue);
+            int match1 = Distance.CompareTo(other.Distance);
             if (match1 != 0)
                 return match1;
 
