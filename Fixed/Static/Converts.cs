@@ -471,8 +471,28 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        #region 返回AABB2DInt/Rectangle
-        public static Rectangle AsRectangle(in AABB2DInt aabb) => new(aabb.Min(), aabb.Size());
+        #region 返回Rectangle/AABB2DInt/AABB2D
+        public static Rectangle AsRectangle(in AABB2DInt value) => new(value.Min(), value.Size());
+        public static Rectangle AsRectangle(in AABB2D value) => new(value.Min(), value.Size());
+
+        public static AABB2DInt AsAABB2DInt(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
+
+        public static AABB2D AsAABB2D(in Rectangle value) => new(value.Center, value.Size / 2);
+        public static AABB2D AsAABB2D(in Circle value) => new(value.X, value.Y, value.R); // 外接AABB
+        public static AABB2D AsAABB2D(in OBB2DInt value) // 外接AABB
+        {
+            var dl = value.DeltaLeft();
+            var db = value.DeltaBottom();
+            var dr = value.DeltaRight();
+            var dt = value.DeltaTop();
+            var sin = Maths.SinDeg(value.A);
+            var cos = Maths.CosDeg(value.A);
+            var pl = dl.X * cos - dl.Y * sin;
+            var pb = db.X * sin + db.Y * cos;
+            var pr = dr.X * cos - dr.Y * sin;
+            var pt = dt.X * sin + dt.Y * cos;
+            return AABB2D.Create(pl, pt, pr, pb);
+        }
         #endregion
     }
 }

@@ -10,13 +10,17 @@ namespace Eevee.QuadTree
     public sealed class QuadTreeManager
     {
         #region 字段/构造方法
+        public readonly int Scale; // 缩放比例，(int)(Fixed64 * Scale) = int
+        public readonly Fixed64 Reciprocal; // = 1 / Scale
         public readonly int DepthCount;
         public readonly AABB2DInt MaxBounds;
         private readonly Dictionary<int, QuadTreeConfig> _configs = new();
         private readonly Dictionary<int, MeshQuadTree> _trees = new();
 
-        public QuadTreeManager(int depthCount, in AABB2DInt maxBounds, IList<QuadTreeConfig> configs)
+        public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBounds, IList<QuadTreeConfig> configs)
         {
+            Scale = scale;
+            Reciprocal = Fixed64.One / scale;
             DepthCount = depthCount;
             MaxBounds = maxBounds;
             BuildConfigs(configs);
@@ -24,7 +28,7 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 预处理元素
+        #region 预处理
         public bool PreCountElement(int treeId, int index, in Change<Vector2DInt> center, int extents, out QuadPreCache cache)
         {
             if (center.Equals())
@@ -99,7 +103,7 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 插入/删除元素
+        #region 插入/删除
         public void InsertElement(int treeId, int index, Vector2DInt center, int extents)
         {
             var tree = _trees[treeId];
@@ -129,7 +133,7 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 更新元素
+        #region 更新
         public void UpdateElement(int treeId, int index, in Change<Vector2DInt> center, int extents)
         {
             if (center.Equals())
@@ -208,7 +212,7 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 查询圆形区域内的元素
+        #region 查询圆形区域
         public void QueryCircle(int treeId, Vector2DInt center, int extents, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
@@ -244,7 +248,7 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 查询无向矩阵区域内的元素
+        #region 查询无向矩阵
         public void QueryBox(int treeId, Vector2DInt center, int extents, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
@@ -280,7 +284,7 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 查询有向矩形区域内的元素
+        #region 查询有向矩形
         public void QueryRectangle(int treeId, Vector2DInt center, int extents, in Vector2D dir, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
@@ -316,7 +320,7 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 查询不规则四边形区域内的元素
+        #region 查询不规则四边形
         public void QueryQuadrangle(int treeId, in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
@@ -334,6 +338,16 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 辅助方法
+        public int F2I(Fixed64 value) => (int)(value * Scale);
+        public Vector2DInt F2I(in Vector2D value) => new(F2I(value.X), F2I(value.Y));
+        public CircleInt F2I(in Circle value) => new(F2I(value.X), F2I(value.Y), F2I(value.R));
+        public AABB2DInt F2I(in AABB2D value) => new(F2I(value.X), F2I(value.Y), F2I(value.W), F2I(value.H));
+
+        public Fixed64 I2F(int value) => value * Reciprocal;
+        public Vector2D I2F(Vector2DInt value) => new(I2F(value.X), I2F(value.Y));
+        public Circle I2F(in CircleInt value) => new(I2F(value.X), I2F(value.Y), I2F(value.R));
+        public AABB2D I2F(in AABB2DInt value) => new(I2F(value.X), I2F(value.Y), I2F(value.W), I2F(value.H));
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void BuildConfigs(IList<QuadTreeConfig> sizes)
         {

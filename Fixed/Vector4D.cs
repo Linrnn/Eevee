@@ -227,19 +227,19 @@ namespace Eevee.Fixed
         public readonly bool Equals(Vector4D other) => this == other;
         public readonly int CompareTo(Vector4D other)
         {
-            int match0 = X.RawValue.CompareTo(other.X.RawValue);
+            int match0 = X.CompareTo(other.X);
             if (match0 != 0)
                 return match0;
 
-            int match1 = Y.RawValue.CompareTo(other.Y.RawValue);
+            int match1 = Y.CompareTo(other.Y);
             if (match1 != 0)
                 return match1;
 
-            int match2 = Z.RawValue.CompareTo(other.Z.RawValue);
+            int match2 = Z.CompareTo(other.Z);
             if (match2 != 0)
                 return match2;
 
-            int match3 = W.RawValue.CompareTo(other.W.RawValue);
+            int match3 = W.CompareTo(other.W);
             if (match3 != 0)
                 return match3;
 

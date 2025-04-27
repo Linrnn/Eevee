@@ -126,14 +126,26 @@ namespace Eevee.Fixed
             return new AABB2D(X - w, Y + h, w, h);
         }
 
-        public bool Contain(in Vector2D point) => Left() <= point.X && Right() >= point.X && Bottom() <= point.Y && Top() >= point.Y;
+        public bool Contain(Vector2D other)
+        {
+            var dx = (other.X - X).Abs();
+            if (dx > W)
+                return false;
+
+            var dy = (other.Y - Y).Abs();
+            if (dy > H)
+                return false;
+
+            return true;
+        }
+        public bool Contain(in Circle other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含aabb
         public bool Contain(in AABB2D other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含aabb
 
-        public bool Intersect(in Circle circle) // 检测aabb与圆是否相交
+        public bool Intersect(in Circle other) // 检测aabb与圆是否相交
         {
-            var x = Fixed64.Max((X - circle.X).Abs() - W, Fixed64.Zero);
-            var y = Fixed64.Max((Y - circle.Y).Abs() - H, Fixed64.Zero);
-            return x.Sqr() + y.Sqr() <= circle.R.Sqr();
+            var x = Fixed64.Max((X - other.X).Abs() - W, Fixed64.Zero);
+            var y = Fixed64.Max((Y - other.Y).Abs() - H, Fixed64.Zero);
+            return x.Sqr() + y.Sqr() <= other.R.Sqr();
         }
         public bool Intersect_Box_Circle(in AABB2D circle) => IntersectBoxAndCircle(in this, in circle); // 检测aabb与圆是否相交
         public bool Intersect_Circle_Box(in AABB2D box) => IntersectBoxAndCircle(in box, in this); // 检测圆与aabb是否相交
@@ -180,19 +192,19 @@ namespace Eevee.Fixed
         public bool Equals(AABB2D other) => this == other;
         public int CompareTo(AABB2D other)
         {
-            int match0 = X.RawValue.CompareTo(other.X.RawValue);
+            int match0 = X.CompareTo(other.X);
             if (match0 != 0)
                 return match0;
 
-            int match1 = Y.RawValue.CompareTo(other.Y.RawValue);
+            int match1 = Y.CompareTo(other.Y);
             if (match1 != 0)
                 return match1;
 
-            int match2 = W.RawValue.CompareTo(other.W.RawValue);
+            int match2 = W.CompareTo(other.W);
             if (match2 != 0)
                 return match2;
 
-            int match3 = H.RawValue.CompareTo(other.H.RawValue);
+            int match3 = H.CompareTo(other.H);
             if (match3 != 0)
                 return match3;
 

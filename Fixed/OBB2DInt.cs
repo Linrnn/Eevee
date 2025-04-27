@@ -110,26 +110,18 @@ namespace Eevee.Fixed
             var pv = dv.X * sin + dv.Y * cos;
             return new Vector2D(ph + X, pv + Y);
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public AABB2D MinimalBounds() // 获得外接AABB
-        {
-            var dl = DeltaLeft();
-            var db = DeltaBottom();
-            var dr = DeltaRight();
-            var dt = DeltaTop();
-            var sin = Maths.SinDeg(A);
-            var cos = Maths.CosDeg(A);
-            var pl = dl.X * cos - dl.Y * sin;
-            var pb = db.X * sin + db.Y * cos;
-            var pr = dr.X * cos - dr.Y * sin;
-            var pt = dt.X * sin + dt.Y * cos;
-            return AABB2D.Create(pl, pt, pr, pb);
-        }
 
-        //public bool ContainPoint(Vector2DInt point) => Left() <= point.X && Right() >= point.X && Bottom() <= point.Y && Top() >= point.Y;
+        //public bool Contain(Vector2DInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;
+        //public bool Contain(in CircleInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;
         //public bool Contain(in AABB2DInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 是否包含aabb
         //public bool Contain(in OBB2DInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 是否包含aabb
 
+        //public bool Intersect(in CircleInt other) // 检测aabb与圆是否相交
+        //{
+        //    int x = Math.Max(Math.Abs(X - other.X) - W, 0);
+        //    int y = Math.Max(Math.Abs(Y - other.Y) - H, 0);
+        //    return x * x + y * y <= other.R * other.R;
+        //}
         //public bool Intersect_Box_Circle(in AABB2DInt circle) => IntersectBoxAndCircle(in this, in circle); // 检测aabb与圆是否相交
         //public bool Intersect_Circle_Box(in AABB2DInt box) => IntersectBoxAndCircle(in box, in this); // 检测圆与aabb是否相交
         //public bool Intersect_Circle_Circle(in AABB2DInt other) // 检测圆与圆是否相交
@@ -148,8 +140,6 @@ namespace Eevee.Fixed
         //    ulong y = (ulong)Math.Max(Math.Abs(box.Y - circle.Y) - box.H, 0);
         //    return x * x + y * y <= (ulong)circle.W * (ulong)circle.H;
         //}
-
-        //public AABB2DInt Intersect(in AABB2DInt other) => Create(Math.Max(Left(), other.Left()), Math.Min(Top(), other.Top()), Math.Min(Right(), other.Right()), Math.Max(Bottom(), other.Bottom()));
         #endregion
 
         #region 运算符重载
@@ -194,7 +184,7 @@ namespace Eevee.Fixed
 
         #region 辅助方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector2DInt DeltaLeft() => A.RawValue switch
+        internal Vector2DInt DeltaLeft() => A.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(-W, H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(W, H),
@@ -203,7 +193,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector2DInt DeltaRight() => A.RawValue switch
+        internal Vector2DInt DeltaRight() => A.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(W, -H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(-W, -H),
@@ -212,7 +202,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector2DInt DeltaBottom() => A.RawValue switch
+        internal Vector2DInt DeltaBottom() => A.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(-W, -H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(-W, H),
@@ -221,7 +211,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Vector2DInt DeltaTop() => A.RawValue switch
+        internal Vector2DInt DeltaTop() => A.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(W, H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(W, -H),

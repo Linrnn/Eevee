@@ -126,14 +126,26 @@ namespace Eevee.Fixed
             return new AABB2DInt(X - w, Y + h, w, h);
         }
 
-        public bool Contain(Vector2DInt point) => Left() <= point.X && Right() >= point.X && Bottom() <= point.Y && Top() >= point.Y;
+        public bool Contain(Vector2DInt other)
+        {
+            int dx = Math.Abs(other.X - X);
+            if (dx > W)
+                return false;
+
+            int dy = Math.Abs(other.Y - Y);
+            if (dy > H)
+                return false;
+
+            return true;
+        }
+        public bool Contain(in CircleInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含圆
         public bool Contain(in AABB2DInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含aabb
 
-        public bool Intersect(in CircleInt circle) // 检测aabb与圆是否相交
+        public bool Intersect(in CircleInt other) // 检测aabb与圆是否相交
         {
-            int x = Math.Max(Math.Abs(X - circle.X) - W, 0);
-            int y = Math.Max(Math.Abs(Y - circle.Y) - H, 0);
-            return x * x + y * y <= circle.R * circle.R;
+            int x = Math.Max(Math.Abs(X - other.X) - W, 0);
+            int y = Math.Max(Math.Abs(Y - other.Y) - H, 0);
+            return x * x + y * y <= other.R * other.R;
         }
         public bool Intersect_Box_Circle(in AABB2DInt circle) => IntersectBoxAndCircle(in this, in circle); // 检测aabb与圆是否相交
         public bool Intersect_Circle_Box(in AABB2DInt box) => IntersectBoxAndCircle(in box, in this); // 检测圆与aabb是否相交

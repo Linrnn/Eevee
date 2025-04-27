@@ -34,6 +34,15 @@ namespace Eevee.Fixed
 
         #region 基础方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Fixed64 Left() => X - R; // 左
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Fixed64 Right() => X + R; // 右
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Fixed64 Bottom() => Y - R; // 下
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Fixed64 Top() => Y + R; // 上
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2D Center() => new(X, Y); // 中心点
         public Fixed64 Diameter() => R << 1; // 直径
         public Fixed64 Perimeter() => (R << 1) * Maths.Pi; // 周长
