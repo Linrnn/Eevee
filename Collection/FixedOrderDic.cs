@@ -325,7 +325,13 @@ namespace Eevee.Collection
         bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
 
         void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> pair) => Add(pair.Key, pair.Value);
-        bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> pair) => Remove(pair.Key);
+        bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> pair)
+        {
+            bool success = ((ICollection<KeyValuePair<TKey, TValue>>)_collection).Remove(pair);
+            if (success)
+                _order.Remove(pair.Key);
+            return success;
+        }
         public void Clear()
         {
             CheckCount();
@@ -334,7 +340,7 @@ namespace Eevee.Collection
             CheckCount();
         }
 
-        bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> pair) => ContainsKey(pair.Key);
+        bool ICollection<KeyValuePair<TKey, TValue>>.Contains(KeyValuePair<TKey, TValue> pair) => ((ICollection<KeyValuePair<TKey, TValue>>)_collection).Contains(pair);
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
             CheckCount();
