@@ -9,7 +9,14 @@ namespace Eevee.Collection
 {
     public struct PtrList<T> : IList<T>, IReadOnlyList<T> where T : unmanaged, IEquatable<T>
     {
+        #region Feild/Constructor
         public NativeList<T> Ptr;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrList(AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeList<T>(allocator);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrList(int capacity, AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeList<T>(capacity, allocator);
+        #endregion
 
         #region IList`1
         public T this[int index]
@@ -66,9 +73,9 @@ namespace Eevee.Collection
 
         #region GetEnumerator
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => Ptr.GetEnumerator();
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator IEnumerable.GetEnumerator() => Ptr.GetEnumerator();
+        readonly IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         #endregion
     }
 }

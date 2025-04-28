@@ -143,22 +143,11 @@ namespace Eevee.Fixed
 
         public bool Intersect(in CircleInt other) // 检测aabb与圆是否相交
         {
-            int x = Math.Max(Math.Abs(X - other.X) - W, 0);
-            int y = Math.Max(Math.Abs(Y - other.Y) - H, 0);
-            return x * x + y * y <= other.R * other.R;
+            var x = Fixed64.Max(Math.Abs(X - other.X) - W, Fixed64.Zero);
+            var y = Fixed64.Max(Math.Abs(Y - other.Y) - H, Fixed64.Zero);
+            return x.Sqr() + y.Sqr() <= other.R * other.R;
         }
-        public bool Intersect_Box_Circle(in AABB2DInt circle) => IntersectBoxAndCircle(in this, in circle); // 检测aabb与圆是否相交
-        public bool Intersect_Circle_Box(in AABB2DInt box) => IntersectBoxAndCircle(in box, in this); // 检测圆与aabb是否相交
-        public bool Intersect_Circle_Circle(in AABB2DInt other) // 检测圆与圆是否相交
-        {
-            int x = X - other.X;
-            int y = Y - other.Y;
-            int w = W + other.W;
-            int h = H + other.H;
-            return x * x + y * y <= w * h;
-        }
-        public bool Intersect_Box_Box(in AABB2DInt other) => Math.Abs(X - other.X) < W + other.W && Math.Abs(Y - other.Y) < H + other.H; // 检测aabb与aabb是否相交
-
+        public bool Intersect(in AABB2DInt other) => Math.Abs(X - other.X) < W + other.W && Math.Abs(Y - other.Y) < H + other.H; // 检测aabb与aabb是否相交
         public bool Intersect(in AABB2DInt other, out AABB2DInt intersect) // AABB的交集
         {
             int left = Math.Max(Left(), other.Left());
@@ -179,12 +168,6 @@ namespace Eevee.Fixed
 
             intersect = Create(left, top, right, bottom);
             return true;
-        }
-        private bool IntersectBoxAndCircle(in AABB2DInt box, in AABB2DInt circle)
-        {
-            int x = Math.Max(Math.Abs(box.X - circle.X) - box.W, 0);
-            int y = Math.Max(Math.Abs(box.Y - circle.Y) - box.H, 0);
-            return x * x + y * y <= circle.W * circle.H;
         }
         #endregion
 

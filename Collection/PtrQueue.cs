@@ -9,7 +9,12 @@ namespace Eevee.Collection
 {
     public struct PtrQueue<T> : ICollection<T>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
+        #region Feild/Constructor
         public NativeQueue<T> Ptr;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrQueue(AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeQueue<T>(allocator);
+        #endregion
 
         #region ICollection`1
         public readonly int Count
@@ -49,9 +54,9 @@ namespace Eevee.Collection
 
         #region GetEnumerator
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => Ptr.AsReadOnly().GetEnumerator();
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator IEnumerable.GetEnumerator() => Ptr.AsReadOnly().GetEnumerator();
+        readonly IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         #endregion
     }
 }

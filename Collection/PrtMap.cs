@@ -10,7 +10,14 @@ namespace Eevee.Collection
 {
     public struct PrtMap<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
+        #region Feild/Constructor
         public NativeHashMap<TKey, TValue> Ptr;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PrtMap(AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashMap<TKey, TValue>(7, allocator);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PrtMap(int capacity, AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashMap<TKey, TValue>(capacity, allocator);
+        #endregion
 
         #region IDictionary`2
         public TValue this[TKey key]
@@ -38,7 +45,7 @@ namespace Eevee.Collection
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => Ptr.Count;
         }
-        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
+        readonly bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => false;
@@ -58,7 +65,7 @@ namespace Eevee.Collection
         {
             Assert.NotNull<ArgumentNullException, AssertArgs>(array, nameof(array), "Target array cannot be null.");
             Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<int>, int>(arrayIndex, 0, nameof(arrayIndex), "Starting index cannot be negative. arrayIndex is {0}.", new AssertArgs<int>(arrayIndex));
-            Assert.GreaterEqual<ArgumentException, AssertArgs<int, int, int>, int>(array.Length - arrayIndex, Ptr.Count, nameof(arrayIndex), "The destination array has insufficient space to copy all the items starting from the specified index. {0} - {1} <{2}.", new AssertArgs<int, int, int>(array.Length, arrayIndex, Ptr.Count));
+            Assert.GreaterEqual<ArgumentException, AssertArgs<int, int, int>, int>(array.Length - arrayIndex, Ptr.Count, nameof(arrayIndex), "The destination array has insufficient space to copy all the items starting from the specified index. {0} - {1} < {2}.", new AssertArgs<int, int, int>(array.Length, arrayIndex, Ptr.Count));
             int index = 0;
             foreach (var pair in Ptr)
                 array[arrayIndex + index++] = new KeyValuePair<TKey, TValue>(pair.Key, pair.Value);
@@ -77,15 +84,15 @@ namespace Eevee.Collection
             get => throw new NotImplementedException();
         }
 
-        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys
+        readonly IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ptr.GetKeyArray(Allocator.Temp);
+            get => throw new NotImplementedException();
         }
-        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values
+        readonly IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ptr.GetValueArray(Allocator.Temp);
+            get => throw new NotImplementedException();
         }
         #endregion
 
@@ -93,7 +100,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly IEnumerator<KeyValuePair<TKey, TValue>> IEnumerable<KeyValuePair<TKey, TValue>>.GetEnumerator() => throw new NotImplementedException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator IEnumerable.GetEnumerator() => Ptr.GetEnumerator();
+        readonly IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         #endregion
     }
 }

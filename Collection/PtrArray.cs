@@ -9,7 +9,18 @@ namespace Eevee.Collection
 {
     public struct PtrArray<T> : IList<T>, IReadOnlyList<T> where T : struct, IEquatable<T>
     {
+        #region Feild/Constructor
         public NativeArray<T> Ptr;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrArray(int capacity, Allocator allocator) => Ptr = new NativeArray<T>(capacity, allocator);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrArray(int capacity, Allocator allocator, NativeArrayOptions options) => Ptr = new NativeArray<T>(capacity, allocator, options);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrArray(T[] array, Allocator allocator) => Ptr = new NativeArray<T>(array, allocator);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrArray(in NativeArray<T> array, Allocator allocator) => Ptr = new NativeArray<T>(array, allocator);
+        #endregion
 
         #region IList`1
         public T this[int index]
@@ -51,7 +62,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly bool ICollection<T>.Remove(T item) => throw new NotImplementedException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear() => Ptr.AsSpan().Fill(default);
+        public readonly void Clear() => Ptr.AsSpan().Fill(default);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Contains(T item)
@@ -67,9 +78,9 @@ namespace Eevee.Collection
 
         #region GetEnumerator
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => Ptr.GetEnumerator();
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator IEnumerable.GetEnumerator() => Ptr.GetEnumerator();
+        readonly IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         #endregion
     }
 }

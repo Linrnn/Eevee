@@ -29,7 +29,7 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 预处理
-        public bool PreCountElement(int treeId, int index, in Change<Vector2DInt> center, int extents, out QuadPreCache cache)
+        public bool PreCount(int treeId, int index, in Change<Vector2DInt> center, int extents, out QuadPreCache cache)
         {
             if (center.Equals())
             {
@@ -49,7 +49,7 @@ namespace Eevee.QuadTree
                 LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNode == tarNode}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
             return true;
         }
-        public bool PreCountElement(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents, out QuadPreCache cache)
+        public bool PreCount(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents, out QuadPreCache cache)
         {
             if (center.Equals())
             {
@@ -70,7 +70,7 @@ namespace Eevee.QuadTree
             return true;
         }
 
-        public void PreUpdateElement(in QuadPreCache cache)
+        public void PreUpdate(in QuadPreCache cache)
         {
             var preEle = cache.PreEle;
             var tarEle = cache.TarEle;
@@ -104,27 +104,27 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 插入/删除
-        public void InsertElement(int treeId, int index, Vector2DInt center, int extents)
+        public void Insert(int treeId, int index, Vector2DInt center, int extents)
         {
             var tree = _trees[treeId];
             var element = new QuadElement(index, new AABB2DInt(center, extents));
             tree.Insert(in element);
         }
-        public void InsertElement(int treeId, int index, Vector2DInt center, Vector2DInt extents)
+        public void Insert(int treeId, int index, Vector2DInt center, Vector2DInt extents)
         {
             var tree = _trees[treeId];
             var element = new QuadElement(index, new AABB2DInt(center, extents));
             tree.Insert(in element);
         }
 
-        public bool RemoveElement(int treeId, int index, Vector2DInt center, int extents)
+        public bool Remove(int treeId, int index, Vector2DInt center, int extents)
         {
             var tree = _trees[treeId];
             var element = new QuadElement(index, new AABB2DInt(center, extents));
             bool success = tree.Remove(in element);
             return success;
         }
-        public bool RemoveElement(int treeId, int index, Vector2DInt center, Vector2DInt extents)
+        public bool Remove(int treeId, int index, Vector2DInt center, Vector2DInt extents)
         {
             var tree = _trees[treeId];
             var element = new QuadElement(index, new AABB2DInt(center, extents));
@@ -134,7 +134,7 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 更新
-        public void UpdateElement(int treeId, int index, in Change<Vector2DInt> center, int extents)
+        public void Update(int treeId, int index, in Change<Vector2DInt> center, int extents)
         {
             if (center.Equals())
                 return;
@@ -144,7 +144,7 @@ namespace Eevee.QuadTree
             var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
             tree.Update(in preEle, in tarEle);
         }
-        public void UpdateElement(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents)
+        public void Update(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents)
         {
             if (center.Equals())
                 return;
@@ -155,7 +155,7 @@ namespace Eevee.QuadTree
             tree.Update(in preEle, in tarEle);
         }
 
-        public void UpdateElement(Change<int> treeId, int index, Vector2DInt center, int extents)
+        public void Update(Change<int> treeId, int index, Vector2DInt center, int extents)
         {
             if (treeId.Equals())
                 return;
@@ -168,7 +168,7 @@ namespace Eevee.QuadTree
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:{center}");
             tarTree.Insert(in element);
         }
-        public void UpdateElement(Change<int> treeId, int index, Vector2DInt center, Vector2DInt extents)
+        public void Update(Change<int> treeId, int index, Vector2DInt center, Vector2DInt extents)
         {
             if (treeId.Equals())
                 return;
@@ -182,7 +182,7 @@ namespace Eevee.QuadTree
             tarTree.Insert(in element);
         }
 
-        public void UpdateElement(Change<int> treeId, int index, in Change<Vector2DInt> center, int extents)
+        public void Update(Change<int> treeId, int index, in Change<Vector2DInt> center, int extents)
         {
             if (treeId.Equals() && center.Equals())
                 return;
@@ -196,7 +196,7 @@ namespace Eevee.QuadTree
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:[{center}]");
             tarTree.Insert(in tarEle);
         }
-        public void UpdateElement(Change<int> treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents)
+        public void Update(Change<int> treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents)
         {
             if (treeId.Equals() && center.Equals())
                 return;
@@ -209,130 +209,130 @@ namespace Eevee.QuadTree
             if (!preTree.Remove(in preEle))
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:[{center}]");
             tarTree.Insert(in tarEle);
+        }
+        #endregion
+
+        #region 查询点
+        public void QueryPoint(int treeId, Vector2DInt center, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryPoint(center, elements);
+        }
+        public void QueryPoint(IReadOnlyList<int> treeIds, Vector2DInt center, ICollection<QuadElement> elements)
+        {
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+            {
+                int treeId = treeIds[i];
+                var tree = _trees[treeId];
+                tree.QueryPoint(center, elements);
+            }
         }
         #endregion
 
         #region 查询圆形区域
-        public void QueryCircle(int treeId, Vector2DInt center, int extents, ICollection<QuadElement> elements)
+        public void QueryCircle(int treeId, Vector2DInt center, int radius, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var aabb = new AABB2DInt(center, extents);
-            tree.QueryCircle(in aabb, elements);
+            var area = new CircleInt(center, radius);
+            tree.QueryCircle(in area, elements);
         }
-        public void QueryCircle(int treeId, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
+        public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, int radius, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
-            var aabb = new AABB2DInt(center, extents);
-            tree.QueryCircle(in aabb, elements);
-        }
-
-        public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, ICollection<QuadElement> elements)
-        {
-            var aabb = new AABB2DInt(center, extents);
+            var area = new CircleInt(center, radius);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryCircle(in aabb, elements);
-            }
-        }
-        public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
-        {
-            var aabb = new AABB2DInt(center, extents);
-            for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryCircle(in aabb, elements);
+                tree.QueryCircle(in area, elements);
             }
         }
         #endregion
 
-        #region 查询无向矩阵
-        public void QueryBox(int treeId, Vector2DInt center, int extents, ICollection<QuadElement> elements)
+        #region 查询AABB区域
+        public void QueryAABB(int treeId, Vector2DInt center, int extents, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var aabb = new AABB2DInt(center, extents);
-            tree.QueryBox(in aabb, elements);
+            var area = new AABB2DInt(center, extents);
+            tree.QueryAABB(in area, elements);
         }
-        public void QueryBox(int treeId, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
+        public void QueryAABB(int treeId, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var aabb = new AABB2DInt(center, extents);
-            tree.QueryBox(in aabb, elements);
+            var area = new AABB2DInt(center, extents);
+            tree.QueryAABB(in area, elements);
         }
 
-        public void QueryBox(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, ICollection<QuadElement> elements)
+        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, ICollection<QuadElement> elements)
         {
-            var aabb = new AABB2DInt(center, extents);
+            var area = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryBox(in aabb, elements);
+                tree.QueryAABB(in area, elements);
             }
         }
-        public void QueryBox(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
+        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
         {
-            var aabb = new AABB2DInt(center, extents);
+            var area = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryBox(in aabb, elements);
-            }
-        }
-        #endregion
-
-        #region 查询有向矩形
-        public void QueryRectangle(int treeId, Vector2DInt center, int extents, in Vector2D dir, ICollection<QuadElement> elements)
-        {
-            var tree = _trees[treeId];
-            var aabb = new AABB2DInt(center, extents);
-            tree.QueryRectangle(in aabb, in dir, elements);
-        }
-        public void QueryRectangle(int treeId, Vector2DInt center, Vector2DInt extents, in Vector2D dir, ICollection<QuadElement> elements)
-        {
-            var tree = _trees[treeId];
-            var aabb = new AABB2DInt(center, extents);
-            tree.QueryRectangle(in aabb, in dir, elements);
-        }
-
-        public void QueryRectangle(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, in Vector2D dir, ICollection<QuadElement> elements)
-        {
-            var aabb = new AABB2DInt(center, extents);
-            for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryRectangle(in aabb, in dir, elements);
-            }
-        }
-        public void QueryRectangle(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, in Vector2D dir, ICollection<QuadElement> elements)
-        {
-            var aabb = new AABB2DInt(center, extents);
-            for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryRectangle(in aabb, in dir, elements);
+                tree.QueryAABB(in area, elements);
             }
         }
         #endregion
 
-        #region 查询不规则四边形
-        public void QueryQuadrangle(int treeId, in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
+        #region 查询OBB区域
+        public void QueryOBB(int treeId, Vector2DInt center, int extents, Fixed64 angle, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            tree.QueryQuadrangle(in lb, in lt, in rt, in rb, elements);
+            var aabb = new OBB2DInt(center, extents, angle);
+            tree.QueryOOB(in aabb, elements);
         }
-        public void QueryQuadrangle(IReadOnlyList<int> treeIds, in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
+        public void QueryOBB(int treeId, Vector2DInt center, Vector2DInt extents, Fixed64 angle, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            var area = new OBB2DInt(center, extents, angle);
+            tree.QueryOOB(in area, elements);
+        }
+
+        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, Fixed64 angle, ICollection<QuadElement> elements)
+        {
+            var area = new OBB2DInt(center, extents, angle);
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+            {
+                int treeId = treeIds[i];
+                var tree = _trees[treeId];
+                tree.QueryOOB(in area, elements);
+            }
+        }
+        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, Fixed64 angle, ICollection<QuadElement> elements)
+        {
+            var area = new OBB2DInt(center, extents, angle);
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+            {
+                int treeId = treeIds[i];
+                var tree = _trees[treeId];
+                tree.QueryOOB(in area, elements);
+            }
+        }
+        #endregion
+
+        #region 查询多边形区域
+        public void QueryPolygon(int treeId, in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryPolygon(in lb, in lt, in rt, in rb, elements);
+        }
+        public void QueryPolygon(IReadOnlyList<int> treeIds, in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryQuadrangle(in lb, in lt, in rt, in rb, elements);
+                tree.QueryPolygon(in lb, in lt, in rt, in rb, elements);
             }
         }
         #endregion

@@ -147,11 +147,7 @@ namespace Eevee.Fixed
             var y = Fixed64.Max((Y - other.Y).Abs() - H, Fixed64.Zero);
             return x.Sqr() + y.Sqr() <= other.R.Sqr();
         }
-        public bool Intersect_Box_Circle(in AABB2D circle) => IntersectBoxAndCircle(in this, in circle); // 检测aabb与圆是否相交
-        public bool Intersect_Circle_Box(in AABB2D box) => IntersectBoxAndCircle(in box, in this); // 检测圆与aabb是否相交
-        public bool Intersect_Circle_Circle(in AABB2D other) => (X - other.X).Sqr() + (Y - other.Y).Sqr() <= (W + other.W) * (H + other.H); // 检测圆与圆是否相交
-        public bool Intersect_Box_Box(in AABB2D other) => (X - other.X).Abs() < W + other.W && (Y - other.Y).Abs() < H + other.H; // 检测aabb与aabb是否相交
-
+        public bool Intersect(in AABB2D other) => (X - other.X).Abs() < W + other.W && (Y - other.Y).Abs() < H + other.H; // 检测aabb与aabb是否相交
         public bool Intersect(in AABB2D other, out AABB2D intersect) // AABB的交集
         {
             var left = Fixed64.Max(Left(), other.Left());
@@ -172,12 +168,6 @@ namespace Eevee.Fixed
 
             intersect = Create(left, top, right, bottom);
             return true;
-        }
-        private bool IntersectBoxAndCircle(in AABB2D box, in AABB2D circle)
-        {
-            var x = Fixed64.Max((box.X - circle.X).Abs() - box.W, Fixed64.Zero);
-            var y = Fixed64.Max((box.Y - circle.Y).Abs() - box.H, Fixed64.Zero);
-            return x.Sqr() + y.Sqr() <= circle.W * circle.H;
         }
         #endregion
 

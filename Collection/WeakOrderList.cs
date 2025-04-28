@@ -235,6 +235,12 @@ namespace Eevee.Collection
         public void CopyTo(int index, T[] array, int arrayIndex, int count) => Array.Copy(_items, index, array, arrayIndex, count);
         public ReadOnlySpan<T> AsReadOnlySpan() => _items.AsReadOnlySpan(0, _size);
         public Span<T> AsSpan() => _items.AsSpan(0, _size);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T Get(int index)
+        {
+            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
+            return ref _items[index];
+        }
 
         public void RemoveRange(int index, int count)
         {

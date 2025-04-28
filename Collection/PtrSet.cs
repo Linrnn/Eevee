@@ -9,7 +9,14 @@ namespace Eevee.Collection
 {
     public struct PtrSet<T> : ISet<T>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
     {
+        #region Feild/Constructor
         public NativeHashSet<T> Ptr;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrSet(AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashSet<T>(7, allocator);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PtrSet(int capacity, AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashSet<T>(capacity, allocator);
+        #endregion
 
         #region ISet`1
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -71,9 +78,9 @@ namespace Eevee.Collection
 
         #region GetEnumerator
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => Ptr.GetEnumerator();
+        readonly IEnumerator<T> IEnumerable<T>.GetEnumerator() => throw new NotImplementedException();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        IEnumerator IEnumerable.GetEnumerator() => Ptr.GetEnumerator();
+        readonly IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
         #endregion
     }
 }

@@ -110,6 +110,8 @@ namespace Eevee.Fixed
             var pv = dv.X * sin + dv.Y * cos;
             return new Vector2D(ph + X, pv + Y);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Vector2D Direction() => new(Maths.CosDeg(A), Maths.SinDeg(A));
 
         //public bool Contain(Vector2DInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;
         //public bool Contain(in CircleInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;

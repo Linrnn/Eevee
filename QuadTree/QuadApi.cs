@@ -5,6 +5,15 @@ using System;
 namespace Eevee.QuadTree
 {
     /// <summary>
+    /// 检测器
+    /// </summary>
+    internal interface IIntersectChecker
+    {
+        bool CheckNode(in AABB2DInt bounds);
+        bool CheckElement(in AABB2DInt bounds);
+    }
+
+    /// <summary>
     /// 树的形状
     /// </summary>
     public enum QuadShape : byte
