@@ -8,16 +8,16 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void Update0GC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input, bool allowDuplicate = false)
+        public static void UpdateLowGC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input, bool allowDuplicate = false)
         {
             source.Clear();
-            AddRange0GC(source, input, allowDuplicate);
+            AddRangeLowGC(source, input, allowDuplicate);
         }
 
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void AddRange0GC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input, bool allowDuplicate = false)
+        public static void AddRangeLowGC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input, bool allowDuplicate = false)
         {
             if (input == null)
                 return;

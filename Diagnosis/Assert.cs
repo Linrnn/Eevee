@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 namespace Eevee.Diagnosis
 {
     /// <summary>
-    /// 0GC断言
+    /// LowGC断言
     /// </summary>
     internal readonly struct Assert
     {

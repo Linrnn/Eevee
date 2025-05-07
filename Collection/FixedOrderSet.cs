@@ -39,7 +39,7 @@ namespace Eevee.Collection
             CheckComparer();
             _collection = new HashSet<T>();
             _order = new WeakOrderList<T>();
-            this.UnionWith0GC(other);
+            this.UnionWithLowGC(other);
         }
         public FixedOrderSet(IEqualityComparer<T> comparer)
         {
@@ -58,7 +58,7 @@ namespace Eevee.Collection
             CheckComparer(comparer);
             _collection = new HashSet<T>(comparer);
             _order = new WeakOrderList<T>();
-            this.UnionWith0GC(other);
+            this.UnionWithLowGC(other);
         }
         #endregion
 
@@ -79,25 +79,25 @@ namespace Eevee.Collection
         /// “this”与“other”的并集<br/>
         /// this U other
         /// </summary>
-        public void UnionWith(IEnumerable<T> other) => this.UnionWith0GC(other);
+        public void UnionWith(IEnumerable<T> other) => this.UnionWithLowGC(other);
         /// <summary>
         /// 与目标的交集<br/>
         /// “this”与“other”的交集<br/>
         /// this ∩ other
         /// </summary>
-        public void IntersectWith(IEnumerable<T> other) => this.IntersectWith0GC(other);
+        public void IntersectWith(IEnumerable<T> other) => this.IntersectWithLowGC(other);
         /// <summary>
         /// 与目标的差集<br/>
         /// “this”与“other”的补集 的交集<br/>
         /// this ∩ ~other
         /// </summary>
-        public void ExceptWith(IEnumerable<T> other) => this.ExceptWith0GC(other);
+        public void ExceptWith(IEnumerable<T> other) => this.ExceptWithLowGC(other);
         /// <summary>
         /// 与目标的异或<br/>
         /// (“this”与“other”)的并集 与 (“this”与“other”)的交集的补集 的交集<br/>
         /// (this U other) ∩ ~(this ∩ other)
         /// </summary>
-        public void SymmetricExceptWith(IEnumerable<T> other) => this.SymmetricExceptWith0GC(other);
+        public void SymmetricExceptWith(IEnumerable<T> other) => this.SymmetricExceptWithLowGC(other);
 
         /// <summary>
         /// 是目标的子集<br/>
@@ -107,7 +107,7 @@ namespace Eevee.Collection
         public bool IsSubsetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _collection.IsSubsetOf0GC(other);
+            return _collection.IsSubsetOfLowGC(other);
         }
         /// <summary>
         /// 是目标的超集（父集）
@@ -117,7 +117,7 @@ namespace Eevee.Collection
         public bool IsSupersetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _collection.IsSupersetOf0GC(other);
+            return _collection.IsSupersetOfLowGC(other);
         }
         /// <summary>
         /// 是目标的真子集<br/>
@@ -127,7 +127,7 @@ namespace Eevee.Collection
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _collection.IsProperSubsetOf0GC(other);
+            return _collection.IsProperSubsetOfLowGC(other);
         }
         /// <summary>
         /// 是目标的真超集（父集）
@@ -137,7 +137,7 @@ namespace Eevee.Collection
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
             CheckCount();
-            return _collection.IsProperSupersetOf0GC(other);
+            return _collection.IsProperSupersetOfLowGC(other);
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace Eevee.Collection
         public bool Overlaps(IEnumerable<T> other)
         {
             CheckCount();
-            return _collection.Overlaps0GC(other);
+            return _collection.OverlapsLowGC(other);
         }
         /// <summary>
         /// 与目标相同
@@ -154,7 +154,7 @@ namespace Eevee.Collection
         public bool SetEquals(IEnumerable<T> other)
         {
             CheckCount();
-            return _collection.SetEquals0GC(other);
+            return _collection.SetEqualsLowGC(other);
         }
         #endregion
 
@@ -278,7 +278,7 @@ namespace Eevee.Collection
             if (_collection.Count != _order.Count)
                 return false;
 
-            return _collection.SetEquals0GC(_order);
+            return _collection.SetEqualsLowGC(_order);
         }
         public ReadOnlySpan<T> AsSpan()
         {

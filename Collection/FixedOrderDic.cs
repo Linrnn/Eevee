@@ -221,14 +221,14 @@ namespace Eevee.Collection
             int capacity = other.Count;
             _collection = new Dictionary<TKey, TValue>(capacity);
             _order = new WeakOrderList<TKey>(capacity);
-            this.AddRange0GC(other);
+            this.AddRangeLowGC(other);
         }
         public FixedOrderDic(IEnumerable<KeyValuePair<TKey, TValue>> other)
         {
             CheckComparer();
             _collection = new Dictionary<TKey, TValue>();
             _order = new WeakOrderList<TKey>();
-            this.AddRange0GC(other);
+            this.AddRangeLowGC(other);
         }
         public FixedOrderDic(IEqualityComparer<TKey> comparer)
         {
@@ -248,14 +248,14 @@ namespace Eevee.Collection
             int capacity = other.Count;
             _collection = new Dictionary<TKey, TValue>(capacity, comparer);
             _order = new WeakOrderList<TKey>(capacity);
-            this.AddRange0GC(other);
+            this.AddRangeLowGC(other);
         }
         public FixedOrderDic(IEnumerable<KeyValuePair<TKey, TValue>> other, IEqualityComparer<TKey> comparer)
         {
             CheckComparer();
             _collection = new Dictionary<TKey, TValue>(comparer);
             _order = new WeakOrderList<TKey>();
-            this.AddRange0GC(other);
+            this.AddRangeLowGC(other);
         }
         #endregion
 

@@ -28,16 +28,16 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void Update0GC<T>(this ICollection<T> source, IEnumerable<T> input)
+        public static void UpdateLowGC<T>(this ICollection<T> source, IEnumerable<T> input)
         {
             source.Clear();
-            AddRange0GC(source, input);
+            AddRangeLowGC(source, input);
         }
 
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void AddRange0GC<T>(this ICollection<T> source, IEnumerable<T> input)
+        public static void AddRangeLowGC<T>(this ICollection<T> source, IEnumerable<T> input)
         {
             if (input == null)
             {
@@ -101,7 +101,7 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void RemoveRange0GC<T>(this ICollection<T> source, IEnumerable<T> input)
+        public static void RemoveRangeLowGC<T>(this ICollection<T> source, IEnumerable<T> input)
         {
             if (source.Count == 0)
             {

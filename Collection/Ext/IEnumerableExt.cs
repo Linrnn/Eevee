@@ -66,7 +66,7 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static T GetFirst0GC<T>(this IEnumerable<T> source)
+        public static T GetFirstLowGC<T>(this IEnumerable<T> source)
         {
             switch (source)
             {

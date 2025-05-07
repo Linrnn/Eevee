@@ -39,7 +39,7 @@ namespace EeveeEditor.QuadTree
                 }
                 else
                 {
-                    var go = _objects.GetFirst0GC();
+                    var go = _objects.GetFirstLowGC();
                     _objects.Remove(go);
                     go.SetActive(true);
                     return go;

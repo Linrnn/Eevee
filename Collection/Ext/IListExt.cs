@@ -157,7 +157,7 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void InsertRange0GC<T>(this IList<T> source, int sourceIndex, IEnumerable<T> input)
+        public static void InsertRangeLowGC<T>(this IList<T> source, int sourceIndex, IEnumerable<T> input)
         {
             if (input == null)
             {

@@ -91,7 +91,7 @@ namespace Eevee.Collection
             _size = Math.Max(count, 0);
 
             if (other is not ICollection<T> collection)
-                this.AddRange0GC(other);
+                this.AddRangeLowGC(other);
             else if (count > 0)
                 collection.CopyTo(_items, 0);
         }
@@ -273,7 +273,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int GetVersion() => _version;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void InsertRange(int index, IEnumerable<T> other) // 调用“ICollectionExt.AddRange0GC”和“IListExt.InsertRange0GC”替代此接口
+        internal void InsertRange(int index, IEnumerable<T> other) // 调用“ICollectionExt.AddRangeLowGC”和“IListExt.InsertRangeLowGC”替代此接口
         {
             if (other is ICollection<T> collection)
             {

@@ -11,16 +11,16 @@ namespace Eevee.Collection
         /// source U input<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void UnionWith0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static void UnionWithLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (!ReferenceEquals(source, input))
-                source.AddRange0GC(input);
+                source.AddRangeLowGC(input);
         }
         /// <summary>
         /// source ∩ input<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void IntersectWith0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static void IntersectWithLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (source.Count == 0 || ReferenceEquals(source, input))
             {
@@ -53,16 +53,16 @@ namespace Eevee.Collection
         /// source ∩ ~input<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void ExceptWith0GC<T>(this ISet<T> source, IEnumerable<T> input) => source.RemoveRange0GC(input);
+        public static void ExceptWithLowGC<T>(this ISet<T> source, IEnumerable<T> input) => source.RemoveRangeLowGC(input);
         /// <summary>
         /// (source U input) ∩ ~(source ∩ input)<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static void SymmetricExceptWith0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static void SymmetricExceptWithLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (source.Count == 0)
             {
-                source.UnionWith0GC(input);
+                source.UnionWithLowGC(input);
                 return;
             }
 
@@ -87,7 +87,7 @@ namespace Eevee.Collection
             var intersectSpan = intersects.AsSpan(0, inputCount);
 
             FillIntersect(source, input, inputCount, in intersectSpan, out int intersectCount);
-            source.UnionWith0GC(input);
+            source.UnionWithLowGC(input);
             foreach (var item in intersectSpan[..intersectCount])
                 source.Remove(item);
 
@@ -98,7 +98,7 @@ namespace Eevee.Collection
         /// source ⊆ input<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static bool IsSubsetOf0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static bool IsSubsetOfLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (ReferenceEquals(source, input))
                 return true;
@@ -118,7 +118,7 @@ namespace Eevee.Collection
         /// source ⊇ input<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static bool IsSupersetOf0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static bool IsSupersetOfLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (ReferenceEquals(source, input))
                 return true;
@@ -176,7 +176,7 @@ namespace Eevee.Collection
         /// source ⊊ input<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static bool IsProperSubsetOf0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static bool IsProperSubsetOfLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (ReferenceEquals(source, input))
                 return false;
@@ -196,7 +196,7 @@ namespace Eevee.Collection
         /// source ⊋ input<br/>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static bool IsProperSupersetOf0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static bool IsProperSupersetOfLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (ReferenceEquals(source, input))
                 return false;
@@ -216,7 +216,7 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static bool Overlaps0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static bool OverlapsLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             int sourceCount = source.Count;
             if (sourceCount == 0)
@@ -277,7 +277,7 @@ namespace Eevee.Collection
         /// <summary>
         /// 解决“IEnumerable`1.GetEnumerator()”引发的GC
         /// </summary>
-        public static bool SetEquals0GC<T>(this ISet<T> source, IEnumerable<T> input)
+        public static bool SetEqualsLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (ReferenceEquals(source, input))
                 return true;
@@ -340,6 +340,9 @@ namespace Eevee.Collection
                 array[index++] = item;
         }
 
+        /// <summary>
+        /// 无法在子线程下运行
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void CountUniqueAndUnFound<T>(ICollection<T> source, IEnumerable<T> input, bool returnIfUnFound, ref int inputCount, out int uniqueCount, out int unFoundCount)
         {
