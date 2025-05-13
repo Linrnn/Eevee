@@ -271,7 +271,7 @@ namespace Eevee.QuadTree
         private void GetRectCorner(in OBB2DInt area, out Vector2D lb, out Vector2D rb, out Vector2D lt, out Vector2D rt) // 获得矩形的四个角
         {
             // 计算方向向量的垂直向量
-            var dir = area.Direction();
+            var dir = area.A.Direction();
             var dir3D = new Vector3D(dir.X, dir.Y);
             var normal = Vector3D.Cross(in dir3D, in Vector3D.Forward);
             normal.Normalize();

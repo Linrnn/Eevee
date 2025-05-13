@@ -11,7 +11,7 @@ namespace EeveeEditor.Collection
         internal const string Items = "_items";
         internal const string Size = "_size";
 
-        internal static void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        internal static void OnGUI(in Rect position, SerializedProperty property, GUIContent label)
         {
             var itemsProperty = property.FindPropertyRelative(Items);
             var sizeProperty = property.FindPropertyRelative(Size);

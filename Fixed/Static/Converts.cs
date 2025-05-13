@@ -485,12 +485,11 @@ namespace Eevee.Fixed
             var db = value.DeltaBottom();
             var dr = value.DeltaRight();
             var dt = value.DeltaTop();
-            var sin = Maths.SinDeg(value.A);
-            var cos = Maths.CosDeg(value.A);
-            var pl = dl.X * cos - dl.Y * sin;
-            var pb = db.X * sin + db.Y * cos;
-            var pr = dr.X * cos - dr.Y * sin;
-            var pt = dt.X * sin + dt.Y * cos;
+            var dir = value.A.Direction();
+            var pl = dl.X * dir.X - dl.Y * dir.Y;
+            var pb = db.X * dir.Y + db.Y * dir.X;
+            var pr = dr.X * dir.X - dr.Y * dir.Y;
+            var pt = dt.X * dir.Y + dt.Y * dir.X;
             return AABB2D.Create(pl, pt, pr, pb);
         }
         #endregion

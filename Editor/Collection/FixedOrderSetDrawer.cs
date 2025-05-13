@@ -11,7 +11,7 @@ namespace EeveeEditor.Collection
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var orderProperty = property.FindPropertyRelative(OrderDrawer.Order);
-            OrderDrawer.OnGUI(position, orderProperty, label);
+            OrderDrawer.OnGUI(in position, orderProperty, label);
         }
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {

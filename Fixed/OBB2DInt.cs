@@ -14,14 +14,12 @@ namespace Eevee.Fixed
         public readonly int Y; // 中心点（Y）
         public readonly int W; // 半宽
         public readonly int H; // 半高
-        public readonly Fixed64 A; // 角度角，X轴正方向为0°，逆时针递增，值域：[0, 360°)
+        public readonly Angle A; // 角度角，X轴正方向为0°，逆时针递增，值域：[0, 360°)
 
         public OBB2DInt(int x, int y, int w, int h, Fixed64 a)
         {
             Check.Extents(w, nameof(w));
             Check.Extents(h, nameof(h));
-            Check.Deg0To360(a, nameof(a));
-
             X = x;
             Y = y;
             W = w;
@@ -31,8 +29,6 @@ namespace Eevee.Fixed
         public OBB2DInt(int x, int y, int e, Fixed64 a)
         {
             Check.Extents(e, nameof(e));
-            Check.Deg0To360(a, nameof(a));
-
             X = x;
             Y = y;
             W = e;
@@ -42,8 +38,6 @@ namespace Eevee.Fixed
         public OBB2DInt(Vector2DInt center, int extents, Fixed64 angle)
         {
             Check.Extents(extents, nameof(extents));
-            Check.Deg0To360(angle, nameof(angle));
-
             X = center.X;
             Y = center.Y;
             W = extents;
@@ -54,8 +48,6 @@ namespace Eevee.Fixed
         {
             Check.Extents(e.X, "e.x");
             Check.Extents(e.Y, "e.y");
-            Check.Deg0To360(a, nameof(a));
-
             X = x;
             Y = y;
             W = e.X;
@@ -66,8 +58,6 @@ namespace Eevee.Fixed
         {
             Check.Extents(extents.X, "extents.x");
             Check.Extents(extents.Y, "extents.y");
-            Check.Deg0To360(angle, nameof(angle));
-
             X = center.X;
             Y = center.Y;
             W = extents.X;
@@ -93,10 +83,9 @@ namespace Eevee.Fixed
         {
             var dh = DeltaLeft();
             var dv = DeltaBottom();
-            var sin = Maths.SinDeg(A);
-            var cos = Maths.CosDeg(A);
-            var ph = dh.X * cos - dh.Y * sin;
-            var pv = dv.X * sin + dv.Y * cos;
+            var dir = A.Direction();
+            var ph = dh.X * dir.X - dh.Y * dir.Y;
+            var pv = dv.X * dir.Y + dv.Y * dir.X;
             return new Vector2D(ph + X, pv + Y);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -104,14 +93,11 @@ namespace Eevee.Fixed
         {
             var dh = DeltaRight();
             var dv = DeltaTop();
-            var sin = Maths.SinDeg(A);
-            var cos = Maths.CosDeg(A);
-            var ph = dh.X * cos - dh.Y * sin;
-            var pv = dv.X * sin + dv.Y * cos;
+            var dir = A.Direction();
+            var ph = dh.X * dir.X - dh.Y * dir.Y;
+            var pv = dv.X * dir.Y + dv.Y * dir.X;
             return new Vector2D(ph + X, pv + Y);
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D Direction() => new(Maths.CosDeg(A), Maths.SinDeg(A));
 
         //public bool Contain(Vector2DInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;
         //public bool Contain(in CircleInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;
@@ -186,7 +172,7 @@ namespace Eevee.Fixed
 
         #region 辅助方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt DeltaLeft() => A.RawValue switch
+        internal Vector2DInt DeltaLeft() => A.Value.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(-W, H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(W, H),
@@ -195,7 +181,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt DeltaRight() => A.RawValue switch
+        internal Vector2DInt DeltaRight() => A.Value.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(W, -H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(-W, -H),
@@ -204,7 +190,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt DeltaBottom() => A.RawValue switch
+        internal Vector2DInt DeltaBottom() => A.Value.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(-W, -H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(-W, H),
@@ -213,7 +199,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt DeltaTop() => A.RawValue switch
+        internal Vector2DInt DeltaTop() => A.Value.RawValue switch
         {
             >= Const.Zero and < Const.Deg90 => new Vector2DInt(W, H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(W, -H),

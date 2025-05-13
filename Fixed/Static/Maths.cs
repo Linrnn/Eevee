@@ -461,7 +461,7 @@ namespace Eevee.Fixed
         public static int Log2(int a)
         {
             Assert.Greater<ArgumentOutOfRangeException, AssertArgs<int>, int>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<int>(a));
-            return Log2((uint)a);
+            return PrivateLog2((uint)a);
         }
         /// <summary>
         /// 返回以2为底的对数
@@ -469,6 +469,11 @@ namespace Eevee.Fixed
         public static int Log2(uint a)
         {
             Assert.Greater<ArgumentOutOfRangeException, AssertArgs<uint>, uint>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<uint>(a));
+            return PrivateLog2(a);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int PrivateLog2(uint a)
+        {
             uint num = a;
             int log = 0;
             if ((num & 0xFFFF0000) != 0) { num >>= 16; log |= 16; }
@@ -484,7 +489,7 @@ namespace Eevee.Fixed
         public static int Log2(long a)
         {
             Assert.Greater<ArgumentOutOfRangeException, AssertArgs<long>, long>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<long>(a));
-            return Log2((ulong)a);
+            return PrivateLog2((ulong)a);
         }
         /// <summary>
         /// 返回以2为底的对数
@@ -492,6 +497,11 @@ namespace Eevee.Fixed
         public static int Log2(ulong a)
         {
             Assert.Greater<ArgumentOutOfRangeException, AssertArgs<ulong>, ulong>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<ulong>(a));
+            return PrivateLog2(a);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int PrivateLog2(ulong a)
+        {
             ulong num = a;
             int log = 0;
             if ((num & 0xFFFFFFFF00000000) != 0) { num >>= 32; log |= 32; }
@@ -507,7 +517,6 @@ namespace Eevee.Fixed
         /// </summary>
         public static Fixed64 Log2(Fixed64 a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<Fixed64>, Fixed64>(a, 0, nameof(a), "x：{0}≤0，无法计算对数", new AssertArgs<Fixed64>(a));
             long arv = a.RawValue;
             long y = 0;
             while (arv < Const.One)
@@ -541,6 +550,28 @@ namespace Eevee.Fixed
         /// 返回自然对数（即以e为底的对数）
         /// </summary>
         public static Fixed64 Ln(Fixed64 a) => Log2(a) * Ln2;
+        /// <summary>
+        /// 返回以10为底的对数
+        /// </summary>
+        public static int Lg(int a)
+        {
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<int>, int>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<int>(a));
+            int log = 0;
+            for (int num = a; num >= 10; num /= 10)
+                ++log;
+            return log;
+        }
+        /// <summary>
+        /// 返回以10为底的对数
+        /// </summary>
+        public static int Lg(long a)
+        {
+            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<long>, long>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<long>(a));
+            int log = 0;
+            for (long num = a; num >= 10; num /= 10)
+                ++log;
+            return log;
+        }
         /// <summary>
         /// 返回以10为底的对数
         /// </summary>
