@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Eevee.Utils
 {
-    public readonly struct SubString : IEquatable<SubString>, IComparable<SubString>, IEnumerable<char>
+    public readonly struct SubString : IEquatable<SubString>, IComparable<SubString>, IReadOnlyList<char>
     {
         #region 类型
         public struct Enumerator : IEnumerator<char>
@@ -128,6 +128,7 @@ namespace Eevee.Utils
                 };
             }
         }
+        public int Count => GetTotalLength();
 
         public bool IsNullOrEmpty() => Obj == null || Length == 0;
         public int GetTotalLength() => Obj switch

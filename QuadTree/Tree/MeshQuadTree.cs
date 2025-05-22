@@ -240,10 +240,25 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public QuadNode GetNode(in AABB2DInt area)
+        public QuadNode GetNode(in AABB2DInt area, bool clamp = false)
         {
             if (!area.Intersect(in MaxBounds, out var intersect)) // 处理边界，减少触发“LooseBounds.Contain()”的次数
                 return null;
+            bool iw = intersect.W < 0;
+            bool ih = intersect.H < 0;
+            if (iw || ih)
+            {
+                if (!clamp)
+                    return null;
+
+                intersect = (iw, ih) switch
+                {
+                    (true, true) => new AABB2DInt(intersect.X - intersect.W, intersect.Y - intersect.H, 0, 0),
+                    (true, false) => new AABB2DInt(intersect.X - intersect.W, intersect.Y, 0, intersect.H),
+                    (false, true) => new AABB2DInt(intersect.X, intersect.Y - intersect.H, intersect.W, 0),
+                    _ => intersect,
+                };
+            }
 
             for (int depth = MaxDepth; depth >= 0; --depth)
             {

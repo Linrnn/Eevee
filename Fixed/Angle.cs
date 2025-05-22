@@ -21,6 +21,8 @@ namespace Eevee.Fixed
         #endregion
 
         #region 基础方法
+        public readonly Fixed64 AsRad() => Value * Maths.Deg2Rad;
+        public readonly Fixed64 AsDeg() => Value;
         public readonly Vector2D Direction() => new(Maths.CosDeg(Value), Maths.SinDeg(Value));
         #endregion
 

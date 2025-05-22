@@ -14,7 +14,7 @@ namespace Eevee.Fixed
         public readonly int Y; // 中心点（Y）
         public readonly int W; // 半宽
         public readonly int H; // 半高
-        public readonly Angle A; // 角度角，X轴正方向为0°，逆时针递增，值域：[0, 360°)
+        public readonly Angle A; // 角度
 
         public OBB2DInt(int x, int y, int w, int h, Fixed64 a)
         {
