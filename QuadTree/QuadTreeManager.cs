@@ -13,18 +13,18 @@ namespace Eevee.QuadTree
         public readonly int Scale; // 缩放比例，(int)(Fixed64 * Scale) = int
         public readonly Fixed64 Reciprocal; // = 1 / Scale
         public readonly int DepthCount;
-        public readonly AABB2DInt MaxBounds;
+        public readonly AABB2DInt MaxBoundary;
         private readonly Dictionary<int, QuadTreeConfig> _configs = new();
         private readonly Dictionary<int, MeshQuadTree> _trees = new();
 
-        public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBounds, IList<QuadTreeConfig> configs)
+        public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IList<QuadTreeConfig> configs)
         {
             Scale = scale;
             Reciprocal = Fixed64.One / scale;
             DepthCount = depthCount;
-            MaxBounds = maxBounds;
+            MaxBoundary = maxBoundary;
             BuildConfigs(configs);
-            BuildTrees(depthCount, in maxBounds);
+            BuildTrees(depthCount, in maxBoundary);
         }
         #endregion
 
@@ -321,18 +321,36 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询多边形区域
-        public void QueryPolygon(int treeId, in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
+        public void QueryPolygon(int treeId, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            tree.QueryPolygon(in lb, in lt, in rt, in rb, elements);
+            tree.QueryPolygon(in p0, in p1, in p2, in p3, elements);
         }
-        public void QueryPolygon(IReadOnlyList<int> treeIds, in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
+        public void QueryPolygon(IReadOnlyList<int> treeIds, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, ICollection<QuadElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryPolygon(in lb, in lt, in rt, in rb, elements);
+                tree.QueryPolygon(in p0, in p1, in p2, in p3, elements);
+            }
+        }
+        public void QueryPolygon(int treeId, IReadOnlyList<Vector2D> points, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryPolygon(points[0], points[1], points[2], points[3], elements);
+        }
+        public void QueryPolygon(IReadOnlyList<int> treeIds, IReadOnlyList<Vector2D> points, ICollection<QuadElement> elements)
+        {
+            var p0 = points[0];
+            var p1 = points[1];
+            var p2 = points[2];
+            var p3 = points[3];
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+            {
+                int treeId = treeIds[i];
+                var tree = _trees[treeId];
+                tree.QueryPolygon(in p0, in p1, in p2, in p3, elements);
             }
         }
         #endregion
@@ -355,21 +373,21 @@ namespace Eevee.QuadTree
                 _configs.Add(sizes[i].TreeId, sizes[i]);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void BuildTrees(int depthCount, in AABB2DInt maxBounds)
+        private void BuildTrees(int depthCount, in AABB2DInt maxBoundary)
         {
             foreach ((int treeId, var config) in _configs)
             {
                 int depth = depthCount;
                 int size = Math.Max(config.Size.X, config.Size.Y) << depthCount - 1;
-                int bounds = Math.Max(maxBounds.W, maxBounds.H);
+                int boundary = Math.Max(maxBoundary.W, maxBoundary.H);
 
-                while (depth > 1 && size > bounds)
+                while (depth > 1 && size > boundary)
                 {
                     --depth;
                     size >>= 1;
                 }
 
-                _trees.Add(treeId, new MeshQuadTree(treeId, config.Shape, depth, in maxBounds));
+                _trees.Add(treeId, new MeshQuadTree(treeId, config.Shape, depth, in maxBoundary));
             }
         }
         public void Clean()

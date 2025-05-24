@@ -164,7 +164,6 @@ namespace Eevee.Event
                         if (!success)
                             LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
                         if (recycle)
-                            // ReSharper disable once SuspiciousTypeConversion.Global
                             (context as IRecyclable)?.Recycle();
                     }
                     catch (Exception exception)

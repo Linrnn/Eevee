@@ -12,8 +12,8 @@ namespace Eevee.QuadTree
     public sealed class QuadNode
     {
         #region 字段
-        public readonly AABB2DInt Bounds; // 边界
-        public readonly AABB2DInt LooseBounds; // 松散四叉树的节点边界
+        public readonly AABB2DInt Boundary; // 边界
+        public readonly AABB2DInt LooseBoundary; // 松散四叉树的节点边界
         public readonly int Depth; // 所在层的深度
         public readonly int ChildId; // 相对于父节点的编号
         public readonly int IdxX; // 所在层级的二维坐标X
@@ -26,22 +26,22 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 方法
-        public QuadNode(in AABB2DInt bounds, in AABB2DInt looseBounds, int depth, int childId, int x, int y, QuadNode parent)
+        public QuadNode(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int childId, int x, int y, QuadNode parent)
         {
-            Bounds = bounds;
-            LooseBounds = looseBounds;
+            Boundary = boundary;
+            LooseBoundary = looseBoundary;
             Depth = depth;
             ChildId = childId;
             IdxX = x;
             IdxY = y;
             Parent = parent;
         }
-        public AABB2DInt CountChildBounds(int index) => index switch // 计算子包围盒
+        public AABB2DInt CountChildBoundary(int index) => index switch // 计算子包围盒
         {
-            0 => Bounds.LeftTopAABB(), // 左上
-            1 => Bounds.RightTopAABB(), // 右上
-            2 => Bounds.LeftBottomAABB(), // 左下
-            3 => Bounds.RightBottomAABB(), // 右下
+            0 => Boundary.LeftTopAABB(), // 左上
+            1 => Boundary.RightTopAABB(), // 右上
+            2 => Boundary.LeftBottomAABB(), // 左下
+            3 => Boundary.RightBottomAABB(), // 右下
             _ => throw new Exception($"index:{index}，越界"),
         };
 

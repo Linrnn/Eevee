@@ -157,7 +157,7 @@ namespace EeveeEditor.QuadTree
             {
                 foreach (var serializedProperty in _serializedProperties)
                     serializedProperty.Dispose();
-                _serializedProperties.CleanAll();
+                _serializedProperties.Clean();
             }
 
             private void DrawClass()

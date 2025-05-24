@@ -24,5 +24,13 @@ namespace Eevee.Fixed
             Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<string, Fixed64>, Fixed64>(angle, Fixed64.Zero, paramName, "{0}:{1} < 0", new AssertArgs<string, Fixed64>(paramName, angle));
             Assert.Less<ArgumentOutOfRangeException, AssertArgs<string, Fixed64>, Fixed64>(angle, Maths.Deg360, paramName, "{0}:{1} >= 360", new AssertArgs<string, Fixed64>(paramName, angle));
         }
+
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void Normal(in Vector2D dir)
+        {
+            Assert.Equal<ArgumentException, AssertArgs<Vector2D>, Vector2D>(dir, dir.Normalized(), nameof(dir), "dir:{0} isn't normal", new AssertArgs<Vector2D>(dir));
+        }
     }
 }

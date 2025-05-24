@@ -193,29 +193,63 @@ namespace Eevee.Fixed
                 Y = point.X * sin + point.Y * cos,
             };
         }
+        public static Vector2D Rotate(in Vector2D point, in Vector2D dir)
+        {
+            Check.Normal(in dir);
+            return new Vector2D
+            {
+                X = point.X * dir.X - point.Y * dir.Y,
+                Y = point.X * dir.Y + point.Y * dir.X,
+            };
+        }
+        public static Vector2D Rotate(Vector2DInt point, in Vector2D dir)
+        {
+            Check.Normal(in dir);
+            return new Vector2D
+            {
+                X = point.X * dir.X - point.Y * dir.Y,
+                Y = point.X * dir.Y + point.Y * dir.X,
+            };
+        }
 
         public static Fixed64 RotateX(in Vector2D point, Fixed64 rad) => point.X * Maths.Cos(rad) - point.Y * Maths.Sin(rad);
         public static Fixed64 RotateX(Vector2DInt point, Fixed64 rad) => point.X * Maths.Cos(rad) - point.Y * Maths.Sin(rad);
         public static Fixed64 RotateXDeg(in Vector2D point, Fixed64 deg) => point.X * Maths.CosDeg(deg) - point.Y * Maths.SinDeg(deg);
         public static Fixed64 RotateXDeg(Vector2DInt point, Fixed64 deg) => point.X * Maths.CosDeg(deg) - point.Y * Maths.SinDeg(deg);
+        public static Fixed64 RotateX(in Vector2D point, in Vector2D dir)
+        {
+            Check.Normal(in dir);
+            return point.X * dir.X - point.Y * dir.Y;
+        }
+        public static Fixed64 RotateX(Vector2DInt point, in Vector2D dir)
+        {
+            Check.Normal(in dir);
+            return point.X * dir.X - point.Y * dir.Y;
+        }
 
         public static Fixed64 RotateY(in Vector2D point, Fixed64 rad) => point.X * Maths.Sin(rad) + point.Y * Maths.Cos(rad);
         public static Fixed64 RotateY(Vector2DInt point, Fixed64 rad) => point.X * Maths.Sin(rad) + point.Y * Maths.Cos(rad);
         public static Fixed64 RotateYDeg(in Vector2D point, Fixed64 deg) => point.X * Maths.SinDeg(deg) + point.Y * Maths.CosDeg(deg);
         public static Fixed64 RotateYDeg(Vector2DInt point, Fixed64 deg) => point.X * Maths.SinDeg(deg) + point.Y * Maths.CosDeg(deg);
+        public static Fixed64 RotateY(in Vector2D point, in Vector2D dir)
+        {
+            Check.Normal(in dir);
+            return point.X * dir.Y + point.Y * dir.X;
+        }
+        public static Fixed64 RotateY(Vector2DInt point, in Vector2D dir)
+        {
+            Check.Normal(in dir);
+            return point.X * dir.Y + point.Y * dir.X;
+        }
         #endregion
 
-        /// <summary>
-        /// 重心/质心
-        /// </summary>
-        public static Fixed64 Barycentric(Fixed64 v1, Fixed64 v2, Fixed64 v3, Fixed64 a1, Fixed64 a2) => v1 + (v2 - v1) * a1 + (v3 - v1) * a2;
-        /// <summary>
-        /// 重心/质心
-        /// </summary>
-        public static Vector2D Barycentric(in Vector2D p1, in Vector2D p2, in Vector2D p3, Fixed64 a1, Fixed64 a2) => new()
+        #region 重心/质心
+        public static Fixed64 Barycentric(Fixed64 v0, Fixed64 v1, Fixed64 v2, Fixed64 a0, Fixed64 a1) => v0 + (v1 - v0) * a0 + (v2 - v0) * a1;
+        public static Vector2D Barycentric(in Vector2D p0, in Vector2D p1, in Vector2D p2, Fixed64 a0, Fixed64 a1) => new()
         {
-            X = Barycentric(p1.X, p2.X, p3.X, a1, a2),
-            Y = Barycentric(p1.Y, p2.Y, p3.Y, a1, a2),
+            X = Barycentric(p0.X, p1.X, p2.X, a0, a1),
+            Y = Barycentric(p0.Y, p1.Y, p2.Y, a0, a1),
         };
+        #endregion
     }
 }

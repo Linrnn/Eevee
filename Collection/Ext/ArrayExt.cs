@@ -1,6 +1,7 @@
 ﻿using Eevee.Fixed;
 using System;
 using System.Buffers;
+using System.Collections;
 
 namespace Eevee.Collection
 {
@@ -47,5 +48,7 @@ namespace Eevee.Collection
 
             source = null;
         }
+
+        public static void Clean<T>(this T[] source) => (source as IList).Clear();
     }
 }

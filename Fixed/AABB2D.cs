@@ -15,6 +15,15 @@ namespace Eevee.Fixed
         public readonly Fixed64 W; // 半宽
         public readonly Fixed64 H; // 半高
 
+        public AABB2D(Fixed64 x, Fixed64 y, Fixed64 e)
+        {
+            Check.Extents(e, nameof(e));
+
+            X = x;
+            Y = y;
+            W = e;
+            H = e;
+        }
         public AABB2D(Fixed64 x, Fixed64 y, Fixed64 w, Fixed64 h)
         {
             Check.Extents(w, nameof(w));
@@ -25,14 +34,15 @@ namespace Eevee.Fixed
             W = w;
             H = h;
         }
-        public AABB2D(Fixed64 x, Fixed64 y, Fixed64 e)
+        public AABB2D(Fixed64 x, Fixed64 y, in Vector2D e)
         {
-            Check.Extents(e, nameof(e));
+            Check.Extents(e.X, "e.x");
+            Check.Extents(e.Y, "e.y");
 
             X = x;
             Y = y;
-            W = e;
-            H = e;
+            W = e.X;
+            H = e.Y;
         }
         public AABB2D(in Vector2D center, Fixed64 extents)
         {
@@ -43,15 +53,15 @@ namespace Eevee.Fixed
             W = extents;
             H = extents;
         }
-        public AABB2D(Fixed64 x, Fixed64 y, in Vector2D e)
+        public AABB2D(in Vector2D center, Fixed64 width, Fixed64 height)
         {
-            Check.Extents(e.X, "e.x");
-            Check.Extents(e.Y, "e.y");
+            Check.Extents(width, nameof(width));
+            Check.Extents(height, nameof(height));
 
-            X = x;
-            Y = y;
-            W = e.X;
-            H = e.Y;
+            X = center.X;
+            Y = center.Y;
+            W = width;
+            H = height;
         }
         public AABB2D(in Vector2D center, in Vector2D extents)
         {
@@ -67,7 +77,7 @@ namespace Eevee.Fixed
         public static AABB2D Create(Fixed64 left, Fixed64 top, Fixed64 right, Fixed64 bottom) => new(right + left >> 1, top + bottom >> 1, right - left >> 1, top - bottom >> 1);
         #endregion
 
-        #region 基础方法
+        #region 中心点/尺寸/边界
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Fixed64 Left() => X - W; // 左
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,7 +105,7 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2D RightTop() => new(Right(), Top()); // 右上角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D LeftTop() => new(Left(), Top()); // 左上角 
+        public Vector2D LeftTop() => new(Left(), Top()); // 左上角
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AABB2D LeftBottomAABB() // 左下AABB，原先1/4的AABB
@@ -125,7 +135,9 @@ namespace Eevee.Fixed
             var h = H >> 1;
             return new AABB2D(X - w, Y + h, w, h);
         }
+        #endregion
 
+        #region 基础方法
         public bool Contain(Vector2D other)
         {
             var dx = (other.X - X).Abs();

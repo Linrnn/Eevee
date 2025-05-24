@@ -15,6 +15,15 @@ namespace Eevee.Fixed
         public readonly int W; // 半宽
         public readonly int H; // 半高
 
+        public AABB2DInt(int x, int y, int e)
+        {
+            Check.Extents(e, nameof(e));
+
+            X = x;
+            Y = y;
+            W = e;
+            H = e;
+        }
         public AABB2DInt(int x, int y, int w, int h)
         {
             Check.Extents(w, nameof(w));
@@ -25,14 +34,15 @@ namespace Eevee.Fixed
             W = w;
             H = h;
         }
-        public AABB2DInt(int x, int y, int e)
+        public AABB2DInt(int x, int y, Vector2DInt e)
         {
-            Check.Extents(e, nameof(e));
+            Check.Extents(e.X, "e.x");
+            Check.Extents(e.Y, "e.y");
 
             X = x;
             Y = y;
-            W = e;
-            H = e;
+            W = e.X;
+            H = e.Y;
         }
         public AABB2DInt(Vector2DInt center, int extents)
         {
@@ -43,15 +53,15 @@ namespace Eevee.Fixed
             W = extents;
             H = extents;
         }
-        public AABB2DInt(int x, int y, Vector2DInt e)
+        public AABB2DInt(Vector2DInt center, int width, int height)
         {
-            Check.Extents(e.X, "e.x");
-            Check.Extents(e.Y, "e.y");
+            Check.Extents(width, nameof(width));
+            Check.Extents(height, nameof(height));
 
-            X = x;
-            Y = y;
-            W = e.X;
-            H = e.Y;
+            X = center.X;
+            Y = center.Y;
+            W = width;
+            H = height;
         }
         public AABB2DInt(Vector2DInt center, Vector2DInt extents)
         {
@@ -67,7 +77,7 @@ namespace Eevee.Fixed
         public static AABB2DInt Create(int left, int top, int right, int bottom) => new(right + left >> 1, top + bottom >> 1, right - left >> 1, top - bottom >> 1);
         #endregion
 
-        #region 基础方法
+        #region 中心点/尺寸/边界
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int Left() => X - W; // 左
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -95,7 +105,7 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt RightTop() => new(Right(), Top()); // 右上角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角 
+        public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AABB2DInt LeftBottomAABB() // 左下AABB，原先1/4的AABB
@@ -125,7 +135,9 @@ namespace Eevee.Fixed
             int h = H >> 1;
             return new AABB2DInt(X - w, Y + h, w, h);
         }
+        #endregion
 
+        #region 基础方法
         public bool Contain(Vector2DInt other)
         {
             int dx = Math.Abs(other.X - X);

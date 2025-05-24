@@ -20,36 +20,36 @@ namespace Eevee.QuadTree
 
         public readonly int TreeId;
         public readonly int MaxDepth; // 最大深度
-        public readonly AABB2DInt MaxBounds; // 最大包围盒
+        public readonly AABB2DInt MaxBoundary; // 最大包围盒
         public readonly QuadShape Shape;
 
         internal readonly QuadNode Root; // 根节点
         internal readonly QuadNode[][] Nodes; // 所有节点
-        internal readonly Vector2DInt[] HalfBounds; // 每一层的边界尺寸（四分之一的面积，方便后续计算）
+        internal readonly Vector2DInt[] HalfBoundaries; // 每一层的边界尺寸（四分之一的面积，方便后续计算）
 
-        public MeshQuadTree(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBounds)
+        public MeshQuadTree(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
-            var root = new QuadNode(in maxBounds, in maxBounds, 0, 0, 0, 0, null); // 先屏蔽松散四叉树，搜索有问题
+            var root = new QuadNode(in maxBoundary, in maxBoundary, 0, 0, 0, 0, null); // 先屏蔽松散四叉树，搜索有问题
 
             TreeId = treeId;
             MaxDepth = depthCount - 1;
-            MaxBounds = maxBounds;
+            MaxBoundary = maxBoundary;
             Shape = shape;
 
             Root = root;
             Nodes = new QuadNode[depthCount][];
             Nodes[0] = new[] { root };
-            HalfBounds = new Vector2DInt[depthCount];
-            HalfBounds[0] = root.Bounds.HalfSize();
+            HalfBoundaries = new Vector2DInt[depthCount];
+            HalfBoundaries[0] = root.Boundary.HalfSize();
 
-            int left = maxBounds.Left();
-            int top = maxBounds.Top();
+            int left = maxBoundary.Left();
+            int top = maxBoundary.Top();
             for (int depth = 1; depth < depthCount; ++depth)
             {
                 int length = 1 << depth << depth; // length = 4^depth
                 var nodes = new QuadNode[length];
 
-                HalfBounds[depth] = HalfBounds[depth - 1] / 2;
+                HalfBoundaries[depth] = HalfBoundaries[depth - 1] / 2;
                 Nodes[depth] = nodes;
 
                 for (int i = 0; i < length; i += ChildCount)
@@ -59,10 +59,10 @@ namespace Eevee.QuadTree
 
                     for (int childId = 0; childId < ChildCount; ++childId)
                     {
-                        var bounds = parent.CountChildBounds(childId);
-                        int x = (bounds.X - left) / (bounds.W << 1);
-                        int y = (top - bounds.Y) / (bounds.H << 1);
-                        var child = new QuadNode(in bounds, in bounds, depth, childId, x, y, parent); // 先屏蔽松散四叉树，搜索有问题
+                        var boundary = parent.CountChildBoundary(childId);
+                        int x = (boundary.X - left) / (boundary.W << 1);
+                        int y = (top - boundary.Y) / (boundary.H << 1);
+                        var child = new QuadNode(in boundary, in boundary, depth, childId, x, y, parent); // 先屏蔽松散四叉树，搜索有问题
 
                         parent.Children[childId] = child;
                         nodes[GetNodeId(depth, x, y)] = child;
@@ -121,8 +121,8 @@ namespace Eevee.QuadTree
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new PointCircleChecker(area), new AABB2DInt(area, 0), elements); break;
-                case QuadShape.AABB: RecursiveQuery(new PointAABBChecker(area), new AABB2DInt(area, 0), elements); break;
+                case QuadShape.Circle: RecursiveQuery(new PointCircleNodeChecker(area), new AABB2DInt(area, 0), elements); break;
+                case QuadShape.AABB: RecursiveQuery(new PointAABBNodeChecker(area), new AABB2DInt(area, 0), elements); break;
             }
         }
         public void QueryCircle(in CircleInt area, ICollection<QuadElement> elements)
@@ -131,13 +131,13 @@ namespace Eevee.QuadTree
                 return;
 
             var aabb = Converts.AsAABB2DInt(in area);
-            if (aabb.Contain(in MaxBounds))
+            if (aabb.Contain(in MaxBoundary))
                 RecursiveAdd(Root, elements);
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new CircleChecker(in area), in aabb, elements); break;
-                case QuadShape.AABB: RecursiveQuery(new CircleAABBChecker(in area), in aabb, elements); break;
+                case QuadShape.Circle: RecursiveQuery(new CircleNodeChecker(in area), in aabb, elements); break;
+                case QuadShape.AABB: RecursiveQuery(new CircleAABBNodeChecker(in area), in aabb, elements); break;
             }
         }
         public void QueryAABB(in AABB2DInt area, ICollection<QuadElement> elements)
@@ -145,13 +145,13 @@ namespace Eevee.QuadTree
             if (Root.IsEmpty())
                 return;
 
-            if (area.Contain(in MaxBounds))
+            if (area.Contain(in MaxBoundary))
                 RecursiveAdd(Root, elements);
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new AABBCircleChecker(in area), in area, elements); break;
-                case QuadShape.AABB: RecursiveQuery(new AABBChecker(in area), in area, elements); break;
+                case QuadShape.Circle: RecursiveQuery(new AABBCircleNodeChecker(in area), in area, elements); break;
+                case QuadShape.AABB: RecursiveQuery(new AABBNodeChecker(in area), in area, elements); break;
             }
         }
         public void QueryOOB(in OBB2DInt area, ICollection<QuadElement> elements)
@@ -159,26 +159,23 @@ namespace Eevee.QuadTree
             if (Root.IsEmpty())
                 return;
 
-            GetRectCorner(in area, out var lb, out var b, out var lt, out var rt);
-            var width = Fixed64.Max((rt.X - lb.X).Abs(), (lt.X - b.X).Abs());
-            var height = Fixed64.Max((rt.Y - lb.Y).Abs(), (lt.Y - b.Y).Abs());
-
-            var aabb = new AABB2DInt(area.Center(), new Vector2DInt((int)(width >> 1), (int)(height >> 1)));
-            var checker = new OBBChecker(in aabb, in lb, in b, in rt, in lt);
+            area.RotatedCorner(out var p0, out var p1, out var p2, out var p3);
+            var aabb = (AABB2DInt)Converts.AsAABB2D(in area);
+            var checker = new OBBNodeChecker(in aabb, in p0, in p1, in p3, in p2);
             RecursiveQuery(in checker, in aabb, elements);
         }
-        public void QueryPolygon(in Vector2D lb, in Vector2D lt, in Vector2D rt, in Vector2D rb, ICollection<QuadElement> elements)
+        public void QueryPolygon(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
-            var minX = Fixed64.Min(lb.X, lt.X, rb.X, rt.X);
-            var maxX = Fixed64.Max(lb.X, lt.X, rb.X, rt.X);
-            var minY = Fixed64.Min(lb.Y, lt.Y, rb.Y, rt.Y);
-            var maxY = Fixed64.Max(lb.Y, lt.Y, rb.Y, rt.Y);
+            var minX = Fixed64.Min(p0.X, p1.X, p3.X, p2.X);
+            var maxX = Fixed64.Max(p0.X, p1.X, p3.X, p2.X);
+            var minY = Fixed64.Min(p0.Y, p1.Y, p3.Y, p2.Y);
+            var maxY = Fixed64.Max(p0.Y, p1.Y, p3.Y, p2.Y);
 
             var area = AABB2DInt.Create((int)minX, (int)maxY, (int)maxX, (int)minY);
-            var checker = new PolygonChecker(in area, in lb, in rb, in rt, in lt);
+            var checker = new PolygonNodeChecker(in area, in p0, in p3, in p2, in p1);
             RecursiveQuery(in checker, in area, elements);
         }
         #endregion
@@ -198,38 +195,35 @@ namespace Eevee.QuadTree
                     RecursiveAdd(child, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void RecursiveQuery<TChecker>(in TChecker checker, in AABB2DInt area, ICollection<QuadElement> elements) where TChecker : struct, IIntersectChecker
+        private void RecursiveQuery<TChecker>(in TChecker checker, in AABB2DInt area, ICollection<QuadElement> elements) where TChecker : struct, INodeChecker
         {
             var node = GetNode(in area);
-            if (node == null) // 不存在的节点，不遍历树结构
+            if (node == null)
                 return;
 
             RecursiveQueryParent(in checker, node.Parent, elements);
             RecursiveQueryChildren(in checker, node, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void RecursiveQueryParent<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IIntersectChecker
+        private void RecursiveQueryParent<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, INodeChecker
         {
             for (var parent = node; parent != null; parent = parent.Parent)
                 foreach (var element in parent.Elements.AsReadOnlySpan())
-                    // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
                     if (checker.CheckElement(in element.AABB))
                         elements.Add(element);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void RecursiveQueryChildren<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IIntersectChecker
+        private void RecursiveQueryChildren<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, INodeChecker
         {
             if (node.IsEmpty())
                 return;
 
             if (node.Elements.Count > 0)
             {
-                // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
-                if (!checker.CheckNode(in node.LooseBounds))
+                if (!checker.CheckNode(in node.LooseBoundary))
                     return;
 
                 foreach (var element in node.Elements.AsReadOnlySpan())
-                    // ReSharper disable once PossiblyImpureMethodCallOnReadonlyVariable
                     if (checker.CheckElement(in element.AABB))
                         elements.Add(element);
             }
@@ -240,9 +234,9 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public QuadNode GetNode(in AABB2DInt area, bool clamp = false)
+        internal QuadNode GetNode(in AABB2DInt area, bool clamp = false)
         {
-            if (!area.Intersect(in MaxBounds, out var intersect)) // 处理边界，减少触发“LooseBounds.Contain()”的次数
+            if (!area.Intersect(in MaxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
                 return null;
             bool iw = intersect.W < 0;
             bool ih = intersect.H < 0;
@@ -262,16 +256,16 @@ namespace Eevee.QuadTree
 
             for (int depth = MaxDepth; depth >= 0; --depth)
             {
-                var size = HalfBounds[depth];
+                var size = HalfBoundaries[depth];
                 if (size.X < intersect.W || size.Y < intersect.H)
                     continue;
 
-                int x = (intersect.X - MaxBounds.Left()) / (size.X << 1);
-                int y = (MaxBounds.Top() - intersect.Y) / (size.Y << 1);
+                int x = (intersect.X - MaxBoundary.Left()) / (size.X << 1);
+                int y = (MaxBoundary.Top() - intersect.Y) / (size.Y << 1);
                 var node = Nodes[depth][GetNodeId(depth, x, y)];
 
                 for (var parent = node; parent != null; parent = parent.Parent)
-                    if (parent.LooseBounds.Contain(in intersect))
+                    if (parent.LooseBoundary.Contain(in intersect))
                         return parent;
             }
 
@@ -282,37 +276,16 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetNodeId(int depth, int x, int y) => x + (1 << depth) * y;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void GetRectCorner(in OBB2DInt area, out Vector2D lb, out Vector2D rb, out Vector2D lt, out Vector2D rt) // 获得矩形的四个角
-        {
-            // 计算方向向量的垂直向量
-            var dir = area.A.Direction();
-            var dir3D = new Vector3D(dir.X, dir.Y);
-            var normal = Vector3D.Cross(in dir3D, in Vector3D.Forward);
-            normal.Normalize();
-
-            // 先计算xy的乘积
-            var xw = dir.X * area.W;
-            var yw = dir.Y * area.W;
-            var xh = normal.X * area.H;
-            var yh = normal.Y * area.H;
-
-            // 计算矩形的四个角坐标
-            lb = new Vector2D(area.X - xw - xh, area.Y - yw - yh);
-            rb = new Vector2D(area.X + xw - xh, area.Y + yw - yh);
-            lt = new Vector2D(area.X - xw + xh, area.Y - yw + yh);
-            rt = new Vector2D(area.X + xw + xh, area.Y + yw + yh);
-        }
         public void Clean()
         {
             foreach (var nodes in Nodes)
             {
                 foreach (var node in nodes)
                     node.Clean();
-                nodes.CleanAll();
+                nodes.Clean();
             }
 
-            Nodes.CleanAll();
+            Nodes.Clean();
         }
         #endregion
     }

@@ -88,7 +88,7 @@ namespace Eevee.Collection
 
         internal static void Clean<T>(ref RefArray<T> source)
         {
-            source.Items.CleanAll();
+            source.Items.Clean();
             source = new RefArray<T>(source.Items, 0);
         }
     }

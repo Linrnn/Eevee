@@ -477,21 +477,10 @@ namespace Eevee.Fixed
 
         public static AABB2DInt AsAABB2DInt(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
 
-        public static AABB2D AsAABB2D(in Rectangle value) => new(value.Center, value.Size / 2);
+        public static AABB2D AsAABB2D(in Rectangle value) => new(value.Center, value.Width >> 1, value.Height >> 1);
+        public static AABB2D AsAABB2D(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
         public static AABB2D AsAABB2D(in Circle value) => new(value.X, value.Y, value.R); // 外接AABB
-        public static AABB2D AsAABB2D(in OBB2DInt value) // 外接AABB
-        {
-            var dl = value.DeltaLeft();
-            var db = value.DeltaBottom();
-            var dr = value.DeltaRight();
-            var dt = value.DeltaTop();
-            var dir = value.A.Direction();
-            var pl = dl.X * dir.X - dl.Y * dir.Y;
-            var pb = db.X * dir.Y + db.Y * dir.X;
-            var pr = dr.X * dir.X - dr.Y * dir.Y;
-            var pt = dt.X * dir.Y + dt.Y * dir.X;
-            return AABB2D.Create(pl, pt, pr, pb);
-        }
+        public static AABB2D AsAABB2D(in OBB2DInt value) => new(value.X, value.Y, value.RotatedHalfSize()); // 外接AABB
         #endregion
     }
 }

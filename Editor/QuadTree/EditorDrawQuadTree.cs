@@ -66,16 +66,16 @@ namespace EeveeEditor.QuadTree
                 foreach (var nodes in tree.Nodes)
                 foreach (var node in nodes)
                     if (node.Elements.Count == 0)
-                        EditorHelper.DrawRect(in node.Bounds, Color.gray, _height, _lineDuration);
+                        EditorHelper.DrawRect(in node.Boundary, Color.gray, _height, _lineDuration);
 
             if (_showNode)
                 foreach (var nodes in tree.Nodes)
                 foreach (var node in nodes)
                     if (node.Elements.Count > 0)
-                        EditorHelper.DrawRect(in node.Bounds, Color.green, _height, _lineDuration);
+                        EditorHelper.DrawRect(in node.Boundary, Color.green, _height, _lineDuration);
 
             if (_showRoot)
-                EditorHelper.DrawRect(in tree.MaxBounds, Color.red, _height, _lineDuration);
+                EditorHelper.DrawRect(in tree.MaxBoundary, Color.red, _height, _lineDuration);
 
             if (_entityIds.Length > 0)
                 foreach (var nodes in tree.Nodes)
@@ -83,7 +83,7 @@ namespace EeveeEditor.QuadTree
                     if (node.Elements.Count > 0)
                         foreach (var element in node.Elements.AsReadOnlySpan())
                             if (_entityIds.Contains(element.Index))
-                                DrawRect((node.LooseBounds, Color.magenta), (node.Bounds, Color.blue), (element.AABB, Color.yellow));
+                                DrawRect((node.LooseBoundary, Color.magenta), (node.Boundary, Color.blue), (element.AABB, Color.yellow));
         }
         private void DrawRect(params (AABB2DInt aabb, Color color)[] array)
         {

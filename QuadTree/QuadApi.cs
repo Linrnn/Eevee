@@ -7,10 +7,10 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 检测器
     /// </summary>
-    internal interface IIntersectChecker
+    internal interface INodeChecker
     {
-        bool CheckNode(in AABB2DInt bounds);
-        bool CheckElement(in AABB2DInt bounds);
+        bool CheckNode(in AABB2DInt boundary);
+        bool CheckElement(in AABB2DInt boundary);
     }
 
     /// <summary>

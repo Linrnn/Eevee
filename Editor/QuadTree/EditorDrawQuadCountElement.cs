@@ -72,7 +72,7 @@ namespace EeveeEditor.QuadTree
         }
         private void FixedUpdate()
         {
-            _depthCounts.CleanAll();
+            _depthCounts.Clean();
 
             if (_tree.IsNullOrEmpty())
                 return;
@@ -95,12 +95,12 @@ namespace EeveeEditor.QuadTree
                         foreach (var element in node.Elements.AsReadOnlySpan())
                         {
                             int elementSqr = element.AABB.Size().SqrMagnitude();
-                            int boundsSqr = node.LooseBounds.HalfSize().SqrMagnitude();
-                            if (elementSqr >= boundsSqr)
+                            int boundarySqr = node.LooseBoundary.HalfSize().SqrMagnitude();
+                            if (elementSqr >= boundarySqr)
                                 continue;
 
                             float bits = MathF.Ceiling(MathF.Log(elementSqr, 2));
-                            float space = MathF.Sqrt((1 << (int)bits) / (float)boundsSqr);
+                            float space = MathF.Sqrt((1 << (int)bits) / (float)boundarySqr);
                             depthCount.AddLineBall();
                             depthCount.AddSpaceUtility(space);
                             if (_drawLineBall)
@@ -130,7 +130,7 @@ namespace EeveeEditor.QuadTree
                 if (tree == null)
                     continue;
 
-                _depthCounts = new DepthCount[tree.HalfBounds.Length - 1]; // 不计算最后一层
+                _depthCounts = new DepthCount[tree.HalfBoundaries.Length - 1]; // 不计算最后一层
                 break;
             }
         }
