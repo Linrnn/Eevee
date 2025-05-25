@@ -35,6 +35,50 @@ namespace Eevee.Fixed
         public static readonly Fixed64 Deg360 = new(Const.Deg360);
         #endregion
 
+        #region 较小值/较大值
+        /// <summary>
+        /// 较小值
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Min(int a, int b, int c, int d)
+        {
+            int v0 = a < b ? a : b;
+            int v1 = c < d ? c : d;
+            return v0 < v1 ? v0 : v1;
+        }
+        /// <summary>
+        /// 较小值
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Min<T>(T a, T b, T c, T d) where T : IComparable<T>
+        {
+            var v0 = a.CompareTo(b) < 0 ? a : b;
+            var v1 = c.CompareTo(d) < 0 ? c : d;
+            return v0.CompareTo(v1) < 0 ? v0 : v1;
+        }
+
+        /// <summary>
+        /// 较大值
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Max(int a, int b, int c, int d)
+        {
+            int v0 = a > b ? a : b;
+            int v1 = c > d ? c : d;
+            return v0 > v1 ? v0 : v1;
+        }
+        /// <summary>
+        /// 较大值
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Max<T>(T a, T b, T c, T d) where T : IComparable<T>
+        {
+            var v0 = a.CompareTo(b) > 0 ? a : b;
+            var v1 = c.CompareTo(d) > 0 ? c : d;
+            return v0.CompareTo(v1) > 0 ? v0 : v1;
+        }
+        #endregion
+
         #region 三角函数
         /// <summary>
         /// 输入弧度，计算正弦
@@ -350,11 +394,11 @@ namespace Eevee.Fixed
 
         #region 弧度角/角度角
         /// <summary>
-        /// 返回弧度，值域：[0, 2π]
+        /// 返回弧度，值域：[0, 2π)
         /// </summary>
         public static Fixed64 ClampRad(Fixed64 rad) => ClampFull(rad, Rad360);
         /// <summary>
-        /// 返回角度，值域：[0°, 360°]
+        /// 返回角度，值域：[0°, 360°)
         /// </summary>
         public static Fixed64 ClampDeg(Fixed64 deg) => ClampFull(deg, Deg360);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -476,11 +520,30 @@ namespace Eevee.Fixed
         {
             uint num = a;
             int log = 0;
-            if ((num & 0xFFFF0000) != 0) { num >>= 16; log |= 16; }
-            if ((num & 0xFF00) != 0) { num >>= 8; log |= 8; }
-            if ((num & 0xF0) != 0) { num >>= 4; log |= 4; }
-            if ((num & 0xC) != 0) { num >>= 2; log |= 2; }
-            if ((num & 0x2) != 0) { log |= 1; }
+            if ((num & 0xFFFF0000) != 0)
+            {
+                num >>= 16;
+                log |= 16;
+            }
+            if ((num & 0xFF00) != 0)
+            {
+                num >>= 8;
+                log |= 8;
+            }
+            if ((num & 0xF0) != 0)
+            {
+                num >>= 4;
+                log |= 4;
+            }
+            if ((num & 0xC) != 0)
+            {
+                num >>= 2;
+                log |= 2;
+            }
+            if ((num & 0x2) != 0)
+            {
+                log |= 1;
+            }
             return log;
         }
         /// <summary>
@@ -504,12 +567,35 @@ namespace Eevee.Fixed
         {
             ulong num = a;
             int log = 0;
-            if ((num & 0xFFFFFFFF00000000) != 0) { num >>= 32; log |= 32; }
-            if ((num & 0xFFFF0000) != 0) { num >>= 16; log |= 16; }
-            if ((num & 0xFF00) != 0) { num >>= 8; log |= 8; }
-            if ((num & 0xF0) != 0) { num >>= 4; log |= 4; }
-            if ((num & 0xC) != 0) { num >>= 2; log |= 2; }
-            if ((num & 0x2) != 0) { log |= 1; }
+            if ((num & 0xFFFFFFFF00000000) != 0)
+            {
+                num >>= 32;
+                log |= 32;
+            }
+            if ((num & 0xFFFF0000) != 0)
+            {
+                num >>= 16;
+                log |= 16;
+            }
+            if ((num & 0xFF00) != 0)
+            {
+                num >>= 8;
+                log |= 8;
+            }
+            if ((num & 0xF0) != 0)
+            {
+                num >>= 4;
+                log |= 4;
+            }
+            if ((num & 0xC) != 0)
+            {
+                num >>= 2;
+                log |= 2;
+            }
+            if ((num & 0x2) != 0)
+            {
+                log |= 1;
+            }
             return log;
         }
         /// <summary>

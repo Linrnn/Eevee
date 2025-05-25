@@ -80,37 +80,48 @@ namespace Eevee.Fixed
             H = extents.Y;
             A = angle;
         }
+        public OBB2DInt(in AABB2DInt aabb, Fixed64 angle)
+        {
+            Check.Extents(aabb.W, "aabb.w");
+            Check.Extents(aabb.H, "aabb.h");
+
+            X = aabb.X;
+            Y = aabb.Y;
+            W = aabb.W;
+            H = aabb.H;
+            A = angle;
+        }
         #endregion
 
         #region 中心点/尺寸/边界
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Left() => X - W; // 左
+        public int Left() => X - W; // 左
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Right() => X + W; // 右
+        public int Right() => X + W; // 右
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Bottom() => Y - H; // 下
+        public int Bottom() => Y - H; // 下
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Top() => Y + H; // 上
+        public int Top() => Y + H; // 上
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D Center() => new(X, Y); // 中心点
+        public Vector2DInt Center() => new(X, Y); // 中心点
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D Size() => new(W << 1, H << 1); // 尺寸
+        public Vector2DInt Size() => new(W << 1, H << 1); // 尺寸
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D HalfSize() => new(W, H); // 一半尺寸
+        public Vector2DInt HalfSize() => new(W, H); // 一半尺寸
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D Min() => LeftBottom();
+        public Vector2DInt Min() => LeftBottom();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D Max() => RightTop();
+        public Vector2DInt Max() => RightTop();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D LeftBottom() => new(Left(), Bottom()); // 左下角
+        public Vector2DInt LeftBottom() => new(Left(), Bottom()); // 左下角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D RightBottom() => new(Right(), Bottom()); // 右下角
+        public Vector2DInt RightBottom() => new(Right(), Bottom()); // 右下角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D RightTop() => new(Right(), Top()); // 右上角
+        public Vector2DInt RightTop() => new(Right(), Top()); // 右上角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D LeftTop() => new(Left(), Top()); // 左上角
+        public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角
         #endregion
 
         #region 旋转后的尺寸/边界
@@ -188,38 +199,6 @@ namespace Eevee.Fixed
             >= Const.Deg270 and < Const.Deg360 => new Vector2DInt(-W, H),
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
-        #endregion
-
-        #region 基础方法
-        //public bool Contain(Vector2DInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;
-        //public bool Contain(in CircleInt other) => Left() <= other.X && Right() >= other.X && Bottom() <= other.Y && Top() >= other.Y;
-        //public bool Contain(in AABB2DInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 是否包含aabb
-        //public bool Contain(in OBB2DInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 是否包含aabb
-
-        //public bool Intersect(in CircleInt other) // 检测aabb与圆是否相交
-        //{
-        //    int x = Math.Max(Math.Abs(X - other.X) - W, 0);
-        //    int y = Math.Max(Math.Abs(Y - other.Y) - H, 0);
-        //    return x * x + y * y <= other.R * other.R;
-        //}
-        //public bool Intersect_Box_Circle(in AABB2DInt circle) => IntersectBoxAndCircle(in this, in circle); // 检测aabb与圆是否相交
-        //public bool Intersect_Circle_Box(in AABB2DInt box) => IntersectBoxAndCircle(in box, in this); // 检测圆与aabb是否相交
-        //public bool Intersect_Circle_Circle(in AABB2DInt other) // 检测圆与圆是否相交
-        //{
-        //    int x = X - other.X;
-        //    int y = Y - other.Y;
-        //    int w = W + other.W;
-        //    int h = H + other.H;
-        //    return x * x + y * y <= w * h;
-        //}
-        //public bool Intersect_Box_Box(in AABB2DInt other) => Math.Abs(X - other.X) < W + other.W && Math.Abs(Y - other.Y) < H + other.H; // 检测aabb与aabb是否相交
-
-        //private bool IntersectBoxAndCircle(in AABB2DInt box, in AABB2DInt circle)
-        //{
-        //    ulong x = (ulong)Math.Max(Math.Abs(box.X - circle.X) - box.W, 0);
-        //    ulong y = (ulong)Math.Max(Math.Abs(box.Y - circle.Y) - box.H, 0);
-        //    return x * x + y * y <= (ulong)circle.W * (ulong)circle.H;
-        //}
         #endregion
 
         #region 运算符重载

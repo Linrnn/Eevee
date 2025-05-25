@@ -114,69 +114,66 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询
-        public void QueryPoint(Vector2DInt area, ICollection<QuadElement> elements)
+        public void QueryPoint(Vector2DInt shape, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new PointCircleNodeChecker(area), new AABB2DInt(area, 0), elements); break;
-                case QuadShape.AABB: RecursiveQuery(new PointAABBNodeChecker(area), new AABB2DInt(area, 0), elements); break;
+                case QuadShape.Circle: RecursiveQuery(new PointCircleNodeChecker(shape), new AABB2DInt(shape, 0), elements); break;
+                case QuadShape.AABB: RecursiveQuery(new PointAABBNodeChecker(shape), new AABB2DInt(shape, 0), elements); break;
             }
         }
-        public void QueryCircle(in CircleInt area, ICollection<QuadElement> elements)
+        public void QueryCircle(in CircleInt shape, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
-            var aabb = Converts.AsAABB2DInt(in area);
-            if (aabb.Contain(in MaxBoundary))
+            var aabb = Converts.AsAABB2DInt(in shape);
+            if (Geometry.Contain(in aabb, in MaxBoundary))
                 RecursiveAdd(Root, elements);
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new CircleNodeChecker(in area), in aabb, elements); break;
-                case QuadShape.AABB: RecursiveQuery(new CircleAABBNodeChecker(in area), in aabb, elements); break;
+                case QuadShape.Circle: RecursiveQuery(new CircleNodeChecker(in shape), in aabb, elements); break;
+                case QuadShape.AABB: RecursiveQuery(new CircleAABBNodeChecker(in shape), in aabb, elements); break;
             }
         }
-        public void QueryAABB(in AABB2DInt area, ICollection<QuadElement> elements)
+        public void QueryAABB(in AABB2DInt shape, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
-            if (area.Contain(in MaxBoundary))
+            if (Geometry.Contain(in shape, in MaxBoundary))
                 RecursiveAdd(Root, elements);
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new AABBCircleNodeChecker(in area), in area, elements); break;
-                case QuadShape.AABB: RecursiveQuery(new AABBNodeChecker(in area), in area, elements); break;
+                case QuadShape.Circle: RecursiveQuery(new AABBCircleNodeChecker(in shape), in shape, elements); break;
+                case QuadShape.AABB: RecursiveQuery(new AABBNodeChecker(in shape), in shape, elements); break;
             }
         }
-        public void QueryOOB(in OBB2DInt area, ICollection<QuadElement> elements)
+        public void QueryOBB(in OBB2DInt shape, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
-            area.RotatedCorner(out var p0, out var p1, out var p2, out var p3);
-            var aabb = (AABB2DInt)Converts.AsAABB2D(in area);
-            var checker = new OBBNodeChecker(in aabb, in p0, in p1, in p3, in p2);
-            RecursiveQuery(in checker, in aabb, elements);
+            var checker = new OBBNodeChecker(in shape);
+            RecursiveQuery(in checker, in checker.Shape, elements);
         }
         public void QueryPolygon(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
-            var minX = Fixed64.Min(p0.X, p1.X, p3.X, p2.X);
-            var maxX = Fixed64.Max(p0.X, p1.X, p3.X, p2.X);
-            var minY = Fixed64.Min(p0.Y, p1.Y, p3.Y, p2.Y);
-            var maxY = Fixed64.Max(p0.Y, p1.Y, p3.Y, p2.Y);
-
-            var area = AABB2DInt.Create((int)minX, (int)maxY, (int)maxX, (int)minY);
-            var checker = new PolygonNodeChecker(in area, in p0, in p3, in p2, in p1);
-            RecursiveQuery(in checker, in area, elements);
+            var xMin = Fixed64.Min(p0.X, p1.X, p2.X, p3.X);
+            var xMax = Fixed64.Max(p0.X, p1.X, p2.X, p3.X);
+            var yMin = Fixed64.Min(p0.Y, p1.Y, p2.Y, p3.Y);
+            var yMax = Fixed64.Max(p0.Y, p1.Y, p2.Y, p3.Y);
+            var aabb = AABB2DInt.Create((int)xMin, (int)xMax, (int)yMin, (int)yMax);
+            var checker = new PolygonNodeChecker(in aabb, in p0, in p1, in p2, in p3);
+            RecursiveQuery(in checker, in aabb, elements);
         }
         #endregion
 
@@ -195,9 +192,9 @@ namespace Eevee.QuadTree
                     RecursiveAdd(child, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void RecursiveQuery<TChecker>(in TChecker checker, in AABB2DInt area, ICollection<QuadElement> elements) where TChecker : struct, INodeChecker
+        private void RecursiveQuery<TChecker>(in TChecker checker, in AABB2DInt aabb, ICollection<QuadElement> elements) where TChecker : struct, INodeChecker
         {
-            var node = GetNode(in area);
+            var node = GetNode(in aabb);
             if (node == null)
                 return;
 
@@ -234,10 +231,11 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal QuadNode GetNode(in AABB2DInt area, bool clamp = false)
+        internal QuadNode GetNode(in AABB2DInt aabb, bool clamp = false)
         {
-            if (!area.Intersect(in MaxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
+            if (!Geometry.Intersect(in aabb, in MaxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
                 return null;
+
             bool iw = intersect.W < 0;
             bool ih = intersect.H < 0;
             if (iw || ih)
@@ -265,7 +263,7 @@ namespace Eevee.QuadTree
                 var node = Nodes[depth][GetNodeId(depth, x, y)];
 
                 for (var parent = node; parent != null; parent = parent.Parent)
-                    if (parent.LooseBoundary.Contain(in intersect))
+                    if (Geometry.Contain(in parent.LooseBoundary, in intersect))
                         return parent;
             }
 

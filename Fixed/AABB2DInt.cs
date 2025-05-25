@@ -74,7 +74,7 @@ namespace Eevee.Fixed
             H = extents.Y;
         }
 
-        public static AABB2DInt Create(int left, int top, int right, int bottom) => new(right + left >> 1, top + bottom >> 1, right - left >> 1, top - bottom >> 1);
+        public static AABB2DInt Create(int xMin, int xMax, int yMin, int yMax) => new(xMax + xMin >> 1, yMax + yMin >> 1, xMax - xMin >> 1, yMax - yMin >> 1);
         #endregion
 
         #region 中心点/尺寸/边界
@@ -134,52 +134,6 @@ namespace Eevee.Fixed
             int w = W >> 1;
             int h = H >> 1;
             return new AABB2DInt(X - w, Y + h, w, h);
-        }
-        #endregion
-
-        #region 基础方法
-        public bool Contain(Vector2DInt other)
-        {
-            int dx = Math.Abs(other.X - X);
-            if (dx > W)
-                return false;
-
-            int dy = Math.Abs(other.Y - Y);
-            if (dy > H)
-                return false;
-
-            return true;
-        }
-        public bool Contain(in CircleInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含圆
-        public bool Contain(in AABB2DInt other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含aabb
-
-        public bool Intersect(in CircleInt other) // 检测aabb与圆是否相交
-        {
-            var x = Fixed64.Max(Math.Abs(X - other.X) - W, Fixed64.Zero);
-            var y = Fixed64.Max(Math.Abs(Y - other.Y) - H, Fixed64.Zero);
-            return x.Sqr() + y.Sqr() <= other.R * other.R;
-        }
-        public bool Intersect(in AABB2DInt other) => Math.Abs(X - other.X) < W + other.W && Math.Abs(Y - other.Y) < H + other.H; // 检测aabb与aabb是否相交
-        public bool Intersect(in AABB2DInt other, out AABB2DInt intersect) // AABB的交集
-        {
-            int left = Math.Max(Left(), other.Left());
-            int right = Math.Min(Right(), other.Right());
-            if (left > right)
-            {
-                intersect = default;
-                return false;
-            }
-
-            int bottom = Math.Max(Bottom(), other.Bottom());
-            int top = Math.Min(Top(), other.Top());
-            if (bottom > top)
-            {
-                intersect = default;
-                return false;
-            }
-
-            intersect = Create(left, top, right, bottom);
-            return true;
         }
         #endregion
 

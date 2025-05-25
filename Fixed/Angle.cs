@@ -33,6 +33,33 @@ namespace Eevee.Fixed
         public static implicit operator Fixed64(Angle value) => value.Value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator +(Angle value) => value;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator -(Angle value) => new(-value.Value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator +(Angle lhs, Angle rhs) => new(lhs.Value + rhs.Value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator +(Angle lhs, long rhs) => new(lhs.Value + rhs);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator +(long lhs, Angle rhs) => new(lhs + rhs.Value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator -(Angle lhs, Angle rhs) => new(lhs.Value - rhs.Value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator -(Angle lhs, long rhs) => new(lhs.Value - rhs);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator -(long lhs, Angle rhs) => new(lhs - rhs.Value);
+
+        public static Angle operator *(Angle lhs, Angle rhs) => new(lhs.Value * rhs.Value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator *(Angle lhs, long rhs) => new(lhs.Value * rhs);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator *(long lhs, Angle rhs) => new(lhs * rhs.Value);
+        public static Angle operator /(Angle lhs, Angle rhs) => new(lhs.Value / rhs.Value);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Angle operator /(Angle lhs, long rhs) => new(lhs.Value / rhs);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Angle lhs, Angle rhs) => lhs.Value == rhs.Value;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(Angle lhs, Angle rhs) => lhs.Value != rhs.Value;

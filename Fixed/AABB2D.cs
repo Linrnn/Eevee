@@ -74,7 +74,7 @@ namespace Eevee.Fixed
             H = extents.Y;
         }
 
-        public static AABB2D Create(Fixed64 left, Fixed64 top, Fixed64 right, Fixed64 bottom) => new(right + left >> 1, top + bottom >> 1, right - left >> 1, top - bottom >> 1);
+        public static AABB2D Create(Fixed64 xMin, Fixed64 xMax, Fixed64 yMin, Fixed64 yMax) => new(xMax + xMin >> 1, yMax + yMin >> 1, xMax - xMin >> 1, yMax - yMin >> 1);
         #endregion
 
         #region 中心点/尺寸/边界
@@ -134,52 +134,6 @@ namespace Eevee.Fixed
             var w = W >> 1;
             var h = H >> 1;
             return new AABB2D(X - w, Y + h, w, h);
-        }
-        #endregion
-
-        #region 基础方法
-        public bool Contain(Vector2D other)
-        {
-            var dx = (other.X - X).Abs();
-            if (dx > W)
-                return false;
-
-            var dy = (other.Y - Y).Abs();
-            if (dy > H)
-                return false;
-
-            return true;
-        }
-        public bool Contain(in Circle other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含aabb
-        public bool Contain(in AABB2D other) => Left() <= other.Left() && Right() >= other.Right() && Bottom() <= other.Bottom() && Top() >= other.Top(); // 包含aabb
-
-        public bool Intersect(in Circle other) // 检测aabb与圆是否相交
-        {
-            var x = Fixed64.Max((X - other.X).Abs() - W, Fixed64.Zero);
-            var y = Fixed64.Max((Y - other.Y).Abs() - H, Fixed64.Zero);
-            return x.Sqr() + y.Sqr() <= other.R.Sqr();
-        }
-        public bool Intersect(in AABB2D other) => (X - other.X).Abs() < W + other.W && (Y - other.Y).Abs() < H + other.H; // 检测aabb与aabb是否相交
-        public bool Intersect(in AABB2D other, out AABB2D intersect) // AABB的交集
-        {
-            var left = Fixed64.Max(Left(), other.Left());
-            var right = Fixed64.Min(Right(), other.Right());
-            if (left > right)
-            {
-                intersect = default;
-                return false;
-            }
-
-            var bottom = Fixed64.Max(Bottom(), other.Bottom());
-            var top = Fixed64.Min(Top(), other.Top());
-            if (bottom > top)
-            {
-                intersect = default;
-                return false;
-            }
-
-            intersect = Create(left, top, right, bottom);
-            return true;
         }
         #endregion
 

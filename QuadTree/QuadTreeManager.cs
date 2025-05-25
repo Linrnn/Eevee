@@ -233,17 +233,17 @@ namespace Eevee.QuadTree
         public void QueryCircle(int treeId, Vector2DInt center, int radius, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var area = new CircleInt(center, radius);
-            tree.QueryCircle(in area, elements);
+            var shape = new CircleInt(center, radius);
+            tree.QueryCircle(in shape, elements);
         }
         public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, int radius, ICollection<QuadElement> elements)
         {
-            var area = new CircleInt(center, radius);
+            var shape = new CircleInt(center, radius);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryCircle(in area, elements);
+                tree.QueryCircle(in shape, elements);
             }
         }
         #endregion
@@ -252,34 +252,34 @@ namespace Eevee.QuadTree
         public void QueryAABB(int treeId, Vector2DInt center, int extents, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var area = new AABB2DInt(center, extents);
-            tree.QueryAABB(in area, elements);
+            var shape = new AABB2DInt(center, extents);
+            tree.QueryAABB(in shape, elements);
         }
         public void QueryAABB(int treeId, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var area = new AABB2DInt(center, extents);
-            tree.QueryAABB(in area, elements);
+            var shape = new AABB2DInt(center, extents);
+            tree.QueryAABB(in shape, elements);
         }
 
         public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, ICollection<QuadElement> elements)
         {
-            var area = new AABB2DInt(center, extents);
+            var shape = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryAABB(in area, elements);
+                tree.QueryAABB(in shape, elements);
             }
         }
         public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
         {
-            var area = new AABB2DInt(center, extents);
+            var shape = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryAABB(in area, elements);
+                tree.QueryAABB(in shape, elements);
             }
         }
         #endregion
@@ -288,34 +288,34 @@ namespace Eevee.QuadTree
         public void QueryOBB(int treeId, Vector2DInt center, int extents, Fixed64 angle, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var aabb = new OBB2DInt(center, extents, angle);
-            tree.QueryOOB(in aabb, elements);
+            var shape = new OBB2DInt(center, extents, angle);
+            tree.QueryOBB(in shape, elements);
         }
         public void QueryOBB(int treeId, Vector2DInt center, Vector2DInt extents, Fixed64 angle, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            var area = new OBB2DInt(center, extents, angle);
-            tree.QueryOOB(in area, elements);
+            var shape = new OBB2DInt(center, extents, angle);
+            tree.QueryOBB(in shape, elements);
         }
 
         public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, Fixed64 angle, ICollection<QuadElement> elements)
         {
-            var area = new OBB2DInt(center, extents, angle);
+            var shape = new OBB2DInt(center, extents, angle);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryOOB(in area, elements);
+                tree.QueryOBB(in shape, elements);
             }
         }
         public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, Fixed64 angle, ICollection<QuadElement> elements)
         {
-            var area = new OBB2DInt(center, extents, angle);
+            var shape = new OBB2DInt(center, extents, angle);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryOOB(in area, elements);
+                tree.QueryOBB(in shape, elements);
             }
         }
         #endregion
