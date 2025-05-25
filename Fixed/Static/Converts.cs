@@ -472,14 +472,15 @@ namespace Eevee.Fixed
         #endregion
 
         #region 返回Rectangle/AABB2DInt/AABB2D
-        public static Rectangle AsRectangle(in AABB2DInt value) => new(value.Min(), value.Size());
         public static Rectangle AsRectangle(in AABB2D value) => new(value.Min(), value.Size());
+        public static Rectangle AsRectangle(in AABB2DInt value) => new(value.Min(), value.Size());
 
         public static AABB2DInt AsAABB2DInt(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
 
         public static AABB2D AsAABB2D(in Rectangle value) => new(value.Center, value.Width >> 1, value.Height >> 1);
-        public static AABB2D AsAABB2D(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
         public static AABB2D AsAABB2D(in Circle value) => new(value.X, value.Y, value.R); // 外接AABB
+        public static AABB2D AsAABB2D(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
+        public static AABB2D AsAABB2D(in OBB2D value) => new(value.X, value.Y, value.RotatedHalfSize()); // 外接AABB
         public static AABB2D AsAABB2D(in OBB2DInt value) => new(value.X, value.Y, value.RotatedHalfSize()); // 外接AABB
         #endregion
     }

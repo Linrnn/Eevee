@@ -229,19 +229,10 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        #region 圆形
+        #region 圆
         public static bool IsOutside(in Circle shape, in Vector2D point) => shape.SqrDistance(point) > shape.R.Sqr(); // 外离
         public static bool IsIntersect(in Circle shape, in Vector2D point) => shape.SqrDistance(point) == shape.R.Sqr(); // 相切
         public static bool IsContain(in Circle shape, in Vector2D point) => shape.SqrDistance(point) < shape.R.Sqr(); // 内含
-        public static bool Intersect(in Circle shape, in Circle other) // 外切/相交/内切
-        {
-            var d = shape.SqrDistance(in other);
-            if (d > (shape.R + other.R).Sqr())
-                return false;
-            if (d < (shape.R - other.R).Sqr())
-                return false;
-            return true;
-        }
         public static bool IsOutside(in Circle shape, in Circle other) => shape.SqrDistance(in other) > (shape.R + other.R).Sqr(); // 外离
         public static bool IsCircumscribed(in Circle shape, in Circle other) => shape.SqrDistance(in other) == (shape.R + other.R).Sqr(); // 外切
         public static bool IsIntersect(in Circle shape, in Circle other) // 相交
@@ -265,20 +256,6 @@ namespace Eevee.Fixed
         public static bool IsOutside(in CircleInt shape, Vector2DInt point) => shape.SqrDistance(point) > shape.R * shape.R; // 外离
         public static bool IsIntersect(in CircleInt shape, Vector2DInt point) => shape.SqrDistance(point) == shape.R * shape.R; // 相切
         public static bool IsContain(in CircleInt shape, Vector2DInt point) => shape.SqrDistance(point) < shape.R * shape.R; // 内含
-        public static bool Intersect(in CircleInt shape, in CircleInt other) // 外切/相交/内切
-        {
-            int d = shape.SqrDistance(in other);
-
-            int ra = shape.R + other.R;
-            if (d > ra * ra)
-                return false;
-
-            int rs = shape.R - other.R;
-            if (d < rs * rs)
-                return false;
-
-            return true;
-        }
         public static bool IsOutside(in CircleInt shape, in CircleInt other) // 外离
         {
             int d = shape.SqrDistance(in other);
@@ -340,7 +317,7 @@ namespace Eevee.Fixed
             return d < r * r;
         }
 
-        public static bool Contain(in AABB2D shape, Vector2D other)
+        public static bool Contain(in AABB2D shape, in Vector2D other)
         {
             var dx = (other.X - shape.X).Abs();
             if (dx > shape.W)
@@ -369,6 +346,36 @@ namespace Eevee.Fixed
         public static bool Contain(in AABB2DInt shape, in CircleInt other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
         public static bool Contain(in AABB2DInt shape, in AABB2DInt other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
 
+        public static bool Contain(in OBB2D shape, in Vector2D other)
+        {
+            var angle = Maths.ClampDeg(-shape.A);
+            var reverse = RotateDeg(other, angle);
+
+            var dx = (reverse.X - shape.X).Abs();
+            if (dx > shape.W)
+                return false;
+
+            var dy = (reverse.Y - shape.Y).Abs();
+            if (dy > shape.H)
+                return false;
+
+            return true;
+        }
+        public static bool Contain(in OBB2D shape, in Circle other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
+        public static bool Contain(in OBB2D shape, in AABB2D other)
+        {
+            var angle = Maths.ClampDeg(-shape.A);
+            var reverse = new OBB2D(in other, angle);
+            var boundary = Converts.AsAABB2D(in reverse);
+            return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
+        }
+        public static bool Contain(in OBB2D shape, in OBB2D other)
+        {
+            var angle = Maths.ClampDeg(other.A - shape.A);
+            var reverse = new OBB2D(other.X, other.Y, other.W, other.H, angle);
+            var boundary = Converts.AsAABB2D(in reverse);
+            return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
+        }
         public static bool Contain(in OBB2DInt shape, Vector2DInt other)
         {
             var angle = Maths.ClampDeg(-shape.A);
@@ -402,6 +409,30 @@ namespace Eevee.Fixed
         #endregion
 
         #region 相交
+        public static bool Intersect(in Circle shape, in Circle other) // 外切/相交/内切
+        {
+            var d = shape.SqrDistance(in other);
+            if (d > (shape.R + other.R).Sqr())
+                return false;
+            if (d < (shape.R - other.R).Sqr())
+                return false;
+            return true;
+        }
+        public static bool Intersect(in CircleInt shape, in CircleInt other) // 外切/相交/内切
+        {
+            int d = shape.SqrDistance(in other);
+
+            int ra = shape.R + other.R;
+            if (d > ra * ra)
+                return false;
+
+            int rs = shape.R - other.R;
+            if (d < rs * rs)
+                return false;
+
+            return true;
+        }
+
         public static bool Intersect(in AABB2D shape, in Circle other)
         {
             var x = Fixed64.Max((shape.X - other.X).Abs() - shape.W, Fixed64.Zero);
@@ -459,17 +490,29 @@ namespace Eevee.Fixed
             return true;
         }
 
+        public static bool Intersect(in OBB2D shape, in Circle other)
+        {
+            var x = Fixed64.Max((shape.X - other.X).Abs() - shape.W, Fixed64.Zero);
+            var y = Fixed64.Max((shape.Y - other.Y).Abs() - shape.H, Fixed64.Zero);
+            return x * x + y * y <= other.R * other.R;
+        }
+        public static bool Intersect(in OBB2D shape, in AABB2D other) => new OBBIntersectChecker(in shape).Intersect(in other);
+        public static bool Intersect(in OBB2D shape, in OBB2D other)
+        {
+            // 计“other”未旋转，即“shape”反向旋转“other.A”度
+            var angle = Maths.ClampDeg(shape.A - other.A);
+            var shapeReverse = new OBB2D(shape.X, shape.Y, shape.W, shape.H, angle);
+            var otherReverse = new AABB2D(other.X, other.Y, other.W, other.H);
+            var checker = new OBBIntersectChecker(in shapeReverse);
+            return checker.Intersect(in otherReverse);
+        }
         public static bool Intersect(in OBB2DInt shape, in CircleInt other)
         {
             int x = Math.Max(Math.Abs(shape.X - other.X) - shape.W, 0);
             int y = Math.Max(Math.Abs(shape.Y - other.Y) - shape.H, 0);
             return x * x + y * y <= other.R * other.R;
         }
-        public static bool Intersect(in OBB2DInt shape, in AABB2DInt other)
-        {
-            var checker = new OBBIntIntersectChecker(in shape);
-            return checker.Intersect(in other);
-        }
+        public static bool Intersect(in OBB2DInt shape, in AABB2DInt other) => new OBBIntIntersectChecker(in shape).Intersect(in other);
         public static bool Intersect(in OBB2DInt shape, in OBB2DInt other)
         {
             // 计“other”未旋转，即“shape”反向旋转“other.A”度

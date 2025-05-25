@@ -5,18 +5,18 @@ using System.Runtime.CompilerServices;
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 二维定向包围盒
+    /// 确定性的二维定向包围盒
     /// </summary>
-    public readonly struct OBB2DInt : IEquatable<OBB2DInt>, IComparable<OBB2DInt>, IFormattable
+    public readonly struct OBB2D : IEquatable<OBB2D>, IComparable<OBB2D>, IFormattable
     {
         #region 字段/构造方法
-        public readonly int X; // 中心点（X）
-        public readonly int Y; // 中心点（Y）
-        public readonly int W; // 半宽
-        public readonly int H; // 半高
+        public readonly Fixed64 X; // 中心点（X）
+        public readonly Fixed64 Y; // 中心点（Y）
+        public readonly Fixed64 W; // 半宽
+        public readonly Fixed64 H; // 半高
         public readonly Angle A; // 角度
 
-        public OBB2DInt(int x, int y, int e, Fixed64 a)
+        public OBB2D(Fixed64 x, Fixed64 y, Fixed64 e, Fixed64 a)
         {
             Check.Extents(e, nameof(e));
 
@@ -26,7 +26,7 @@ namespace Eevee.Fixed
             H = e;
             A = a;
         }
-        public OBB2DInt(int x, int y, int w, int h, Fixed64 a)
+        public OBB2D(Fixed64 x, Fixed64 y, Fixed64 w, Fixed64 h, Fixed64 a)
         {
             Check.Extents(w, nameof(w));
             Check.Extents(h, nameof(h));
@@ -37,7 +37,7 @@ namespace Eevee.Fixed
             H = h;
             A = a;
         }
-        public OBB2DInt(int x, int y, Vector2DInt e, Fixed64 a)
+        public OBB2D(Fixed64 x, Fixed64 y, in Vector2D e, Fixed64 a)
         {
             Check.Extents(e.X, "e.x");
             Check.Extents(e.Y, "e.y");
@@ -48,7 +48,7 @@ namespace Eevee.Fixed
             H = e.Y;
             A = a;
         }
-        public OBB2DInt(Vector2DInt center, int extents, Fixed64 angle)
+        public OBB2D(in Vector2D center, Fixed64 extents, Fixed64 angle)
         {
             Check.Extents(extents, nameof(extents));
 
@@ -58,7 +58,7 @@ namespace Eevee.Fixed
             H = extents;
             A = angle;
         }
-        public OBB2DInt(Vector2DInt center, int width, int height, Fixed64 angle)
+        public OBB2D(in Vector2D center, Fixed64 width, Fixed64 height, Fixed64 angle)
         {
             Check.Extents(width, nameof(width));
             Check.Extents(height, nameof(height));
@@ -69,7 +69,7 @@ namespace Eevee.Fixed
             H = height;
             A = angle;
         }
-        public OBB2DInt(Vector2DInt center, Vector2DInt extents, Fixed64 angle)
+        public OBB2D(in Vector2D center, in Vector2D extents, Fixed64 angle)
         {
             Check.Extents(extents.X, "extents.x");
             Check.Extents(extents.Y, "extents.y");
@@ -80,7 +80,7 @@ namespace Eevee.Fixed
             H = extents.Y;
             A = angle;
         }
-        public OBB2DInt(in AABB2DInt aabb, Fixed64 angle)
+        public OBB2D(in AABB2D aabb, Fixed64 angle)
         {
             Check.Extents(aabb.W, "aabb.w");
             Check.Extents(aabb.H, "aabb.h");
@@ -95,33 +95,33 @@ namespace Eevee.Fixed
 
         #region 中心点/尺寸/边界
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Left() => X - W; // 左
+        public Fixed64 Left() => X - W; // 左
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Right() => X + W; // 右
+        public Fixed64 Right() => X + W; // 右
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Bottom() => Y - H; // 下
+        public Fixed64 Bottom() => Y - H; // 下
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Top() => Y + H; // 上
+        public Fixed64 Top() => Y + H; // 上
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt Center() => new(X, Y); // 中心点
+        public Vector2D Center() => new(X, Y); // 中心点
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt Size() => new(W << 1, H << 1); // 尺寸
+        public Vector2D Size() => new(W << 1, H << 1); // 尺寸
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt HalfSize() => new(W, H); // 一半尺寸
+        public Vector2D HalfSize() => new(W, H); // 一半尺寸
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt Min() => LeftBottom();
+        public Vector2D Min() => LeftBottom();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt Max() => RightTop();
+        public Vector2D Max() => RightTop();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt LeftBottom() => new(Left(), Bottom()); // 左下角
+        public Vector2D LeftBottom() => new(Left(), Bottom()); // 左下角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt RightBottom() => new(Right(), Bottom()); // 右下角
+        public Vector2D RightBottom() => new(Right(), Bottom()); // 右下角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt RightTop() => new(Right(), Top()); // 右上角
+        public Vector2D RightTop() => new(Right(), Top()); // 右上角
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角
+        public Vector2D LeftTop() => new(Left(), Top()); // 左上角
         #endregion
 
         #region 旋转后的尺寸/边界
@@ -164,56 +164,53 @@ namespace Eevee.Fixed
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt ForLeftBoundary() => A.Value.RawValue switch // 决定左边界的点
+        internal Vector2D ForLeftBoundary() => A.Value.RawValue switch // 决定左边界的点
         {
-            >= Const.Zero and < Const.Deg90 => new Vector2DInt(-W, H),
-            >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(W, H),
-            >= Const.Deg180 and < Const.Deg270 => new Vector2DInt(W, -H),
-            >= Const.Deg270 and < Const.Deg360 => new Vector2DInt(-W, -H),
+            >= Const.Zero and < Const.Deg90 => new Vector2D(-W, H),
+            >= Const.Deg90 and < Const.Deg180 => new Vector2D(W, H),
+            >= Const.Deg180 and < Const.Deg270 => new Vector2D(W, -H),
+            >= Const.Deg270 and < Const.Deg360 => new Vector2D(-W, -H),
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt ForRightBoundary() => A.Value.RawValue switch // 决定右边界的点
+        internal Vector2D ForRightBoundary() => A.Value.RawValue switch // 决定右边界的点
         {
-            >= Const.Zero and < Const.Deg90 => new Vector2DInt(W, -H),
-            >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(-W, -H),
-            >= Const.Deg180 and < Const.Deg270 => new Vector2DInt(-W, H),
-            >= Const.Deg270 and < Const.Deg360 => new Vector2DInt(W, H),
+            >= Const.Zero and < Const.Deg90 => new Vector2D(W, -H),
+            >= Const.Deg90 and < Const.Deg180 => new Vector2D(-W, -H),
+            >= Const.Deg180 and < Const.Deg270 => new Vector2D(-W, H),
+            >= Const.Deg270 and < Const.Deg360 => new Vector2D(W, H),
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt ForBottomBoundary() => A.Value.RawValue switch // 决定下边界的点
+        internal Vector2D ForBottomBoundary() => A.Value.RawValue switch // 决定下边界的点
         {
-            >= Const.Zero and < Const.Deg90 => new Vector2DInt(-W, -H),
-            >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(-W, H),
-            >= Const.Deg180 and < Const.Deg270 => new Vector2DInt(W, H),
-            >= Const.Deg270 and < Const.Deg360 => new Vector2DInt(W, -H),
+            >= Const.Zero and < Const.Deg90 => new Vector2D(-W, -H),
+            >= Const.Deg90 and < Const.Deg180 => new Vector2D(-W, H),
+            >= Const.Deg180 and < Const.Deg270 => new Vector2D(W, H),
+            >= Const.Deg270 and < Const.Deg360 => new Vector2D(W, -H),
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2DInt ForTopBoundary() => A.Value.RawValue switch // 决定上边界的点
+        internal Vector2D ForTopBoundary() => A.Value.RawValue switch // 决定上边界的点
         {
-            >= Const.Zero and < Const.Deg90 => new Vector2DInt(W, H),
-            >= Const.Deg90 and < Const.Deg180 => new Vector2DInt(W, -H),
-            >= Const.Deg180 and < Const.Deg270 => new Vector2DInt(-W, -H),
-            >= Const.Deg270 and < Const.Deg360 => new Vector2DInt(-W, H),
+            >= Const.Zero and < Const.Deg90 => new Vector2D(W, H),
+            >= Const.Deg90 and < Const.Deg180 => new Vector2D(W, -H),
+            >= Const.Deg180 and < Const.Deg270 => new Vector2D(-W, -H),
+            >= Const.Deg270 and < Const.Deg360 => new Vector2D(-W, H),
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         #endregion
 
         #region 运算符重载
-        public static implicit operator OBB2D(in OBB2DInt value) => new(value.X, value.Y, value.W, value.H, value.A);
-        public static explicit operator OBB2DInt(in OBB2D value) => new((int)value.X, (int)value.Y, (int)value.W, (int)value.H, (int)value.A.Value);
-
-        public static bool operator ==(in OBB2DInt lhs, in OBB2DInt rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.W == rhs.W && lhs.H == rhs.H && lhs.A == rhs.A;
-        public static bool operator !=(in OBB2DInt lhs, in OBB2DInt rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.W != rhs.W || lhs.H != rhs.H || lhs.A != rhs.A;
+        public static bool operator ==(in OBB2D lhs, in OBB2D rhs) => lhs.X == rhs.X && lhs.Y == rhs.Y && lhs.W == rhs.W && lhs.H == rhs.H && lhs.A == rhs.A;
+        public static bool operator !=(in OBB2D lhs, in OBB2D rhs) => lhs.X != rhs.X || lhs.Y != rhs.Y || lhs.W != rhs.W || lhs.H != rhs.H || lhs.A != rhs.A;
         #endregion
 
         #region 继承/重载
-        public override bool Equals(object obj) => obj is OBB2DInt other && this == other;
-        public override int GetHashCode() => X ^ Y ^ W ^ H;
-        public bool Equals(OBB2DInt other) => this == other;
-        public int CompareTo(OBB2DInt other)
+        public override bool Equals(object obj) => obj is OBB2D other && this == other;
+        public override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode() ^ W.GetHashCode() ^ H.GetHashCode();
+        public bool Equals(OBB2D other) => this == other;
+        public int CompareTo(OBB2D other)
         {
             int match0 = X.CompareTo(other.X);
             if (match0 != 0)
