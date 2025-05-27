@@ -21,7 +21,7 @@ namespace Eevee.QuadTree
         public readonly int TreeId;
         public readonly int MaxDepth; // 最大深度
         public readonly AABB2DInt MaxBoundary; // 最大包围盒
-        public readonly QuadShape Shape;
+        public readonly QuadShape Shape; // 暂时只支持“Circle”和“AABB”
 
         internal readonly QuadNode Root; // 根节点
         internal readonly QuadNode[][] Nodes; // 所有节点
@@ -123,49 +123,59 @@ namespace Eevee.QuadTree
             {
                 case QuadShape.Circle: RecursiveQuery(new PointCircleNodeChecker(shape), new AABB2DInt(shape, 0), elements); break;
                 case QuadShape.AABB: RecursiveQuery(new PointAABBNodeChecker(shape), new AABB2DInt(shape, 0), elements); break;
+                default: throw ShapeNotImplementException();
             }
         }
-        public void QueryCircle(in CircleInt shape, ICollection<QuadElement> elements)
+        public void QueryCircle(in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
-            var aabb = Converts.AsAABB2DInt(in shape);
-            if (Geometry.Contain(in aabb, in MaxBoundary))
+            if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
                 RecursiveAdd(Root, elements);
 
+            var aabb = Converts.AsAABB2DInt(in shape);
             switch (Shape)
             {
                 case QuadShape.Circle: RecursiveQuery(new CircleNodeChecker(in shape), in aabb, elements); break;
                 case QuadShape.AABB: RecursiveQuery(new CircleAABBNodeChecker(in shape), in aabb, elements); break;
+                default: throw ShapeNotImplementException();
             }
         }
-        public void QueryAABB(in AABB2DInt shape, ICollection<QuadElement> elements)
+        public void QueryAABB(in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
-            if (Geometry.Contain(in shape, in MaxBoundary))
+            if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
                 RecursiveAdd(Root, elements);
 
             switch (Shape)
             {
                 case QuadShape.Circle: RecursiveQuery(new AABBCircleNodeChecker(in shape), in shape, elements); break;
                 case QuadShape.AABB: RecursiveQuery(new AABBNodeChecker(in shape), in shape, elements); break;
+                default: throw ShapeNotImplementException();
             }
         }
-        public void QueryOBB(in OBB2DInt shape, ICollection<QuadElement> elements)
+        public void QueryOBB(in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
 
+            if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
+                RecursiveAdd(Root, elements);
+
             var checker = new OBBNodeChecker(in shape);
             RecursiveQuery(in checker, in checker.Shape, elements);
         }
-        public void QueryPolygon(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, ICollection<QuadElement> elements)
+        public void QueryPolygon(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
                 return;
+
+            // todo eevee 多边形检测
+            //if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
+            //    RecursiveAdd(Root, elements);
 
             var xMin = Fixed64.Min(p0.X, p1.X, p2.X, p3.X);
             var xMax = Fixed64.Max(p0.X, p1.X, p2.X, p3.X);
@@ -231,39 +241,38 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal QuadNode GetNode(in AABB2DInt aabb, bool clamp = false)
+        internal QuadNode GetNode(in AABB2DInt aabb, CountNodeMode mode = CountNodeMode.NotIntersect)
         {
-            if (!Geometry.Intersect(in aabb, in MaxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
+            AABB2DInt area;
+            if (mode == CountNodeMode.NotIntersect)
+                area = aabb;
+            else if (Geometry.UnsafeIntersect(in aabb, in MaxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
+                area = intersect;
+            else if (mode == CountNodeMode.OnlyIntersect)
                 return null;
-
-            bool iw = intersect.W < 0;
-            bool ih = intersect.H < 0;
-            if (iw || ih)
-            {
-                if (!clamp)
-                    return null;
-
-                intersect = (iw, ih) switch
+            else if (mode == CountNodeMode.IntersectOffset)
+                area = (intersect.W >= 0, intersect.H >= 0) switch
                 {
-                    (true, true) => new AABB2DInt(intersect.X - intersect.W, intersect.Y - intersect.H, 0, 0),
-                    (true, false) => new AABB2DInt(intersect.X - intersect.W, intersect.Y, 0, intersect.H),
-                    (false, true) => new AABB2DInt(intersect.X, intersect.Y - intersect.H, intersect.W, 0),
+                    (false, false) => new AABB2DInt(intersect.X - intersect.W, intersect.Y - intersect.H, 0, 0),
+                    (false, true) => new AABB2DInt(intersect.X - intersect.W, intersect.Y, 0, intersect.H),
+                    (true, false) => new AABB2DInt(intersect.X, intersect.Y - intersect.H, intersect.W, 0),
                     _ => intersect,
                 };
-            }
+            else
+                throw new ArgumentOutOfRangeException(nameof(mode), mode, "Error!");
 
             for (int depth = MaxDepth; depth >= 0; --depth)
             {
                 var size = HalfBoundaries[depth];
-                if (size.X < intersect.W || size.Y < intersect.H)
+                if (size.X < area.W || size.Y < area.H)
                     continue;
 
-                int x = (intersect.X - MaxBoundary.Left()) / (size.X << 1);
-                int y = (MaxBoundary.Top() - intersect.Y) / (size.Y << 1);
-                var node = Nodes[depth][GetNodeId(depth, x, y)];
+                int x = (area.X - MaxBoundary.Left()) / (size.X << 1);
+                int y = (MaxBoundary.Top() - area.Y) / (size.Y << 1);
+                var node = GetNode(depth, x, y);
 
                 for (var parent = node; parent != null; parent = parent.Parent)
-                    if (Geometry.Contain(in parent.LooseBoundary, in intersect))
+                    if (Geometry.Contain(in parent.LooseBoundary, in area))
                         return parent;
             }
 
@@ -271,8 +280,11 @@ namespace Eevee.QuadTree
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal QuadNode GetNode(int depth, int x, int y) => Nodes[depth][GetNodeId(depth, x, y)];
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private int GetNodeId(int depth, int x, int y) => x + (1 << depth) * y;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Exception ShapeNotImplementException() => new NotImplementedException($"TreeId:{TreeId}, Shape:{Shape} not implement.");
 
         public void Clean()
         {

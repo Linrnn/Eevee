@@ -76,13 +76,14 @@ namespace Eevee.Utils
             Obj = str;
             Start = start;
             Length = str.Length - start;
+            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<string, int, int>, int>(start, str.Length, nameof(str), "Sub异常长度！str：{0}，start：{1}，totalLength：{2}", new AssertArgs<string, int, int>(str, start, str.Length));
         }
         public SubString(string str, int start, int length)
         {
             Obj = str;
             Start = start;
             Length = length;
-            Assert.Greater<IndexOutOfRangeException, AssertArgs<string, int, int, int>, int>(start + length, str.Length, nameof(str), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<string, int, int, int>(str, start, length, str.Length));
+            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<string, int, int, int>, int>(start + length, str.Length, nameof(str), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<string, int, int, int>(str, start, length, str.Length));
         }
         public SubString(StringBuilder sb)
         {
@@ -95,20 +96,21 @@ namespace Eevee.Utils
             Obj = sb;
             Start = start;
             Length = sb.Length - start;
+            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<StringBuilder, int, int>, int>(start, sb.Length, nameof(sb), "Sub异常长度！sb：{0}，start：{1}，totalLength：{2}", new AssertArgs<StringBuilder, int, int>(sb, start, sb.Length));
         }
         public SubString(StringBuilder sb, int start, int length)
         {
             Obj = sb;
             Start = start;
             Length = length;
-            Assert.Greater<IndexOutOfRangeException, AssertArgs<StringBuilder, int, int, int>, int>(start + length, sb.Length, nameof(sb), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<StringBuilder, int, int, int>(sb, start, length, sb.Length));
+            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<StringBuilder, int, int, int>, int>(start + length, sb.Length, nameof(sb), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<StringBuilder, int, int, int>(sb, start, length, sb.Length));
         }
         public SubString(in SubString sub, int start, int length)
         {
             Obj = sub.Obj;
             Start = start;
             Length = length;
-            Assert.Greater<IndexOutOfRangeException, AssertArgs<object, int, int, int>, int>(start + length, sub.GetTotalLength(), nameof(sub), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<object, int, int, int>(sub.Obj, start, length, sub.GetTotalLength()));
+            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<object, int, int, int>, int>(start + length, sub.GetTotalLength(), nameof(sub), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<object, int, int, int>(sub.Obj, start, length, sub.GetTotalLength()));
         }
         #endregion
 
@@ -117,9 +119,7 @@ namespace Eevee.Utils
         {
             get
             {
-                if (index < 0 || index >= Length)
-                    throw new ArgumentOutOfRangeException(nameof(index), $"index:{index}, start:{Start}, length:{Length}, Index Out!");
-
+                Assert.Range<IndexOutOfRangeException, AssertArgs<object, int, int, int>, int>(index, 0, Length - 1, nameof(index), "Obj:{0}, index:{1}, start:{2}, length:{3}, Index Out!", new AssertArgs<object, int, int, int>(Obj, index, Start, Length));
                 return Obj switch
                 {
                     string str => str[Start + index],
@@ -138,8 +138,8 @@ namespace Eevee.Utils
             _ => 0,
         };
 
-        public bool TryParse(out int result) => TryParse(in this, Start, Length, out result);
-        public bool TryParse(out float result) => TryParse(in this, Start, Length, out result);
+        public bool TryParse(out int result) => TryParse(in this, 0, Length, out result);
+        public bool TryParse(out float result) => TryParse(in this, 0, Length, out result);
         public static bool TryParse(in SubString sub, int start, int count, out int result)
         {
             result = 0;
@@ -230,6 +230,25 @@ namespace Eevee.Utils
         public bool BeContains(in SubString other) => Contains(in other, in this);
         public bool Contains(in SubString other) => Contains(in this, in other);
 
+        public void Split(char separator, ICollection<SubString> splits)
+        {
+            for (int start = 0, i = 0; i < Length; ++i)
+            {
+                char ch = this[i];
+                if (ch == separator)
+                {
+                    if (this[i > 0 ? i - 1 : 0] == separator)
+                        continue;
+
+                    splits.Add(new SubString(in this, start, i - start));
+                    start = i + 1;
+                }
+                else if (i == Length - 1) // 结尾
+                {
+                    splits.Add(new SubString(in this, start, Length - start));
+                }
+            }
+        }
         public void Split(string separator, ICollection<SubString> splits)
         {
             if (IsNullOrEmpty())

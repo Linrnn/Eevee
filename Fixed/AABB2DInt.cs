@@ -34,6 +34,13 @@ namespace Eevee.Fixed
             W = w;
             H = h;
         }
+        internal AABB2DInt(int x, int y, int w, int h, bool _) // 不安全的构建，绕过检测
+        {
+            X = x;
+            Y = y;
+            W = w;
+            H = h;
+        }
         public AABB2DInt(int x, int y, Vector2DInt e)
         {
             Check.Extents(e.X, "e.x");
@@ -75,6 +82,7 @@ namespace Eevee.Fixed
         }
 
         public static AABB2DInt Create(int xMin, int xMax, int yMin, int yMax) => new(xMax + xMin >> 1, yMax + yMin >> 1, xMax - xMin >> 1, yMax - yMin >> 1);
+        internal static AABB2DInt UnsafeCreate(int xMin, int xMax, int yMin, int yMax) => new(xMax + xMin >> 1, yMax + yMin >> 1, xMax - xMin >> 1, yMax - yMin >> 1, false);
         #endregion
 
         #region 中心点/尺寸/边界

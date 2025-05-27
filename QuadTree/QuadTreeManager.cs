@@ -212,135 +212,162 @@ namespace Eevee.QuadTree
         }
         #endregion
 
-        #region 查询点
+        #region 查询Point
         public void QueryPoint(int treeId, Vector2DInt center, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
-            tree.QueryPoint(center, elements);
+            QueryShape(treeId, center, elements);
         }
         public void QueryPoint(IReadOnlyList<int> treeIds, Vector2DInt center, ICollection<QuadElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryPoint(center, elements);
-            }
+                QueryShape(treeIds[i], center, elements);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void QueryShape(int treeId, Vector2DInt center, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryPoint(center, elements);
         }
         #endregion
 
-        #region 查询圆形区域
-        public void QueryCircle(int treeId, Vector2DInt center, int radius, ICollection<QuadElement> elements)
+        #region 查询Circle区域
+        public void QueryCircle(int treeId, Vector2DInt center, int radius, bool checkRoot, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
             var shape = new CircleInt(center, radius);
-            tree.QueryCircle(in shape, elements);
+            QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, int radius, ICollection<QuadElement> elements)
+        public void QueryCircle(int treeId, in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            QueryShape(treeId, in shape, checkRoot, elements);
+        }
+
+        public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, int radius, bool checkRoot, ICollection<QuadElement> elements)
         {
             var shape = new CircleInt(center, radius);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryCircle(in shape, elements);
-            }
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+        public void QueryCircle(IReadOnlyList<int> treeIds, in CircleInt shape, int radius, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void QueryShape(int treeId, in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryCircle(in shape, checkRoot, elements);
         }
         #endregion
 
         #region 查询AABB区域
-        public void QueryAABB(int treeId, Vector2DInt center, int extents, ICollection<QuadElement> elements)
+        public void QueryAABB(int treeId, Vector2DInt center, int extents, bool checkRoot, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
             var shape = new AABB2DInt(center, extents);
-            tree.QueryAABB(in shape, elements);
+            QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryAABB(int treeId, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
+        public void QueryAABB(int treeId, Vector2DInt center, Vector2DInt extents, bool checkRoot, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
             var shape = new AABB2DInt(center, extents);
-            tree.QueryAABB(in shape, elements);
+            QueryShape(treeId, in shape, checkRoot, elements);
+        }
+        public void QueryAABB(int treeId, in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            QueryShape(treeId, in shape, checkRoot, elements);
         }
 
-        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, ICollection<QuadElement> elements)
+        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, bool checkRoot, ICollection<QuadElement> elements)
         {
             var shape = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryAABB(in shape, elements);
-            }
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, ICollection<QuadElement> elements)
+        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, bool checkRoot, ICollection<QuadElement> elements)
         {
             var shape = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryAABB(in shape, elements);
-            }
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+        public void QueryAABB(IReadOnlyList<int> treeIds, in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void QueryShape(int treeId, in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryAABB(in shape, checkRoot, elements);
         }
         #endregion
 
         #region 查询OBB区域
-        public void QueryOBB(int treeId, Vector2DInt center, int extents, Fixed64 angle, ICollection<QuadElement> elements)
+        public void QueryOBB(int treeId, Vector2DInt center, int extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
             var shape = new OBB2DInt(center, extents, angle);
-            tree.QueryOBB(in shape, elements);
+            QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryOBB(int treeId, Vector2DInt center, Vector2DInt extents, Fixed64 angle, ICollection<QuadElement> elements)
+        public void QueryOBB(int treeId, Vector2DInt center, Vector2DInt extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
             var shape = new OBB2DInt(center, extents, angle);
-            tree.QueryOBB(in shape, elements);
+            QueryShape(treeId, in shape, checkRoot, elements);
+        }
+        public void QueryOBB(int treeId, in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            QueryShape(treeId, in shape, checkRoot, elements);
         }
 
-        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, Fixed64 angle, ICollection<QuadElement> elements)
+        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
         {
             var shape = new OBB2DInt(center, extents, angle);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryOBB(in shape, elements);
-            }
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, Fixed64 angle, ICollection<QuadElement> elements)
+        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
         {
             var shape = new OBB2DInt(center, extents, angle);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryOBB(in shape, elements);
-            }
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+        public void QueryOBB(IReadOnlyList<int> treeIds, in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void QueryShape(int treeId, in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryOBB(in shape, checkRoot, elements);
         }
         #endregion
 
-        #region 查询多边形区域
-        public void QueryPolygon(int treeId, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, ICollection<QuadElement> elements)
+        #region 查询Polygon区域
+        public void QueryPolygon(int treeId, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, bool checkRoot, ICollection<QuadElement> elements)
         {
             var tree = _trees[treeId];
-            tree.QueryPolygon(in p0, in p1, in p2, in p3, elements);
+            tree.QueryPolygon(in p0, in p1, in p2, in p3, checkRoot, elements);
         }
-        public void QueryPolygon(IReadOnlyList<int> treeIds, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, ICollection<QuadElement> elements)
+        public void QueryPolygon(int treeId, IReadOnlyList<Vector2D> points, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryPolygon(points[0], points[1], points[2], points[3], checkRoot, elements);
+        }
+
+        public void QueryPolygon(IReadOnlyList<int> treeIds, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, bool checkRoot, ICollection<QuadElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryPolygon(in p0, in p1, in p2, in p3, elements);
+                tree.QueryPolygon(in p0, in p1, in p2, in p3, checkRoot, elements);
             }
         }
-        public void QueryPolygon(int treeId, IReadOnlyList<Vector2D> points, ICollection<QuadElement> elements)
-        {
-            var tree = _trees[treeId];
-            tree.QueryPolygon(points[0], points[1], points[2], points[3], elements);
-        }
-        public void QueryPolygon(IReadOnlyList<int> treeIds, IReadOnlyList<Vector2D> points, ICollection<QuadElement> elements)
+        public void QueryPolygon(IReadOnlyList<int> treeIds, IReadOnlyList<Vector2D> points, bool checkRoot, ICollection<QuadElement> elements)
         {
             var p0 = points[0];
             var p1 = points[1];
@@ -350,9 +377,11 @@ namespace Eevee.QuadTree
             {
                 int treeId = treeIds[i];
                 var tree = _trees[treeId];
-                tree.QueryPolygon(in p0, in p1, in p2, in p3, elements);
+                tree.QueryPolygon(in p0, in p1, in p2, in p3, checkRoot, elements);
             }
         }
+
+        // todo eevee 缺少 private void PrivateQueryPolygon(int treeId, in PolygonInt shape, ICollection<QuadElement> elements)
         #endregion
 
         #region 辅助方法

@@ -298,23 +298,69 @@ namespace Eevee.Fixed
         #endregion
 
         #region 包含
+        public static bool Contain(in Circle shape, in Vector2D other) => shape.SqrDistance(in other) <= shape.R.Sqr();
         public static bool Contain(in Circle shape, in Circle other) // 内含/内离/同心
         {
-            if (shape.X == other.X && shape.Y == other.Y)
+            if (shape.X == other.X && shape.Y == other.Y && shape.R >= other.R)
                 return true;
 
             var d = shape.SqrDistance(in other);
             var r = shape.R - other.R;
             return d < r.Sqr();
         }
+        public static bool Contain(in Circle shape, in AABB2D other)
+        {
+            var rSqr = shape.R.Sqr();
+
+            var left = other.Left();
+            var bottom = other.Bottom();
+            if (shape.SqrDistance(left, bottom) > rSqr)
+                return false;
+
+            var right = other.Right();
+            if (shape.SqrDistance(right, bottom) > rSqr)
+                return false;
+
+            var top = other.Top();
+            if (shape.SqrDistance(right, top) > rSqr)
+                return false;
+
+            if (shape.SqrDistance(left, top) > rSqr)
+                return false;
+
+            return true;
+        }
+        public static bool Contain(in CircleInt shape, Vector2DInt other) => shape.SqrDistance(other) <= shape.R * shape.R;
         public static bool Contain(in CircleInt shape, in CircleInt other) // 内含/内离/同心
         {
-            if (shape.X == other.X && shape.Y == other.Y)
+            if (shape.X == other.X && shape.Y == other.Y && shape.R >= other.R)
                 return true;
 
             int d = shape.SqrDistance(in other);
             int r = shape.R - other.R;
             return d < r * r;
+        }
+        public static bool Contain(in CircleInt shape, in AABB2DInt other)
+        {
+            int rSqr = shape.R * shape.R;
+
+            int left = other.Left();
+            int bottom = other.Bottom();
+            if (shape.SqrDistance(left, bottom) > rSqr)
+                return false;
+
+            int right = other.Right();
+            if (shape.SqrDistance(right, bottom) > rSqr)
+                return false;
+
+            int top = other.Top();
+            if (shape.SqrDistance(right, top) > rSqr)
+                return false;
+
+            if (shape.SqrDistance(left, top) > rSqr)
+                return false;
+
+            return true;
         }
 
         public static bool Contain(in AABB2D shape, in Vector2D other)
@@ -488,6 +534,15 @@ namespace Eevee.Fixed
 
             intersect = AABB2DInt.Create(xMin, xMax, yMin, yMax);
             return true;
+        }
+        internal static bool UnsafeIntersect(in AABB2DInt shape, in AABB2DInt other, out AABB2DInt intersect)
+        {
+            int xMin = Math.Max(shape.Left(), other.Left());
+            int xMax = Math.Min(shape.Right(), other.Right());
+            int yMin = Math.Max(shape.Bottom(), other.Bottom());
+            int yMax = Math.Min(shape.Top(), other.Top());
+            intersect = AABB2DInt.UnsafeCreate(xMin, xMax, yMin, yMax);
+            return xMin <= xMax && yMin <= yMax;
         }
 
         public static bool Intersect(in OBB2D shape, in Circle other)

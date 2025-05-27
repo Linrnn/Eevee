@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 圆形
+    /// 确定性的圆
     /// </summary>
     public readonly struct Circle : IEquatable<Circle>, IComparable<Circle>, IFormattable
     {
@@ -48,10 +48,14 @@ namespace Eevee.Fixed
         public Fixed64 Perimeter() => (R << 1) * Maths.Pi; // 周长
         public Fixed64 Area() => R.Sqr() * Maths.Pi; // 面积
 
-        public Fixed64 SqrDistance(in Vector2D other) => (X - other.X).Sqr() + (Y - other.Y).Sqr(); // 圆心到点距离的平方
-        public Fixed64 SqrDistance(in Circle other) => (X - other.X).Sqr() + (Y - other.Y).Sqr(); // 圆心之间距离的平方
-        public Fixed64 Distance(in Vector2D other) => SqrDistance(other).Sqrt(); // 圆心到点的距离
-        public Fixed64 Distance(in Circle other) => SqrDistance(other).Sqrt(); // 圆心之间的距离
+        public Fixed64 SqrDistance(Fixed64 x, Fixed64 y) => GetSqrDistance(x, y); // 圆心到点距离的平方
+        public Fixed64 SqrDistance(in Vector2D other) => GetSqrDistance(other.X, other.Y); // 圆心到点距离的平方
+        public Fixed64 SqrDistance(in Circle other) => GetSqrDistance(other.X, other.Y); // 圆心之间距离的平方
+        public Fixed64 Distance(Fixed64 x, Fixed64 y) => GetSqrDistance(x, y).Sqrt(); // 圆心到点的距离
+        public Fixed64 Distance(in Vector2D other) => GetSqrDistance(other.X, other.Y).Sqrt(); // 圆心到点的距离
+        public Fixed64 Distance(in Circle other) => GetSqrDistance(other.X, other.Y).Sqrt(); // 圆心之间的距离
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Fixed64 GetSqrDistance(Fixed64 x, Fixed64 y) => (X - x).Sqr() + (Y - y).Sqr();
         #endregion
 
         #region 运算符重载

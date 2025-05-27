@@ -48,20 +48,19 @@ namespace Eevee.Fixed
         public Fixed64 Perimeter() => (R << 1) * Maths.Pi; // 周长
         public Fixed64 Area() => R * R * Maths.Pi; // 面积
 
-        public int SqrDistance(Vector2DInt other) // 圆心到点距离的平方
+        public int SqrDistance(int x, int y) => GetSqrDistance(x, y); // 圆心到点距离的平方
+        public int SqrDistance(Vector2DInt other) => GetSqrDistance(other.X, other.Y); // 圆心到点距离的平方
+        public int SqrDistance(in CircleInt other) => GetSqrDistance(other.X, other.Y); // 圆心到点距离的平方
+        public Fixed64 Distance(int x, int y) => ((Fixed64)GetSqrDistance(x, y)).Sqrt(); // 圆心到点的距离
+        public Fixed64 Distance(Vector2DInt other) => ((Fixed64)GetSqrDistance(other.X, other.Y)).Sqrt(); // 圆心到点的距离
+        public Fixed64 Distance(in CircleInt other) => ((Fixed64)GetSqrDistance(other.X, other.Y)).Sqrt(); // 圆心之间的距离
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int GetSqrDistance(int x, int y)
         {
-            int x = X - other.X;
-            int y = Y - other.Y;
-            return x * x + y * y;
+            int dx = X - x;
+            int dy = Y - y;
+            return dx * dx + dy * dy;
         }
-        public int SqrDistance(in CircleInt other) // 圆心之间距离的平方
-        {
-            int x = X - other.X;
-            int y = Y - other.Y;
-            return x * x + y * y;
-        }
-        public Fixed64 Distance(Vector2DInt other) => ((Fixed64)SqrDistance(other)).Sqrt(); // 圆心到点的距离
-        public Fixed64 Distance(in CircleInt other) => ((Fixed64)SqrDistance(other)).Sqrt(); // 圆心之间的距离
         #endregion
 
         #region 隐式转换/显示转换/运算符重载

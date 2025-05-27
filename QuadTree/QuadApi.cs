@@ -14,15 +14,24 @@ namespace Eevee.QuadTree
     }
 
     /// <summary>
-    /// 树的形状
+    /// 四叉树的形状
     /// </summary>
     public enum QuadShape : byte
     {
-        None,
         Circle, // 圆形
         AABB, // 轴对齐包围盒
         OBB, // 定向包围盒
-        Polygon, // 任意多边形（仅包含凸多边形）
+        Polygon, // 凸多边形
+    }
+
+    /// <summary>
+    /// 计算四叉树节点的方式
+    /// </summary>
+    internal enum CountNodeMode : byte
+    {
+        NotIntersect, // 不和四叉树边界做检测
+        OnlyIntersect, // 和四叉树边界做检测，但是输入的aabb不做偏移
+        IntersectOffset, // 和四叉树边界做检测，且输入的aabb做偏移
     }
 
     /// <summary>

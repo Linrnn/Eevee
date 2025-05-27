@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 二维轴对齐包围盒
+    /// 确定性的二维轴对齐包围盒
     /// </summary>
     public readonly struct AABB2D : IEquatable<AABB2D>, IComparable<AABB2D>, IFormattable
     {
