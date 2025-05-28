@@ -209,6 +209,7 @@ namespace Eevee.Collection
             get
             {
                 CheckCount();
+                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _collection.Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _collection.Count));
                 return _order[index];
             }
         }

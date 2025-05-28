@@ -32,5 +32,14 @@ namespace Eevee.Fixed
         {
             Assert.Equal<ArgumentException, AssertArgs<Vector2D>, Vector2D>(dir, dir.Normalized(), nameof(dir), "dir:{0} isn't normal", new AssertArgs<Vector2D>(dir));
         }
+
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void Polygon(int? count)
+        {
+            Assert.NotNull<ArgumentNullException, AssertArgs, int>(count, nameof(count), "Polygon count is null!");
+            Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<int>, int>(count.Value, 3, nameof(count), "Polygon must have at least 3 points. but count is {0}.", new AssertArgs<int>(count.Value));
+        }
     }
 }

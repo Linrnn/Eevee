@@ -24,9 +24,32 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
+        internal static void Null<TException, TArgs, TNullable>(TNullable? obj, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TNullable : struct
+        {
+            if (obj.HasValue)
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
+
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
         internal static void NotNull<TException, TArgs>(object obj, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
+        {
+            if (obj == null)
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void NotNull<TException, TArgs, TNullable>(TNullable? obj, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TNullable : struct
         {
             if (obj == null)
                 ThrowException<TException, TArgs>(paramName, format, args);
