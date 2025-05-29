@@ -347,17 +347,15 @@ namespace Eevee.Fixed
 
         public static Fixed64 operator *(Fixed64 lhs, Fixed64 rhs)
         {
-            long la = Math.Abs(lhs.RawValue);
-            long ra = Math.Abs(rhs.RawValue);
-            long li = la >> Const.FractionalBits;
-            long lf = la & Const.FractionalPart;
-            long ri = ra >> Const.FractionalBits;
-            long rf = ra & Const.FractionalPart;
+            long li = lhs.RawValue >> Const.FractionalBits;
+            long lf = lhs.RawValue & Const.FractionalPart;
+            long ri = rhs.RawValue >> Const.FractionalBits;
+            long rf = rhs.RawValue & Const.FractionalPart;
 
             long ii = li * ri << Const.FractionalBits;
             long fi = li * rf + lf * ri;
             ulong ff = (ulong)lf * (ulong)rf >> Const.FractionalBits; // lf*rf可能会溢出，所以转成ulong
-            return lhs.Sign() == rhs.Sign() ? new Fixed64(ii + fi + (long)ff) : new Fixed64(-ii - fi - (long)ff);
+            return new Fixed64(ii + fi + (long)ff);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Fixed64 operator *(Fixed64 lhs, long rhs) => new(lhs.RawValue * rhs);

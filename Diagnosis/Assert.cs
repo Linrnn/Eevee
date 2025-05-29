@@ -32,6 +32,17 @@ namespace Eevee.Diagnosis
             if (obj.HasValue)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static unsafe void Null<TException, TArgs, TPtr>(TPtr* obj, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TPtr : unmanaged
+        {
+            if (obj != null)
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
 
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
@@ -50,6 +61,17 @@ namespace Eevee.Diagnosis
             where TException : Exception
             where TArgs : struct, IAssertArgs
             where TNullable : struct
+        {
+            if (obj == null)
+                ThrowException<TException, TArgs>(paramName, format, args);
+        }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static unsafe void NotNull<TException, TArgs, TPtr>(TPtr* obj, string paramName, string format, TArgs args = default)
+            where TException : Exception
+            where TArgs : struct, IAssertArgs
+            where TPtr : unmanaged
         {
             if (obj == null)
                 ThrowException<TException, TArgs>(paramName, format, args);
@@ -187,7 +209,7 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static void Convert<TException, TArgs, TConvert>(object obj , string paramName, string format, TArgs args = default)
+        internal static void Convert<TException, TArgs, TConvert>(object obj, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
