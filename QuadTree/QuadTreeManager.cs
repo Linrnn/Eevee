@@ -1,4 +1,5 @@
-﻿using Eevee.Diagnosis;
+﻿using Eevee.Collection;
+using Eevee.Diagnosis;
 using Eevee.Fixed;
 using Eevee.Utils;
 using System;
@@ -347,41 +348,34 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询Polygon区域
-        public void QueryPolygon(int treeId, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryPolygon(int treeId, in ReadOnlyArray<Vector2DInt> points, bool checkRoot, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
-            tree.QueryPolygon(in p0, in p1, in p2, in p3, checkRoot, elements);
+            var shape = new PolygonInt(points);
+            QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryPolygon(int treeId, IReadOnlyList<Vector2D> points, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryPolygon(int treeId, in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
-            var tree = _trees[treeId];
-            tree.QueryPolygon(points[0], points[1], points[2], points[3], checkRoot, elements);
-        }
-
-        public void QueryPolygon(IReadOnlyList<int> treeIds, in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, bool checkRoot, ICollection<QuadElement> elements)
-        {
-            for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryPolygon(in p0, in p1, in p2, in p3, checkRoot, elements);
-            }
-        }
-        public void QueryPolygon(IReadOnlyList<int> treeIds, IReadOnlyList<Vector2D> points, bool checkRoot, ICollection<QuadElement> elements)
-        {
-            var p0 = points[0];
-            var p1 = points[1];
-            var p2 = points[2];
-            var p3 = points[3];
-            for (int count = treeIds.Count, i = 0; i < count; ++i)
-            {
-                int treeId = treeIds[i];
-                var tree = _trees[treeId];
-                tree.QueryPolygon(in p0, in p1, in p2, in p3, checkRoot, elements);
-            }
+            QueryShape(treeId, in shape, checkRoot, elements);
         }
 
-        // todo eevee 缺少 private void PrivateQueryPolygon(int treeId, in PolygonInt shape, ICollection<QuadElement> elements)
+        public void QueryPolygon(IReadOnlyList<int> treeIds, in ReadOnlyArray<Vector2DInt> points, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            var shape = new PolygonInt(points);
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+        public void QueryPolygon(IReadOnlyList<int> treeIds, in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            for (int count = treeIds.Count, i = 0; i < count; ++i)
+                QueryShape(treeIds[i], in shape, checkRoot, elements);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void QueryShape(int treeId, in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        {
+            var tree = _trees[treeId];
+            tree.QueryPolygon(in shape, checkRoot, elements);
+        }
         #endregion
 
         #region 辅助方法

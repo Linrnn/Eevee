@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using Eevee.Diagnosis;
+using System;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
@@ -475,13 +477,27 @@ namespace Eevee.Fixed
         public static Rectangle AsRectangle(in AABB2D value) => new(value.Min(), value.Size());
         public static Rectangle AsRectangle(in AABB2DInt value) => new(value.Min(), value.Size());
 
-        public static AABB2DInt AsAABB2DInt(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
+        public static Circle AsCircle(in AABB2DInt value) // 宽高需一致
+        {
+            Assert.Equal<InvalidOperationException, AssertArgs<Fixed64, Fixed64>, Fixed64>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new AssertArgs<Fixed64, Fixed64>(value.W, value.H));
+            return new Circle(value.X, value.Y, value.W);
+        }
+
+        public static CircleInt AsCircleInt(in AABB2DInt value) // 宽高需一致
+        {
+            Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new AssertArgs<int, int>(value.W, value.H));
+            return new CircleInt(value.X, value.Y, value.W);
+        }
 
         public static AABB2D AsAABB2D(in Rectangle value) => new(value.Center, value.Width >> 1, value.Height >> 1);
+        public static AABB2D AsAABB2D(in Vector2D value) => new(value.X, value.Y, Fixed64.Zero);
         public static AABB2D AsAABB2D(in Circle value) => new(value.X, value.Y, value.R); // 外接AABB
         public static AABB2D AsAABB2D(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
         public static AABB2D AsAABB2D(in OBB2D value) => new(value.X, value.Y, value.RotatedHalfSize()); // 外接AABB
         public static AABB2D AsAABB2D(in OBB2DInt value) => new(value.X, value.Y, value.RotatedHalfSize()); // 外接AABB
+
+        public static AABB2DInt AsAABB2DInt(Vector2DInt value) => new(value.X, value.Y, 0);
+        public static AABB2DInt AsAABB2DInt(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
         #endregion
     }
 }

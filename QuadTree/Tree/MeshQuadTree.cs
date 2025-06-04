@@ -121,69 +121,116 @@ namespace Eevee.QuadTree
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new PointCircleNodeChecker(shape), new AABB2DInt(shape, 0), elements); break;
-                case QuadShape.AABB: RecursiveQuery(new PointAABBNodeChecker(shape), new AABB2DInt(shape, 0), elements); break;
+                case QuadShape.Circle: RecursiveQuery(new Point2CircleNodeChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
+                case QuadShape.AABB: RecursiveQuery(new Point2AABBNodeChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
                 default: throw ShapeNotImplementException();
             }
         }
         public void QueryCircle(in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
+            {
                 return;
+            }
 
             if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
+            {
                 RecursiveAdd(Root, elements);
+                return;
+            }
 
-            var aabb = Converts.AsAABB2DInt(in shape);
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new CircleNodeChecker(in shape), in aabb, elements); break;
-                case QuadShape.AABB: RecursiveQuery(new CircleAABBNodeChecker(in shape), in aabb, elements); break;
+                case QuadShape.Circle: RecursiveQuery(new Circle2CircleNodeChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
+                case QuadShape.AABB: RecursiveQuery(new Circle2AABBNodeChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
                 default: throw ShapeNotImplementException();
             }
         }
         public void QueryAABB(in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
+            {
                 return;
+            }
 
             if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
+            {
                 RecursiveAdd(Root, elements);
+                return;
+            }
 
             switch (Shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new AABBCircleNodeChecker(in shape), in shape, elements); break;
-                case QuadShape.AABB: RecursiveQuery(new AABBNodeChecker(in shape), in shape, elements); break;
+                case QuadShape.Circle: RecursiveQuery(new AABB2CircleNodeChecker(in shape), in shape, elements); break;
+                case QuadShape.AABB: RecursiveQuery(new AABB2AABBNodeChecker(in shape), in shape, elements); break;
                 default: throw ShapeNotImplementException();
             }
         }
         public void QueryOBB(in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
+            {
                 return;
+            }
 
             if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
+            {
                 RecursiveAdd(Root, elements);
+                return;
+            }
 
-            var checker = new OBBNodeChecker(in shape);
-            RecursiveQuery(in checker, in checker.Shape, elements);
+            switch (Shape)
+            {
+                case QuadShape.Circle:
+                {
+                    var checker = new OBB2CircleNodeChecker(in shape);
+                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    break;
+                }
+
+                case QuadShape.AABB:
+                {
+                    var checker = new OBB2AABBNodeChecker(in shape);
+                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    break;
+                }
+
+                default: throw ShapeNotImplementException();
+            }
         }
-        public void QueryPolygon(in Vector2D p0, in Vector2D p1, in Vector2D p2, in Vector2D p3, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryPolygon(in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             if (Root.IsEmpty())
+            {
                 return;
+            }
 
-            // todo eevee 多边形检测
-            //if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
-            //    RecursiveAdd(Root, elements);
+            if (checkRoot && Geometry.Contain(in shape, in MaxBoundary))
+            {
+                RecursiveAdd(Root, elements);
+                return;
+            }
 
-            var xMin = Fixed64.Min(p0.X, p1.X, p2.X, p3.X);
-            var xMax = Fixed64.Max(p0.X, p1.X, p2.X, p3.X);
-            var yMin = Fixed64.Min(p0.Y, p1.Y, p2.Y, p3.Y);
-            var yMax = Fixed64.Max(p0.Y, p1.Y, p2.Y, p3.Y);
-            var aabb = AABB2DInt.Create((int)xMin, (int)xMax, (int)yMin, (int)yMax);
-            var checker = new PolygonNodeChecker(in aabb, in p0, in p1, in p2, in p3);
-            RecursiveQuery(in checker, in aabb, elements);
+            switch (Shape)
+            {
+                case QuadShape.Circle:
+                {
+                    var checker = new Polygon2CircleNodeChecker(in shape);
+                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    checker.Checker.Dispose();
+                    break;
+                }
+
+                case QuadShape.AABB:
+                {
+                    var checker = new Polygon2AABBNodeChecker(in shape);
+                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    checker.Checker.Dispose();
+                    break;
+                }
+
+                default: throw ShapeNotImplementException();
+            }
         }
         #endregion
 

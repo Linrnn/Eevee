@@ -452,6 +452,47 @@ namespace Eevee.Fixed
             var boundary = Converts.AsAABB2D(in reverse);
             return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
         }
+
+        public static bool Contain(in Polygon shape, in Vector2D other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in Polygon shape, in Circle other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in Polygon shape, in AABB2D other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in Polygon shape, in OBB2D other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in Polygon shape, in Polygon other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in PolygonInt shape, Vector2DInt other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in PolygonInt shape, in CircleInt other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in PolygonInt shape, in AABB2DInt other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in PolygonInt shape, in OBB2DInt other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Contain(in PolygonInt shape, in PolygonInt other)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
         #region 相交
@@ -576,6 +617,39 @@ namespace Eevee.Fixed
             var otherReverse = new AABB2DInt(other.X, other.Y, other.W, other.H);
             var checker = new OBBIntIntersectChecker(in shapeReverse);
             return checker.Intersect(in otherReverse);
+        }
+
+        public static bool Intersect(in Polygon shape, in Circle other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Intersect(in Polygon shape, in AABB2D other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Intersect(in Polygon shape, in OBB2D other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Intersect(in Polygon shape, in Polygon other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Intersect(in PolygonInt shape, in CircleInt other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Intersect(in PolygonInt shape, in AABB2DInt other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Intersect(in PolygonInt shape, in OBB2DInt other)
+        {
+            throw new NotImplementedException();
+        }
+        public static bool Intersect(in PolygonInt shape, in PolygonInt other)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

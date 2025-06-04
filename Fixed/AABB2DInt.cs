@@ -87,16 +87,16 @@ namespace Eevee.Fixed
 
         #region 中心点/尺寸/边界
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Left() => X - W; // 左
+        public int Left() => X - W;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Right() => X + W; // 右
+        public int Right() => X + W;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Bottom() => Y - H; // 下
+        public int Bottom() => Y - H;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Top() => Y + H; // 上
+        public int Top() => Y + H;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt Center() => new(X, Y); // 中心点
+        public Vector2DInt Center() => new(X, Y);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt Size() => new(W << 1, H << 1); // 尺寸
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -107,13 +107,13 @@ namespace Eevee.Fixed
         public Vector2DInt Max() => RightTop();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt LeftBottom() => new(Left(), Bottom()); // 左下角
+        public Vector2DInt LeftBottom() => new(Left(), Bottom());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt RightBottom() => new(Right(), Bottom()); // 右下角
+        public Vector2DInt RightBottom() => new(Right(), Bottom());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt RightTop() => new(Right(), Top()); // 右上角
+        public Vector2DInt RightTop() => new(Right(), Top());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角
+        public Vector2DInt LeftTop() => new(Left(), Top());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AABB2DInt LeftBottomAABB() // 左下AABB，原先1/4的AABB

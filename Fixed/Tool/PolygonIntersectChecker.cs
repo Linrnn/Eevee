@@ -4,15 +4,15 @@ using System.Runtime.InteropServices;
 
 namespace Eevee.Fixed
 {
-    internal readonly unsafe struct PolygonIntIntersectChecker : IDisposable
+    internal readonly unsafe struct PolygonIntersectChecker : IDisposable
     {
-        internal readonly PolygonInt Shape;
-        private readonly Vector2DInt* _sides;
+        internal readonly Polygon Shape;
+        private readonly Vector2D* _sides;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal PolygonIntIntersectChecker(in PolygonInt shape)
+        internal PolygonIntersectChecker(in Polygon shape)
         {
-            var sides = (Vector2DInt*)Marshal.AllocHGlobal(sizeof(Vector2DInt) * shape.Points.Count);
+            var sides = (Vector2D*)Marshal.AllocHGlobal(sizeof(Vector2D) * shape.Points.Count);
             int last = shape.Points.Count - 1;
             for (int i = 0; i < last; ++i)
                 sides[i] = shape[i] - shape[i + 1];
@@ -30,7 +30,7 @@ namespace Eevee.Fixed
             throw new NotImplementedException();
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool Intersect(in AABB2DInt shape)
+        internal bool Intersect(in AABB2D shape)
         {
             if (SameDirection(shape.LeftBottom()))
                 return true;
@@ -42,23 +42,23 @@ namespace Eevee.Fixed
                 return true;
 
             foreach (var point in Shape.Points)
-                if (Geometry.Contain(in shape, point))
+                if (Geometry.Contain(in shape, in point))
                     return true;
 
             return false;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool SameDirection(Vector2DInt point) // 向量方向相同
+        private bool SameDirection(in Vector2D point) // 向量方向相同
         {
             for (int flag = 0, count = Shape.PointCount(), i = 0; i < count; ++i)
             {
-                int cross = Vector2DInt.Cross(point - Shape[i], _sides[i]);
-                if (cross == 0)
+                var cross = Vector2D.Cross(point - Shape[i], in _sides[i]);
+                if (cross.RawValue == 0)
                     continue;
 
                 if (flag == 0)
-                    flag = cross;
-                else if (flag != cross)
+                    flag = cross.Sign();
+                else if (flag != cross.Sign())
                     return false;
             }
 

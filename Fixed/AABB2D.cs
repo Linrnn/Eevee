@@ -79,16 +79,16 @@ namespace Eevee.Fixed
 
         #region 中心点/尺寸/边界
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Left() => X - W; // 左
+        public Fixed64 Left() => X - W;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Right() => X + W; // 右
+        public Fixed64 Right() => X + W;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Bottom() => Y - H; // 下
+        public Fixed64 Bottom() => Y - H;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Fixed64 Top() => Y + H; // 上
+        public Fixed64 Top() => Y + H;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D Center() => new(X, Y); // 中心点
+        public Vector2D Center() => new(X, Y);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2D Size() => new(W << 1, H << 1); // 尺寸
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -99,13 +99,13 @@ namespace Eevee.Fixed
         public Vector2D Max() => RightTop();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D LeftBottom() => new(Left(), Bottom()); // 左下角
+        public Vector2D LeftBottom() => new(Left(), Bottom());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D RightBottom() => new(Right(), Bottom()); // 右下角
+        public Vector2D RightBottom() => new(Right(), Bottom());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D RightTop() => new(Right(), Top()); // 右上角
+        public Vector2D RightTop() => new(Right(), Top());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2D LeftTop() => new(Left(), Top()); // 左上角
+        public Vector2D LeftTop() => new(Left(), Top());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AABB2D LeftBottomAABB() // 左下AABB，原先1/4的AABB

@@ -18,15 +18,18 @@ namespace Eevee.Collection
         }
         #endregion
 
-        #region Other
-        public ref T this[int index]
+        #region Method
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T Get(int index)
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get
-            {
-                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
-                return ref _ptr[index];
-            }
+            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
+            return _ptr[index];
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T RefGet(int index)
+        {
+            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
+            return ref _ptr[index];
         }
 
         public ReadOnlySpan<T> AsSpan() => new(_ptr, Count);

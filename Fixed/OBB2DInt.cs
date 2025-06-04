@@ -95,16 +95,16 @@ namespace Eevee.Fixed
 
         #region 中心点/尺寸/边界
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Left() => X - W; // 左
+        public int Left() => X - W;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Right() => X + W; // 右
+        public int Right() => X + W;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Bottom() => Y - H; // 下
+        public int Bottom() => Y - H;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int Top() => Y + H; // 上
+        public int Top() => Y + H;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt Center() => new(X, Y); // 中心点
+        public Vector2DInt Center() => new(X, Y);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2DInt Size() => new(W << 1, H << 1); // 尺寸
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -115,22 +115,26 @@ namespace Eevee.Fixed
         public Vector2DInt Max() => RightTop();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt LeftBottom() => new(Left(), Bottom()); // 左下角
+        public Vector2DInt LeftBottom() => new(Left(), Bottom());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt RightBottom() => new(Right(), Bottom()); // 右下角
+        public Vector2DInt RightBottom() => new(Right(), Bottom());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt RightTop() => new(Right(), Top()); // 右上角
+        public Vector2DInt RightTop() => new(Right(), Top());
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Vector2DInt LeftTop() => new(Left(), Top()); // 左上角
+        public Vector2DInt LeftTop() => new(Left(), Top());
         #endregion
 
         #region 旋转后的尺寸/边界
-        public Fixed64 RotatedLeft() => X + Geometry.RotateXDeg(ForLeftBoundary(), A); // 左
-        public Fixed64 RotatedRight() => X + Geometry.RotateXDeg(ForRightBoundary(), A); // 右
-        public Fixed64 RotatedBottom() => Y + Geometry.RotateYDeg(ForBottomBoundary(), A); // 下
-        public Fixed64 RotatedTop() => Y + Geometry.RotateYDeg(ForTopBoundary(), A); // 上
+        public Fixed64 RotatedLeft() => X + Geometry.RotateXDeg(ForLeftBoundary(), A); // 旋转后的左
+        public Fixed64 RotatedRight() => X + Geometry.RotateXDeg(ForRightBoundary(), A); // 旋转后的右
+        public Fixed64 RotatedBottom() => Y + Geometry.RotateYDeg(ForBottomBoundary(), A); // 旋转后的下
+        public Fixed64 RotatedTop() => Y + Geometry.RotateYDeg(ForTopBoundary(), A); // 旋转后的上
 
-        public Vector2D RotatedSize() => RotatedHalfSize() * 2; // 旋转后的尺寸
+        public Vector2D RotatedSize() // 旋转后的尺寸
+        {
+            var size = RotatedHalfSize();
+            return new Vector2D(size.X << 1, size.Y << 1);
+        }
         public Vector2D RotatedHalfSize() // 旋转后的一半尺寸
         {
             var frb = ForRightBoundary();
