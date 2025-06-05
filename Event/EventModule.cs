@@ -150,11 +150,11 @@ namespace Eevee.Event
             if (!_listeners.TryGetValue(eventId, out var listeners))
                 return;
 
-            int listenersCount = listeners.Count;
-            var newListeners = ArrayExt.SharedRent<Delegate>(listenersCount);
-            Array.Copy(listeners.Items, 0, newListeners, 0, listenersCount);
+            var newListeners = ArrayExt.SharedRent<Delegate>(listeners.Count);
+            Array.Copy(listeners.Items, 0, newListeners, 0, listeners.Count);
+            var span = newListeners.AsReadOnlySpan(0, listeners.Count);
 
-            foreach (var listener in newListeners.AsReadOnlySpan(0, listenersCount))
+            foreach (var listener in span)
             {
                 if (Macro.HasTryCatch)
                 {
@@ -163,8 +163,6 @@ namespace Eevee.Event
                         bool success = Invoke(listener, context);
                         if (!success)
                             LogRelay.Error($"[Event] EventId:{eventId}, context isn't {typeof(TContext).FullName}");
-                        if (recycle)
-                            (context as IRecyclable)?.Recycle();
                     }
                     catch (Exception exception)
                     {
@@ -180,6 +178,8 @@ namespace Eevee.Event
             }
 
             newListeners.SharedReturn();
+            if (recycle)
+                (context as IRecyclable)?.Recycle();
         }
         private bool Invoke<TContext>(Delegate listener, TContext context) where TContext : IEventContext
         {

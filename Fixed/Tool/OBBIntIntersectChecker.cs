@@ -37,6 +37,12 @@ namespace Eevee.Fixed
         internal int YMax() => Maths.Max(_p0.Y, _p1.Y, _p2.Y, _p3.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool Intersect(in CircleInt shape)
+        {
+            // todo eevee 未实现
+            throw new System.NotImplementedException();
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in AABB2DInt shape)
         {
             if (AcuteOrRightAngle(shape.LeftBottom()))

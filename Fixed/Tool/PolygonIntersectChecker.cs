@@ -27,6 +27,7 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in CircleInt shape)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

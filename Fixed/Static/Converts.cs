@@ -473,17 +473,16 @@ namespace Eevee.Fixed
         };
         #endregion
 
-        #region 返回Rectangle/AABB2DInt/AABB2D
+        #region 返回几何类型
         public static Rectangle AsRectangle(in AABB2D value) => new(value.Min(), value.Size());
         public static Rectangle AsRectangle(in AABB2DInt value) => new(value.Min(), value.Size());
 
-        public static Circle AsCircle(in AABB2DInt value) // 宽高需一致
+        public static Circle AsCircle(in AABB2DInt value) // “AABB”的宽高需要相等
         {
             Assert.Equal<InvalidOperationException, AssertArgs<Fixed64, Fixed64>, Fixed64>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new AssertArgs<Fixed64, Fixed64>(value.W, value.H));
             return new Circle(value.X, value.Y, value.W);
         }
-
-        public static CircleInt AsCircleInt(in AABB2DInt value) // 宽高需一致
+        public static CircleInt AsCircleInt(in AABB2DInt value) // “AABB”的宽高需要相等
         {
             Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new AssertArgs<int, int>(value.W, value.H));
             return new CircleInt(value.X, value.Y, value.W);
@@ -495,9 +494,15 @@ namespace Eevee.Fixed
         public static AABB2D AsAABB2D(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
         public static AABB2D AsAABB2D(in OBB2D value) => new(value.X, value.Y, value.RotatedHalfSize()); // 外接AABB
         public static AABB2D AsAABB2D(in OBB2DInt value) => new(value.X, value.Y, value.RotatedHalfSize()); // 外接AABB
-
+        public static AABB2D AsAABB2DWithoutAngle(in OBB2D value) => new(value.X, value.Y, value.W, value.H);
         public static AABB2DInt AsAABB2DInt(Vector2DInt value) => new(value.X, value.Y, 0);
         public static AABB2DInt AsAABB2DInt(in CircleInt value) => new(value.X, value.Y, value.R); // 外接AABB
+        public static AABB2DInt AsAABB2DInt(in OBB2DInt value) // 外接AABB
+        {
+            var extents = value.RotatedHalfSize();
+            return new AABB2DInt(value.X, value.Y, (int)extents.X, (int)extents.Y);
+        }
+        public static AABB2DInt AsAABB2DIntWithoutAngle(in OBB2DInt value) => new(value.X, value.Y, value.W, value.H);
         #endregion
     }
 }

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
-    public readonly unsafe struct ReadOnlyArray<T> where T : unmanaged, IEquatable<T>
+    public readonly unsafe struct ReadOnlyArray<T> where T : unmanaged
     {
         #region Feild/Constructor
         private readonly T* _ptr;

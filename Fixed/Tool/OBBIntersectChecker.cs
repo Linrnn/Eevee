@@ -37,6 +37,12 @@ namespace Eevee.Fixed
         internal Fixed64 YMax() => Fixed64.Max(_p0.Y, _p1.Y, _p2.Y, _p3.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool Intersect(in Circle shape)
+        {
+            // todo eevee 未实现
+            throw new System.NotImplementedException();
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in AABB2D shape)
         {
             if (AcuteOrRightAngle(shape.LeftBottom()))

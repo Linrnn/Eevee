@@ -154,70 +154,152 @@ namespace Eevee.Fixed
         #endregion
 
         #region 向量旋转
-        public static Vector2D Rotate(in Vector2D vector, Fixed64 rad) => Rotate(vector, Maths.Cos(rad), Maths.Sin(rad));
-        public static Vector2D Rotate(Vector2DInt vector, Fixed64 rad) => Rotate(vector, Maths.Cos(rad), Maths.Sin(rad));
-        public static Vector2D RotateDeg(in Vector2D vector, Fixed64 deg) => Rotate(vector, Maths.CosDeg(deg), Maths.SinDeg(deg));
-        public static Vector2D RotateDeg(Vector2DInt vector, Fixed64 deg) => Rotate(vector, Maths.CosDeg(deg), Maths.SinDeg(deg));
+        public static Vector2D Rotate(Fixed64 x, Fixed64 y, Fixed64 rad)
+        {
+            Rotate(x, y, Maths.Cos(rad), Maths.Sin(rad), out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
+        public static Vector2D Rotate(in Vector2D vector, Fixed64 rad)
+        {
+            Rotate(vector.X, vector.Y, Maths.Cos(rad), Maths.Sin(rad), out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
+        public static Vector2D RotateDeg(Fixed64 x, Fixed64 y, Fixed64 deg)
+        {
+            Rotate(x, y, Maths.CosDeg(deg), Maths.SinDeg(deg), out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
+        public static Vector2D RotateDeg(in Vector2D vector, Fixed64 deg)
+        {
+            Rotate(vector.X, vector.Y, Maths.CosDeg(deg), Maths.SinDeg(deg), out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
         public static Vector2D Rotate(in Vector2D vector, in Vector2D dir)
         {
             Check.Normal(in dir);
-            return Rotate(vector, dir.X, dir.Y);
+            Rotate(vector.X, vector.Y, dir.X, dir.Y, out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Rotate(Fixed64 x, Fixed64 y, Fixed64 cos, Fixed64 sin, out Fixed64 dx, out Fixed64 dy)
+        {
+            dx = RotateX(x, y, cos, sin);
+            dy = RotateY(x, y, cos, sin);
+        }
+
+        public static Vector2D Rotate(int x, int y, Fixed64 rad)
+        {
+            Rotate(x, y, Maths.Cos(rad), Maths.Sin(rad), out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
+        public static Vector2D Rotate(Vector2DInt vector, Fixed64 rad)
+        {
+            Rotate(vector.X, vector.Y, Maths.Cos(rad), Maths.Sin(rad), out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
+        public static Vector2D RotateDeg(int x, int y, Fixed64 deg)
+        {
+            Rotate(x, y, Maths.CosDeg(deg), Maths.SinDeg(deg), out var dx, out var dy);
+            return new Vector2D(dx, dy);
+        }
+        public static Vector2D RotateDeg(Vector2DInt vector, Fixed64 deg)
+        {
+            Rotate(vector.X, vector.Y, Maths.CosDeg(deg), Maths.SinDeg(deg), out var dx, out var dy);
+            return new Vector2D(dx, dy);
         }
         public static Vector2D Rotate(Vector2DInt vector, in Vector2D dir)
         {
             Check.Normal(in dir);
-            return Rotate(vector, dir.X, dir.Y);
+            Rotate(vector.X, vector.Y, dir.X, dir.Y, out var dx, out var dy);
+            return new Vector2D(dx, dy);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector2D Rotate(Vector2D vector, Fixed64 cos, Fixed64 sin) => new()
+        private static void Rotate(int x, int y, Fixed64 cos, Fixed64 sin, out Fixed64 dx, out Fixed64 dy)
         {
-            X = RotateX(vector, cos, sin),
-            Y = RotateY(vector, cos, sin),
-        };
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector2D Rotate(Vector2DInt vector, Fixed64 cos, Fixed64 sin) => new()
-        {
-            X = RotateX(vector, cos, sin),
-            Y = RotateY(vector, cos, sin),
-        };
+            dx = RotateX(x, y, cos, sin);
+            dy = RotateY(x, y, cos, sin);
+        }
 
-        public static Fixed64 RotateX(in Vector2D vector, Fixed64 rad) => RotateX(vector, Maths.Cos(rad), Maths.Sin(rad));
-        public static Fixed64 RotateX(Vector2DInt vector, Fixed64 rad) => RotateX(vector, Maths.Cos(rad), Maths.Sin(rad));
-        public static Fixed64 RotateXDeg(in Vector2D vector, Fixed64 deg) => RotateX(vector, Maths.CosDeg(deg), Maths.SinDeg(deg));
-        public static Fixed64 RotateXDeg(Vector2DInt vector, Fixed64 deg) => RotateX(vector, Maths.CosDeg(deg), Maths.SinDeg(deg));
+        public static Fixed64 RotateX(Fixed64 x, Fixed64 y, Fixed64 rad) => RotateX(x, y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateX(in Vector2D vector, Fixed64 rad) => RotateX(vector.X, vector.Y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateXDeg(Fixed64 x, Fixed64 y, Fixed64 deg) => RotateX(x, y, Maths.CosDeg(deg), Maths.SinDeg(deg));
+        public static Fixed64 RotateXDeg(in Vector2D vector, Fixed64 deg) => RotateX(vector.X, vector.Y, Maths.CosDeg(deg), Maths.SinDeg(deg));
         public static Fixed64 RotateX(in Vector2D vector, in Vector2D dir)
         {
             Check.Normal(in dir);
-            return RotateX(vector, dir.X, dir.Y);
+            return RotateX(vector.X, vector.Y, dir.X, dir.Y);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Fixed64 RotateX(Fixed64 x, Fixed64 y, Fixed64 cos, Fixed64 sin) => x * cos - y * sin;
+
+        public static Fixed64 RotateX(int x, int y, Fixed64 rad) => RotateX(x, y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateX(Vector2DInt vector, Fixed64 rad) => RotateX(vector.X, vector.Y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateXDeg(int x, int y, Fixed64 deg) => RotateX(x, y, Maths.CosDeg(deg), Maths.SinDeg(deg));
+        public static Fixed64 RotateXDeg(Vector2DInt vector, Fixed64 deg) => RotateX(vector.X, vector.Y, Maths.CosDeg(deg), Maths.SinDeg(deg));
         public static Fixed64 RotateX(Vector2DInt vector, in Vector2D dir)
         {
             Check.Normal(in dir);
-            return RotateX(vector, dir.X, dir.Y);
+            return RotateX(vector.X, vector.Y, dir.X, dir.Y);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Fixed64 RotateX(Vector2D vector, Fixed64 cos, Fixed64 sin) => vector.X * cos - vector.Y * sin;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Fixed64 RotateX(Vector2DInt vector, Fixed64 cos, Fixed64 sin) => vector.X * cos - vector.Y * sin;
+        private static Fixed64 RotateX(int x, int y, Fixed64 cos, Fixed64 sin) => x * cos - y * sin;
 
-        public static Fixed64 RotateY(in Vector2D vector, Fixed64 rad) => RotateY(vector, Maths.Cos(rad), Maths.Sin(rad));
-        public static Fixed64 RotateY(Vector2DInt vector, Fixed64 rad) => RotateY(vector, Maths.Cos(rad), Maths.Sin(rad));
-        public static Fixed64 RotateYDeg(in Vector2D vector, Fixed64 deg) => RotateY(vector, Maths.CosDeg(deg), Maths.SinDeg(deg));
-        public static Fixed64 RotateYDeg(Vector2DInt vector, Fixed64 deg) => RotateY(vector, Maths.CosDeg(deg), Maths.SinDeg(deg));
+        public static Fixed64 RotateY(Fixed64 x, Fixed64 y, Fixed64 rad) => RotateY(x, y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateY(in Vector2D vector, Fixed64 rad) => RotateY(vector.X, vector.Y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateYDeg(Fixed64 x, Fixed64 y, Fixed64 deg) => RotateY(x, y, Maths.CosDeg(deg), Maths.SinDeg(deg));
+        public static Fixed64 RotateYDeg(in Vector2D vector, Fixed64 deg) => RotateY(vector.X, vector.Y, Maths.CosDeg(deg), Maths.SinDeg(deg));
         public static Fixed64 RotateY(in Vector2D vector, in Vector2D dir)
         {
             Check.Normal(in dir);
-            return RotateY(vector, dir.X, dir.Y);
+            return RotateY(vector.X, vector.Y, dir.X, dir.Y);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Fixed64 RotateY(Fixed64 x, Fixed64 y, Fixed64 cos, Fixed64 sin) => x * sin + y * cos;
+
+        public static Fixed64 RotateY(int x, int y, Fixed64 rad) => RotateY(x, y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateY(Vector2DInt vector, Fixed64 rad) => RotateY(vector.X, vector.Y, Maths.Cos(rad), Maths.Sin(rad));
+        public static Fixed64 RotateYDeg(int x, int y, Fixed64 deg) => RotateY(x, y, Maths.CosDeg(deg), Maths.SinDeg(deg));
+        public static Fixed64 RotateYDeg(Vector2DInt vector, Fixed64 deg) => RotateY(vector.X, vector.Y, Maths.CosDeg(deg), Maths.SinDeg(deg));
         public static Fixed64 RotateY(Vector2DInt vector, in Vector2D dir)
         {
             Check.Normal(in dir);
-            return RotateY(vector, dir.X, dir.Y);
+            return RotateY(vector.X, vector.Y, dir.X, dir.Y);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Fixed64 RotateY(Vector2D vector, Fixed64 cos, Fixed64 sin) => vector.X * sin + vector.Y * cos;
+        private static Fixed64 RotateY(int x, int y, Fixed64 cos, Fixed64 sin) => x * sin + y * cos;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Fixed64 RotateY(Vector2DInt vector, Fixed64 cos, Fixed64 sin) => vector.X * sin + vector.Y * cos;
+        private static void ReverseRotate(Fixed64 sx, Fixed64 sy, Fixed64 ex, Fixed64 ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry, out Fixed64 na)
+        {
+            var deg = Maths.ClampDeg(-a);
+            Rotate(sx, sy, ex, ey, deg, out rx, out ry);
+            na = deg;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ReverseRotate(int sx, int sy, int ex, int ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry, out Fixed64 na)
+        {
+            var deg = Maths.ClampDeg(-a);
+            Rotate(sx, sy, ex, ey, deg, out rx, out ry);
+            na = deg;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Rotate(Fixed64 sx, Fixed64 sy, Fixed64 ex, Fixed64 ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry)
+        {
+            var cos = Maths.CosDeg(a);
+            var sin = Maths.SinDeg(a);
+            Rotate(ex - sx, ey - sy, cos, sin, out var dx, out var dy);
+            rx = dx + sx;
+            ry = dy + sy;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Rotate(int sx, int sy, int ex, int ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry)
+        {
+            var cos = Maths.CosDeg(a);
+            var sin = Maths.SinDeg(a);
+            Rotate(ex - sx, ey - sy, cos, sin, out var dx, out var dy);
+            rx = dx + sx;
+            ry = dy + sy;
+        }
         #endregion
 
         #region 重心/质心
@@ -394,103 +476,129 @@ namespace Eevee.Fixed
 
         public static bool Contain(in OBB2D shape, in Vector2D other)
         {
-            var angle = Maths.ClampDeg(-shape.A);
-            var reverse = RotateDeg(other, angle);
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
 
-            var dx = (reverse.X - shape.X).Abs();
+            var dx = (rx - shape.X).Abs();
             if (dx > shape.W)
                 return false;
 
-            var dy = (reverse.Y - shape.Y).Abs();
+            var dy = (ry - shape.Y).Abs();
             if (dy > shape.H)
                 return false;
 
             return true;
         }
-        public static bool Contain(in OBB2D shape, in Circle other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
+        public static bool Contain(in OBB2D shape, in Circle other)
+        {
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            var reverse = new Circle(rx, ry, other.R);
+            return shape.Left() <= reverse.Left() && shape.Right() >= reverse.Right() && shape.Bottom() <= reverse.Bottom() && shape.Top() >= reverse.Top();
+        }
         public static bool Contain(in OBB2D shape, in AABB2D other)
         {
-            var angle = Maths.ClampDeg(-shape.A);
-            var reverse = new OBB2D(in other, angle);
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out var na);
+            var reverse = new OBB2D(rx, ry, other.W, other.H, na);
             var boundary = Converts.AsAABB2D(in reverse);
             return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
         }
         public static bool Contain(in OBB2D shape, in OBB2D other)
         {
-            var angle = Maths.ClampDeg(other.A - shape.A);
-            var reverse = new OBB2D(other.X, other.Y, other.W, other.H, angle);
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A - other.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
+            var reverse = new OBB2D(rx, ry, other.W, other.H, na);
             var boundary = Converts.AsAABB2D(in reverse);
             return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
         }
         public static bool Contain(in OBB2DInt shape, Vector2DInt other)
         {
-            var angle = Maths.ClampDeg(-shape.A);
-            var reverse = RotateDeg(other, angle);
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
 
-            var dx = (reverse.X - shape.X).Abs();
+            var dx = (rx - shape.X).Abs();
             if (dx > shape.W)
                 return false;
 
-            var dy = (reverse.Y - shape.Y).Abs();
+            var dy = (ry - shape.Y).Abs();
             if (dy > shape.H)
                 return false;
 
             return true;
         }
-        public static bool Contain(in OBB2DInt shape, in CircleInt other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
+        public static bool Contain(in OBB2DInt shape, in CircleInt other)
+        {
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            var reverse = new CircleInt((int)rx, (int)ry, other.R);
+            return shape.Left() <= reverse.Left() && shape.Right() >= reverse.Right() && shape.Bottom() <= reverse.Bottom() && shape.Top() >= reverse.Top();
+        }
         public static bool Contain(in OBB2DInt shape, in AABB2DInt other)
         {
-            var angle = Maths.ClampDeg(-shape.A);
-            var reverse = new OBB2DInt(in other, angle);
-            var boundary = Converts.AsAABB2D(in reverse);
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out var na);
+            var reverse = new OBB2DInt((int)rx, (int)ry, other.W, other.H, na);
+            var boundary = Converts.AsAABB2DInt(in reverse);
             return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
         }
         public static bool Contain(in OBB2DInt shape, in OBB2DInt other)
         {
-            var angle = Maths.ClampDeg(other.A - shape.A);
-            var reverse = new OBB2DInt(other.X, other.Y, other.W, other.H, angle);
-            var boundary = Converts.AsAABB2D(in reverse);
+            // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A - other.A”度
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
+            var reverse = new OBB2DInt((int)rx, (int)ry, other.W, other.H, na);
+            var boundary = Converts.AsAABB2DInt(in reverse);
             return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
         }
 
         public static bool Contain(in Polygon shape, in Vector2D other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in Polygon shape, in Circle other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in Polygon shape, in AABB2D other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in Polygon shape, in OBB2D other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in Polygon shape, in Polygon other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in PolygonInt shape, Vector2DInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in PolygonInt shape, in CircleInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in PolygonInt shape, in AABB2DInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in PolygonInt shape, in OBB2DInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Contain(in PolygonInt shape, in PolygonInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         #endregion
@@ -588,67 +696,65 @@ namespace Eevee.Fixed
 
         public static bool Intersect(in OBB2D shape, in Circle other)
         {
-            var x = Fixed64.Max((shape.X - other.X).Abs() - shape.W, Fixed64.Zero);
-            var y = Fixed64.Max((shape.Y - other.Y).Abs() - shape.H, Fixed64.Zero);
-            return x * x + y * y <= other.R * other.R;
+            // todo eevee 未实现
+            throw new NotImplementedException();
         }
         public static bool Intersect(in OBB2D shape, in AABB2D other) => new OBBIntersectChecker(in shape).Intersect(in other);
         public static bool Intersect(in OBB2D shape, in OBB2D other)
         {
-            // 计“other”未旋转，即“shape”反向旋转“other.A”度
-            var angle = Maths.ClampDeg(shape.A - other.A);
-            var shapeReverse = new OBB2D(shape.X, shape.Y, shape.W, shape.H, angle);
-            var otherReverse = new AABB2D(other.X, other.Y, other.W, other.H);
-            var checker = new OBBIntersectChecker(in shapeReverse);
-            return checker.Intersect(in otherReverse);
+            // todo eevee 未实现
+            throw new NotImplementedException();
         }
         public static bool Intersect(in OBB2DInt shape, in CircleInt other)
         {
-            int x = Math.Max(Math.Abs(shape.X - other.X) - shape.W, 0);
-            int y = Math.Max(Math.Abs(shape.Y - other.Y) - shape.H, 0);
-            return x * x + y * y <= other.R * other.R;
+            // todo eevee 未实现
+            throw new NotImplementedException();
         }
         public static bool Intersect(in OBB2DInt shape, in AABB2DInt other) => new OBBIntIntersectChecker(in shape).Intersect(in other);
         public static bool Intersect(in OBB2DInt shape, in OBB2DInt other)
         {
-            // 计“other”未旋转，即“shape”反向旋转“other.A”度
-            var angle = Maths.ClampDeg(shape.A - other.A);
-            var shapeReverse = new OBB2DInt(shape.X, shape.Y, shape.W, shape.H, angle);
-            var otherReverse = new AABB2DInt(other.X, other.Y, other.W, other.H);
-            var checker = new OBBIntIntersectChecker(in shapeReverse);
-            return checker.Intersect(in otherReverse);
+            // todo eevee 未实现
+            throw new NotImplementedException();
         }
 
         public static bool Intersect(in Polygon shape, in Circle other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Intersect(in Polygon shape, in AABB2D other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Intersect(in Polygon shape, in OBB2D other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Intersect(in Polygon shape, in Polygon other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Intersect(in PolygonInt shape, in CircleInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Intersect(in PolygonInt shape, in AABB2DInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Intersect(in PolygonInt shape, in OBB2DInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         public static bool Intersect(in PolygonInt shape, in PolygonInt other)
         {
+            // todo eevee 未实现
             throw new NotImplementedException();
         }
         #endregion
