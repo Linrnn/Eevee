@@ -272,29 +272,33 @@ namespace Eevee.Fixed
         private static void ReverseRotate(Fixed64 sx, Fixed64 sy, Fixed64 ex, Fixed64 ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry, out Fixed64 na)
         {
             var deg = Maths.ClampDeg(-a);
-            Rotate(sx, sy, ex, ey, deg, out rx, out ry);
+            Rotate(ex - sx, ey - sy, Maths.CosDeg(deg), Maths.SinDeg(deg), out var dx, out var dy);
+            rx = dx + sx;
+            ry = dy + sy;
             na = deg;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReverseRotate(int sx, int sy, int ex, int ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry, out Fixed64 na)
         {
             var deg = Maths.ClampDeg(-a);
-            Rotate(sx, sy, ex, ey, deg, out rx, out ry);
+            Rotate(ex - sx, ey - sy, Maths.CosDeg(deg), Maths.SinDeg(deg), out var dx, out var dy);
+            rx = dx + sx;
+            ry = dy + sy;
             na = deg;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Rotate(Fixed64 sx, Fixed64 sy, Fixed64 ex, Fixed64 ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry)
+        private static void ReverseLocalRotate(Fixed64 sx, Fixed64 sy, Fixed64 ex, Fixed64 ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry, out Fixed64 na)
         {
-            Rotate(ex - sx, ey - sy, Maths.CosDeg(a), Maths.SinDeg(a), out var dx, out var dy);
-            rx = dx + sx;
-            ry = dy + sy;
+            var deg = Maths.ClampDeg(-a);
+            Rotate(ex - sx, ey - sy, Maths.CosDeg(deg), Maths.SinDeg(deg), out rx, out ry);
+            na = deg;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Rotate(int sx, int sy, int ex, int ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry)
+        private static void ReverseLocalRotate(int sx, int sy, int ex, int ey, Fixed64 a, out Fixed64 rx, out Fixed64 ry, out Fixed64 na)
         {
-            Rotate(ex - sx, ey - sy, Maths.CosDeg(a), Maths.SinDeg(a), out var dx, out var dy);
-            rx = dx + sx;
-            ry = dy + sy;
+            var deg = Maths.ClampDeg(-a);
+            Rotate(ex - sx, ey - sy, Maths.CosDeg(deg), Maths.SinDeg(deg), out rx, out ry);
+            na = deg;
         }
         #endregion
 
@@ -422,12 +426,11 @@ namespace Eevee.Fixed
         #endregion
 
         #region 包含
-        public static bool Contain(in Circle shape, in Vector2D other) => shape.SqrDistance(in other) <= shape.R.Sqr();
+        public static bool Contain(in Circle shape, in Vector2D other) => shape.R.Sqr() >= shape.SqrDistance(in other);
         public static bool Contain(in Circle shape, in Circle other) // 内含/内离/同心
         {
             if (shape.X == other.X && shape.Y == other.Y && shape.R >= other.R)
                 return true;
-
             var d = shape.SqrDistance(in other);
             var r = shape.R - other.R;
             return d < r.Sqr();
@@ -454,12 +457,11 @@ namespace Eevee.Fixed
 
             return true;
         }
-        public static bool Contain(in CircleInt shape, Vector2DInt other) => shape.SqrDistance(other) <= shape.R * shape.R;
+        public static bool Contain(in CircleInt shape, Vector2DInt other) => shape.R * shape.R >= shape.SqrDistance(other);
         public static bool Contain(in CircleInt shape, in CircleInt other) // 内含/内离/同心
         {
             if (shape.X == other.X && shape.Y == other.Y && shape.R >= other.R)
                 return true;
-
             int d = shape.SqrDistance(in other);
             int r = shape.R - other.R;
             return d < r * r;
@@ -490,99 +492,181 @@ namespace Eevee.Fixed
         public static bool Contain(in AABB2D shape, in Vector2D other)
         {
             var dx = (other.X - shape.X).Abs();
-            if (dx > shape.W)
+            if (shape.W < dx)
                 return false;
 
             var dy = (other.Y - shape.Y).Abs();
-            if (dy > shape.H)
+            if (shape.H < dy)
                 return false;
 
             return true;
         }
-        public static bool Contain(in AABB2D shape, in Circle other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
-        public static bool Contain(in AABB2D shape, in AABB2D other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
+        public static bool Contain(in AABB2D shape, in Circle other)
+        {
+            if (shape.Left() > other.Left())
+                return false;
+            if (shape.Right() < other.Right())
+                return false;
+            if (shape.Bottom() > other.Bottom())
+                return false;
+            if (shape.Top() < other.Top())
+                return false;
+            return true;
+        }
+        public static bool Contain(in AABB2D shape, in AABB2D other)
+        {
+            if (shape.Left() > other.Left())
+                return false;
+            if (shape.Right() < other.Right())
+                return false;
+            if (shape.Bottom() > other.Bottom())
+                return false;
+            if (shape.Top() < other.Top())
+                return false;
+            return true;
+        }
         public static bool Contain(in AABB2DInt shape, Vector2DInt other)
         {
             int dx = Math.Abs(other.X - shape.X);
-            if (dx > shape.W)
+            if (shape.W < dx)
                 return false;
 
             int dy = Math.Abs(other.Y - shape.Y);
-            if (dy > shape.H)
+            if (shape.H < dy)
                 return false;
 
             return true;
         }
-        public static bool Contain(in AABB2DInt shape, in CircleInt other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
-        public static bool Contain(in AABB2DInt shape, in AABB2DInt other) => shape.Left() <= other.Left() && shape.Right() >= other.Right() && shape.Bottom() <= other.Bottom() && shape.Top() >= other.Top();
+        public static bool Contain(in AABB2DInt shape, in CircleInt other)
+        {
+            if (shape.Left() > other.Left())
+                return false;
+            if (shape.Right() < other.Right())
+                return false;
+            if (shape.Bottom() > other.Bottom())
+                return false;
+            if (shape.Top() < other.Top())
+                return false;
+            return true;
+        }
+        public static bool Contain(in AABB2DInt shape, in AABB2DInt other)
+        {
+            if (shape.Left() > other.Left())
+                return false;
+            if (shape.Right() < other.Right())
+                return false;
+            if (shape.Bottom() > other.Bottom())
+                return false;
+            if (shape.Top() < other.Top())
+                return false;
+            return true;
+        }
 
         public static bool Contain(in OBB2D shape, in Vector2D other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
-
-            var dx = (rx - shape.X).Abs();
-            if (dx > shape.W)
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            if (shape.W < rx.Abs())
                 return false;
-
-            var dy = (ry - shape.Y).Abs();
-            if (dy > shape.H)
+            if (shape.H < ry.Abs())
                 return false;
-
             return true;
         }
         public static bool Contain(in OBB2D shape, in Circle other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
             var reverse = new Circle(rx, ry, other.R);
-            return shape.Left() <= reverse.Left() && shape.Right() >= reverse.Right() && shape.Bottom() <= reverse.Bottom() && shape.Top() >= reverse.Top();
+            if (-shape.W > reverse.Left())
+                return false;
+            if (shape.W < reverse.Right())
+                return false;
+            if (-shape.H > reverse.Bottom())
+                return false;
+            if (shape.H >= reverse.Top())
+                return true;
+            return false;
         }
         public static bool Contain(in OBB2D shape, in AABB2D other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out var na);
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out var na);
             var reverse = new OBB2D(rx, ry, other.W, other.H, na);
             var boundary = Converts.AsAABB2D(in reverse);
-            return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
+            if (-shape.W > boundary.Left())
+                return false;
+            if (shape.W < boundary.Right())
+                return false;
+            if (-shape.H > boundary.Bottom())
+                return false;
+            if (shape.H < boundary.Top())
+                return false;
+            return true;
         }
         public static bool Contain(in OBB2D shape, in OBB2D other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A - other.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
             var reverse = new OBB2D(rx, ry, other.W, other.H, na);
             var boundary = Converts.AsAABB2D(in reverse);
-            return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
+            if (-shape.W > boundary.Left())
+                return false;
+            if (shape.W < boundary.Right())
+                return false;
+            if (-shape.H > boundary.Bottom())
+                return false;
+            if (shape.H < boundary.Top())
+                return false;
+            return true;
         }
         public static bool Contain(in OBB2DInt shape, Vector2DInt other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
-
-            var dx = (rx - shape.X).Abs();
-            if (dx > shape.W)
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            if (shape.W < rx.Abs())
                 return false;
-
-            var dy = (ry - shape.Y).Abs();
-            if (dy > shape.H)
+            if (shape.H < ry.Abs())
                 return false;
-
             return true;
         }
         public static bool Contain(in OBB2DInt shape, in CircleInt other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
             var reverse = new Circle(rx, ry, other.R);
-            return shape.Left() <= reverse.Left() && shape.Right() >= reverse.Right() && shape.Bottom() <= reverse.Bottom() && shape.Top() >= reverse.Top();
+            if (-shape.W > reverse.Left())
+                return false;
+            if (shape.W < reverse.Right())
+                return false;
+            if (-shape.H > reverse.Bottom())
+                return false;
+            if (shape.H >= reverse.Top())
+                return true;
+            return false;
         }
         public static bool Contain(in OBB2DInt shape, in AABB2DInt other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out var na);
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out var na);
             var reverse = new OBB2D(rx, ry, other.W, other.H, na);
             var boundary = Converts.AsAABB2D(in reverse);
-            return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
+            if (-shape.W > boundary.Left())
+                return false;
+            if (shape.W < boundary.Right())
+                return false;
+            if (-shape.H > boundary.Bottom())
+                return false;
+            if (shape.H < boundary.Top())
+                return false;
+            return true;
         }
         public static bool Contain(in OBB2DInt shape, in OBB2DInt other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A - other.A”度
         {
-            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
             var reverse = new OBB2D(rx, ry, other.W, other.H, na);
             var boundary = Converts.AsAABB2D(in reverse);
-            return shape.Left() <= boundary.Left() && shape.Right() >= boundary.Right() && shape.Bottom() <= boundary.Bottom() && shape.Top() >= boundary.Top();
+            if (-shape.W > boundary.Left())
+                return false;
+            if (shape.W < boundary.Right())
+                return false;
+            if (-shape.H > boundary.Bottom())
+                return false;
+            if (shape.H < boundary.Top())
+                return false;
+            return true;
         }
 
         public static bool Contain(in Polygon shape, in Vector2D other) // 参考“PolygonIntersectChecker.Contain()”
@@ -606,9 +690,6 @@ namespace Eevee.Fixed
         public static bool Contain(in Polygon shape, in Circle other)
         {
             var center = other.Center();
-            if (other.R.RawValue == 0)
-                return Contain(in shape, in center);
-
             var rSqr = other.R.Sqr();
             for (int flag = 0, count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
             {
@@ -625,7 +706,7 @@ namespace Eevee.Fixed
 
                 var side = new Segment2D(in pi, in pj);
                 var sqrDistance = SqrDistance(in side, in center);
-                if (sqrDistance <= rSqr)
+                if (sqrDistance < rSqr)
                     return false;
             }
 
@@ -633,18 +714,38 @@ namespace Eevee.Fixed
         }
         public static bool Contain(in Polygon shape, in AABB2D other)
         {
-            using var checker = new PolygonIntersectChecker(in shape);
-            return checker.Contain(other.Center()) && checker.Contain(other.LeftBottom()) && checker.Contain(other.RightBottom()) && checker.Contain(other.RightTop()) && checker.Contain(other.LeftTop());
+            using var checker = new PolygonIntersectChecker(in shape, true, false);
+            if (!checker.Contain(other.Center()))
+                return false;
+            if (!checker.Contain(other.LeftBottom()))
+                return false;
+            if (!checker.Contain(other.RightBottom()))
+                return false;
+            if (!checker.Contain(other.RightTop()))
+                return false;
+            if (!checker.Contain(other.LeftTop()))
+                return false;
+            return true;
         }
         public static bool Contain(in Polygon shape, in OBB2D other)
         {
             other.RotatedCorner(out var p0, out var p1, out var p2, out var p3);
-            using var checker = new PolygonIntersectChecker(in shape);
-            return checker.Contain(other.Center()) && checker.Contain(in p0) && checker.Contain(in p1) && checker.Contain(in p2) && checker.Contain(in p3);
+            using var checker = new PolygonIntersectChecker(in shape, true, false);
+            if (!checker.Contain(other.Center()))
+                return false;
+            if (!checker.Contain(in p0))
+                return false;
+            if (!checker.Contain(in p1))
+                return false;
+            if (!checker.Contain(in p2))
+                return false;
+            if (!checker.Contain(in p3))
+                return false;
+            return true;
         }
         public static bool Contain(in Polygon shape, in Polygon other)
         {
-            using var checker = new PolygonIntersectChecker(in shape);
+            using var checker = new PolygonIntersectChecker(in shape, true, false);
             foreach (var point in other.Points)
                 if (!checker.Contain(in point))
                     return false;
@@ -671,10 +772,7 @@ namespace Eevee.Fixed
         public static bool Contain(in PolygonInt shape, in CircleInt other)
         {
             var center = other.Center();
-            if (other.R == 0)
-                return Contain(shape, center);
-
-            int rSqr = other.R * other.R;
+            var rSqr = (Fixed64)(other.R * other.R);
             for (int flag = 0, count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 var pi = shape[i];
@@ -690,7 +788,7 @@ namespace Eevee.Fixed
 
                 var side = new Segment2DInt(pi, pj);
                 var sqrDistance = SqrDistance(in side, center);
-                if (sqrDistance <= rSqr)
+                if (sqrDistance < rSqr)
                     return false;
             }
 
@@ -698,18 +796,38 @@ namespace Eevee.Fixed
         }
         public static bool Contain(in PolygonInt shape, in AABB2DInt other)
         {
-            using var checker = new PolygonIntIntersectChecker(in shape);
-            return checker.Contain(other.Center()) && checker.Contain(other.LeftBottom()) && checker.Contain(other.RightBottom()) && checker.Contain(other.RightTop()) && checker.Contain(other.LeftTop());
+            using var checker = new PolygonIntIntersectChecker(in shape, true, false);
+            if (!checker.Contain(other.Center()))
+                return false;
+            if (!checker.Contain(other.LeftBottom()))
+                return false;
+            if (!checker.Contain(other.RightBottom()))
+                return false;
+            if (!checker.Contain(other.RightTop()))
+                return false;
+            if (!checker.Contain(other.LeftTop()))
+                return false;
+            return true;
         }
         public static bool Contain(in PolygonInt shape, in OBB2DInt other)
         {
             other.RotatedCorner(out var p0, out var p1, out var p2, out var p3);
-            using var checker = new PolygonIntIntersectChecker(in shape);
-            return checker.Contain(other.Center()) && checker.Contain((Vector2DInt)p0) && checker.Contain((Vector2DInt)p1) && checker.Contain((Vector2DInt)p2) && checker.Contain((Vector2DInt)p3);
+            using var checker = new PolygonIntIntersectChecker(in shape, true, false);
+            if (!checker.Contain(other.Center()))
+                return false;
+            if (!checker.Contain((Vector2DInt)p0))
+                return false;
+            if (!checker.Contain((Vector2DInt)p1))
+                return false;
+            if (!checker.Contain((Vector2DInt)p2))
+                return false;
+            if (!checker.Contain((Vector2DInt)p3))
+                return false;
+            return true;
         }
         public static bool Contain(in PolygonInt shape, in PolygonInt other)
         {
-            using var checker = new PolygonIntIntersectChecker(in shape);
+            using var checker = new PolygonIntIntersectChecker(in shape, true, false);
             foreach (var point in other.Points)
                 if (!checker.Contain(point))
                     return false;
@@ -748,7 +866,14 @@ namespace Eevee.Fixed
             var y = Fixed64.Max((shape.Y - other.Y).Abs() - shape.H, Fixed64.Zero);
             return x.Sqr() + y.Sqr() <= other.R.Sqr();
         }
-        public static bool Intersect(in AABB2D shape, in AABB2D other) => (shape.X - other.X).Abs() < shape.W + other.W && (shape.Y - other.Y).Abs() < shape.H + other.H;
+        public static bool Intersect(in AABB2D shape, in AABB2D other)
+        {
+            if ((shape.X - other.X).Abs() >= shape.W + other.W)
+                return false;
+            if ((shape.Y - other.Y).Abs() >= shape.H + other.H)
+                return false;
+            return true;
+        }
         public static bool Intersect(in AABB2D shape, in AABB2D other, out AABB2D intersect)
         {
             var xMin = Fixed64.Max(shape.Left(), other.Left());
@@ -776,7 +901,14 @@ namespace Eevee.Fixed
             var y = Fixed64.Max(Math.Abs(shape.Y - other.Y) - shape.H, Fixed64.Zero);
             return x.Sqr() + y.Sqr() <= other.R * other.R;
         }
-        public static bool Intersect(in AABB2DInt shape, in AABB2DInt other) => Math.Abs(shape.X - other.X) < shape.W + other.W && Math.Abs(shape.Y - other.Y) < shape.H + other.H;
+        public static bool Intersect(in AABB2DInt shape, in AABB2DInt other)
+        {
+            if (Math.Abs(shape.X - other.X) >= shape.W + other.W)
+                return false;
+            if (Math.Abs(shape.Y - other.Y) >= shape.H + other.H)
+                return false;
+            return true;
+        }
         public static bool Intersect(in AABB2DInt shape, in AABB2DInt other, out AABB2DInt intersect)
         {
             int xMin = Math.Max(shape.Left(), other.Left());
@@ -808,67 +940,97 @@ namespace Eevee.Fixed
             return xMin <= xMax && yMin <= yMax;
         }
 
-        public static bool Intersect(in OBB2D shape, in Circle other)
+        public static bool Intersect(in OBB2D shape, in Circle other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            var x = Fixed64.Max(rx.Abs() - shape.W, Fixed64.Zero);
+            var y = Fixed64.Max(ry.Abs() - shape.H, Fixed64.Zero);
+            return x.Sqr() + y.Sqr() <= other.R.Sqr();
         }
         public static bool Intersect(in OBB2D shape, in AABB2D other) => new OBBIntersectChecker(in shape).Intersect(in other);
-        public static bool Intersect(in OBB2D shape, in OBB2D other)
+        public static bool Intersect(in OBB2D shape, in OBB2D other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A - other.A”度
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
+            var reverse = new OBB2D(rx, ry, other.W, other.H, na);
+            return new OBBIntersectChecker(in reverse).Intersect(Converts.AsAABB2DWithoutAngle(in shape));
         }
-        public static bool Intersect(in OBB2DInt shape, in CircleInt other)
+        public static bool Intersect(in OBB2DInt shape, in CircleInt other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A”度
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            ReverseLocalRotate(other.X, other.Y, shape.X, shape.Y, shape.A, out var rx, out var ry, out _);
+            var x = Fixed64.Max(rx.Abs() - shape.W, Fixed64.Zero);
+            var y = Fixed64.Max(ry.Abs() - shape.H, Fixed64.Zero);
+            return x.Sqr() + y.Sqr() <= other.R * other.R;
         }
         public static bool Intersect(in OBB2DInt shape, in AABB2DInt other) => new OBBIntIntersectChecker(in shape).Intersect(in other);
-        public static bool Intersect(in OBB2DInt shape, in OBB2DInt other)
+        public static bool Intersect(in OBB2DInt shape, in OBB2DInt other) // 计“shape”未旋转，即“other”绕“shape”的中心点，反向旋转“shape.A - other.A”度
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            ReverseRotate(other.X, other.Y, shape.X, shape.Y, shape.A - other.A, out var rx, out var ry, out var na);
+            var reverse = new OBB2DInt((int)rx, (int)ry, other.W, other.H, na);
+            return new OBBIntIntersectChecker(in reverse).Intersect(Converts.AsAABB2DIntWithoutAngle(in shape));
         }
 
         public static bool Intersect(in Polygon shape, in Circle other)
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            var center = other.Center();
+            var rSqr = other.R.Sqr();
+            for (int count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            {
+                ref var pi = ref shape[i];
+                ref var pj = ref shape[j];
+
+                var side = new Segment2D(in pi, in pj);
+                var sqrDistance = SqrDistance(in side, in center);
+                if (sqrDistance <= rSqr)
+                    return true;
+            }
+
+            return false;
         }
         public static bool Intersect(in Polygon shape, in AABB2D other)
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            using var checker = new PolygonIntersectChecker(in shape, true, false);
+            return checker.Intersect(in other);
         }
         public static bool Intersect(in Polygon shape, in OBB2D other)
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            using var checker = new PolygonIntersectChecker(in shape, true, false);
+            return checker.Intersect(in other);
         }
         public static bool Intersect(in Polygon shape, in Polygon other)
         {
-            // todo eevee 未实现
+            // todo eevee GJK 闵可夫斯基差集
             throw new NotImplementedException();
         }
         public static bool Intersect(in PolygonInt shape, in CircleInt other)
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            var center = other.Center();
+            var rSqr = (Fixed64)(other.R * other.R);
+            for (int count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            {
+                var pi = shape[i];
+                var pj = shape[j];
+
+                var side = new Segment2DInt(pi, pj);
+                var sqrDistance = SqrDistance(side, center);
+                if (sqrDistance <= rSqr)
+                    return true;
+            }
+
+            return false;
         }
         public static bool Intersect(in PolygonInt shape, in AABB2DInt other)
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            using var checker = new PolygonIntIntersectChecker(in shape, true, false);
+            return checker.Intersect(in other);
         }
         public static bool Intersect(in PolygonInt shape, in OBB2DInt other)
         {
-            // todo eevee 未实现
-            throw new NotImplementedException();
+            using var checker = new PolygonIntIntersectChecker(in shape, true, false);
+            return checker.Intersect(in other);
         }
         public static bool Intersect(in PolygonInt shape, in PolygonInt other)
         {
-            // todo eevee 未实现
+            // todo eevee GJK 闵可夫斯基差集
             throw new NotImplementedException();
         }
         #endregion

@@ -91,7 +91,7 @@ namespace Eevee.QuadTree
         public bool CheckElement(in AABB2DInt boundary)
         {
             var shape = Converts.AsCircleInt(in boundary);
-            return Geometry.Intersect(in Shape, in shape) && Checker.Intersect(in shape);
+            return Geometry.Intersect(in Shape, in shape) && Geometry.Intersect(in Origin, in shape);
         }
     }
 
@@ -127,7 +127,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Polygon2CircleNodeChecker(in PolygonInt shape)
         {
-            var checker = new PolygonIntIntersectChecker(in shape);
+            var checker = new PolygonIntIntersectChecker(in shape, false, true);
 
             Origin = shape;
             Shape = AABB2DInt.Create(checker.Shape.Left(), checker.Shape.Right(), checker.Shape.Bottom(), checker.Shape.Top());
@@ -150,7 +150,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Polygon2AABBNodeChecker(in PolygonInt shape)
         {
-            var checker = new PolygonIntIntersectChecker(in shape);
+            var checker = new PolygonIntIntersectChecker(in shape, true, false);
 
             Origin = shape;
             Shape = AABB2DInt.Create(checker.Shape.Left(), checker.Shape.Right(), checker.Shape.Bottom(), checker.Shape.Top());

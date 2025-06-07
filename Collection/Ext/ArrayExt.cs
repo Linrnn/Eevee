@@ -33,19 +33,13 @@ namespace Eevee.Collection
         public static T[] SharedRent<T>(int capacity) => capacity > 0 ? ArrayPool<T>.Shared.Rent(capacity) : Array.Empty<T>();
         public static void SharedReturn<T>(this T[] source)
         {
-            if (source == null)
-                return;
-
-            if (ReferenceEquals(source, Array.Empty<T>()))
-                return;
-
-            ArrayPool<T>.Shared.Return(source, true);
+            if (source.Length > 0)
+                ArrayPool<T>.Shared.Return(source, true);
         }
         public static void SharedReturn<T>(ref T[] source)
         {
-            if (source != null && !ReferenceEquals(source, Array.Empty<T>()))
+            if (source.Length > 0)
                 ArrayPool<T>.Shared.Return(source, true);
-
             source = null;
         }
 
