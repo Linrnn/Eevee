@@ -28,9 +28,46 @@ namespace Eevee.Fixed
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
+        internal static void NotZero(in Vector2D dir)
+        {
+            Assert.NotEqual<ArgumentException, AssertArgs, Vector2D>(dir, Vector2D.Zero, nameof(dir), "dir is (0, 0)");
+        }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void NotZero(in Vector3D dir)
+        {
+            Assert.NotEqual<ArgumentException, AssertArgs, Vector3D>(dir, Vector3D.Zero, nameof(dir), "dir is (0, 0, 0)");
+        }
+
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
         internal static void Normal(in Vector2D dir)
         {
             Assert.Equal<ArgumentException, AssertArgs<Vector2D>, Vector2D>(dir, dir.Normalized(), nameof(dir), "dir:{0} isn't normal", new AssertArgs<Vector2D>(dir));
+        }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void Normal(in Vector3D dir)
+        {
+            Assert.Equal<ArgumentException, AssertArgs<Vector3D>, Vector3D>(dir, dir.Normalized(), nameof(dir), "dir:{0} isn't normal", new AssertArgs<Vector3D>(dir));
+        }
+
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void Segment(in Vector2D start, in Vector2D end)
+        {
+            Assert.NotEqual<ArgumentException, AssertArgs<Vector2D>, Vector2D>(start, end, nameof(start), "start == end, value:{0}", new AssertArgs<Vector2D>(end));
+        }
+        [Conditional(Macro.Debug)]
+        [Conditional(Macro.Editor)]
+        [Conditional(Macro.Assert)]
+        internal static void Segment(Vector2DInt start, Vector2DInt end)
+        {
+            Assert.NotEqual<ArgumentException, AssertArgs<Vector2DInt>, Vector2DInt>(start, end, nameof(start), "start == end, value:{0}", new AssertArgs<Vector2DInt>(end));
         }
 
         [Conditional(Macro.Debug)]

@@ -1,29 +1,43 @@
-﻿using System;
+﻿using Eevee.Collection;
+using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Eevee.Fixed
 {
-    internal readonly unsafe struct PolygonIntIntersectChecker : IDisposable
+    internal readonly struct PolygonIntIntersectChecker : IDisposable
     {
         internal readonly PolygonInt Shape;
-        private readonly Vector2DInt* _sides;
+        private readonly Vector2DInt[] _sides;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal PolygonIntIntersectChecker(in PolygonInt shape)
         {
-            var sides = (Vector2DInt*)Marshal.AllocHGlobal(sizeof(Vector2DInt) * shape.Points.Count);
-            int last = shape.Points.Count - 1;
-            for (int i = 0; i < last; ++i)
-                sides[i] = shape[i] - shape[i + 1];
-            sides[last] = shape[last] - shape[0];
-
+            int count = shape.SideCount();
+            var sides = ArrayExt.SharedRent<Vector2DInt>(count);
+            for (int i = 0, j = count - 1; i < count; j = i++)
+                sides[i] = shape[i] - shape[j];
             Shape = shape;
             _sides = sides;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Dispose() => Marshal.FreeHGlobal((IntPtr)_sides);
+        public void Dispose() => _sides.SharedReturn();
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool Contain(Vector2DInt shape) // 向量方向相同
+        {
+            for (int flag = 0, count = Shape.PointCount(), i = 0; i < count; ++i)
+            {
+                int cross = Vector2DInt.Cross(shape - Shape[i], _sides[i]);
+                if (cross == 0)
+                    continue;
+                if (flag == 0)
+                    flag = cross;
+                else if (flag != cross)
+                    return false;
+            }
+
+            return true;
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in CircleInt shape)
         {
@@ -33,13 +47,13 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in AABB2DInt shape)
         {
-            if (SameDirection(shape.LeftBottom()))
+            if (Contain(shape.LeftBottom()))
                 return true;
-            if (SameDirection(shape.RightBottom()))
+            if (Contain(shape.RightBottom()))
                 return true;
-            if (SameDirection(shape.RightTop()))
+            if (Contain(shape.RightTop()))
                 return true;
-            if (SameDirection(shape.LeftTop()))
+            if (Contain(shape.LeftTop()))
                 return true;
 
             foreach (var point in Shape.Points)
@@ -47,23 +61,6 @@ namespace Eevee.Fixed
                     return true;
 
             return false;
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool SameDirection(Vector2DInt point) // 向量方向相同
-        {
-            for (int flag = 0, count = Shape.PointCount(), i = 0; i < count; ++i)
-            {
-                int cross = Vector2DInt.Cross(point - Shape[i], _sides[i]);
-                if (cross == 0)
-                    continue;
-
-                if (flag == 0)
-                    flag = cross;
-                else if (flag != cross)
-                    return false;
-            }
-
-            return true;
         }
     }
 }

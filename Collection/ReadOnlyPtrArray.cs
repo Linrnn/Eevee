@@ -4,16 +4,15 @@ using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
 {
-    public readonly struct ReadOnlyArray<T>
+    public readonly unsafe struct ReadOnlyPtrArray<T> where T : unmanaged
     {
         #region Feild/Constructor
-        private readonly T[] _ptr;
+        private readonly T* _ptr;
         public readonly int Count;
 
-        public ReadOnlyArray(T[] ptr, int count)
+        public ReadOnlyPtrArray(T* ptr, int count)
         {
             Assert.NotNull<ArgumentNullException, AssertArgs>(ptr, nameof(ptr), "is null!");
-            Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(ptr.Length, count, nameof(count), "Length:{0} <= Count:{1}!", new AssertArgs<int, int>(ptr.Length, count));
             _ptr = ptr;
             Count = count;
         }
@@ -33,8 +32,8 @@ namespace Eevee.Collection
             return ref _ptr[index];
         }
 
-        public ReadOnlySpan<T> AsSpan() => new(_ptr, 0, Count);
-        public ReadOnlySpan<T>.Enumerator GetEnumerator() => new ReadOnlySpan<T>(_ptr, 0, Count).GetEnumerator();
+        public ReadOnlySpan<T> AsSpan() => new(_ptr, Count);
+        public ReadOnlySpan<T>.Enumerator GetEnumerator() => new ReadOnlySpan<T>(_ptr, Count).GetEnumerator();
         #endregion
     }
 }

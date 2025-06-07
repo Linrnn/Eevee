@@ -15,8 +15,11 @@ namespace Eevee.Fixed
 
         public Ray3D(in Vector3D origin, in Vector3D direction)
         {
+            Check.NotZero(in direction);
+            Check.Normal(in direction);
+
             Origin = origin;
-            Direction = direction.Normalized();
+            Direction = direction;
         }
         #endregion
 

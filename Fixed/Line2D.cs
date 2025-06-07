@@ -4,16 +4,16 @@ using System;
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 确定性的二维射线
+    /// 确定性的2D直线
     /// </summary>
     [Serializable]
-    public struct Ray2D : IEquatable<Ray2D>, IComparable<Ray2D>, IFormattable
+    public struct Line2D : IEquatable<Line2D>, IComparable<Line2D>, IFormattable
     {
         #region 字段/初始化
         public Vector2D Origin;
         public Vector2D Direction; // 必须是单位向量
 
-        public Ray2D(in Vector2D origin, in Vector2D direction)
+        public Line2D(in Vector2D origin, in Vector2D direction)
         {
             Check.NotZero(in direction);
             Check.Normal(in direction);
@@ -23,25 +23,16 @@ namespace Eevee.Fixed
         }
         #endregion
 
-        #region 基础方法
-        public readonly Vector2D GetPoint(Fixed64 distance) => Origin + Direction * distance;
-        #endregion
-
         #region 隐式转换/显示转换/运算符重载
-#if UNITY_5_3_OR_NEWER
-        public static implicit operator Ray2D(in UnityEngine.Ray2D value) => new(value.origin, value.direction);
-        public static explicit operator UnityEngine.Ray2D(in Ray2D value) => new((UnityEngine.Vector2)value.Origin, (UnityEngine.Vector2)value.Direction);
-#endif
-
-        public static bool operator ==(in Ray2D lhs, in Ray2D rhs) => lhs.Origin == rhs.Origin && lhs.Direction == rhs.Direction;
-        public static bool operator !=(in Ray2D lhs, in Ray2D rhs) => lhs.Origin != rhs.Origin || lhs.Direction != rhs.Direction;
+        public static bool operator ==(in Line2D lhs, in Line2D rhs) => lhs.Origin == rhs.Origin && lhs.Direction == rhs.Direction;
+        public static bool operator !=(in Line2D lhs, in Line2D rhs) => lhs.Origin != rhs.Origin || lhs.Direction != rhs.Direction;
         #endregion
 
         #region 继承/重载
-        public readonly override bool Equals(object obj) => obj is Ray2D other && this == other;
+        public readonly override bool Equals(object obj) => obj is Line2D other && this == other;
         public readonly override int GetHashCode() => Origin.GetHashCode() ^ Direction.GetHashCode();
-        public readonly bool Equals(Ray2D other) => this == other;
-        public readonly int CompareTo(Ray2D other)
+        public readonly bool Equals(Line2D other) => this == other;
+        public readonly int CompareTo(Line2D other)
         {
             int match0 = Origin.CompareTo(Origin);
             if (match0 != 0)
