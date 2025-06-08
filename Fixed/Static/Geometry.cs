@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Eevee.Collection;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Fixed
 {
     /// <summary>
-    /// 几何相关
+    /// 几何相关<br/>
+    /// 参考链接：https://zhuanlan.zhihu.com/p/511164248
     /// </summary>
     public readonly struct Geometry
     {
@@ -671,7 +673,7 @@ namespace Eevee.Fixed
 
         public static bool Contain(in Polygon shape, in Vector2D other) // 参考“PolygonIntersectChecker.Contain()”
         {
-            for (int flag = 0, count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            for (int flag = 0, count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 ref var pi = ref shape[i];
                 ref var pj = ref shape[j];
@@ -691,7 +693,7 @@ namespace Eevee.Fixed
         {
             var center = other.Center();
             var rSqr = other.R.Sqr();
-            for (int flag = 0, count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            for (int flag = 0, count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 ref var pi = ref shape[i];
                 ref var pj = ref shape[j];
@@ -753,7 +755,7 @@ namespace Eevee.Fixed
         }
         public static bool Contain(in PolygonInt shape, Vector2DInt other)
         {
-            for (int flag = 0, count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            for (int flag = 0, count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 var pi = shape[i];
                 var pj = shape[j];
@@ -773,7 +775,7 @@ namespace Eevee.Fixed
         {
             var center = other.Center();
             var rSqr = (Fixed64)(other.R * other.R);
-            for (int flag = 0, count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            for (int flag = 0, count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 var pi = shape[i];
                 var pj = shape[j];
@@ -973,7 +975,7 @@ namespace Eevee.Fixed
         {
             var center = other.Center();
             var rSqr = other.R.Sqr();
-            for (int count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            for (int count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 ref var pi = ref shape[i];
                 ref var pj = ref shape[j];
@@ -996,16 +998,57 @@ namespace Eevee.Fixed
             using var checker = new PolygonIntersectChecker(in shape, true, false);
             return checker.Intersect(in other);
         }
-        public static bool Intersect(in Polygon shape, in Polygon other)
+        public static bool SATIntersect(in Polygon shape, in Polygon other) // SAT，分离轴定理
         {
-            // todo eevee GJK 闵可夫斯基差集
-            throw new NotImplementedException();
+            var shapeSpan = shape.Points.AsSpan();
+            var otherSpan = other.Points.AsSpan();
+            for (int count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
+            {
+                ref var pi = ref shape[i];
+                ref var pj = ref shape[j];
+                var axis = new Vector2D(pj.Y - pi.Y, pi.X - pj.X); // 等价“(pi - pj).Perpendicular();”
+                if (HasSeparatingAxis(in axis, in shapeSpan, in otherSpan))
+                    return false; // 存在分离轴 → 不相交
+            }
+
+            return true;
+        }
+        public static bool GJKIntersect(in Polygon shape, in Polygon other) // GJK，闵可夫斯基差集
+        {
+            var shapeSpan = shape.Points.AsSpan();
+            var otherSpan = other.Points.AsSpan();
+            bool intersect = false;
+            var simplex = new RefArray<Vector2D>(null);
+
+            var direction = Vector2D.Right; // 初始方向，可以任意指定
+            var support = Support(in direction, in shapeSpan, in otherSpan); // 初始支持点
+            direction = -support; // 指向原点
+            RefArray.Add(ref simplex, support);
+
+            // for (int count = shape.PointCount() * other.PointCount(), i = 0; i < count; ++i)
+            while (true)
+            {
+                support = Support(in direction, in shapeSpan, in otherSpan);
+                var dot = Vector2D.Dot(in support, in direction);
+                if (dot.RawValue <= 0) // 原点不在包围体内
+                    break;
+
+                RefArray.Add(ref simplex, support);
+                if (!NearestSimplex(ref simplex, ref direction))
+                    continue;
+
+                intersect = true; // 原点在包围体内
+                break;
+            }
+
+            RefArray.Return(simplex);
+            return intersect;
         }
         public static bool Intersect(in PolygonInt shape, in CircleInt other)
         {
             var center = other.Center();
             var rSqr = (Fixed64)(other.R * other.R);
-            for (int count = shape.SideCount(), i = 0, j = count - 1; i < count; j = i++)
+            for (int count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 var pi = shape[i];
                 var pj = shape[j];
@@ -1028,10 +1071,217 @@ namespace Eevee.Fixed
             using var checker = new PolygonIntIntersectChecker(in shape, true, false);
             return checker.Intersect(in other);
         }
-        public static bool Intersect(in PolygonInt shape, in PolygonInt other)
+        public static bool Intersect(in PolygonInt shape, in PolygonInt other) // GJK，闵可夫斯基差集
         {
-            // todo eevee GJK 闵可夫斯基差集
-            throw new NotImplementedException();
+            var shapeSpan = shape.Points.AsSpan();
+            var otherSpan = other.Points.AsSpan();
+            bool intersect = false;
+            var simplex = new RefArray<Vector2DInt>(null);
+
+            var direction = Vector2DInt.Right; // 初始方向，可以任意指定
+            var support = Support(direction, in shapeSpan, in otherSpan); // 初始支持点
+            direction = -support; // 指向原点
+            RefArray.Add(ref simplex, support);
+
+            // for (int count = shape.PointCount() * other.PointCount(), i = 0; i < count; ++i)
+            while (true)
+            {
+                support = Support(direction, in shapeSpan, in otherSpan);
+                int dot = Vector2DInt.Dot(support, direction);
+                if (dot <= 0) // 原点不在包围体内
+                    break;
+
+                RefArray.Add(ref simplex, support);
+                if (!NearestSimplex(ref simplex, ref direction))
+                    continue;
+
+                intersect = true; // 原点在包围体内
+                break;
+            }
+
+            RefArray.Return(simplex);
+            return intersect;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool HasSeparatingAxis(in Vector2D axis, in ReadOnlySpan<Vector2D> shape, in ReadOnlySpan<Vector2D> other) // 存在分离轴
+        {
+            ProjectSides(in axis, in shape, out var shapeMin, out var shapeMax);
+            ProjectSides(in axis, in other, out var otherMin, out var otherMax);
+            return shapeMin > otherMax || shapeMax < otherMin; // 两个区间不重叠
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ProjectSides(in Vector2D axis, in ReadOnlySpan<Vector2D> shape, out Fixed64 min, out Fixed64 max)
+        {
+            min = Fixed64.MaxValue;
+            max = Fixed64.MinValue;
+
+            foreach (var point in shape)
+            {
+                var dot = Vector2D.Dot(in axis, in point);
+                if (dot < min)
+                    min = dot;
+                else if (dot > max)
+                    max = dot;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector2D Support(in Vector2D direction, in ReadOnlySpan<Vector2D> shape, in ReadOnlySpan<Vector2D> other)
+        {
+            var shapeFurthest = FindFurthestPoint(in direction, in shape);
+            var otherFurthest = FindFurthestPoint(-direction, in other);
+            return shapeFurthest - otherFurthest;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool NearestSimplex(ref RefArray<Vector2D> simplex, ref Vector2D direction)
+        {
+            switch (simplex.Count)
+            {
+                case 2:
+                {
+                    ref var p0 = ref simplex.Items[0];
+                    ref var p1 = ref simplex.Items[1];
+                    var p01 = p0 - p1;
+                    var np1 = -p1;
+                    direction = TripleProduct(in p01, in np1, in p01); // 垂直于AB，指向原点
+                    return false;
+                }
+                case 3:
+                {
+                    ref var p0 = ref simplex.Items[0];
+                    ref var p1 = ref simplex.Items[1];
+                    ref var p2 = ref simplex.Items[2];
+                    var p12 = p1 - p2;
+                    var p02 = p0 - p2;
+                    var np2 = -p2;
+
+                    var product0 = TripleProduct(in p02, in p12, in p12);
+                    var dot0 = Vector2D.Dot(in product0, in np2);
+                    if (dot0.RawValue > 0)
+                    {
+                        RefArray.RemoveAt(ref simplex, 0); // 去掉 C
+                        direction = product0;
+                        return false;
+                    }
+
+                    var product1 = TripleProduct(in p12, in p02, in p02);
+                    var dot1 = Vector2D.Dot(in product1, in np2);
+                    if (dot1.RawValue > 0)
+                    {
+                        RefArray.RemoveAt(ref simplex, 1); // 去掉 B
+                        direction = product1;
+                        return false;
+                    }
+
+                    return true; // 原点在三角形中
+                }
+                default: return false;
+            }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector2D FindFurthestPoint(in Vector2D direction, in ReadOnlySpan<Vector2D> shape) // 寻找与“direction”最远的点
+        {
+            var max = Fixed64.MinValue;
+            var furthest = default(Vector2D);
+
+            foreach (var point in shape)
+            {
+                var dot = Vector2D.Dot(in point, in direction);
+                if (dot <= max)
+                    continue;
+
+                max = dot;
+                furthest = point;
+            }
+
+            return furthest;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector2D TripleProduct(in Vector2D p0, in Vector2D p1, in Vector2D p2) // 向量三重积：u × (v × w) ≈ 用于获得垂直方向
+        {
+            var dot02 = Vector2D.Dot(in p0, in p2);
+            var dot12 = Vector2D.Dot(in p1, in p2);
+            return new Vector2D(p1.X * dot02 - p0.X * dot12, p1.Y * dot02 - p0.Y * dot12);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector2DInt Support(Vector2DInt direction, in ReadOnlySpan<Vector2DInt> shape, in ReadOnlySpan<Vector2DInt> other)
+        {
+            var shapeFurthest = FindFurthestPoint(direction, in shape);
+            var otherFurthest = FindFurthestPoint(-direction, in other);
+            return shapeFurthest - otherFurthest;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool NearestSimplex(ref RefArray<Vector2DInt> simplex, ref Vector2DInt direction)
+        {
+            switch (simplex.Count)
+            {
+                case 2:
+                {
+                    var p0 = simplex.Items[0];
+                    var p1 = simplex.Items[1];
+                    var p01 = p0 - p1;
+                    var np1 = -p1;
+                    direction = TripleProduct(p01, np1, p01); // 垂直于AB，指向原点
+                    return false;
+                }
+                case 3:
+                {
+                    var p0 = simplex.Items[0];
+                    var p1 = simplex.Items[1];
+                    var p2 = simplex.Items[2];
+                    var p12 = p1 - p2;
+                    var p02 = p0 - p2;
+                    var np2 = -p2;
+
+                    var product0 = TripleProduct(p02, p12, p12);
+                    int dot0 = Vector2DInt.Dot(product0, np2);
+                    if (dot0 > 0)
+                    {
+                        RefArray.RemoveAt(ref simplex, 0); // 去掉 C
+                        direction = product0;
+                        return false;
+                    }
+
+                    var product1 = TripleProduct(p12, p02, p02);
+                    int dot1 = Vector2DInt.Dot(product1, np2);
+                    if (dot1 > 0)
+                    {
+                        RefArray.RemoveAt(ref simplex, 1); // 去掉 B
+                        direction = product1;
+                        return false;
+                    }
+
+                    return true; // 原点在三角形中
+                }
+                default: return false;
+            }
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector2DInt FindFurthestPoint(Vector2DInt direction, in ReadOnlySpan<Vector2DInt> shape) // 寻找与“direction”最远的点
+        {
+            int max = int.MinValue;
+            var furthest = default(Vector2DInt);
+
+            foreach (var point in shape)
+            {
+                int dot = Vector2DInt.Dot(point, direction);
+                if (dot <= max)
+                    continue;
+
+                max = dot;
+                furthest = point;
+            }
+
+            return furthest;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector2DInt TripleProduct(Vector2DInt p0, Vector2DInt p1, Vector2DInt p2) // 向量三重积：u × (v × w) ≈ 用于获得垂直方向
+        {
+            int dot02 = Vector2DInt.Dot(p0, p2);
+            int dot12 = Vector2DInt.Dot(p1, p2);
+            return new Vector2DInt(p1.X * dot02 - p0.X * dot12, p1.Y * dot02 - p0.Y * dot12);
         }
         #endregion
     }

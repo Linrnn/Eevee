@@ -13,7 +13,7 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal PolygonIntIntersectChecker(in PolygonInt shape, bool countDeltas, bool countSides)
         {
-            int count = shape.SideCount();
+            int count = shape.PointCount();
             Shape = shape;
 
             if (countDeltas && countSides)
@@ -22,8 +22,10 @@ namespace Eevee.Fixed
                 var sides = ArrayExt.SharedRent<Segment2DInt>(count);
                 for (int i = 0, j = count - 1; i < count; j = i++)
                 {
-                    deltas[i] = shape[i] - shape[j];
-                    sides[i] = new Segment2DInt(shape[i], shape[j]);
+                    var pi = shape[i];
+                    var pj = shape[j];
+                    deltas[i] = pi - pj;
+                    sides[i] = new Segment2DInt(pi, pj);
                 }
                 _deltas = deltas;
                 _sides = sides;
