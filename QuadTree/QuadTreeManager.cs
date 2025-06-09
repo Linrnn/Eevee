@@ -15,8 +15,7 @@ namespace Eevee.QuadTree
         public readonly Fixed64 Reciprocal; // = 1 / Scale
         public readonly int DepthCount;
         public readonly AABB2DInt MaxBoundary;
-        private readonly Dictionary<int, QuadTreeConfig> _configs = new();
-        private readonly Dictionary<int, MeshQuadTree> _trees = new();
+        private readonly Dictionary<int, QuadTreeBasic> _trees = new();
 
         public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IList<QuadTreeConfig> configs)
         {
@@ -24,8 +23,7 @@ namespace Eevee.QuadTree
             Reciprocal = Fixed64.One / scale;
             DepthCount = depthCount;
             MaxBoundary = maxBoundary;
-            BuildConfigs(configs);
-            BuildTrees(depthCount, in maxBoundary);
+            BuildTrees(depthCount, in maxBoundary, configs);
         }
         #endregion
 
@@ -41,12 +39,12 @@ namespace Eevee.QuadTree
             var tree = _trees[treeId];
             var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
             var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
-            var preNode = tree.GetNode(in preEle.AABB);
-            var tarNode = tree.GetNode(in tarEle.AABB);
+            var preNode = tree.CountNode(in preEle.AABB);
+            var tarNode = tree.CountNode(in tarEle.AABB);
             int preIndex = preNode.IndexOf(in preEle);
             cache = new QuadPreCache(in preEle, in tarEle, preNode, tarNode, preIndex, tree.TreeId);
 
-            if (MeshQuadTree.ShowLog)
+            if (QuadDebug.CheckIndex(treeId, index))
                 LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNode == tarNode}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
             return true;
         }
@@ -61,12 +59,12 @@ namespace Eevee.QuadTree
             var tree = _trees[treeId];
             var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
             var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
-            var preNode = tree.GetNode(in preEle.AABB);
-            var tarNode = tree.GetNode(in tarEle.AABB);
+            var preNode = tree.CountNode(in preEle.AABB);
+            var tarNode = tree.CountNode(in tarEle.AABB);
             int preIndex = preNode.IndexOf(in preEle);
             cache = new QuadPreCache(in preEle, in tarEle, preNode, tarNode, preIndex, tree.TreeId);
 
-            if (MeshQuadTree.ShowLog)
+            if (QuadDebug.CheckIndex(treeId, index))
                 LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNode == tarNode}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
             return true;
         }
@@ -99,7 +97,7 @@ namespace Eevee.QuadTree
 
             if (hasError)
                 LogRelay.Error($"[Quad] PreUpdateElement Fail, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
-            else if (MeshQuadTree.ShowLog)
+            else if (QuadDebug.Check())
                 LogRelay.Info($"[Quad] PreUpdateElement Success, NodeEqual:{preNode == tarNode}, UsePre:{usePre}, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
         }
         #endregion
@@ -249,7 +247,7 @@ namespace Eevee.QuadTree
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryCircle(IReadOnlyList<int> treeIds, in CircleInt shape, int radius, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryCircle(IReadOnlyList<int> treeIds, in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
@@ -379,45 +377,40 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 辅助方法
-        public int F2I(Fixed64 value) => (int)(value * Scale);
-        public Vector2DInt F2I(in Vector2D value) => new(F2I(value.X), F2I(value.Y));
-        public CircleInt F2I(in Circle value) => new(F2I(value.X), F2I(value.Y), F2I(value.R));
-        public AABB2DInt F2I(in AABB2D value) => new(F2I(value.X), F2I(value.Y), F2I(value.W), F2I(value.H));
+        public int F2I(Fixed64 value) => Fixed64ToInt32(value);
+        public Vector2DInt F2I(in Vector2D value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y));
+        public CircleInt F2I(in Circle value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y), Fixed64ToInt32(value.R));
+        public AABB2DInt F2I(in AABB2D value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y), Fixed64ToInt32(value.W), Fixed64ToInt32(value.H));
+        public OBB2DInt F2I(in OBB2D value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y), Fixed64ToInt32(value.W), Fixed64ToInt32(value.H), value.A);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int Fixed64ToInt32(Fixed64 value) => (int)(value * Scale);
 
-        public Fixed64 I2F(int value) => value * Reciprocal;
-        public Vector2D I2F(Vector2DInt value) => new(I2F(value.X), I2F(value.Y));
-        public Circle I2F(in CircleInt value) => new(I2F(value.X), I2F(value.Y), I2F(value.R));
-        public AABB2D I2F(in AABB2DInt value) => new(I2F(value.X), I2F(value.Y), I2F(value.W), I2F(value.H));
+        public Fixed64 I2F(int value) => Int32ToFixed64(value);
+        public Vector2D I2F(Vector2DInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y));
+        public Circle I2F(in CircleInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y), Int32ToFixed64(value.R));
+        public AABB2D I2F(in AABB2DInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y), Int32ToFixed64(value.W), Int32ToFixed64(value.H));
+        public OBB2D I2F(in OBB2DInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y), Int32ToFixed64(value.W), Int32ToFixed64(value.H), value.A);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private Fixed64 Int32ToFixed64(int value) => value * Reciprocal;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void BuildConfigs(IList<QuadTreeConfig> sizes)
+        private void BuildTrees(int depthCount, in AABB2DInt maxBoundary, IList<QuadTreeConfig> configs)
         {
-            for (int count = sizes.Count, i = 0; i < count; ++i)
-                _configs.Add(sizes[i].TreeId, sizes[i]);
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void BuildTrees(int depthCount, in AABB2DInt maxBoundary)
-        {
-            foreach ((int treeId, var config) in _configs)
+            for (int maxExtents = Math.Max(maxBoundary.W, maxBoundary.H), count = configs.Count, i = 0; i < count; ++i)
             {
+                var config = configs[i];
                 int depth = depthCount;
-                int size = Math.Max(config.Size.X, config.Size.Y) << depthCount - 1;
-                int boundary = Math.Max(maxBoundary.W, maxBoundary.H);
-
-                while (depth > 1 && size > boundary)
-                {
+                for (int extents = Math.Max(config.Extents.X, config.Extents.Y) << depthCount - 1; depth > 1 && extents > maxExtents; extents >>= 1)
                     --depth;
-                    size >>= 1;
-                }
-
-                _trees.Add(treeId, new MeshQuadTree(treeId, config.Shape, depth, in maxBoundary));
+                var tree = (QuadTreeBasic)Activator.CreateInstance(config.TreeType);
+                tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary);
+                _trees.Add(config.TreeId, tree);
             }
         }
         public void Clean()
         {
-            _configs.Clear();
             foreach (var pair in _trees)
-                pair.Value.Clean();
+                pair.Value.OnDestroy();
             _trees.Clear();
         }
         #endregion

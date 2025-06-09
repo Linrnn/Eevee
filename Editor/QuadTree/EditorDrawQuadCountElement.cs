@@ -42,8 +42,9 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         private float _lineDuration;
-        private IDictionary<int, MeshQuadTree[]> _trees;
-        private MeshQuadTree[] _tree;
+        private IDictionary<int, QuadTreeBasic[]> _trees;
+        private QuadTreeBasic[] _tree;
+        private readonly List<QuadNode> _nodes = new(); // 临时缓存
 
         [SingleEnum] [SerializeField] private int _funcEnum;
         [SerializeField] private bool _drawLineBall;
@@ -84,7 +85,7 @@ namespace EeveeEditor.QuadTree
 
                 for (int depthLength = _depthCounts.Length, depth = 0; depth < depthLength; ++depth)
                 {
-                    var nodes = tree.Nodes[depth];
+                    var nodes = tree.GetNodes(depth, _nodes);
                     var depthCount = _depthCounts[depth];
                     depthCount.Depth = depth;
 

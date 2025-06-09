@@ -10,9 +10,10 @@ namespace EeveeEditor.QuadTree
 {
     internal sealed class EditorDrawQuadTree : MonoBehaviour
     {
+        private readonly List<QuadNode> _nodes = new(); // 临时缓存
         private float _lineDuration;
-        private IDictionary<int, MeshQuadTree[]> _trees;
-        private MeshQuadTree _tree;
+        private IDictionary<int, QuadTreeBasic[]> _trees;
+        private QuadTreeBasic _tree;
 
         [SerializeField] private bool _showEmptyNode = false; // 显示空节点
         [SerializeField] private bool _showNode = true; // 显示非空节点
@@ -57,29 +58,26 @@ namespace EeveeEditor.QuadTree
             _tree = null;
         }
 
-        private void DrawTree(MeshQuadTree tree)
+        private void DrawTree(QuadTreeBasic tree)
         {
             if (tree == null)
                 return;
 
             if (_showEmptyNode)
-                foreach (var nodes in tree.Nodes)
-                foreach (var node in nodes)
+                foreach (var node in tree.GetNodes(_nodes))
                     if (node.Elements.Count == 0)
                         EditorHelper.DrawRect(in node.Boundary, Color.gray, _height, _lineDuration);
 
             if (_showNode)
-                foreach (var nodes in tree.Nodes)
-                foreach (var node in nodes)
+                foreach (var node in tree.GetNodes(_nodes))
                     if (node.Elements.Count > 0)
                         EditorHelper.DrawRect(in node.Boundary, Color.green, _height, _lineDuration);
 
             if (_showRoot)
-                EditorHelper.DrawRect(in tree.MaxBoundary, Color.red, _height, _lineDuration);
+                EditorHelper.DrawRect(tree.MaxBoundary, Color.red, _height, _lineDuration);
 
             if (_entityIds.Length > 0)
-                foreach (var nodes in tree.Nodes)
-                foreach (var node in nodes)
+                foreach (var node in tree.GetNodes(_nodes))
                     if (node.Elements.Count > 0)
                         foreach (var element in node.Elements.AsReadOnlySpan())
                             if (_entityIds.Contains(element.Index))
@@ -91,7 +89,7 @@ namespace EeveeEditor.QuadTree
                 EditorHelper.DrawRect(in aabb, in color, _height, _lineDuration);
         }
 
-        private MeshQuadTree GetTree() => _trees[_funcEnum][Log2((double)_subEnum)];
+        private QuadTreeBasic GetTree() => _trees[_funcEnum][Log2((double)_subEnum)];
         private int Log2(double num) => num > 0 ? (int)Math.Log(num, 2) : -1;
     }
 }

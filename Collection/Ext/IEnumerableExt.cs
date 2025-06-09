@@ -1,5 +1,4 @@
 ﻿using Eevee.Diagnosis;
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +7,6 @@ namespace Eevee.Collection
 {
     public static class IEnumerableExt
     {
-        public static bool Has<T>(this IEnumerable<T> source, T item) => source.Contains(item);
-
         internal static bool TryGetNonEnumeratedCount<T>(object source, out int count)
         {
             switch (source)

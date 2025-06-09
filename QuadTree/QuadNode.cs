@@ -42,7 +42,7 @@ namespace Eevee.QuadTree
             1 => Boundary.RightTopAABB(), // 右上
             2 => Boundary.LeftBottomAABB(), // 左下
             3 => Boundary.RightBottomAABB(), // 右下
-            _ => throw new Exception($"index:{index}，越界"),
+            _ => throw new IndexOutOfRangeException($"index:{index}，越界"),
         };
 
         public void Add(in QuadElement element)

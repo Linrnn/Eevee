@@ -159,9 +159,10 @@ namespace EeveeEditor.QuadTree
         private readonly HashSet<int> _customEntityIds = new();
         private readonly HashSet<int> _drawEntityIds = new();
         private readonly HashSet<GameObject> _objects = new();
-        private IDictionary<int, MeshQuadTree[]> _trees;
+        private readonly List<QuadNode> _nodes = new(); // 临时缓存
+        private IDictionary<int, QuadTreeBasic[]> _trees;
 
-        private static readonly ObjectPool Pool = new();
+        private static readonly ObjectPool _pool = new();
 
         private void OnEnable()
         {
@@ -216,8 +217,7 @@ namespace EeveeEditor.QuadTree
                     foreach (var pair in _trees)
                     foreach (var tree in pair.Value)
                         if (tree != null)
-                            foreach (var nodes in tree.Nodes)
-                            foreach (var node in nodes)
+                            foreach (var node in tree.GetNodes(_nodes))
                             foreach (var element in node.Elements.AsReadOnlySpan())
                                 _drawEntityIds.Add(element.Index);
                     break;
@@ -264,7 +264,7 @@ namespace EeveeEditor.QuadTree
             for (int i = 0; i < _drawElements.Count; ++i)
             {
                 var element = _drawElements[i];
-                var go = Pool.Pop();
+                var go = _pool.Pop();
 
                 DrawElements(go, in element, i);
                 _objects.Add(go);
@@ -274,16 +274,15 @@ namespace EeveeEditor.QuadTree
         private void PushObject()
         {
             foreach (var go in _objects)
-                Pool.Push(go);
+                _pool.Push(go);
             _objects.Clear();
         }
-        private void ReadyElements(MeshQuadTree tree, in SubTreeInfo treeInfo)
+        private void ReadyElements(QuadTreeBasic tree, in SubTreeInfo treeInfo)
         {
             if (tree == null)
                 return;
 
-            foreach (var nodes in tree.Nodes)
-            foreach (var node in nodes)
+            foreach (var node in tree.GetNodes(_nodes))
             foreach (var element in node.Elements.AsReadOnlySpan())
                 if (_drawEntityIds.Contains(element.Index))
                     _drawElements.Add(new DrawElement(in element, in treeInfo));

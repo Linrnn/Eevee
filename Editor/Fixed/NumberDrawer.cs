@@ -17,7 +17,7 @@ namespace EeveeEditor.Fixed
             rawValueProperty.longValue = EditorGUI.LongField(rawValuePosition, displayName, rawValueProperty.longValue);
 
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUI.TextField(displayPosition, new Fixed64(rawValueProperty.longValue).ToString());
+            EditorGUI.TextField(displayPosition, label, new Fixed64(rawValueProperty.longValue).ToString());
             EditorGUI.EndDisabledGroup();
         }
     }

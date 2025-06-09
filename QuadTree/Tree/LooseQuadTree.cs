@@ -4,9 +4,9 @@ using Eevee.Fixed;
 namespace Eevee.QuadTree
 {
     /// <summary>
-    /// 网格法 + 四叉树
+    /// 网格法 + 松散四叉树
     /// </summary>
-    public sealed class MeshQuadTree : QuadTreeBasic
+    public sealed class LooseQuadTree : QuadTreeBasic
     {
         #region 数据
         private QuadNode[][] _nodes;
@@ -60,6 +60,11 @@ namespace Eevee.QuadTree
             base.OnDestroy();
         }
 
+        internal override QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent)
+        {
+            var looseBoundary = new AABB2DInt(boundary.Center(), boundary.Size());
+            return new QuadNode(in boundary, in looseBoundary, depth, childId, x, y, parent);
+        }
         internal override QuadNode CountNode(in AABB2DInt aabb, QuadCountNodeMode mode = CountMode)
         {
             if (!CountArea(in aabb, mode, out var area))
@@ -74,10 +79,7 @@ namespace Eevee.QuadTree
                 int x = (area.X - left) / (boundary.X << 1);
                 int y = (top - area.Y) / (boundary.Y << 1);
                 var node = GetNode(depth, x, y);
-
-                for (var parent = node; parent != null; parent = parent.Parent)
-                    if (Geometry.Contain(in parent.LooseBoundary, in area))
-                        return parent;
+                return node;
             }
 
             return null;
