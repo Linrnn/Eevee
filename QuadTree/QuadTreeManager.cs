@@ -17,7 +17,7 @@ namespace Eevee.QuadTree
         public readonly AABB2DInt MaxBoundary;
         private readonly Dictionary<int, QuadTreeBasic> _trees = new();
 
-        public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IList<QuadTreeConfig> configs)
+        public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
             Scale = scale;
             Reciprocal = Fixed64.One / scale;
@@ -39,13 +39,15 @@ namespace Eevee.QuadTree
             var tree = _trees[treeId];
             var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
             var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
-            var preNode = tree.CountNode(in preEle.AABB);
-            var tarNode = tree.CountNode(in tarEle.AABB);
-            int preIndex = preNode.IndexOf(in preEle);
-            cache = new QuadPreCache(in preEle, in tarEle, preNode, tarNode, preIndex, tree.TreeId);
 
+            tree.CountNodeIndex(in preEle.AABB, QuadExt.CountMode, out var preNodeIndex);
+            tree.CountNodeIndex(in tarEle.AABB, QuadExt.CountMode, out var tarNodeIndex);
+            var preNode = tree.GetNode(in preNodeIndex);
+            int preIndex = preNode?.IndexOf(in preEle) ?? -1;
+
+            cache = new QuadPreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
             if (QuadDebug.CheckIndex(treeId, index))
-                LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNode == tarNode}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
+                LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNodeIndex == tarNodeIndex}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
             return true;
         }
         public bool PreCount(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents, out QuadPreCache cache)
@@ -59,23 +61,26 @@ namespace Eevee.QuadTree
             var tree = _trees[treeId];
             var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
             var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
-            var preNode = tree.CountNode(in preEle.AABB);
-            var tarNode = tree.CountNode(in tarEle.AABB);
-            int preIndex = preNode.IndexOf(in preEle);
-            cache = new QuadPreCache(in preEle, in tarEle, preNode, tarNode, preIndex, tree.TreeId);
 
+            tree.CountNodeIndex(in preEle.AABB, QuadExt.CountMode, out var preNodeIndex);
+            tree.CountNodeIndex(in tarEle.AABB, QuadExt.CountMode, out var tarNodeIndex);
+            var preNode = tree.GetNode(in preNodeIndex);
+            int preIndex = preNode?.IndexOf(in preEle) ?? -1;
+
+            cache = new QuadPreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
             if (QuadDebug.CheckIndex(treeId, index))
-                LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNode == tarNode}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
+                LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNodeIndex == tarNodeIndex}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
             return true;
         }
 
         public void PreUpdate(in QuadPreCache cache)
         {
+            var tree = _trees[cache.TreeId];
             var preEle = cache.PreEle;
             var tarEle = cache.TarEle;
-            var preNode = cache.PreNode;
-            var tarNode = cache.TarNode;
-            int index = cache.PreIndex;
+            var preNode = tree.GetNode(in cache.PreNodeIndex);
+            var tarNode = tree.GetNode(in cache.TarNodeIndex);
+            int index = cache.PreElementIndex;
             bool usePre = index < preNode.Elements.Count && preNode.Elements[index] == preEle;
             bool hasError = false;
 
@@ -394,7 +399,7 @@ namespace Eevee.QuadTree
         private Fixed64 Int32ToFixed64(int value) => value * Reciprocal;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void BuildTrees(int depthCount, in AABB2DInt maxBoundary, IList<QuadTreeConfig> configs)
+        private void BuildTrees(int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
             for (int maxExtents = Math.Max(maxBoundary.W, maxBoundary.H), count = configs.Count, i = 0; i < count; ++i)
             {

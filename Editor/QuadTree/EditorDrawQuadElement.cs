@@ -217,7 +217,7 @@ namespace EeveeEditor.QuadTree
                     foreach (var pair in _trees)
                     foreach (var tree in pair.Value)
                         if (tree != null)
-                            foreach (var node in tree.GetNodes(_nodes))
+                            foreach (var node in QuadHelper.GetNodes(tree, _nodes))
                             foreach (var element in node.Elements.AsReadOnlySpan())
                                 _drawEntityIds.Add(element.Index);
                     break;
@@ -282,7 +282,7 @@ namespace EeveeEditor.QuadTree
             if (tree == null)
                 return;
 
-            foreach (var node in tree.GetNodes(_nodes))
+            foreach (var node in QuadHelper.GetNodes(tree, _nodes))
             foreach (var element in node.Elements.AsReadOnlySpan())
                 if (_drawEntityIds.Contains(element.Index))
                     _drawElements.Add(new DrawElement(in element, in treeInfo));

@@ -85,7 +85,7 @@ namespace EeveeEditor.QuadTree
 
                 for (int depthLength = _depthCounts.Length, depth = 0; depth < depthLength; ++depth)
                 {
-                    var nodes = tree.GetNodes(depth, _nodes);
+                    var nodes = QuadHelper.GetNodes(tree, depth, _nodes);
                     var depthCount = _depthCounts[depth];
                     depthCount.Depth = depth;
 
@@ -131,7 +131,7 @@ namespace EeveeEditor.QuadTree
                 if (tree == null)
                     continue;
 
-                _depthCounts = new DepthCount[tree.HalfBoundaries.Length - 1]; // 不计算最后一层
+                _depthCounts = new DepthCount[tree.MaxDepth]; // 不计算最后一层
                 break;
             }
         }

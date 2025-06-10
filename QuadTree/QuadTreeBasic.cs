@@ -1,24 +1,16 @@
-﻿using Eevee.Collection;
-using Eevee.Diagnosis;
+﻿using Eevee.Diagnosis;
 using Eevee.Fixed;
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.QuadTree
 {
-    // todo eevee 代码优化“OnCreate()”，减少重复代码
-    // todo eevee 代码优化“CountNode()”，减少重复代码
-    // todo eevee 性能优化“CountNode()”循环，采用二分法
-    // todo eevee 松散四叉树“Query”未处理
     /// <summary>
     /// 四叉树基类
     /// </summary>
     public abstract class QuadTreeBasic
     {
         #region 数据
-        protected const int ChildCount = 4;
-        protected const QuadCountNodeMode CountMode = QuadCountNodeMode.NotIntersect;
         protected int _treeId; // 四叉树的编号
         protected int _maxDepth; // 四叉树的最大深度
         protected QuadShape _shape; // 四叉树节点的形状（暂时只支持“Circle”和“AABB”）
@@ -61,7 +53,8 @@ namespace Eevee.QuadTree
         #region 操作
         public void Insert(in QuadElement element)
         {
-            var node = CountNode(in element.AABB);
+            CountNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
+            var node = this.GetNode(in index);
             node.Add(in element);
 
             if (QuadDebug.CheckIndex(_treeId, element.Index))
@@ -69,7 +62,8 @@ namespace Eevee.QuadTree
         }
         public bool Remove(in QuadElement element)
         {
-            var node = CountNode(in element.AABB);
+            CountNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
+            var node = this.GetNode(in index);
             bool remove = node.Remove(in element);
 
             if (remove && QuadDebug.CheckIndex(_treeId, element.Index))
@@ -80,8 +74,10 @@ namespace Eevee.QuadTree
         }
         public void Update(in QuadElement preElement, in QuadElement tarElement)
         {
-            var preNode = CountNode(in preElement.AABB);
-            var tarNode = CountNode(in tarElement.AABB);
+            CountNodeIndex(in preElement.AABB, QuadExt.CountMode, out var preIndex);
+            CountNodeIndex(in tarElement.AABB, QuadExt.CountMode, out var tarIndex);
+            var preNode = this.GetNode(in preIndex);
+            var tarNode = this.GetNode(in tarIndex);
 
             if (preNode == tarNode)
             {
@@ -107,9 +103,9 @@ namespace Eevee.QuadTree
 
             switch (_shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new IQuadPoint2CircleChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
-                case QuadShape.AABB: RecursiveQuery(new IQuadPoint2AABBChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
-                default: throw ShapeNotImplementException();
+                case QuadShape.Circle: IterateStart(new IQuadPoint2CircleChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
+                case QuadShape.AABB: IterateStart(new IQuadPoint2AABBChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
+                default: throw QuadExt.ShapeNotImplementException(_treeId, _shape);
             }
         }
         public void QueryCircle(in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
@@ -121,15 +117,15 @@ namespace Eevee.QuadTree
 
             if (checkRoot && Geometry.Contain(in shape, in _maxBoundary))
             {
-                RecursiveAdd(_root, elements);
+                IterateOnly(_root, elements);
                 return;
             }
 
             switch (_shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new IQuadCircle2CircleChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
-                case QuadShape.AABB: RecursiveQuery(new IQuadCircle2AABBChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
-                default: throw ShapeNotImplementException();
+                case QuadShape.Circle: IterateStart(new IQuadCircle2CircleChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
+                case QuadShape.AABB: IterateStart(new IQuadCircle2AABBChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
+                default: throw QuadExt.ShapeNotImplementException(_treeId, _shape);
             }
         }
         public void QueryAABB(in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
@@ -141,15 +137,15 @@ namespace Eevee.QuadTree
 
             if (checkRoot && Geometry.Contain(in shape, in _maxBoundary))
             {
-                RecursiveAdd(_root, elements);
+                IterateOnly(_root, elements);
                 return;
             }
 
             switch (_shape)
             {
-                case QuadShape.Circle: RecursiveQuery(new IQuadAABB2CircleChecker(in shape), in shape, elements); break;
-                case QuadShape.AABB: RecursiveQuery(new IQuadAABB2AABBChecker(in shape), in shape, elements); break;
-                default: throw ShapeNotImplementException();
+                case QuadShape.Circle: IterateStart(new IQuadAABB2CircleChecker(in shape), in shape, elements); break;
+                case QuadShape.AABB: IterateStart(new IQuadAABB2AABBChecker(in shape), in shape, elements); break;
+                default: throw QuadExt.ShapeNotImplementException(_treeId, _shape);
             }
         }
         public void QueryOBB(in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
@@ -161,7 +157,7 @@ namespace Eevee.QuadTree
 
             if (checkRoot && Geometry.Contain(in shape, in _maxBoundary))
             {
-                RecursiveAdd(_root, elements);
+                IterateOnly(_root, elements);
                 return;
             }
 
@@ -170,18 +166,18 @@ namespace Eevee.QuadTree
                 case QuadShape.Circle:
                 {
                     var checker = new IQuadOBB2CircleChecker(in shape);
-                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    IterateStart(in checker, in checker.Shape, elements);
                     break;
                 }
 
                 case QuadShape.AABB:
                 {
                     var checker = new IQuadOBB2AABBChecker(in shape);
-                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    IterateStart(in checker, in checker.Shape, elements);
                     break;
                 }
 
-                default: throw ShapeNotImplementException();
+                default: throw QuadExt.ShapeNotImplementException(_treeId, _shape);
             }
         }
         public void QueryPolygon(in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
@@ -193,7 +189,7 @@ namespace Eevee.QuadTree
 
             if (checkRoot && Geometry.Contain(in shape, in _maxBoundary))
             {
-                RecursiveAdd(_root, elements);
+                IterateOnly(_root, elements);
                 return;
             }
 
@@ -202,7 +198,7 @@ namespace Eevee.QuadTree
                 case QuadShape.Circle:
                 {
                     var checker = new IQuadPolygon2CircleChecker(in shape);
-                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    IterateStart(in checker, in checker.Shape, elements);
                     checker.Checker.Dispose();
                     break;
                 }
@@ -210,19 +206,19 @@ namespace Eevee.QuadTree
                 case QuadShape.AABB:
                 {
                     var checker = new IQuadPolygon2AABBChecker(in shape);
-                    RecursiveQuery(in checker, in checker.Shape, elements);
+                    IterateStart(in checker, in checker.Shape, elements);
                     checker.Checker.Dispose();
                     break;
                 }
 
-                default: throw ShapeNotImplementException();
+                default: throw QuadExt.ShapeNotImplementException(_treeId, _shape);
             }
         }
         #endregion
 
         #region 工具
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void RecursiveAdd(QuadNode node, ICollection<QuadElement> elements)
+        protected void IterateOnly(QuadNode node, ICollection<QuadElement> elements)
         {
             if (node.IsEmpty())
                 return;
@@ -230,22 +226,18 @@ namespace Eevee.QuadTree
             foreach (var element in node.Elements.AsReadOnlySpan())
                 elements.Add(element);
 
-            if (!node.Children.IsNullOrEmpty())
-                foreach (var child in node.Children)
-                    RecursiveAdd(child, elements);
+            if (node.Children is { Length: > 0 } children)
+                foreach (var child in children)
+                    IterateOnly(child, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void RecursiveQuery<TChecker>(in TChecker checker, in AABB2DInt aabb, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        protected void IterateStart<TChecker>(in TChecker checker, in AABB2DInt aabb, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
-            var node = CountNode(in aabb);
-            if (node == null)
-                return;
-
-            RecursiveQueryParent(in checker, node.Parent, elements);
-            RecursiveQueryChildren(in checker, node, elements);
+            CountNodeIndex(in aabb, QuadExt.CountMode, out var index);
+            Iterate(in checker, index, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void RecursiveQueryParent<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        internal void IterateParent<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
             for (var parent = node; parent != null; parent = parent.Parent)
                 foreach (var element in parent.Elements.AsReadOnlySpan())
@@ -253,7 +245,7 @@ namespace Eevee.QuadTree
                         elements.Add(element);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void RecursiveQueryChildren<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        internal void IterateChildren<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
             if (node.IsEmpty())
                 return;
@@ -268,49 +260,10 @@ namespace Eevee.QuadTree
                         elements.Add(element);
             }
 
-            if (!node.Children.IsNullOrEmpty())
-                foreach (var child in node.Children)
-                    RecursiveQueryChildren(in checker, child, elements);
+            if (node.Children is { Length: > 0 } children)
+                foreach (var child in children)
+                    IterateChildren(in checker, child, elements);
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected bool CountArea(in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area)
-        {
-            if (mode == QuadCountNodeMode.NotIntersect)
-            {
-                area = aabb;
-                return true;
-            }
-
-            if (Geometry.UnsafeIntersect(in aabb, in _maxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
-            {
-                area = intersect;
-                return true;
-            }
-
-            switch (mode)
-            {
-                case QuadCountNodeMode.OnlyIntersect:
-                    area = default;
-                    return false;
-
-                case QuadCountNodeMode.IntersectOffset:
-                    area = (intersect.W >= 0, intersect.H >= 0) switch
-                    {
-                        (false, false) => new AABB2DInt(intersect.X - intersect.W, intersect.Y - intersect.H, 0, 0),
-                        (false, true) => new AABB2DInt(intersect.X - intersect.W, intersect.Y, 0, intersect.H),
-                        (true, false) => new AABB2DInt(intersect.X, intersect.Y - intersect.H, intersect.W, 0),
-                        _ => intersect,
-                    };
-                    return true;
-
-                default: throw new ArgumentOutOfRangeException(nameof(mode), mode, "Error!");
-            }
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected int GetNodeId(int depth, int x, int y) => x + (1 << depth) * y;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected Exception ShapeNotImplementException() => new NotImplementedException($"TreeId:{_treeId}, Shape:{_shape} not implement.");
         #endregion
 
         #region 待继承
@@ -327,14 +280,16 @@ namespace Eevee.QuadTree
             _halfBoundaries = halfBoundaries;
             _root = root;
         }
-        internal virtual void OnDestroy() => _halfBoundaries.Clean();
+        internal virtual void OnDestroy() => _halfBoundaries = null;
 
-        internal virtual QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent) => new(in boundary, in boundary, depth, childId, x, y, parent);
-        internal abstract QuadNode CountNode(in AABB2DInt aabb, QuadCountNodeMode mode = CountMode);
+        internal abstract QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent);
         internal abstract QuadNode GetNode(int depth, int x, int y);
+        internal abstract bool CountNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index);
 
-        internal abstract TCollection GetNodes<TCollection>(TCollection collection) where TCollection : ICollection<QuadNode>;
-        internal abstract TCollection GetNodes<TCollection>(int depth, TCollection collection) where TCollection : ICollection<QuadNode>;
+        internal abstract void GetNodes(ICollection<QuadNode> nodes);
+        internal abstract void GetNodes(int depth, ICollection<QuadNode> nodes);
+
+        protected abstract void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker;
         #endregion
     }
 }

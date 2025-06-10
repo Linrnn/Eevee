@@ -2,6 +2,8 @@
 using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.QuadTree
@@ -11,13 +13,114 @@ namespace Eevee.QuadTree
     /// </summary>
     public sealed class QuadNode
     {
+        #region 迭代器
+        public readonly struct ChildEnumerator
+        {
+            private readonly IReadOnlyList<QuadNode> _enumerator;
+            private readonly bool _checkNull;
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            internal ChildEnumerator(IReadOnlyList<QuadNode> enumerator, bool checkNull)
+            {
+                _enumerator = enumerator;
+                _checkNull = checkNull;
+            }
+            public Enumerator GetEnumerator() => new(_enumerator, _checkNull);
+        }
+
+        public struct Enumerator : IEnumerator<QuadNode>
+        {
+            private readonly IReadOnlyList<QuadNode> _enumerator;
+            private bool _checkNull;
+            private int _index;
+            private QuadNode _current;
+
+            internal Enumerator(IReadOnlyList<QuadNode> enumerator, bool checkNull)
+            {
+                _enumerator = enumerator;
+                _checkNull = checkNull;
+                _index = 0;
+                _current = null;
+            }
+
+            #region IEnumerator`1
+            public readonly QuadNode Current
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => _current;
+            }
+            #endregion
+
+            #region IEnumerator
+            readonly object IEnumerator.Current => _current;
+
+            public bool MoveNext()
+            {
+                if (_enumerator is null)
+                {
+                    _index = 1;
+                    _current = null;
+                    return false;
+                }
+
+                int count = _enumerator.Count;
+                if (_index >= count)
+                {
+                    _index = count + 1;
+                    _current = null;
+                    return false;
+                }
+
+                return _checkNull ? MoveNextCanNull(count) : MoveNextNoNull();
+            }
+            public void Reset() => Dispose();
+            #endregion
+
+            #region IDisposable
+            public void Dispose()
+            {
+                _checkNull = false;
+                _index = 0;
+                _current = null;
+            }
+            #endregion
+
+            #region Helper
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool MoveNextCanNull(int count)
+            {
+                for (int i = _index; i < count; ++i)
+                {
+                    var current = _enumerator[i];
+                    if (current is null)
+                        continue;
+
+                    _index = i + 1;
+                    _current = current;
+                    return true;
+                }
+
+                _index = count + 1;
+                _current = null;
+                return false;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private bool MoveNextNoNull()
+            {
+                var current = _enumerator[_index];
+                _current = current;
+                ++_index;
+                return true;
+            }
+            #endregion
+        }
+        #endregion
+
         #region 字段
         public readonly AABB2DInt Boundary; // 边界
         public readonly AABB2DInt LooseBoundary; // 松散四叉树的节点边界
-        public readonly int Depth; // 所在层的深度
+        public readonly QuadIndex Index; // 节点所在层级的二维坐标
         public readonly int ChildId; // 相对于父节点的编号
-        public readonly int IdxX; // 所在层级的二维坐标X
-        public readonly int IdxY; // 所在层级的二维坐标Y
 
         public readonly QuadNode Parent; // 父节点
         public QuadNode[] Children; // 子节点
@@ -30,19 +133,17 @@ namespace Eevee.QuadTree
         {
             Boundary = boundary;
             LooseBoundary = looseBoundary;
-            Depth = depth;
+            Index = new QuadIndex(depth, x, y);
             ChildId = childId;
-            IdxX = x;
-            IdxY = y;
             Parent = parent;
         }
-        public AABB2DInt CountChildBoundary(int index) => index switch // 计算子包围盒
+        public AABB2DInt CountChildBoundary(int childId) => childId switch // 计算子包围盒
         {
-            0 => Boundary.LeftTopAABB(), // 左上
-            1 => Boundary.RightTopAABB(), // 右上
-            2 => Boundary.LeftBottomAABB(), // 左下
-            3 => Boundary.RightBottomAABB(), // 右下
-            _ => throw new IndexOutOfRangeException($"index:{index}，越界"),
+            0 => Boundary.LeftTopAABB(),
+            1 => Boundary.RightTopAABB(),
+            2 => Boundary.LeftBottomAABB(),
+            3 => Boundary.RightBottomAABB(),
+            _ => throw new IndexOutOfRangeException($"ChildId:{childId}，越界"),
         };
 
         public void Add(in QuadElement element)
@@ -88,6 +189,7 @@ namespace Eevee.QuadTree
 
         public bool IsEmpty() => SumCount == 0;
         public int IndexOf(in QuadElement element) => Elements.IndexOf(element);
+        public ChildEnumerator GetChildren(bool checkNull = false) => new(Children, checkNull);
 
         public void Clean()
         {

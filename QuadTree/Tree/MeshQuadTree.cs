@@ -1,5 +1,5 @@
-﻿using Eevee.Collection;
-using Eevee.Fixed;
+﻿using Eevee.Fixed;
+using System.Collections.Generic;
 
 namespace Eevee.QuadTree
 {
@@ -16,88 +16,51 @@ namespace Eevee.QuadTree
         internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
             base.OnCreate(treeId, shape, depthCount, in maxBoundary);
-            var nodes = new QuadNode[depthCount][];
-            nodes[0] = new[] { _root };
-            _nodes = nodes;
-
-            for (int left = maxBoundary.Left(), top = maxBoundary.Top(), upperDepth = 0, depth = 1; depth < depthCount; ++upperDepth, ++depth)
-            {
-                int length = 1 << depth << depth; // length = 4^depth
-                var upperNodes = nodes[upperDepth];
-                var depthNodes = new QuadNode[length];
-
-                _halfBoundaries[depth] = _halfBoundaries[upperDepth] / 2;
-                nodes[depth] = depthNodes;
-
-                for (int i = 0; i < length; i += ChildCount)
-                {
-                    var parent = upperNodes[i / ChildCount];
-                    parent.Children = new QuadNode[ChildCount];
-
-                    for (int childId = 0; childId < ChildCount; ++childId)
-                    {
-                        var boundary = parent.CountChildBoundary(childId);
-                        int x = (boundary.X - left) / (boundary.W << 1);
-                        int y = (top - boundary.Y) / (boundary.H << 1);
-                        var child = CreateNode(in boundary, depth, childId, x, y, parent);
-
-                        parent.Children[childId] = child;
-                        depthNodes[GetNodeId(depth, x, y)] = child;
-                    }
-                }
-            }
+            _nodes = QuadTreeExt.OnCreate(this, _root, depthCount, in maxBoundary, _halfBoundaries);
         }
         internal override void OnDestroy()
         {
-            foreach (var nodes in _nodes)
-            {
-                foreach (var node in nodes)
-                    node.Clean();
-                nodes.Clean();
-            }
-
-            _nodes.Clean();
+            QuadExt.OnDestroy(ref _nodes);
             base.OnDestroy();
         }
 
-        internal override QuadNode CountNode(in AABB2DInt aabb, QuadCountNodeMode mode = CountMode)
+        internal override QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent) => new(in boundary, in boundary, depth, childId, x, y, parent);
+        internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][QuadExt.GetNodeId(depth, x, y)];
+        internal override bool CountNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
         {
-            if (!CountArea(in aabb, mode, out var area))
-                return null;
-
-            for (int left = _maxBoundary.Left(), top = _maxBoundary.Top(), depth = _maxDepth; depth >= 0; --depth)
+            if (!QuadExt.CountArea(in _maxBoundary, in aabb, mode, out var area))
             {
-                var boundary = _halfBoundaries[depth];
-                if (boundary.X < area.W || boundary.Y < area.H)
-                    continue;
-
-                int x = (area.X - left) / (boundary.X << 1);
-                int y = (top - area.Y) / (boundary.Y << 1);
-                var node = GetNode(depth, x, y);
-
-                for (var parent = node; parent != null; parent = parent.Parent)
-                    if (Geometry.Contain(in parent.LooseBoundary, in area))
-                        return parent;
+                index = default;
+                return false;
             }
 
-            return null;
-        }
-        internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][GetNodeId(depth, x, y)];
+            bool exist = QuadExt.CountNodeIndex(in _maxBoundary, _maxDepth, _halfBoundaries, in area, mode, out var idx);
+            if (!exist)
+            {
+                index = default;
+                return false;
+            }
 
-        internal override TCollection GetNodes<TCollection>(TCollection collection)
-        {
-            collection.Clear();
-            foreach (var nodes in _nodes)
-            foreach (var node in nodes)
-                collection.Add(node);
-            return collection;
+            for (var parent = this.GetNode(in idx); parent != null; parent = parent.Parent)
+            {
+                if (!Geometry.Contain(in parent.LooseBoundary, in area))
+                    continue;
+
+                index = parent.Index;
+                return true;
+            }
+
+            index = default;
+            return false;
         }
-        internal override TCollection GetNodes<TCollection>(int depth, TCollection collection)
+
+        internal override void GetNodes(ICollection<QuadNode> nodes) => QuadExt.GetNodes(_nodes, nodes);
+        internal override void GetNodes(int depth, ICollection<QuadNode> nodes) => QuadExt.GetNodes(_nodes, depth, nodes);
+
+        protected override void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
-            collection.Clear();
-            foreach (var node in _nodes[depth])
-                collection.Add(node);
-            return collection;
+            var node = this.GetNode(in index);
+            QuadTreeExt.IterateNode(this, in checker, node, elements);
         }
         #endregion
     }

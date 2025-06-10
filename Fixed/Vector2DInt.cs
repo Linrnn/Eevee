@@ -166,7 +166,7 @@ namespace Eevee.Fixed
 
         #region 继承/重载
         public readonly override bool Equals(object obj) => obj is Vector2DInt other && this == other;
-        public readonly override int GetHashCode() => X.GetHashCode() ^ Y.GetHashCode();
+        public readonly override int GetHashCode() => X ^ Y;
         public readonly bool Equals(Vector2DInt other) => this == other;
         public readonly int CompareTo(Vector2DInt other)
         {

@@ -1,4 +1,5 @@
-﻿using Eevee.Diagnosis;
+﻿using Eevee.Define;
+using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System;
 using System.Runtime.CompilerServices;
@@ -15,7 +16,7 @@ namespace Eevee.QuadTree
     }
 
     /// <summary>
-    /// 四叉树的形状
+    /// 四叉树节点的形状
     /// </summary>
     public enum QuadShape : byte
     {
@@ -28,7 +29,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 计算四叉树节点的方式
     /// </summary>
-    public enum QuadCountNodeMode : byte
+    internal enum QuadCountNodeMode : byte
     {
         NotIntersect, // 不和四叉树边界做检测
         OnlyIntersect, // 和四叉树边界做检测，但是输入的aabb不做偏移
@@ -62,24 +63,53 @@ namespace Eevee.QuadTree
     }
 
     /// <summary>
+    /// 四叉树坐标
+    /// </summary>
+    public readonly struct QuadIndex : IEquatable<QuadIndex>
+    {
+        public readonly int Depth; // 所在层深度
+        public readonly int X; // 所在层的X坐标
+        public readonly int Y; // 所在层的Y坐标
+
+        public QuadIndex(int depth, int x, int y)
+        {
+            Depth = depth;
+            X = x;
+            Y = y;
+        }
+        public bool IsValid() => Depth >= 0 && X >= 0 && Y >= 0;
+
+        public static readonly QuadIndex Invalid = new(-1, -1, -1); // 无效的索引
+        public static bool operator ==(in QuadIndex lhs, in QuadIndex rhs) => lhs.Depth == rhs.Depth && lhs.X == rhs.X && lhs.Y == rhs.Y;
+        public static bool operator !=(in QuadIndex lhs, in QuadIndex rhs) => lhs.Depth != rhs.Depth || lhs.X != rhs.X || lhs.Y != rhs.Y;
+
+        public override bool Equals(object obj) => obj is QuadIndex other && this == other;
+        public override int GetHashCode() => Depth ^ X ^ Y;
+        public override string ToString() => ToString(Format.Fractional, Format.Use);
+
+        public bool Equals(QuadIndex other) => this == other;
+        public string ToString(string format, IFormatProvider provider) => $"Depth:{Depth.ToString(format, provider)}, X:{X.ToString(format, provider)}, Y:{Y.ToString(format, provider)}";
+    }
+
+    /// <summary>
     /// 预处理缓存
     /// </summary>
     public readonly struct QuadPreCache
     {
         public readonly QuadElement PreEle;
         public readonly QuadElement TarEle;
-        public readonly QuadNode PreNode;
-        public readonly QuadNode TarNode;
-        public readonly int PreIndex; // “Element”在“Node”的索引位置
+        public readonly QuadIndex PreNodeIndex; // “QuadNode”在“QuadTree”的索引位置
+        public readonly QuadIndex TarNodeIndex; // “QuadNode”在“QuadTree”的索引位置
+        public readonly int PreElementIndex; // “Element”在“QuadNode”的索引位置
         public readonly int TreeId;
 
-        public QuadPreCache(in QuadElement preEle, in QuadElement tarEle, QuadNode preNode, QuadNode tarNode, int preIndex, int treeId)
+        public QuadPreCache(in QuadElement preEle, in QuadElement tarEle, in QuadIndex preNodeIndex, in QuadIndex tarNodeIndex, int preElementIndex, int treeId)
         {
             PreEle = preEle;
             TarEle = tarEle;
-            PreNode = preNode;
-            TarNode = tarNode;
-            PreIndex = preIndex;
+            PreNodeIndex = preNodeIndex;
+            TarNodeIndex = tarNodeIndex;
+            PreElementIndex = preElementIndex;
             TreeId = treeId;
         }
     }

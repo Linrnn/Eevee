@@ -64,12 +64,12 @@ namespace EeveeEditor.QuadTree
                 return;
 
             if (_showEmptyNode)
-                foreach (var node in tree.GetNodes(_nodes))
+                foreach (var node in QuadHelper.GetNodes(tree, _nodes))
                     if (node.Elements.Count == 0)
                         EditorHelper.DrawRect(in node.Boundary, Color.gray, _height, _lineDuration);
 
             if (_showNode)
-                foreach (var node in tree.GetNodes(_nodes))
+                foreach (var node in QuadHelper.GetNodes(tree, _nodes))
                     if (node.Elements.Count > 0)
                         EditorHelper.DrawRect(in node.Boundary, Color.green, _height, _lineDuration);
 
@@ -77,7 +77,7 @@ namespace EeveeEditor.QuadTree
                 EditorHelper.DrawRect(tree.MaxBoundary, Color.red, _height, _lineDuration);
 
             if (_entityIds.Length > 0)
-                foreach (var node in tree.GetNodes(_nodes))
+                foreach (var node in QuadHelper.GetNodes(tree, _nodes))
                     if (node.Elements.Count > 0)
                         foreach (var element in node.Elements.AsReadOnlySpan())
                             if (_entityIds.Contains(element.Index))
