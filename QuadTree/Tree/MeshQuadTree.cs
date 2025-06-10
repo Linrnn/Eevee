@@ -41,7 +41,7 @@ namespace Eevee.QuadTree
                 return false;
             }
 
-            for (var parent = this.GetNode(in idx); parent != null; parent = parent.Parent)
+            for (var parent = this.GetNode(in idx); parent is not null; parent = parent.Parent)
             {
                 if (!Geometry.Contain(in parent.LooseBoundary, in area))
                     continue;
@@ -60,7 +60,11 @@ namespace Eevee.QuadTree
         protected override void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
             var node = this.GetNode(in index);
-            QuadTreeExt.IterateNode(this, in checker, node, elements);
+            if (node is null)
+                return;
+
+            IterateParent(in checker, node.Parent, elements);
+            IterateChildren(in checker, node, elements);
         }
         #endregion
     }

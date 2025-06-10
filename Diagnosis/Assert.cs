@@ -18,7 +18,7 @@ namespace Eevee.Diagnosis
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
-            if (obj != null)
+            if (obj is not null)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
@@ -40,7 +40,7 @@ namespace Eevee.Diagnosis
             where TArgs : struct, IAssertArgs
             where TPtr : unmanaged
         {
-            if (obj != null)
+            if (obj is not null)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
 
@@ -51,7 +51,7 @@ namespace Eevee.Diagnosis
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
-            if (obj == null)
+            if (obj is null)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
@@ -62,7 +62,7 @@ namespace Eevee.Diagnosis
             where TArgs : struct, IAssertArgs
             where TNullable : struct
         {
-            if (obj == null)
+            if (obj is null)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]
@@ -72,7 +72,7 @@ namespace Eevee.Diagnosis
             where TException : Exception
             where TArgs : struct, IAssertArgs
         {
-            if (obj == null)
+            if (obj is null)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
         #endregion
@@ -213,9 +213,9 @@ namespace Eevee.Diagnosis
             where TArgs : struct, IAssertArgs
         {
             bool isValueType = typeof(TConvert).IsValueType;
-            if (isValueType && obj == null)
+            if (isValueType && obj is null)
                 ThrowException<TException, TArgs>(paramName, format, args);
-            if (!isValueType && obj != null && obj is not TConvert)
+            if (!isValueType && obj is not null && obj is not TConvert)
                 ThrowException<TException, TArgs>(paramName, format, args);
         }
         [Conditional(Macro.Debug)]

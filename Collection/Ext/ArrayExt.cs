@@ -14,7 +14,7 @@ namespace Eevee.Collection
         public static T[] Create<T>(int capacity) => capacity > 0 ? new T[capacity] : Array.Empty<T>();
         public static void AllocSize<T>(ref T[] source, int capacity)
         {
-            if (source == null || source.Length < capacity)
+            if (source is null || source.Length < capacity)
             {
                 if (capacity > 0)
                 {

@@ -19,7 +19,7 @@ namespace Eevee.Collection
         /// </summary>
         public static void AddRangeLowGC<TKey, TValue>(this IDictionary<TKey, TValue> source, IEnumerable<KeyValuePair<TKey, TValue>> input, bool allowDuplicate = false)
         {
-            if (input == null)
+            if (input is null)
                 return;
 
             switch (input)

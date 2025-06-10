@@ -57,7 +57,7 @@ namespace Eevee.Pool
         }
         public void SetAllMaxCount(int maxCount)
         {
-            if (Pools != null)
+            if (Pools is not null)
                 foreach (var pair in Pools)
                     pair.Value.MaxCount = maxCount;
         }

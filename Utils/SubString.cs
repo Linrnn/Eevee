@@ -130,7 +130,7 @@ namespace Eevee.Utils
         }
         public int Count => GetTotalLength();
 
-        public bool IsNullOrEmpty() => Obj == null || Length == 0;
+        public bool IsNullOrEmpty() => Obj is null || Length == 0;
         public int GetTotalLength() => Obj switch
         {
             string str => str.Length,

@@ -30,17 +30,17 @@ namespace EeveeEditor.QuadTree
 
             // todo eevee
             //var manager = BATEntry.Data?.quadTree;
-            //if (manager == null)
+            //if (manager is null)
             //    return;
 
             //var treeFiled = manager.GetType().GetField(QuadTreeManager.TreeName, BindingFlags.Instance | BindingFlags.NonPublic);
             //_trees = treeFiled?.GetValue(manager) as IDictionary<int, MeshQuadTree[]>;
-            //if (_trees != null)
+            //if (_trees is not null)
             //    _tree = GetTree();
         }
         private void OnValidate()
         {
-            if (_trees == null)
+            if (_trees is null)
                 return;
 
             if (!enabled)
@@ -60,7 +60,7 @@ namespace EeveeEditor.QuadTree
 
         private void DrawTree(QuadTreeBasic tree)
         {
-            if (tree == null)
+            if (tree is null)
                 return;
 
             if (_showEmptyNode)

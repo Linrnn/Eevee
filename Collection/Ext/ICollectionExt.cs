@@ -15,9 +15,9 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsEmpty<T>(this ICollection<T> source) => source.Count == 0;
 
-        public static bool IsNullOrEmpty(ICollection source) => source == null || source.Count == 0;
+        public static bool IsNullOrEmpty(ICollection source) => source is null || source.Count == 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source == null || source.Count == 0;
+        public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source is null || source.Count == 0;
 
         public static void Update<T>(this ICollection<T> source, IList<T> input, int inputIndex, int inputCount)
         {
@@ -40,7 +40,7 @@ namespace Eevee.Collection
         /// </summary>
         public static void AddRangeLowGC<T>(this ICollection<T> source, IEnumerable<T> input)
         {
-            if (input == null)
+            if (input is null)
             {
                 return;
             }

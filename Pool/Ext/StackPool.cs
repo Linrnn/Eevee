@@ -21,7 +21,7 @@ namespace Eevee.Pool
         }
         public static void TryRelease<T>(ref Stack<T> collection)
         {
-            if (collection == null)
+            if (collection is null)
                 return;
 
             collection.Clear();

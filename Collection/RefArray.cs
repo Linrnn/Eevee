@@ -29,7 +29,7 @@ namespace Eevee.Collection
             Count = Math.Min(count, array.Length);
         }
 
-        internal bool IsEmpty() => Items == null && Count == 0;
+        internal bool IsEmpty() => Items is null && Count == 0;
         internal bool IsFull() => Items.Length == Count;
         internal bool Contains(T item) => Count > 0 && Array.IndexOf(Items, item, 0, Count) >= 0;
         internal T Last() => Items[Count - 1];

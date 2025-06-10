@@ -44,22 +44,19 @@ namespace Eevee.QuadTree
 
         protected override void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
-            int xMin = index.X - 1;
-            int xMid = index.X;
-            int xMax = index.X + 1;
-            int yMin = index.Y - 1;
-            int yMid = index.Y;
-            int yMax = index.Y + 1;
             // todo eevee 未处理重复搜索
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMin, yMin), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMid, yMin), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMax, yMin), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMin, yMid), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMid, yMid), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMax, yMid), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMin, yMax), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMid, yMax), elements);
-            QuadTreeExt.IterateNode(this, in checker, GetNode(index.Depth, xMax, yMax), elements);
+            for (int sx = index.X - 1, ex = index.X + 2; sx < ex; ++sx)
+            {
+                for (int sy = index.Y - 1, ey = index.Y + 2; sy < ey; ++sy)
+                {
+                    var node = GetNode(index.Depth, sx, sy);
+                    if (node is null)
+                        continue;
+
+                    IterateParent(in checker, node.Parent, elements);
+                    IterateChildren(in checker, node, elements);
+                }
+            }
         }
 
         internal override void GetNodes(ICollection<QuadNode> nodes) => QuadExt.GetNodes(_nodes, nodes);

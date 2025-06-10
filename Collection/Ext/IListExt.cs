@@ -34,8 +34,8 @@ namespace Eevee.Collection
         {
             switch (source)
             {
-                case List<T> list when comparer == null: return list.IndexOf(item, index, count);
-                case WeakOrderList<T> weakOrderList when comparer == null: return weakOrderList.IndexOf(item, index, count);
+                case List<T> list when comparer is null: return list.IndexOf(item, index, count);
+                case WeakOrderList<T> weakOrderList when comparer is null: return weakOrderList.IndexOf(item, index, count);
                 default:
                     var equalityComparer = comparer ?? EqualityComparer<T>.Default;
                     for (int end = index + count, i = index; i < end; ++i)
@@ -54,8 +54,8 @@ namespace Eevee.Collection
 
             switch (source)
             {
-                case List<T> list when comparer == null: return list.LastIndexOf(item, index, count);
-                case WeakOrderList<T> weakOrderList when comparer == null: return weakOrderList.LastIndexOf(item, index, count);
+                case List<T> list when comparer is null: return list.LastIndexOf(item, index, count);
+                case WeakOrderList<T> weakOrderList when comparer is null: return weakOrderList.LastIndexOf(item, index, count);
                 default:
                     if (source.IsNullOrEmpty())
                         return -1;
@@ -159,7 +159,7 @@ namespace Eevee.Collection
         /// </summary>
         public static void InsertRangeLowGC<T>(this IList<T> source, int sourceIndex, IEnumerable<T> input)
         {
-            if (input == null)
+            if (input is null)
             {
                 return;
             }

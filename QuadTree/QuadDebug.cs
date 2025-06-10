@@ -65,7 +65,7 @@ namespace Eevee.QuadTree
             return allow;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool CheckTargets(ICollection<int> targets, int id) => targets == null || targets.Contains(id);
+        private static bool CheckTargets(ICollection<int> targets, int id) => targets is null || targets.Contains(id);
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

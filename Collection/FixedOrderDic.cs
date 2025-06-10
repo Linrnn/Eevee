@@ -524,7 +524,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CheckComparer(IEqualityComparer<TKey> comparer = null)
         {
-            if (comparer == null || comparer == EqualityComparer<TKey>.Default)
+            if (comparer is null || comparer == EqualityComparer<TKey>.Default)
                 Assert.Convert<ArgumentException, AssertArgs<object>, TKey, IEquatable<TKey>>(nameof(comparer), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(TKey)));
         }
         [Conditional(Macro.Debug)]

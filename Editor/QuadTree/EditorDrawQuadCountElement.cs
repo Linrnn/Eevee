@@ -57,7 +57,7 @@ namespace EeveeEditor.QuadTree
 
             // todo eevee
             //var manager = BATEntry.Data?.quadTree;
-            //if (manager == null)
+            //if (manager is null)
             //    return;
 
             //var treeFiled = manager.GetType().GetField(QuadTreeManager.TreeName, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -80,7 +80,7 @@ namespace EeveeEditor.QuadTree
 
             foreach (var tree in _tree)
             {
-                if (tree == null)
+                if (tree is null)
                     continue;
 
                 for (int depthLength = _depthCounts.Length, depth = 0; depth < depthLength; ++depth)
@@ -118,17 +118,17 @@ namespace EeveeEditor.QuadTree
         {
             _depthCounts = Array.Empty<DepthCount>();
 
-            if (_trees == null)
+            if (_trees is null)
                 return;
 
             _trees.TryGetValue(_funcEnum, out var cacheTree);
-            if (cacheTree == null)
+            if (cacheTree is null)
                 return;
 
             _tree = cacheTree;
             foreach (var tree in cacheTree)
             {
-                if (tree == null)
+                if (tree is null)
                     continue;
 
                 _depthCounts = new DepthCount[tree.MaxDepth]; // 不计算最后一层

@@ -44,14 +44,5 @@ namespace Eevee.QuadTree
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static QuadNode GetNode(this QuadTreeBasic tree, in QuadIndex index) => index.IsValid() ? tree.GetNode(index.Depth, index.X, index.Y) : null;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void IterateNode<TChecker>(QuadTreeBasic tree, in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
-        {
-            if (node == null)
-                return;
-            tree.IterateParent(in checker, node.Parent, elements);
-            tree.IterateChildren(in checker, node, elements);
-        }
     }
 }

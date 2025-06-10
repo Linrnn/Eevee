@@ -23,7 +23,7 @@ namespace Eevee.Pool
         public T Alloc()
         {
             T obj = null;
-            bool success = _pool != null && _pool.TryPop(out obj);
+            bool success = _pool is not null && _pool.TryPop(out obj);
             T newObj;
             if (success)
             {
@@ -47,7 +47,7 @@ namespace Eevee.Pool
         {
             Assert.NotNull<ArgumentNullException, AssertArgs>(element, nameof(element), "element is null");
 
-            if (ReleaseCheck && _pool != null && _pool.Contains(element))
+            if (ReleaseCheck && _pool is not null && _pool.Contains(element))
                 throw new InvalidOperationException("Trying to release an object that has already been released to the pool.");
 
             _pool ??= new Stack<T>();
@@ -60,7 +60,7 @@ namespace Eevee.Pool
         }
         public void Clear()
         {
-            if (_pool != null && typeof(IObjectDestroy).IsAssignableFrom(typeof(T)))
+            if (_pool is not null && typeof(IObjectDestroy).IsAssignableFrom(typeof(T)))
                 foreach (var obj in _pool)
                     (obj as IObjectDestroy)?.OnDestroy();
 

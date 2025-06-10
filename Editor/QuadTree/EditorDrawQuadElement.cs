@@ -18,7 +18,7 @@ namespace EeveeEditor.QuadTree
 
             internal GameObject Pop()
             {
-                if (_root == null)
+                if (_root is null)
                 {
                     _root = new GameObject(nameof(EditorDrawQuadElement))
                     {
@@ -171,7 +171,7 @@ namespace EeveeEditor.QuadTree
 
             // todo eevee
             //var manager = BATEntry.Data?.quadTree;
-            //if (manager == null)
+            //if (manager is null)
             //    return;
 
             //var treeFiled = manager.GetType().GetField(QuadTreeManager.TreeName, BindingFlags.Instance | BindingFlags.NonPublic);
@@ -216,7 +216,7 @@ namespace EeveeEditor.QuadTree
                 {
                     foreach (var pair in _trees)
                     foreach (var tree in pair.Value)
-                        if (tree != null)
+                        if (tree is not null)
                             foreach (var node in QuadHelper.GetNodes(tree, _nodes))
                             foreach (var element in node.Elements.AsReadOnlySpan())
                                 _drawEntityIds.Add(element.Index);
@@ -234,7 +234,7 @@ namespace EeveeEditor.QuadTree
         {
             _drawElements.Clear();
 
-            if (_trees == null)
+            if (_trees is null)
                 return;
 
             if (_alpha <= 0)
@@ -279,7 +279,7 @@ namespace EeveeEditor.QuadTree
         }
         private void ReadyElements(QuadTreeBasic tree, in SubTreeInfo treeInfo)
         {
-            if (tree == null)
+            if (tree is null)
                 return;
 
             foreach (var node in QuadHelper.GetNodes(tree, _nodes))

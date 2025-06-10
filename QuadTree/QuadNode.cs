@@ -200,10 +200,10 @@ namespace Eevee.QuadTree
         private void CountSum(bool addOrRemove)
         {
             if (addOrRemove)
-                for (var node = this; node != null; node = node.Parent)
+                for (var node = this; node is not null; node = node.Parent)
                     ++node.SumCount;
             else
-                for (var node = this; node != null; node = node.Parent)
+                for (var node = this; node is not null; node = node.Parent)
                     --node.SumCount;
         }
         #endregion

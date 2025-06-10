@@ -239,7 +239,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void IterateParent<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
-            for (var parent = node; parent != null; parent = parent.Parent)
+            for (var parent = node; parent is not null; parent = parent.Parent)
                 foreach (var element in parent.Elements.AsReadOnlySpan())
                     if (checker.CheckElement(in element.AABB))
                         elements.Add(element);
