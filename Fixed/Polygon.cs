@@ -2,6 +2,7 @@
 using Eevee.Define;
 using System;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace Eevee.Fixed
 {
@@ -11,33 +12,33 @@ namespace Eevee.Fixed
     public readonly struct Polygon : IEquatable<Polygon>, IComparable<Polygon>, IFormattable
     {
         #region 字段/构造方法
-        public readonly ReadOnlyArray<Vector2D> Points;
+        private readonly ReadOnlyArray<Vector2D> _points;
 
         public Polygon(in ReadOnlyArray<Vector2D> points)
         {
             Check.Polygon(points.Count);
-            Points = points;
+            _points = points;
         }
         public ref Vector2D this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref Points.RefGet(index);
+            get => ref _points.RefGet(index);
         }
         #endregion
 
         #region 基础方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int PointCount() => Points.Count;
+        public int PointCount() => _points.Count;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public int SideCount() => Points.Count;
+        public int SideCount() => _points.Count;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Fixed64 Left()
         {
-            var value = Points.RefGet(0).X;
-            for (int i = 1; i < Points.Count; ++i)
+            var value = _points.RefGet(0).X;
+            for (int i = 1; i < _points.Count; ++i)
             {
-                ref var point = ref Points.RefGet(i);
+                ref var point = ref _points.RefGet(i);
                 if (point.X < value)
                     value = point.X;
             }
@@ -46,10 +47,10 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Fixed64 Right()
         {
-            var value = Points.RefGet(0).X;
-            for (int i = 1; i < Points.Count; ++i)
+            var value = _points.RefGet(0).X;
+            for (int i = 1; i < _points.Count; ++i)
             {
-                ref var point = ref Points.RefGet(i);
+                ref var point = ref _points.RefGet(i);
                 if (point.X > value)
                     value = point.X;
             }
@@ -58,10 +59,10 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Fixed64 Bottom()
         {
-            var value = Points.RefGet(0).Y;
-            for (int i = 1; i < Points.Count; ++i)
+            var value = _points.RefGet(0).Y;
+            for (int i = 1; i < _points.Count; ++i)
             {
-                ref var point = ref Points.RefGet(i);
+                ref var point = ref _points.RefGet(i);
                 if (point.Y < value)
                     value = point.Y;
             }
@@ -70,10 +71,10 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Fixed64 Top()
         {
-            var value = Points.RefGet(0).Y;
-            for (int i = 1; i < Points.Count; ++i)
+            var value = _points.RefGet(0).Y;
+            for (int i = 1; i < _points.Count; ++i)
             {
-                ref var point = ref Points.RefGet(i);
+                ref var point = ref _points.RefGet(i);
                 if (point.Y > value)
                     value = point.Y;
             }
@@ -100,17 +101,19 @@ namespace Eevee.Fixed
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ReadOnlySpan<Vector2D> GetPoints() => _points.AsSpan();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CountPeek(out Fixed64 xMin, out Fixed64 xMax, out Fixed64 yMin, out Fixed64 yMax)
         {
-            var point0 = Points.RefGet(0);
+            var point0 = _points.RefGet(0);
             xMin = point0.X;
             xMax = point0.X;
             yMin = point0.Y;
             yMax = point0.Y;
 
-            for (int i = 1; i < Points.Count; ++i)
+            for (int i = 1; i < _points.Count; ++i)
             {
-                ref var point = ref Points.RefGet(i);
+                ref var point = ref _points.RefGet(i);
 
                 if (point.X < xMin)
                     xMin = point.X;
@@ -128,13 +131,21 @@ namespace Eevee.Fixed
         #region 隐式转换/显示转换/运算符重载
         public static bool operator ==(in Polygon lhs, in Polygon rhs)
         {
-            // todo eevee
-            throw new NotImplementedException();
+            if (lhs._points.Count != rhs._points.Count)
+                return false;
+            for (int i = 0; i < lhs._points.Count; ++i)
+                if (lhs._points.RefGet(i) != rhs._points.RefGet(i))
+                    return false;
+            return true;
         }
         public static bool operator !=(in Polygon lhs, in Polygon rhs)
         {
-            // todo eevee
-            throw new NotImplementedException();
+            if (lhs._points.Count != rhs._points.Count)
+                return true;
+            for (int i = 0; i < lhs._points.Count; ++i)
+                if (lhs._points.RefGet(i) != rhs._points.RefGet(i))
+                    return true;
+            return false;
         }
         #endregion
 
@@ -143,8 +154,10 @@ namespace Eevee.Fixed
 
         public override int GetHashCode()
         {
-            // todo eevee
-            throw new NotImplementedException();
+            int hashCode = 0;
+            foreach (var point in _points)
+                hashCode ^= point.GetHashCode();
+            return hashCode;
         }
         public bool Equals(Polygon other) => this == other;
         public int CompareTo(Polygon other)
@@ -158,8 +171,12 @@ namespace Eevee.Fixed
         public string ToString(IFormatProvider provider) => ToString(Format.Fractional, provider);
         public string ToString(string format, IFormatProvider provider)
         {
-            // todo eevee
-            throw new NotImplementedException();
+            var sb = new StringBuilder(_points.Count * 10);
+            sb.Append('[');
+            foreach (var point in _points)
+                sb.Append(point.ToString(format, provider));
+            sb.Append(']');
+            return sb.ToString();
         }
         #endregion
     }

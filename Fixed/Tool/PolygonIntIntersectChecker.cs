@@ -97,7 +97,7 @@ namespace Eevee.Fixed
             if (Contain(shape.LeftTop()))
                 return true;
 
-            foreach (var point in Shape.Points)
+            foreach (var point in Shape.GetPoints())
                 if (Geometry.Contain(in shape, point))
                     return true;
 
@@ -117,7 +117,7 @@ namespace Eevee.Fixed
             if (Contain((Vector2DInt)p3))
                 return true;
 
-            foreach (var point in Shape.Points)
+            foreach (var point in Shape.GetPoints())
                 if (Geometry.Contain(in shape, point))
                     return true;
 

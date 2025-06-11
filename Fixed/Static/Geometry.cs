@@ -748,7 +748,7 @@ namespace Eevee.Fixed
         public static bool Contain(in Polygon shape, in Polygon other)
         {
             using var checker = new PolygonIntersectChecker(in shape, true, false);
-            foreach (var point in other.Points)
+            foreach (var point in other.GetPoints())
                 if (!checker.Contain(in point))
                     return false;
             return true;
@@ -830,7 +830,7 @@ namespace Eevee.Fixed
         public static bool Contain(in PolygonInt shape, in PolygonInt other)
         {
             using var checker = new PolygonIntIntersectChecker(in shape, true, false);
-            foreach (var point in other.Points)
+            foreach (var point in other.GetPoints())
                 if (!checker.Contain(point))
                     return false;
             return true;
@@ -1000,8 +1000,8 @@ namespace Eevee.Fixed
         }
         public static bool SATIntersect(in Polygon shape, in Polygon other) // SAT，分离轴定理
         {
-            var shapeSpan = shape.Points.AsSpan();
-            var otherSpan = other.Points.AsSpan();
+            var shapeSpan = shape.GetPoints();
+            var otherSpan = other.GetPoints();
             for (int count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
             {
                 ref var pi = ref shape[i];
@@ -1015,8 +1015,8 @@ namespace Eevee.Fixed
         }
         public static bool GJKIntersect(in Polygon shape, in Polygon other) // GJK，闵可夫斯基差集
         {
-            var shapeSpan = shape.Points.AsSpan();
-            var otherSpan = other.Points.AsSpan();
+            var shapeSpan = shape.GetPoints();
+            var otherSpan = other.GetPoints();
             bool intersect = false;
             var simplex = new RefArray<Vector2D>(null);
 
@@ -1073,8 +1073,8 @@ namespace Eevee.Fixed
         }
         public static bool Intersect(in PolygonInt shape, in PolygonInt other) // GJK，闵可夫斯基差集
         {
-            var shapeSpan = shape.Points.AsSpan();
-            var otherSpan = other.Points.AsSpan();
+            var shapeSpan = shape.GetPoints();
+            var otherSpan = other.GetPoints();
             bool intersect = false;
             var simplex = new RefArray<Vector2DInt>(null);
 
