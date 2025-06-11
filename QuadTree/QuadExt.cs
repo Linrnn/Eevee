@@ -1,29 +1,38 @@
-﻿using Eevee.Collection;
-using Eevee.Fixed;
+﻿using Eevee.Fixed;
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.QuadTree
 {
     internal readonly struct QuadExt
     {
-        internal const int ChildCount = 4; // 每个节点的子节点数量
+        internal const int ChildCount = 4; // 节点的子节点数量
         internal const QuadCountNodeMode CountMode = QuadCountNodeMode.NotIntersect;
 
+        /// <summary>
+        /// 每一层的节点数量的根号
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnDestroy(ref QuadNode[][] nodes)
-        {
-            foreach (var depthNodes in nodes)
-            {
-                foreach (var node in depthNodes)
-                    node.Clean();
-                depthNodes.Clean();
-            }
+        internal static int CountNodeSideCount(int depth) => 1 << depth;
+        /// <summary>
+        /// 每一层的节点数量
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int CountNodeCount(int depth) => 1 << depth << depth;
 
-            nodes.Clean();
-            nodes = null;
-        }
+        /// <summary>
+        /// 每一层的边界尺寸<br/>
+        /// 四分之一的面积
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Vector2DInt CountHalfBoundary(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.X >> depth, maxBoundary.Y >> depth);
+        /// <summary>
+        /// 每一层的边界尺寸
+        /// 完整的面积<br/>
+        /// depth可以是0，所以先左移1
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static Vector2DInt CountBoundary(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.X << 1 >> depth, maxBoundary.Y << 1 >> depth);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool CountArea(in AABB2DInt maxBoundary, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area)
@@ -60,11 +69,11 @@ namespace Eevee.QuadTree
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool CountNodeIndex(in AABB2DInt maxBoundary, int maxDepth, IReadOnlyList<Vector2DInt> halfBoundaries, in AABB2DInt area, QuadCountNodeMode mode, out QuadIndex index)
+        internal static bool CountNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt area, QuadCountNodeMode mode, out QuadIndex index)
         {
             for (int depth = maxDepth; depth >= 0; --depth)
             {
-                var boundary = halfBoundaries[depth];
+                var boundary = QuadExt.CountHalfBoundary(in maxBoundary, depth);
                 if (boundary.X < area.W || boundary.Y < area.H)
                     continue;
 
@@ -82,20 +91,6 @@ namespace Eevee.QuadTree
         internal static int GetNodeId(in QuadIndex index) => index.IsValid() ? GetNodeId(index.Depth, index.X, index.Y) : -1;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetNodeId(int depth, int x, int y) => x + (1 << depth) * y;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodes(QuadNode[][] nodes, ICollection<QuadNode> returnNodes)
-        {
-            foreach (var depthNodes in nodes)
-            foreach (var node in depthNodes)
-                returnNodes.Add(node);
-        }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodes(QuadNode[][] nodes, int depth, ICollection<QuadNode> returnNodes)
-        {
-            foreach (var node in nodes[depth])
-                returnNodes.Add(node);
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Exception ShapeNotImplementException(int treeId, QuadShape shape) => new NotImplementedException($"TreeId:{treeId}, Shape:{shape} not implement.");

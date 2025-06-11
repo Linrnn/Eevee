@@ -15,34 +15,12 @@ namespace Eevee.QuadTree
         protected int _maxDepth; // 四叉树的最大深度
         protected QuadShape _shape; // 四叉树节点的形状（暂时只支持“Circle”和“AABB”）
         protected AABB2DInt _maxBoundary; // 最大包围盒
-        protected Vector2DInt[] _halfBoundaries; // 每一层的边界尺寸（四分之一的面积，方便后续计算）
         protected QuadNode _root; // 根节点
 
-        public int TreeId
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _treeId;
-        }
-        public int MaxDepth
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _maxDepth;
-        }
-        public QuadShape Shape
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _shape;
-        }
-        public AABB2DInt MaxBoundary
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _maxBoundary;
-        }
-        internal Vector2DInt[] HalfBoundaries
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _halfBoundaries;
-        }
+        public int TreeId => _treeId;
+        public int MaxDepth => _maxDepth;
+        public QuadShape Shape => _shape;
+        public AABB2DInt MaxBoundary => _maxBoundary;
         internal QuadNode Root
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -54,7 +32,7 @@ namespace Eevee.QuadTree
         public void Insert(in QuadElement element)
         {
             CountNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
-            var node = this.GetNode(in index);
+            var node = GetNode(index.Depth, index.X, index.Y);
             node.Add(in element);
 
             if (QuadDebug.CheckIndex(_treeId, element.Index))
@@ -63,7 +41,7 @@ namespace Eevee.QuadTree
         public bool Remove(in QuadElement element)
         {
             CountNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
-            var node = this.GetNode(in index);
+            var node = GetNode(index.Depth, index.X, index.Y);
             bool remove = node.Remove(in element);
 
             if (remove && QuadDebug.CheckIndex(_treeId, element.Index))
@@ -76,8 +54,8 @@ namespace Eevee.QuadTree
         {
             CountNodeIndex(in preElement.AABB, QuadExt.CountMode, out var preIndex);
             CountNodeIndex(in tarElement.AABB, QuadExt.CountMode, out var tarIndex);
-            var preNode = this.GetNode(in preIndex);
-            var tarNode = this.GetNode(in tarIndex);
+            var preNode = GetNode(preIndex.Depth, preIndex.X, preIndex.Y);
+            var tarNode = GetNode(tarIndex.Depth, tarIndex.X, tarIndex.Y);
 
             if (preNode == tarNode)
             {
@@ -233,8 +211,8 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void IterateStart<TChecker>(in TChecker checker, in AABB2DInt aabb, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
-            CountNodeIndex(in aabb, QuadExt.CountMode, out var index);
-            Iterate(in checker, index, elements);
+            if (CountNodeIndex(in aabb, QuadExt.CountMode, out var index))
+                Iterate(in checker, index, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void IterateParent<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
@@ -243,6 +221,15 @@ namespace Eevee.QuadTree
                 foreach (var element in parent.Elements.AsReadOnlySpan())
                     if (checker.CheckElement(in element.AABB))
                         elements.Add(element);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void IterateParent<TChecker>(in TChecker checker, QuadNode node, ISet<QuadNode> iterated, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        {
+            for (var parent = node; parent is not null; parent = parent.Parent)
+                if (iterated.Add(parent))
+                    foreach (var element in parent.Elements.AsReadOnlySpan())
+                        if (checker.CheckElement(in element.AABB))
+                            elements.Add(element);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void IterateChildren<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
@@ -270,17 +257,14 @@ namespace Eevee.QuadTree
         internal virtual void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
             var root = CreateNode(in maxBoundary, 0, 0, 0, 0, null);
-            var halfBoundaries = new Vector2DInt[depthCount];
-            halfBoundaries[0] = maxBoundary.HalfSize();
 
             _treeId = treeId;
             _maxDepth = depthCount - 1;
             _shape = shape;
             _maxBoundary = maxBoundary;
-            _halfBoundaries = halfBoundaries;
             _root = root;
         }
-        internal virtual void OnDestroy() => _halfBoundaries = null;
+        internal virtual void OnDestroy() { }
 
         internal abstract QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent);
         internal abstract QuadNode GetNode(int depth, int x, int y);

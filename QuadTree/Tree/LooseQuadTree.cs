@@ -1,4 +1,6 @@
 ﻿using Eevee.Fixed;
+using Eevee.Pool;
+using System;
 using System.Collections.Generic;
 
 namespace Eevee.QuadTree
@@ -16,11 +18,11 @@ namespace Eevee.QuadTree
         internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
             base.OnCreate(treeId, shape, depthCount, in maxBoundary);
-            _nodes = QuadTreeExt.OnCreate(this, _root, depthCount, in maxBoundary, _halfBoundaries);
+            _nodes = QuadTreeExt.OnCreate(this, _root, depthCount, in maxBoundary);
         }
         internal override void OnDestroy()
         {
-            QuadExt.OnDestroy(ref _nodes);
+            QuadTreeExt.OnDestroy(ref _nodes);
             base.OnDestroy();
         }
 
@@ -32,35 +34,40 @@ namespace Eevee.QuadTree
         internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][QuadExt.GetNodeId(depth, x, y)];
         internal override bool CountNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
         {
-            if (QuadExt.CountArea(in _maxBoundary, in aabb, mode, out var area))
+            if (!QuadTreeExt.CountNodeIndex(in _maxBoundary, _maxDepth, in aabb, mode, out _, out var idx))
             {
-                bool exist = QuadExt.CountNodeIndex(in _maxBoundary, _maxDepth, _halfBoundaries, in area, mode, out index);
-                return exist;
+                index = QuadIndex.Invalid;
+                return false;
             }
 
-            index = QuadIndex.Invalid;
-            return false;
+            index = idx;
+            return true;
         }
 
         protected override void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
-            // todo eevee 未处理重复搜索
-            for (int sx = index.X - 1, ex = index.X + 2; sx < ex; ++sx)
-            {
-                for (int sy = index.Y - 1, ey = index.Y + 2; sy < ey; ++sy)
-                {
-                    var node = GetNode(index.Depth, sx, sy);
-                    if (node is null)
-                        continue;
+            var iterated = HashSetPool.Alloc<QuadNode>();
+            int max = QuadExt.CountNodeSideCount(index.Depth) - 1;
+            int si = Math.Max(index.X - 1, 0);
+            int ei = Math.Min(index.X + 2, max);
+            int sj = Math.Max(index.Y - 1, 0);
+            int ej = Math.Min(index.Y + 2, max);
 
-                    IterateParent(in checker, node.Parent, elements);
+            for (int i = si; i < ei; ++i)
+            {
+                for (int j = sj; j < ej; ++j)
+                {
+                    var node = GetNode(index.Depth, si, sj);
+                    IterateParent(in checker, node.Parent, iterated, elements);
                     IterateChildren(in checker, node, elements);
                 }
             }
+
+            iterated.Release2Pool();
         }
 
-        internal override void GetNodes(ICollection<QuadNode> nodes) => QuadExt.GetNodes(_nodes, nodes);
-        internal override void GetNodes(int depth, ICollection<QuadNode> nodes) => QuadExt.GetNodes(_nodes, depth, nodes);
+        internal override void GetNodes(ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, nodes);
+        internal override void GetNodes(int depth, ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, depth, nodes);
         #endregion
     }
 }

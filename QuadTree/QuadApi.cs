@@ -1,5 +1,4 @@
-﻿using Eevee.Define;
-using Eevee.Diagnosis;
+﻿using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System;
 using System.Runtime.CompilerServices;
@@ -60,35 +59,6 @@ namespace Eevee.QuadTree
             Assert.True<ArgumentException, AssertArgs<int>>(Maths.IsPowerOf2(extents.Y), nameof(extents.Y), "{0} isn't power of 2", new AssertArgs<int>(extents.Y));
             return new QuadTreeConfig(treeId, shape, extents, typeof(TTree));
         }
-    }
-
-    /// <summary>
-    /// 四叉树坐标
-    /// </summary>
-    public readonly struct QuadIndex : IEquatable<QuadIndex>
-    {
-        public readonly int Depth; // 所在层深度
-        public readonly int X; // 所在层的X坐标
-        public readonly int Y; // 所在层的Y坐标
-
-        public QuadIndex(int depth, int x, int y)
-        {
-            Depth = depth;
-            X = x;
-            Y = y;
-        }
-        public bool IsValid() => Depth >= 0 && X >= 0 && Y >= 0;
-
-        public static readonly QuadIndex Invalid = new(-1, -1, -1); // 无效的索引
-        public static bool operator ==(in QuadIndex lhs, in QuadIndex rhs) => lhs.Depth == rhs.Depth && lhs.X == rhs.X && lhs.Y == rhs.Y;
-        public static bool operator !=(in QuadIndex lhs, in QuadIndex rhs) => lhs.Depth != rhs.Depth || lhs.X != rhs.X || lhs.Y != rhs.Y;
-
-        public override bool Equals(object obj) => obj is QuadIndex other && this == other;
-        public override int GetHashCode() => Depth ^ X ^ Y;
-        public override string ToString() => ToString(Format.Fractional, Format.Use);
-
-        public bool Equals(QuadIndex other) => this == other;
-        public string ToString(string format, IFormatProvider provider) => $"Depth:{Depth.ToString(format, provider)}, X:{X.ToString(format, provider)}, Y:{Y.ToString(format, provider)}";
     }
 
     /// <summary>

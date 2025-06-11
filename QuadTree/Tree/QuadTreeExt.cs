@@ -1,27 +1,31 @@
-﻿using Eevee.Fixed;
+﻿using Eevee.Collection;
+using Eevee.Diagnosis;
+using Eevee.Fixed;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.QuadTree
 {
+    /// <summary>
+    /// QuadTreeBasic子类的拓展
+    /// </summary>
     internal static class QuadTreeExt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static QuadNode[][] OnCreate(QuadTreeBasic tree, QuadNode root, int depthCount, in AABB2DInt maxBoundary, IList<Vector2DInt> halfBoundaries)
+        internal static QuadNode[][] OnCreate(QuadTreeBasic tree, QuadNode root, int depthCount, in AABB2DInt maxBoundary)
         {
             var nodes = new QuadNode[depthCount][];
             nodes[0] = new[] { root };
 
             for (int left = maxBoundary.Left(), top = maxBoundary.Top(), upperDepth = 0, depth = 1; depth < depthCount; ++upperDepth, ++depth)
             {
-                int length = 1 << depth << depth; // length = 4^depth
+                int nodeCount = QuadExt.CountNodeCount(depth);
                 var upperNodes = nodes[upperDepth];
-                var depthNodes = new QuadNode[length];
+                var depthNodes = new QuadNode[nodeCount];
 
-                halfBoundaries[depth] = halfBoundaries[upperDepth] / 2;
                 nodes[depth] = depthNodes;
 
-                for (int i = 0; i < length; i += QuadExt.ChildCount)
+                for (int i = 0; i < nodeCount; i += QuadExt.ChildCount)
                 {
                     var parent = upperNodes[i / QuadExt.ChildCount];
                     parent.Children = new QuadNode[QuadExt.ChildCount];
@@ -41,8 +45,60 @@ namespace Eevee.QuadTree
 
             return nodes;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void OnDestroy(ref QuadNode[][] nodes)
+        {
+            foreach (var depthNodes in nodes)
+            {
+                foreach (var node in depthNodes)
+                    node.Clean();
+                depthNodes.Clean();
+            }
+
+            nodes.Clean();
+            nodes = null;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static QuadNode GetNode(this QuadTreeBasic tree, in QuadIndex index) => index.IsValid() ? tree.GetNode(index.Depth, index.X, index.Y) : null;
+        internal static bool CountNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area, out QuadIndex index)
+        {
+            if (!QuadExt.CountArea(in maxBoundary, in aabb, mode, out area))
+            {
+                index = QuadIndex.Invalid;
+                return false;
+            }
+
+            if (!QuadExt.CountNodeIndex(in maxBoundary, maxDepth, in area, mode, out var idx))
+            {
+                index = QuadIndex.Invalid;
+                return false;
+            }
+
+            index = idx;
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static QuadNode TryGetNode(this QuadTreeBasic tree, in QuadIndex index)
+        {
+            if (index.IsValid())
+                return tree.GetNode(index.Depth, index.X, index.Y);
+
+            LogRelay.Error($"[Quad] Index:{index}, is Invalid!");
+            return null;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void GetNodes(QuadNode[][] nodes, ICollection<QuadNode> returnNodes)
+        {
+            foreach (var depthNodes in nodes)
+            foreach (var node in depthNodes)
+                returnNodes.Add(node);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void GetNodes(QuadNode[][] nodes, int depth, ICollection<QuadNode> returnNodes)
+        {
+            foreach (var node in nodes[depth])
+                returnNodes.Add(node);
+        }
     }
 }
