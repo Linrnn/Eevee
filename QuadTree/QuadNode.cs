@@ -14,13 +14,13 @@ namespace Eevee.QuadTree
     public sealed class QuadNode
     {
         #region 迭代器
-        public readonly struct ChildEnumerator
+        internal readonly struct Iterator
         {
             private readonly IReadOnlyList<QuadNode> _enumerator;
             private readonly bool _checkNull;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal ChildEnumerator(IReadOnlyList<QuadNode> enumerator, bool checkNull)
+            internal Iterator(IReadOnlyList<QuadNode> enumerator, bool checkNull)
             {
                 _enumerator = enumerator;
                 _checkNull = checkNull;
@@ -28,13 +28,14 @@ namespace Eevee.QuadTree
             public Enumerator GetEnumerator() => new(_enumerator, _checkNull);
         }
 
-        public struct Enumerator : IEnumerator<QuadNode>
+        internal struct Enumerator : IEnumerator<QuadNode>
         {
             private readonly IReadOnlyList<QuadNode> _enumerator;
             private bool _checkNull;
             private int _index;
             private QuadNode _current;
 
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             internal Enumerator(IReadOnlyList<QuadNode> enumerator, bool checkNull)
             {
                 _enumerator = enumerator;
@@ -117,62 +118,73 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 字段
-        public readonly AABB2DInt Boundary; // 边界
-        public readonly AABB2DInt LooseBoundary; // 松散四叉树的节点边界
-        public readonly QuadIndex Index; // 节点所在层级的二维坐标
-        public readonly int ChildId; // 相对于父节点的编号
+        internal AABB2DInt Boundary; // 边界
+        internal AABB2DInt LooseBoundary; // 松散四叉树的节点边界
+        internal QuadIndex Index = QuadIndex.Invalid; // 节点所在层级的二维坐标
+        internal int ChildId = -1; // 相对于父节点的编号
 
-        public readonly QuadNode Parent; // 父节点
-        public QuadNode[] Children; // 子节点
-        public readonly WeakOrderList<QuadElement> Elements = new(); // 存储元素的数组（禁止外部直接修改）
-        public int SumCount; // 当前节点及所有子节点存的数量（禁止外部直接修改）
+        internal QuadNode Parent; // 父节点
+        internal readonly QuadNode[] Children = new QuadNode[QuadExt.ChildCount]; // 子节点
+        internal readonly WeakOrderList<QuadElement> Elements = new(); // 存储元素的数组（禁止外部直接修改）
+        internal int SumCount; // 当前节点及所有子节点存的数量（禁止外部直接修改）
+
+        private bool _valid;
         #endregion
 
         #region 方法
-        public QuadNode(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int childId, int x, int y, QuadNode parent)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int childId, int x, int y, QuadNode parent)
         {
             Boundary = boundary;
             LooseBoundary = looseBoundary;
             Index = new QuadIndex(depth, x, y);
             ChildId = childId;
             Parent = parent;
+            _valid = true;
         }
-        public AABB2DInt CountChildBoundary(int childId) => childId switch // 计算子包围盒
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void OnRelease()
         {
-            0 => Boundary.LeftTopAABB(),
-            1 => Boundary.RightTopAABB(),
-            2 => Boundary.LeftBottomAABB(),
-            3 => Boundary.RightBottomAABB(),
-            _ => throw new IndexOutOfRangeException($"ChildId:{childId}，越界"),
-        };
+            if (!_valid)
+            {
+                LogRelay.Warn($"[Quad] Index:{Index}, ChildId:{ChildId} _valid is false.");
+                return;
+            }
 
-        public void Add(in QuadElement element)
+            Boundary = default;
+            LooseBoundary = default;
+            Index = QuadIndex.Invalid;
+            ChildId = -1;
+            Parent = null;
+            Children.Clean();
+            Elements.Clear();
+            SumCount = 0;
+            _valid = false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void Add(in QuadElement element)
         {
             Elements.Add(element);
-            CountSum(true);
+            CountSumAdd();
         }
-        public bool Remove(in QuadElement element)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool Remove(in QuadElement element)
         {
             if (!Elements.Remove(element))
                 return false;
 
-            CountSum(false);
+            CountSumSub();
             return true;
         }
-        public bool RemoveAt(int index)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void RemoveAt(int index)
         {
-            if (index < 0 && index >= Elements.Count)
-            {
-                LogRelay.Error($"[QuadTree] index < 0 && index >= Count, index:{index}, count:{Elements.Count}");
-                return false;
-            }
-
             Elements.RemoveAt(index);
-            CountSum(false);
-            return true;
+            CountSumSub();
         }
-
-        public bool Update(in QuadElement perElement, in QuadElement tarElement)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool Update(in QuadElement perElement, in QuadElement tarElement)
         {
             for (int count = Elements.Count, i = 0; i < count; ++i)
             {
@@ -185,27 +197,37 @@ namespace Eevee.QuadTree
 
             return false;
         }
-        public void Update(int index, in QuadElement element) => Elements[index] = element;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void Update(int index, in QuadElement element) => Elements[index] = element;
 
-        public bool IsEmpty() => SumCount == 0;
-        public int IndexOf(in QuadElement element) => Elements.IndexOf(element);
-        public ChildEnumerator GetChildren(bool checkNull = false) => new(Children, checkNull);
-
-        public void Clean()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void CountSumAdd()
         {
-            Elements.Clear();
-            SumCount = 0;
+            for (var node = this; node is not null; node = node.Parent)
+                ++node.SumCount;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CountSum(bool addOrRemove)
+        private void CountSumSub()
         {
-            if (addOrRemove)
-                for (var node = this; node is not null; node = node.Parent)
-                    ++node.SumCount;
-            else
-                for (var node = this; node is not null; node = node.Parent)
-                    --node.SumCount;
+            for (var node = this; node is not null; node = node.Parent)
+                --node.SumCount;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool IsEmpty() => SumCount == 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal int IndexOf(in QuadElement element) => Elements.IndexOf(element);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal AABB2DInt CountChildBoundary(int childId) => childId switch // 计算子包围盒
+        {
+            0 => Boundary.LeftTopAABB(),
+            1 => Boundary.RightTopAABB(),
+            2 => Boundary.LeftBottomAABB(),
+            3 => Boundary.RightBottomAABB(),
+            _ => throw new IndexOutOfRangeException($"ChildId:{childId}，越界"),
+        };
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Iterator AsIterator(bool checkNull = false) => new(Children, checkNull);
         #endregion
     }
 }

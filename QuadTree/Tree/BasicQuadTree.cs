@@ -12,7 +12,7 @@ namespace Eevee.QuadTree
     {
         #region 数据
         protected int _treeId; // 四叉树的编号
-        protected int _maxDepth; // 四叉树的最大深度
+        protected int _maxDepth = -1; // 四叉树的最大深度
         protected QuadShape _shape; // 四叉树节点的形状（暂时只支持“Circle”和“AABB”）
         protected AABB2DInt _maxBoundary; // 最大包围盒
         protected QuadNode _root; // 根节点
@@ -21,18 +21,13 @@ namespace Eevee.QuadTree
         public int MaxDepth => _maxDepth;
         public QuadShape Shape => _shape;
         public AABB2DInt MaxBoundary => _maxBoundary;
-        internal QuadNode Root
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _root;
-        }
         #endregion
 
         #region 操作
         public void Insert(in QuadElement element)
         {
             CountNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
-            var node = GetNode(index.Depth, index.X, index.Y);
+            var node = GetOrCreateNode(index.Depth, index.X, index.Y);
             node.Add(in element);
 
             if (QuadDebug.CheckIndex(_treeId, element.Index))
@@ -55,7 +50,7 @@ namespace Eevee.QuadTree
             CountNodeIndex(in preElement.AABB, QuadExt.CountMode, out var preIndex);
             CountNodeIndex(in tarElement.AABB, QuadExt.CountMode, out var tarIndex);
             var preNode = GetNode(preIndex.Depth, preIndex.X, preIndex.Y);
-            var tarNode = GetNode(tarIndex.Depth, tarIndex.X, tarIndex.Y);
+            var tarNode = GetOrCreateNode(tarIndex.Depth, tarIndex.X, tarIndex.Y);
 
             if (preNode == tarNode)
             {
@@ -264,15 +259,24 @@ namespace Eevee.QuadTree
             _maxBoundary = maxBoundary;
             _root = root;
         }
-        internal virtual void OnDestroy() { }
+        internal virtual void OnDestroy()
+        {
+            _treeId = 0;
+            _maxDepth = -1;
+            _shape = QuadShape.None;
+            _maxBoundary = default;
+            _root.OnRelease();
+            _root = null;
+        }
 
         internal abstract QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent);
         internal abstract QuadNode GetNode(int depth, int x, int y);
-        internal abstract bool CountNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index);
+        internal abstract QuadNode GetOrCreateNode(int depth, int x, int y);
 
         internal abstract void GetNodes(ICollection<QuadNode> nodes);
         internal abstract void GetNodes(int depth, ICollection<QuadNode> nodes);
 
+        internal abstract bool CountNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index);
         protected abstract void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker;
         #endregion
     }

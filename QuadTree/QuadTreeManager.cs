@@ -42,7 +42,7 @@ namespace Eevee.QuadTree
 
             tree.CountNodeIndex(in preEle.AABB, QuadExt.CountMode, out var preNodeIndex);
             tree.CountNodeIndex(in tarEle.AABB, QuadExt.CountMode, out var tarNodeIndex);
-            var preNode = tree.TryGetNode(in preNodeIndex);
+            var preNode = tree.GetNode(preNodeIndex.Depth, preNodeIndex.X, preNodeIndex.Y);
             int preIndex = preNode?.IndexOf(in preEle) ?? -1;
 
             cache = new QuadPreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
@@ -64,7 +64,7 @@ namespace Eevee.QuadTree
 
             tree.CountNodeIndex(in preEle.AABB, QuadExt.CountMode, out var preNodeIndex);
             tree.CountNodeIndex(in tarEle.AABB, QuadExt.CountMode, out var tarNodeIndex);
-            var preNode = tree.TryGetNode(in preNodeIndex);
+            var preNode = tree.GetNode(preNodeIndex.Depth, preNodeIndex.X, preNodeIndex.Y);
             int preIndex = preNode?.IndexOf(in preEle) ?? -1;
 
             cache = new QuadPreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
@@ -78,8 +78,8 @@ namespace Eevee.QuadTree
             var tree = _trees[cache.TreeId];
             var preEle = cache.PreEle;
             var tarEle = cache.TarEle;
-            var preNode = tree.TryGetNode(in cache.PreNodeIndex);
-            var tarNode = tree.TryGetNode(in cache.TarNodeIndex);
+            var preNode = tree.GetNode(cache.PreNodeIndex.Depth, cache.PreNodeIndex.X, cache.PreNodeIndex.Y);
+            var tarNode = tree.GetOrCreateNode(cache.TarNodeIndex.Depth, cache.TarNodeIndex.X, cache.TarNodeIndex.Y);
             int index = cache.PreElementIndex;
             bool usePre = index < preNode.Elements.Count && preNode.Elements[index] == preEle;
             bool hasError = false;

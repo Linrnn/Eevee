@@ -73,7 +73,7 @@ namespace Eevee.QuadTree
         {
             for (int depth = maxDepth; depth >= 0; --depth)
             {
-                var boundary = QuadExt.CountHalfBoundary(in maxBoundary, depth);
+                var boundary = CountHalfBoundary(in maxBoundary, depth);
                 if (boundary.X < area.W || boundary.Y < area.H)
                     continue;
 
@@ -91,6 +91,8 @@ namespace Eevee.QuadTree
         internal static int GetNodeId(in QuadIndex index) => index.IsValid() ? GetNodeId(index.Depth, index.X, index.Y) : -1;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetNodeId(int depth, int x, int y) => x + (1 << depth) * y;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int GetRootId() => 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Exception ShapeNotImplementException(int treeId, QuadShape shape) => new NotImplementedException($"TreeId:{treeId}, Shape:{shape} not implement.");

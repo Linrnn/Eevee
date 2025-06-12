@@ -19,6 +19,7 @@ namespace Eevee.QuadTree
     /// </summary>
     public enum QuadShape : byte
     {
+        None,
         Circle, // 圆形
         AABB, // 轴对齐包围盒
         OBB, // 定向包围盒

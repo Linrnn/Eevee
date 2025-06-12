@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Eevee.QuadTree
 {
     /// <summary>
-    /// 网格法 + 松散四叉树
+    /// 静态网格 + 松散四叉树
     /// </summary>
     public sealed class LooseQuadTree : BasicQuadTree
     {
@@ -18,7 +18,7 @@ namespace Eevee.QuadTree
         internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
             base.OnCreate(treeId, shape, depthCount, in maxBoundary);
-            _nodes = QuadTreeExt.OnCreate(this, _root, depthCount, in maxBoundary);
+            QuadTreeExt.OnCreate(this, _root, depthCount, in maxBoundary, out _nodes);
         }
         internal override void OnDestroy()
         {
@@ -28,10 +28,17 @@ namespace Eevee.QuadTree
 
         internal override QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent)
         {
+            var node = new QuadNode();
             var looseBoundary = new AABB2DInt(boundary.Center(), boundary.Size());
-            return new QuadNode(in boundary, in looseBoundary, depth, childId, x, y, parent);
+            node.OnAlloc(in boundary, in looseBoundary, depth, childId, x, y, parent);
+            return node;
         }
         internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][QuadExt.GetNodeId(depth, x, y)];
+        internal override QuadNode GetOrCreateNode(int depth, int x, int y) => _nodes[depth][QuadExt.GetNodeId(depth, x, y)];
+
+        internal override void GetNodes(ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, nodes);
+        internal override void GetNodes(int depth, ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, depth, nodes);
+
         internal override bool CountNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
         {
             if (!QuadTreeExt.CountNodeIndex(in _maxBoundary, _maxDepth, in aabb, mode, out _, out var idx))
@@ -43,7 +50,6 @@ namespace Eevee.QuadTree
             index = idx;
             return true;
         }
-
         protected override void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
             var iterated = HashSetPool.Alloc<QuadNode>();
@@ -58,6 +64,11 @@ namespace Eevee.QuadTree
                 for (int j = sj; j < ej; ++j)
                 {
                     var node = GetNode(index.Depth, si, sj);
+                    if (node.SumCount == 0)
+                        continue;
+                    if (!checker.CheckNode(in node.Boundary))
+                        continue;
+
                     IterateParent(in checker, node.Parent, iterated, elements);
                     IterateChildren(in checker, node, elements);
                 }
@@ -65,9 +76,6 @@ namespace Eevee.QuadTree
 
             iterated.Release2Pool();
         }
-
-        internal override void GetNodes(ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, nodes);
-        internal override void GetNodes(int depth, ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, depth, nodes);
         #endregion
     }
 }
