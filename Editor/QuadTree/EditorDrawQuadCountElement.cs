@@ -42,8 +42,8 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         private float _lineDuration;
-        private IDictionary<int, QuadTreeBasic[]> _trees;
-        private QuadTreeBasic[] _tree;
+        private IDictionary<int, BasicQuadTree[]> _trees;
+        private BasicQuadTree[] _tree;
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
 
         [SingleEnum] [SerializeField] private int _funcEnum;

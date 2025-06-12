@@ -15,7 +15,7 @@ namespace Eevee.QuadTree
         public readonly Fixed64 Reciprocal; // = 1 / Scale
         public readonly int DepthCount;
         public readonly AABB2DInt MaxBoundary;
-        private readonly Dictionary<int, QuadTreeBasic> _trees = new();
+        private readonly Dictionary<int, BasicQuadTree> _trees = new();
 
         public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
@@ -407,7 +407,7 @@ namespace Eevee.QuadTree
                 int depth = depthCount;
                 for (int extents = Math.Max(config.Extents.X, config.Extents.Y) << depthCount - 1; depth > 1 && extents > maxExtents; extents >>= 1)
                     --depth;
-                var tree = (QuadTreeBasic)Activator.CreateInstance(config.TreeType);
+                var tree = (BasicQuadTree)Activator.CreateInstance(config.TreeType);
                 tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary);
                 _trees.Add(config.TreeId, tree);
             }

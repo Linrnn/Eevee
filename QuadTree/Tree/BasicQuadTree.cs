@@ -8,7 +8,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 四叉树基类
     /// </summary>
-    public abstract class QuadTreeBasic
+    public abstract class BasicQuadTree
     {
         #region 数据
         protected int _treeId; // 四叉树的编号

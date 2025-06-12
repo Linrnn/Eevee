@@ -6,7 +6,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 网格法 + 四叉树
     /// </summary>
-    public sealed class MeshQuadTree : QuadTreeBasic
+    public sealed class MeshQuadTree : BasicQuadTree
     {
         #region 数据
         private QuadNode[][] _nodes;

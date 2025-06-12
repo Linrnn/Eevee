@@ -12,7 +12,7 @@ namespace Eevee.QuadTree
     internal static class QuadTreeExt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static QuadNode[][] OnCreate(QuadTreeBasic tree, QuadNode root, int depthCount, in AABB2DInt maxBoundary)
+        internal static QuadNode[][] OnCreate(BasicQuadTree tree, QuadNode root, int depthCount, in AABB2DInt maxBoundary)
         {
             var nodes = new QuadNode[depthCount][];
             nodes[0] = new[] { root };
@@ -79,7 +79,7 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static QuadNode TryGetNode(this QuadTreeBasic tree, in QuadIndex index)
+        internal static QuadNode TryGetNode(this BasicQuadTree tree, in QuadIndex index)
         {
             if (index.IsValid())
                 return tree.GetNode(index.Depth, index.X, index.Y);

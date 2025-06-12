@@ -12,8 +12,8 @@ namespace EeveeEditor.QuadTree
     {
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
         private float _lineDuration;
-        private IDictionary<int, QuadTreeBasic[]> _trees;
-        private QuadTreeBasic _tree;
+        private IDictionary<int, BasicQuadTree[]> _trees;
+        private BasicQuadTree _tree;
 
         [SerializeField] private bool _showEmptyNode = false; // 显示空节点
         [SerializeField] private bool _showNode = true; // 显示非空节点
@@ -58,7 +58,7 @@ namespace EeveeEditor.QuadTree
             _tree = null;
         }
 
-        private void DrawTree(QuadTreeBasic tree)
+        private void DrawTree(BasicQuadTree tree)
         {
             if (tree is null)
                 return;
@@ -89,7 +89,7 @@ namespace EeveeEditor.QuadTree
                 EditorHelper.DrawRect(in aabb, in color, _height, _lineDuration);
         }
 
-        private QuadTreeBasic GetTree() => _trees[_funcEnum][Log2((double)_subEnum)];
+        private BasicQuadTree GetTree() => _trees[_funcEnum][Log2((double)_subEnum)];
         private int Log2(double num) => num > 0 ? (int)Math.Log(num, 2) : -1;
     }
 }

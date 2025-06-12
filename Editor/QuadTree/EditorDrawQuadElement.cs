@@ -160,7 +160,7 @@ namespace EeveeEditor.QuadTree
         private readonly HashSet<int> _drawEntityIds = new();
         private readonly HashSet<GameObject> _objects = new();
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
-        private IDictionary<int, QuadTreeBasic[]> _trees;
+        private IDictionary<int, BasicQuadTree[]> _trees;
 
         private static readonly ObjectPool _pool = new();
 
@@ -277,7 +277,7 @@ namespace EeveeEditor.QuadTree
                 _pool.Push(go);
             _objects.Clear();
         }
-        private void ReadyElements(QuadTreeBasic tree, in SubTreeInfo treeInfo)
+        private void ReadyElements(BasicQuadTree tree, in SubTreeInfo treeInfo)
         {
             if (tree is null)
                 return;
