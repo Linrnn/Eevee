@@ -133,7 +133,7 @@ namespace Eevee.QuadTree
 
         #region 方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int childId, int x, int y, QuadNode parent)
+        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int x, int y, int childId, QuadNode parent)
         {
             Boundary = boundary;
             LooseBoundary = looseBoundary;

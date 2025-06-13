@@ -19,32 +19,29 @@ namespace Eevee.QuadTree
             var nodes = new Dictionary<int, QuadNode>[depthCount];
             for (int i = 0; i < nodes.Length; ++i)
                 nodes[i] = new Dictionary<int, QuadNode>(1);
-            nodes[0].Add(QuadExt.GetRootId(), _root);
+            nodes[0].Add(QuadIndex.Root.GetNodeId(), _root);
             _nodes = nodes;
         }
         internal override void OnDestroy()
         {
             foreach (var depthNodes in _nodes)
-            {
-                foreach (var pair in depthNodes)
-                    pair.Value.OnRelease();
-                depthNodes.Clear();
-            }
+            foreach (var pair in depthNodes)
+                pair.Value.OnRelease();
             _nodes = null;
             base.OnDestroy();
         }
 
-        internal override QuadNode CreateNode(in AABB2DInt boundary, int depth, int childId, int x, int y, QuadNode parent)
+        internal override QuadNode CreateNode(in AABB2DInt boundary, int depth, int x, int y, int childId, QuadNode parent)
         {
             // todo eevee 未实现
             throw new System.NotImplementedException();
         }
-        internal override QuadNode GetNode(int depth, int x, int y)
+        internal override QuadNode GetOrAddNode(int depth, int x, int y, bool allowAdd)
         {
             // todo eevee 未实现
             throw new System.NotImplementedException();
         }
-        internal override QuadNode GetOrCreateNode(int depth, int x, int y)
+        internal override void RemoveNode(QuadNode node)
         {
             // todo eevee 未实现
             throw new System.NotImplementedException();
@@ -62,12 +59,12 @@ namespace Eevee.QuadTree
                 nodes.Add(pair.Value);
         }
 
-        internal override bool CountNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
+        internal override bool TryGetNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
         {
             // todo eevee 未实现
             throw new System.NotImplementedException();
         }
-        protected override void Iterate<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
+        protected override void IterateQuery<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
             // todo eevee 未实现
             throw new System.NotImplementedException();

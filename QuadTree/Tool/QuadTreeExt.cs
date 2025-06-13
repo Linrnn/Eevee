@@ -1,5 +1,4 @@
-﻿using Eevee.Collection;
-using Eevee.Fixed;
+﻿using Eevee.Fixed;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -18,7 +17,7 @@ namespace Eevee.QuadTree
 
             for (int left = maxBoundary.Left(), top = maxBoundary.Top(), upperDepth = 0, depth = 1; depth < depthCount; ++upperDepth, ++depth)
             {
-                int nodeCount = QuadExt.CountNodeCount(depth);
+                int nodeCount = QuadExt.GetNodeCount(depth);
                 var upperNodes = nodes[upperDepth];
                 var depthNodes = new QuadNode[nodeCount];
 
@@ -30,12 +29,11 @@ namespace Eevee.QuadTree
                     for (int childId = 0; childId < QuadExt.ChildCount; ++childId)
                     {
                         var boundary = parent.CountChildBoundary(childId);
-                        int x = (boundary.X - left) / (boundary.W << 1);
-                        int y = (top - boundary.Y) / (boundary.H << 1);
-                        var child = tree.CreateNode(in boundary, depth, childId, x, y, parent);
+                        QuadExt.GetNodeIndex(boundary.X, boundary.Y, left, top, boundary.W, boundary.H, out int ix, out int iy);
+                        var child = tree.CreateNode(in boundary, depth, ix, iy, childId, parent);
 
                         parent.Children[childId] = child;
-                        depthNodes[QuadExt.GetNodeId(depth, x, y)] = child;
+                        depthNodes[QuadExt.GetNodeId(depth, ix, iy)] = child;
                     }
                 }
             }
@@ -50,15 +48,15 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool CountNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area, out QuadIndex index)
+        internal static bool TryGetNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area, out QuadIndex index)
         {
-            if (!QuadExt.CountArea(in maxBoundary, in aabb, mode, out area))
+            if (!QuadExt.TrtGetArea(in maxBoundary, in aabb, mode, out area))
             {
                 index = QuadIndex.Invalid;
                 return false;
             }
 
-            if (!QuadExt.CountNodeIndex(in maxBoundary, maxDepth, in area, mode, out var idx))
+            if (!QuadExt.TrtGetNodeIndex(in maxBoundary, maxDepth, in area, mode, out var idx))
             {
                 index = QuadIndex.Invalid;
                 return false;

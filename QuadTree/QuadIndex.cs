@@ -10,6 +10,7 @@ namespace Eevee.QuadTree
     {
         #region 字段/初始化
         public static readonly QuadIndex Invalid = new(-1, -1, -1); // 无效索引
+        public static readonly QuadIndex Root = new(0, 0, 0); // 根节点索引
 
         public readonly int Depth; // 所在层深度
         public readonly int X; // 所在层的X坐标
