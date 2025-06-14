@@ -35,10 +35,9 @@ namespace Eevee.Diagnosis
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
-        internal static unsafe void Null<TException, TArgs, TPtr>(TPtr* obj, string paramName, string format, TArgs args = default)
+        internal static unsafe void Null<TException, TArgs>(void* obj, string paramName, string format, TArgs args = default)
             where TException : Exception
             where TArgs : struct, IAssertArgs
-            where TPtr : unmanaged
         {
             if (obj is not null)
                 ThrowException<TException, TArgs>(paramName, format, args);

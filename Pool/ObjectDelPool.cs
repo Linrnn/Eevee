@@ -8,7 +8,7 @@ namespace Eevee.Pool
     /// <summary>
     /// 基于委托实现的对象池
     /// </summary>
-    public sealed class ObjectDelPool<T> where T : class
+    public sealed class ObjectDelPool<T> : IObjectPool<T> where T : class
     {
         private Stack<T> _pool;
         private readonly Func<T> _onCreate;

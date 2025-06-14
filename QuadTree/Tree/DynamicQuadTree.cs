@@ -1,18 +1,23 @@
-﻿using Eevee.Fixed;
+﻿using Eevee.Diagnosis;
+using Eevee.Fixed;
+using Eevee.Pool;
+using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.QuadTree
 {
     /// <summary>
     /// 动态网格 + 四叉树
     /// </summary>
-    public sealed class DynamicQuadTree : BasicQuadTree
+    public sealed class DynamicQuadTree : BasicQuadTree, IQuadDynamicNode
     {
-        #region 数据
-        private Dictionary<int, QuadNode>[] _nodes; // “Key”根据“QuadExt.GetNodeId”得出
+        #region Field
+        private Dictionary<int, QuadNode>[] _nodes; // “Key”根据“QuadExt.GetNodeId”计算得出
+        private IObjectPool<QuadNode> _pool;
         #endregion
 
-        #region 复写
+        #region BasicQuadTree
         internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
             base.OnCreate(treeId, shape, depthCount, in maxBoundary);
@@ -26,25 +31,76 @@ namespace Eevee.QuadTree
         {
             foreach (var depthNodes in _nodes)
             foreach (var pair in depthNodes)
-                pair.Value.OnRelease();
+                _pool.Release(pair.Value);
             _nodes = null;
+            _pool = null;
             base.OnDestroy();
         }
 
-        internal override QuadNode CreateNode(in AABB2DInt boundary, int depth, int x, int y, int childId, QuadNode parent)
+        internal override QuadNode CreateRoot()
         {
-            // todo eevee 未实现
-            throw new System.NotImplementedException();
+            var boundary = _maxBoundary;
+            var rootIndex = QuadIndex.Root;
+            var node = _pool.Alloc();
+            node.OnAlloc(in boundary, in boundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, null);
+            return node;
         }
-        internal override QuadNode GetOrAddNode(int depth, int x, int y, bool allowAdd)
+        internal override QuadNode CreateNode(int depth, int x, int y, QuadNode parent)
         {
-            // todo eevee 未实现
-            throw new System.NotImplementedException();
+            var maxBoundary = _maxBoundary;
+            var extents = QuadExt.GetDepthExtents(in maxBoundary, depth);
+            var center = QuadExt.GetNodeCenter(x, y, maxBoundary.Left(), maxBoundary.Top(), extents.X, extents.Y);
+            var boundary = new AABB2DInt(center, extents);
+            var node = _pool.Alloc();
+            node.OnAlloc(in boundary, in boundary, depth, x, y, parent);
+            return node;
         }
+        internal override QuadNode GetOrAddNode(int depth, int x, int y)
+        {
+            int nodeId = QuadExt.GetNodeId(depth, x, y);
+            var depthNodes = _nodes[depth];
+            if (depthNodes.TryGetValue(nodeId, out var node))
+                return node;
+
+            unsafe
+            {
+                Span<QuadIndex> indexes = stackalloc QuadIndex[_maxDepth - depth]; // 需要创建节点的索引
+                int count = 0;
+
+                for (var index = new QuadIndex(depth, x, y); index.IsValid(); index = index.Parent())
+                {
+                    var depNodes = _nodes[index.Depth];
+                    if (depNodes.ContainsKey(index.GetNodeId()))
+                        break;
+
+                    Assert.Less<IndexOutOfRangeException, AssertArgs<int, int>, int>(count, indexes.Length, nameof(count), "Span<QuadIndex>, count:{0} >= indexes.Length:{1}!", new AssertArgs<int, int>(count, indexes.Length));
+                    indexes[count] = index;
+                    ++count;
+                }
+
+                for (int i = count - 1; i >= 0; --i) // 保证父节点先创建
+                {
+                    ref var index = ref indexes[i];
+                    var parentIndex = index.Parent();
+                    var parent = GetNode(parentIndex.Depth, parentIndex.X, parentIndex.Y);
+                    var child = CreateNode(index.Depth, index.X, index.Y, parent);
+                    var depNodes = _nodes[index.Depth];
+
+                    parent.AddChild(child);
+                    depNodes.Add(index.GetNodeId(), child);
+                }
+            }
+
+            return depthNodes[nodeId];
+        }
+        internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][QuadExt.GetNodeId(depth, x, y)];
         internal override void RemoveNode(QuadNode node)
         {
-            // todo eevee 未实现
-            throw new System.NotImplementedException();
+            node.Parent.RemoveChild(node);
+            if (node.HasChild())
+                foreach (var child in node.ChildAsIterator())
+                    RemoveNode(child);
+            _pool.Release(node);
         }
 
         internal override void GetNodes(ICollection<QuadNode> nodes)
@@ -61,13 +117,59 @@ namespace Eevee.QuadTree
 
         internal override bool TryGetNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
         {
-            // todo eevee 未实现
-            throw new System.NotImplementedException();
+            if (!QuadTreeExt.TryGetNodeIndex(in _maxBoundary, _maxDepth, in aabb, mode, out var area, out var idx))
+            {
+                index = QuadIndex.Invalid;
+                return false;
+            }
+
+            int left = _maxBoundary.Left();
+            int top = _maxBoundary.Top();
+            for (var nIdx = idx; nIdx.IsValid(); nIdx = nIdx.Parent())
+            {
+                var extents = QuadExt.GetDepthExtents(in _maxBoundary, nIdx.Depth);
+                var center = QuadExt.GetNodeCenter(nIdx.X, nIdx.Y, left, top, extents.X, extents.Y);
+                var boundary = new AABB2DInt(center, extents);
+                if (!Geometry.Contain(in boundary, in area))
+                    continue;
+
+                index = nIdx;
+                return true;
+            }
+
+            index = QuadIndex.Invalid;
+            return false;
         }
         protected override void IterateQuery<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
-            // todo eevee 未实现
-            throw new System.NotImplementedException();
+            for (var idx = index; idx.IsValid(); idx = idx.Parent())
+            {
+                var node = GetNode(index.Depth, index.X, index.Y);
+                if (node is null)
+                    continue;
+
+                IterateQueryParent(in checker, node.Parent, elements);
+                IterateQueryChildrenCheckNull(in checker, node, elements);
+                break;
+            }
+        }
+        #endregion
+
+        #region IQuadDynamicNode
+        public void Inject(IObjectPool<QuadNode> pool) => _pool = pool;
+        public void RemoveEmptyNode() => TryRemoveEmptyNode(_root);
+        #endregion
+
+        #region Helper
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void TryRemoveEmptyNode(QuadNode node)
+        {
+            if (node.HasChild())
+                foreach (var child in node.ChildAsIterator())
+                    if (child.IsEmpty())
+                        RemoveNode(child);
+                    else
+                        TryRemoveEmptyNode(child);
         }
         #endregion
     }

@@ -121,25 +121,25 @@ namespace Eevee.QuadTree
         internal AABB2DInt Boundary; // 边界
         internal AABB2DInt LooseBoundary; // 松散四叉树的节点边界
         internal QuadIndex Index = QuadIndex.Invalid; // 节点所在层级的二维坐标
-        internal int ChildId = -1; // 相对于父节点的编号
 
         internal QuadNode Parent; // 父节点
-        internal readonly QuadNode[] Children = new QuadNode[QuadExt.ChildCount]; // 子节点
+        private readonly QuadNode[] _children = new QuadNode[QuadExt.ChildCount]; // 子节点
         internal readonly WeakOrderList<QuadElement> Elements = new(); // 存储元素的数组（禁止外部直接修改）
         internal int SumCount; // 当前节点及所有子节点存的数量（禁止外部直接修改）
 
+        private int _childCount;
         private bool _valid;
         #endregion
 
         #region 方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int x, int y, int childId, QuadNode parent)
+        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int x, int y, QuadNode parent)
         {
             Boundary = boundary;
             LooseBoundary = looseBoundary;
             Index = new QuadIndex(depth, x, y);
-            ChildId = childId;
             Parent = parent;
+            _childCount = 0;
             _valid = true;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -147,18 +147,18 @@ namespace Eevee.QuadTree
         {
             if (!_valid)
             {
-                LogRelay.Warn($"[Quad] Index:{Index}, ChildId:{ChildId} _valid is false.");
+                LogRelay.Warn($"[Quad] Index:{Index}, _valid is false.");
                 return;
             }
 
             Boundary = default;
             LooseBoundary = default;
             Index = QuadIndex.Invalid;
-            ChildId = -1;
             Parent = null;
-            Children.Clean();
+            _children.Clean();
             Elements.Clear();
             SumCount = 0;
+            _childCount = 0;
             _valid = false;
         }
 
@@ -178,7 +178,7 @@ namespace Eevee.QuadTree
             return true;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void RemoveAt(int index)
+        internal void Remove(int index)
         {
             Elements.RemoveAt(index);
             CountSumSub();
@@ -214,11 +214,38 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void AddChild(QuadNode node)
+        {
+            var index = node.Index;
+            int childId = index.GetChildId();
+            var children = _children;
+            Assert.Null<InvalidOperationException, AssertArgs<QuadIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, has node!", new AssertArgs<QuadIndex, int>(index, childId));
+            children[childId] = node;
+            ++_childCount;
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void RemoveChild(QuadNode node)
+        {
+            var index = node.Index;
+            int childId = index.GetChildId();
+            var children = _children;
+            Assert.NotNull<InvalidOperationException, AssertArgs<QuadIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, no node!", new AssertArgs<QuadIndex, int>(index, childId));
+            children[childId] = null;
+            --_childCount;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsEmpty() => SumCount == 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int IndexOf(in QuadElement element) => Elements.IndexOf(element);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal AABB2DInt CountChildBoundary(int childId) => childId switch // 计算子包围盒
+        public bool IsRoot() => Parent is null; // 是否为根节点
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsLeaf() => _childCount == 0; // 是否为叶子节点
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool HasChild() => _childCount > 0;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal AABB2DInt GetChildBoundary(int childId) => childId switch // 计算子包围盒
         {
             0 => Boundary.LeftTopAABB(),
             1 => Boundary.RightTopAABB(),
@@ -226,8 +253,11 @@ namespace Eevee.QuadTree
             3 => Boundary.RightBottomAABB(),
             _ => throw new IndexOutOfRangeException($"ChildId:{childId}，越界"),
         };
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Iterator AsIterator(bool checkNull = false) => new(Children, checkNull);
+        internal ReadOnlySpan<QuadNode> ChildAsSpan() => _children.AsReadOnlySpan();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Iterator ChildAsIterator() => new(_children, true);
         #endregion
     }
 }

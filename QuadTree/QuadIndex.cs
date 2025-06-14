@@ -26,6 +26,7 @@ namespace Eevee.QuadTree
 
         #region 基础方法
         public QuadIndex Parent() => this == Root ? Invalid : new QuadIndex(Depth - 1, X >> 1, Y >> 1);
+
         public bool IsValid() => Depth >= 0 && X >= 0 && Y >= 0; // 有效索引
         public static bool IsValid(int depth, int x, int y) => depth >= 0 && x >= 0 && y >= 0; // 有效索引
         #endregion

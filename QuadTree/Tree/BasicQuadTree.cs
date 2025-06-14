@@ -27,7 +27,7 @@ namespace Eevee.QuadTree
         public void Insert(in QuadElement element)
         {
             TryGetNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
-            var node = GetOrAddNode(index.Depth, index.X, index.Y, true);
+            var node = GetOrAddNode(index.Depth, index.X, index.Y);
             node.Add(in element);
 
             if (QuadDebug.CheckIndex(_treeId, element.Index))
@@ -36,9 +36,9 @@ namespace Eevee.QuadTree
         public bool Remove(in QuadElement element)
         {
             TryGetNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
-            var node = GetOrAddNode(index.Depth, index.X, index.Y, false);
+            var node = GetNode(index.Depth, index.X, index.Y);
             bool remove = node.Remove(in element);
-            if (node.IsEmpty())
+            if (AllowRemove(node))
                 RemoveNode(node);
 
             if (remove && QuadDebug.CheckIndex(_treeId, element.Index))
@@ -51,8 +51,8 @@ namespace Eevee.QuadTree
         {
             TryGetNodeIndex(in preElement.AABB, QuadExt.CountMode, out var preIndex);
             TryGetNodeIndex(in tarElement.AABB, QuadExt.CountMode, out var tarIndex);
-            var preNode = GetOrAddNode(preIndex.Depth, preIndex.X, preIndex.Y, false);
-            var tarNode = GetOrAddNode(tarIndex.Depth, tarIndex.X, tarIndex.Y, true);
+            var preNode = GetNode(preIndex.Depth, preIndex.X, preIndex.Y);
+            var tarNode = GetOrAddNode(tarIndex.Depth, tarIndex.X, tarIndex.Y);
 
             if (preNode == tarNode)
             {
@@ -65,7 +65,7 @@ namespace Eevee.QuadTree
             {
                 if (!preNode.Remove(in preElement))
                     LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:{_treeId}, PreEle:{preElement}, TarEle:{tarElement}");
-                if (preNode.IsEmpty())
+                if (AllowRemove(preNode))
                     RemoveNode(preNode);
                 tarNode.Add(in tarElement);
             }
@@ -203,8 +203,8 @@ namespace Eevee.QuadTree
             foreach (var element in node.Elements.AsReadOnlySpan())
                 elements.Add(element);
 
-            if (node.Children is { Length: > 0 } children)
-                foreach (var child in children)
+            if (node.HasChild())
+                foreach (var child in node.ChildAsIterator())
                     IterateQueryOnly(child, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -222,7 +222,7 @@ namespace Eevee.QuadTree
                         elements.Add(element);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void IterateQueryParent<TChecker>(in TChecker checker, QuadNode node, ISet<QuadNode> iterated, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        internal void IterateQueryParentCheckRepeat<TChecker>(in TChecker checker, QuadNode node, ISet<QuadNode> iterated, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
             for (var parent = node; parent is not null; parent = parent.Parent)
                 if (iterated.Add(parent))
@@ -246,23 +246,43 @@ namespace Eevee.QuadTree
                         elements.Add(element);
             }
 
-            if (node.Children is { Length: > 0 } children)
-                foreach (var child in children)
+            if (node.HasChild())
+                foreach (var child in node.ChildAsSpan())
                     IterateQueryChildren(in checker, child, elements);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void IterateQueryChildrenCheckNull<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        {
+            if (node is null || node.IsEmpty())
+                return;
+
+            if (node.Elements.Count > 0)
+            {
+                if (!checker.CheckNode(in node.LooseBoundary))
+                    return;
+
+                foreach (var element in node.Elements.AsReadOnlySpan())
+                    if (checker.CheckElement(in element.AABB))
+                        elements.Add(element);
+            }
+
+            if (node.HasChild())
+                foreach (var child in node.ChildAsIterator())
+                    IterateQueryChildrenCheckNull(in checker, child, elements);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool AllowRemove(QuadNode node) => node != _root && node.IsEmpty();
         #endregion
 
         #region 待继承
         internal virtual void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
-            var rootIndex = QuadIndex.Root;
-            var root = CreateNode(in maxBoundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, 0, null);
-
             _treeId = treeId;
             _maxDepth = depthCount - 1;
             _shape = shape;
             _maxBoundary = maxBoundary;
-            _root = root;
+            _root = CreateRoot();
         }
         internal virtual void OnDestroy()
         {
@@ -274,8 +294,10 @@ namespace Eevee.QuadTree
             _root = null;
         }
 
-        internal abstract QuadNode CreateNode(in AABB2DInt boundary, int depth, int x, int y, int childId, QuadNode parent);
-        internal abstract QuadNode GetOrAddNode(int depth, int x, int y, bool allowAdd);
+        internal abstract QuadNode CreateRoot(); // 创建根节点
+        internal abstract QuadNode CreateNode(int depth, int x, int y, QuadNode parent); // 创建单个节点（此接口的父节点Children字段不会绑定子节点，但是子节点Parent字段会绑定父节点）
+        internal abstract QuadNode GetOrAddNode(int depth, int x, int y); // 获取节点/创建单个节点（如果父节点不存在，会创建父节点）
+        internal abstract QuadNode GetNode(int depth, int x, int y);
         internal abstract void RemoveNode(QuadNode node);
 
         internal abstract void GetNodes(ICollection<QuadNode> nodes);

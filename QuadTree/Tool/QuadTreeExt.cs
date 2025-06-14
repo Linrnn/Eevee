@@ -35,10 +35,11 @@ namespace Eevee.QuadTree
                         {
                             for (int cy = 0; cy < QuadExt.ChildSideCount; ++cy)
                             {
-                                int childId = cx | cy;
-                                var boundary = parent.CountChildBoundary(childId);
-                                var child = tree.CreateNode(in boundary, depth, cx, cy, childId, parent);
-                                depthNodes[px | cx, py | cy] = child;
+                                int x = px | cx;
+                                int y = py | cy;
+                                var child = tree.CreateNode(depth, x, y, parent);
+                                parent.AddChild(child);
+                                depthNodes[x, y] = child;
                             }
                         }
                     }

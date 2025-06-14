@@ -8,11 +8,11 @@ namespace Eevee.QuadTree
     /// </summary>
     public sealed class MeshQuadTree : BasicQuadTree
     {
-        #region 数据
+        #region Field
         private QuadNode[][,] _nodes;
         #endregion
 
-        #region 复写
+        #region BasicQuadTree
         internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
             base.OnCreate(treeId, shape, depthCount, in maxBoundary);
@@ -24,13 +24,24 @@ namespace Eevee.QuadTree
             base.OnDestroy();
         }
 
-        internal override QuadNode CreateNode(in AABB2DInt boundary, int depth, int x, int y, int childId, QuadNode parent)
+        internal override QuadNode CreateRoot()
         {
+            var boundary = _maxBoundary;
+            var rootIndex = QuadIndex.Root;
             var node = new QuadNode();
-            node.OnAlloc(in boundary, in boundary, depth, x, y, childId, parent);
+            node.OnAlloc(in boundary, in boundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, null);
             return node;
         }
-        internal override QuadNode GetOrAddNode(int depth, int x, int y, bool allowAdd) => _nodes[depth][x, y];
+        internal override QuadNode CreateNode(int depth, int x, int y, QuadNode parent)
+        {
+            int childId = QuadExt.GetChildId(x, y);
+            var boundary = parent.GetChildBoundary(childId);
+            var node = new QuadNode();
+            node.OnAlloc(in boundary, in boundary, depth, x, y, parent);
+            return node;
+        }
+        internal override QuadNode GetOrAddNode(int depth, int x, int y) => _nodes[depth][x, y];
+        internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][x, y];
         internal override void RemoveNode(QuadNode node) { }
 
         internal override void GetNodes(ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, nodes);
@@ -44,7 +55,7 @@ namespace Eevee.QuadTree
                 return false;
             }
 
-            for (var node = GetOrAddNode(idx.Depth, idx.X, idx.Y, false); node is not null; node = node.Parent)
+            for (var node = GetNode(idx.Depth, idx.X, idx.Y); node is not null; node = node.Parent)
             {
                 if (!Geometry.Contain(in node.Boundary, in area))
                     continue;
@@ -58,7 +69,7 @@ namespace Eevee.QuadTree
         }
         protected override void IterateQuery<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
-            var node = GetOrAddNode(index.Depth, index.X, index.Y, false);
+            var node = GetNode(index.Depth, index.X, index.Y);
             if (node is null)
                 return;
 

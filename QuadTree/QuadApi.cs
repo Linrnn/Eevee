@@ -20,7 +20,8 @@ namespace Eevee.QuadTree
     /// </summary>
     public interface IQuadDynamicNode
     {
-        void Inject(ObjectDelPool<QuadNode> pool);
+        void Inject(IObjectPool<QuadNode> pool);
+        void RemoveEmptyNode();
     }
 
     /// <summary>

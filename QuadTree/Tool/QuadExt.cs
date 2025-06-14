@@ -25,7 +25,7 @@ namespace Eevee.QuadTree
         /// 四分之一的面积
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector2DInt GetHalfBoundary(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.X >> depth, maxBoundary.Y >> depth);
+        internal static Vector2DInt GetDepthExtents(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.X >> depth, maxBoundary.Y >> depth);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool TrtGetArea(in AABB2DInt maxBoundary, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area)
@@ -66,14 +66,14 @@ namespace Eevee.QuadTree
         {
             for (int depth = maxDepth; depth >= 0; --depth)
             {
-                var boundary = GetHalfBoundary(in maxBoundary, depth);
-                if (boundary.X < area.W || boundary.Y < area.H)
+                var extents = GetDepthExtents(in maxBoundary, depth);
+                if (extents.X < area.W || extents.Y < area.H)
                     continue;
 
                 int left = maxBoundary.Left();
                 int top = maxBoundary.Top();
-                GetNodeIndex(area.X, area.Y, left, top, boundary.X, boundary.Y, out int ix, out int iy);
-                index = new QuadIndex(depth, ix, iy);
+                var idx = GetNodeIndex(area.X, area.Y, left, top, extents.X, extents.Y);
+                index = new QuadIndex(depth, idx.X, idx.Y);
                 return true;
             }
 
@@ -82,35 +82,20 @@ namespace Eevee.QuadTree
         }
 
         /// <summary>
-        /// 通过节点索引获得父节点的索引
-        /// </summary>
-        /// <param name="cix">索引的横值</param>
-        /// <param name="ciy">索引的纵值</param>
-        /// <param name="pix">父节点索引的横值</param>
-        /// <param name="piy">父节点索引的横值</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetParentIndex(int cix, int ciy, out int pix, out int piy)
-        {
-            pix = cix << 1;
-            piy = ciy << 1;
-        }
-        /// <summary>
         /// 通过坐标获得节点索引
         /// </summary>
-        /// <param name="px">四叉树的横坐标</param>
-        /// <param name="py">四叉树的纵坐标</param>
+        /// <param name="bx">四叉树的横坐标</param>
+        /// <param name="by">四叉树的纵坐标</param>
         /// <param name="bl">四叉树的左边界</param>
         /// <param name="bt">四叉树的上边界</param>
         /// <param name="hw">当前层级边界尺寸的半宽</param>
         /// <param name="hh">当前层级边界尺寸的半高</param>
-        /// <param name="ix">索引的横值</param>
-        /// <param name="iy">索引的纵值</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodeIndex(int px, int py, int bl, int bt, int hw, int hh, out int ix, out int iy)
+        internal static Vector2DInt GetNodeIndex(int bx, int by, int bl, int bt, int hw, int hh) => new()
         {
-            ix = (px - bl) / (hw << 1);
-            iy = (bt - py) / (hh << 1);
-        }
+            X = (bx - bl) / (hw << 1),
+            Y = (bt - by) / (hh << 1),
+        };
         /// <summary>
         /// 通过索引获得节点中心点
         /// </summary>
@@ -120,19 +105,21 @@ namespace Eevee.QuadTree
         /// <param name="bt">四叉树的上边界</param>
         /// <param name="hw">当前层级边界尺寸的半宽</param>
         /// <param name="hh">当前层级边界尺寸的半高</param>
-        /// <param name="px">四叉树的横坐标</param>
-        /// <param name="py">四叉树的纵坐标</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodeCenter(int ix, int iy, int bl, int bt, int hw, int hh, out int px, out int py)
+        internal static Vector2DInt GetNodeCenter(int ix, int iy, int bl, int bt, int hw, int hh) => new()
         {
-            px = bl + ix * (hw << 1);
-            py = bt - iy * (hh << 1);
-        }
+            X = bl + ix * (hw << 1),
+            Y = bt - iy * (hh << 1),
+        };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetNodeId(this QuadIndex index) => index.IsValid() ? GetNodeId(index.Depth, index.X, index.Y) : -1;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetNodeId(int depth, int x, int y) => x + (1 << depth) * y;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int GetChildId(this QuadIndex index) => GetChildId(index.X, index.Y);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static int GetChildId(int x, int y) => x & 1 | y & 2; // 相对于父节点的索引
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Exception BuildShapeException(int treeId, QuadShape shape) => new NotImplementedException($"TreeId:{treeId}, Shape:{shape} not implement.");

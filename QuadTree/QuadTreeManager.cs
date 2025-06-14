@@ -1,6 +1,8 @@
 ﻿using Eevee.Collection;
+using Eevee.Define;
 using Eevee.Diagnosis;
 using Eevee.Fixed;
+using Eevee.Pool;
 using Eevee.Utils;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,7 @@ namespace Eevee.QuadTree
         public readonly int DepthCount;
         public readonly AABB2DInt MaxBoundary;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
+        private readonly ObjectDelPool<QuadNode> _pool = new(() => new QuadNode(), null, element => element.OnRelease(), null, Macro.HasCheckRelease);
 
         public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
@@ -42,7 +45,7 @@ namespace Eevee.QuadTree
 
             tree.TryGetNodeIndex(in preEle.AABB, QuadExt.CountMode, out var preNodeIndex);
             tree.TryGetNodeIndex(in tarEle.AABB, QuadExt.CountMode, out var tarNodeIndex);
-            var preNode = tree.GetOrAddNode(preNodeIndex.Depth, preNodeIndex.X, preNodeIndex.Y, false);
+            var preNode = tree.GetNode(preNodeIndex.Depth, preNodeIndex.X, preNodeIndex.Y);
             int preIndex = preNode?.IndexOf(in preEle) ?? -1;
 
             cache = new QuadPreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
@@ -56,8 +59,8 @@ namespace Eevee.QuadTree
             var tree = _trees[cache.TreeId];
             var preEle = cache.PreEle;
             var tarEle = cache.TarEle;
-            var preNode = tree.GetOrAddNode(cache.PreNodeIndex.Depth, cache.PreNodeIndex.X, cache.PreNodeIndex.Y, false);
-            var tarNode = tree.GetOrAddNode(cache.TarNodeIndex.Depth, cache.TarNodeIndex.X, cache.TarNodeIndex.Y, true);
+            var preNode = tree.GetNode(cache.PreNodeIndex.Depth, cache.PreNodeIndex.X, cache.PreNodeIndex.Y);
+            var tarNode = tree.GetOrAddNode(cache.TarNodeIndex.Depth, cache.TarNodeIndex.X, cache.TarNodeIndex.Y);
             int index = cache.PreElementIndex;
             bool usePre = index < preNode.Elements.Count && preNode.Elements[index] == preEle;
             bool hasError = false;
@@ -72,10 +75,10 @@ namespace Eevee.QuadTree
             else
             {
                 if (usePre)
-                    preNode.RemoveAt(index);
+                    preNode.Remove(index);
                 else
                     hasError = !preNode.Remove(in preEle);
-                if (preNode.IsEmpty())
+                if (tree.AllowRemove(preNode))
                     tree.RemoveNode(preNode);
                 tarNode.Add(in tarEle);
             }
@@ -389,6 +392,7 @@ namespace Eevee.QuadTree
                     --depth;
                 var tree = (BasicQuadTree)Activator.CreateInstance(config.TreeType);
                 tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary);
+                (tree as IQuadDynamicNode)?.Inject(_pool);
                 _trees.Add(config.TreeId, tree);
             }
         }
@@ -396,7 +400,9 @@ namespace Eevee.QuadTree
         {
             foreach (var pair in _trees)
                 pair.Value.OnDestroy();
+            LogRelay.Log($"[Quad] Pool, CountRef:{_pool.CountRef}, HistoryCapacity:{_pool.HistoryCapacity}");
             _trees.Clear();
+            _pool.Clean();
         }
         #endregion
     }

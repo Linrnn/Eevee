@@ -8,7 +8,7 @@ namespace Eevee.Pool
     /// <summary>
     /// 基于接口实现的对象池
     /// </summary>
-    public sealed class ObjectInterPool<T> where T : class, new()
+    public sealed class ObjectInterPool<T> : IObjectPool<T> where T : class, new()
     {
         private Stack<T> _pool;
         public bool ReleaseCheck;
