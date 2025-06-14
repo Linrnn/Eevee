@@ -6,6 +6,7 @@ namespace Eevee.QuadTree
 {
     internal static class QuadExt
     {
+        internal const int ChildSideCount = 2; // Sqrt(ChildCount)
         internal const int ChildCount = 4; // 节点的子节点数量
         internal const QuadCountNodeMode CountMode = QuadCountNodeMode.NotIntersect;
 

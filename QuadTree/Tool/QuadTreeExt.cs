@@ -10,36 +10,43 @@ namespace Eevee.QuadTree
     internal static class QuadTreeExt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnCreate(BasicQuadTree tree, QuadNode root, int depthCount, in AABB2DInt maxBoundary, out QuadNode[][] nodes)
+        internal static void OnCreate(BasicQuadTree tree, QuadNode root, int depthCount, in AABB2DInt maxBoundary, out QuadNode[][,] nodes)
         {
-            nodes = new QuadNode[depthCount][];
-            nodes[0] = new[] { root };
+            int rootSideCount = QuadExt.GetNodeSideCount(0);
+            var rootIndex = QuadIndex.Root;
+            var rootNodes = new QuadNode[rootSideCount, rootSideCount];
+            rootNodes[rootIndex.X, rootIndex.Y] = root;
+            nodes = new QuadNode[depthCount][,];
+            nodes[rootIndex.Depth] = rootNodes;
 
-            for (int left = maxBoundary.Left(), top = maxBoundary.Top(), upperDepth = 0, depth = 1; depth < depthCount; ++upperDepth, ++depth)
+            for (int depth = rootIndex.Depth + 1; depth < depthCount; ++depth)
             {
-                int nodeCount = QuadExt.GetNodeCount(depth);
-                var upperNodes = nodes[upperDepth];
-                var depthNodes = new QuadNode[nodeCount];
-
+                int sideCount = QuadExt.GetNodeSideCount(depth);
+                var upperNodes = nodes[depth - 1];
+                var depthNodes = new QuadNode[sideCount, sideCount];
                 nodes[depth] = depthNodes;
 
-                for (int i = 0; i < nodeCount; i += QuadExt.ChildCount)
+                for (int px = 0; px < sideCount; px += QuadExt.ChildSideCount)
                 {
-                    var parent = upperNodes[i / QuadExt.ChildCount];
-                    for (int childId = 0; childId < QuadExt.ChildCount; ++childId)
+                    for (int py = 0; py < sideCount; py += QuadExt.ChildSideCount)
                     {
-                        var boundary = parent.CountChildBoundary(childId);
-                        QuadExt.GetNodeIndex(boundary.X, boundary.Y, left, top, boundary.W, boundary.H, out int ix, out int iy);
-                        var child = tree.CreateNode(in boundary, depth, ix, iy, childId, parent);
-
-                        parent.Children[childId] = child;
-                        depthNodes[QuadExt.GetNodeId(depth, ix, iy)] = child;
+                        var parent = upperNodes[px >> 1, py >> 1];
+                        for (int cx = 0; cx < QuadExt.ChildSideCount; ++cx)
+                        {
+                            for (int cy = 0; cy < QuadExt.ChildSideCount; ++cy)
+                            {
+                                int childId = cx | cy;
+                                var boundary = parent.CountChildBoundary(childId);
+                                var child = tree.CreateNode(in boundary, depth, cx, cy, childId, parent);
+                                depthNodes[px | cx, py | cy] = child;
+                            }
+                        }
                     }
                 }
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnDestroy(ref QuadNode[][] nodes)
+        internal static void OnDestroy(ref QuadNode[][,] nodes)
         {
             foreach (var depthNodes in nodes)
             foreach (var node in depthNodes)
@@ -67,14 +74,14 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodes(QuadNode[][] nodes, ICollection<QuadNode> returnNodes)
+        internal static void GetNodes(QuadNode[][,] nodes, ICollection<QuadNode> returnNodes)
         {
             foreach (var depthNodes in nodes)
             foreach (var node in depthNodes)
                 returnNodes.Add(node);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodes(QuadNode[][] nodes, int depth, ICollection<QuadNode> returnNodes)
+        internal static void GetNodes(QuadNode[][,] nodes, int depth, ICollection<QuadNode> returnNodes)
         {
             foreach (var node in nodes[depth])
                 returnNodes.Add(node);

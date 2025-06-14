@@ -11,7 +11,7 @@ namespace Eevee.QuadTree
     public sealed class LooseQuadTree : BasicQuadTree
     {
         #region 数据
-        private QuadNode[][] _nodes;
+        private QuadNode[][,] _nodes;
         #endregion
 
         #region 复写
@@ -33,7 +33,7 @@ namespace Eevee.QuadTree
             node.OnAlloc(in boundary, in looseBoundary, depth, x, y, childId, parent);
             return node;
         }
-        internal override QuadNode GetOrAddNode(int depth, int x, int y, bool allowAdd) => _nodes[depth][QuadExt.GetNodeId(depth, x, y)];
+        internal override QuadNode GetOrAddNode(int depth, int x, int y, bool allowAdd) => _nodes[depth][x, y];
         internal override void RemoveNode(QuadNode node) { }
 
         internal override void GetNodes(ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, nodes);

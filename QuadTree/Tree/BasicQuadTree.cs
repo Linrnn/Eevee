@@ -255,8 +255,8 @@ namespace Eevee.QuadTree
         #region 待继承
         internal virtual void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
-            var index = QuadIndex.Root;
-            var root = CreateNode(in maxBoundary, index.Depth, index.X, index.Y, 0, null);
+            var rootIndex = QuadIndex.Root;
+            var root = CreateNode(in maxBoundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, 0, null);
 
             _treeId = treeId;
             _maxDepth = depthCount - 1;
