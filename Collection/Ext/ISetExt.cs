@@ -340,9 +340,6 @@ namespace Eevee.Collection
                 array[index++] = item;
         }
 
-        /// <summary>
-        /// 无法在子线程下运行
-        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void CountUniqueAndUnFound<T>(ICollection<T> source, IEnumerable<T> input, bool returnIfUnFound, ref int inputCount, out int uniqueCount, out int unFoundCount)
         {
@@ -370,6 +367,7 @@ namespace Eevee.Collection
                 return;
             }
 
+            // todo eevee 需要是实现纯结构体的HashSet，内存由栈分配
             var mark = HashSetPool.Alloc<T>();
             switch (input)
             {

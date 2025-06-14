@@ -13,6 +13,7 @@
 
         public const string Assert = "EEVEE_ASSERT";
         public const string TryCatch = "EEVEE_TRY_CATCH";
+        public const string CheckRelease = "EEVEE_CHECK_RELEASE";
 
 #if DEBUG || UNITY_EDITOR
         public static bool HasTryCatch =>
@@ -20,6 +21,17 @@
         public const bool HasTryCatch =
 #endif
 #if EEVEE_TRY_CATCH
+            true;
+#else
+            false;
+#endif
+
+#if DEBUG || UNITY_EDITOR
+        public static bool HasCheckRelease =>
+#else
+        public const bool HasCheckRelease =
+#endif
+#if EEVEE_CHECK_RELEASE
             true;
 #else
             false;

@@ -1,5 +1,6 @@
 ﻿using Eevee.Diagnosis;
 using Eevee.Fixed;
+using Eevee.Pool;
 using System;
 using System.Runtime.CompilerServices;
 
@@ -12,6 +13,14 @@ namespace Eevee.QuadTree
     {
         bool CheckNode(in AABB2DInt boundary);
         bool CheckElement(in AABB2DInt boundary);
+    }
+
+    /// <summary>
+    /// 动态节点标识
+    /// </summary>
+    public interface IQuadDynamicNode
+    {
+        void Inject(ObjectDelPool<QuadNode> pool);
     }
 
     /// <summary>
