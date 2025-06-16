@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR
 using Eevee.Collection;
 using Eevee.QuadTree;
+using EeveeEditor.Fixed;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -42,50 +43,45 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         private float _lineDuration;
-        private IDictionary<int, BasicQuadTree[]> _trees;
-        private BasicQuadTree[] _tree;
+        private float _scale;
+        private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
 
-        [SingleEnum] [SerializeField] private int _funcEnum;
+        [SerializeField] private int[] _treeIds;
         [SerializeField] private bool _drawLineBall;
         [SerializeField] private float _height = 1;
         [SerializeField] private DepthCount[] _depthCounts = Array.Empty<DepthCount>();
 
         private void OnEnable()
         {
+            var manager = QuadGetter.Proxy.Manager;
+            if (manager is null)
+                return;
+
             _lineDuration = Time.fixedDeltaTime;
-
-            // todo eevee
-            //var manager = BATEntry.Data?.quadTree;
-            //if (manager is null)
-            //    return;
-
-            //var treeFiled = manager.GetType().GetField(QuadTreeManager.TreeName, BindingFlags.Instance | BindingFlags.NonPublic);
-            //_trees = treeFiled?.GetValue(manager) as IDictionary<int, MeshQuadTree[]>;
-            //BuildTree();
+            _scale = 1F / manager.Scale;
+            QuadGetter.GetTrees(manager, _trees);
+            BuildTree();
         }
         private void OnValidate()
         {
-            if (!enabled)
-                return;
-
-            BuildTree();
+            if (enabled)
+                BuildTree();
         }
         private void FixedUpdate()
         {
             _depthCounts.Clean();
-
-            if (_tree.IsNullOrEmpty())
+            if (_treeIds.Length == 0)
                 return;
 
-            foreach (var tree in _tree)
+            foreach (int treeId in _treeIds)
             {
-                if (tree is null)
+                if (!_trees.TryGetValue(treeId, out var tree))
                     continue;
 
-                for (int depthLength = _depthCounts.Length, depth = 0; depth < depthLength; ++depth)
+                for (int length = _depthCounts.Length, depth = 0; depth < length; ++depth)
                 {
-                    var nodes = QuadHelper.GetNodes(tree, depth, _nodes);
+                    var nodes = QuadGetter.GetNodes(tree, depth, _nodes);
                     var depthCount = _depthCounts[depth];
                     depthCount.Depth = depth;
 
@@ -93,7 +89,7 @@ namespace EeveeEditor.QuadTree
                     {
                         depthCount.AddTotalCount(node.SumCount);
 
-                        foreach (var element in node.Elements.AsReadOnlySpan())
+                        foreach (var element in node.Elements)
                         {
                             int elementSqr = element.AABB.Size().SqrMagnitude();
                             int boundarySqr = node.LooseBoundary.HalfSize().SqrMagnitude();
@@ -105,7 +101,7 @@ namespace EeveeEditor.QuadTree
                             depthCount.AddLineBall();
                             depthCount.AddSpaceUtility(space);
                             if (_drawLineBall)
-                                EditorHelper.DrawRect(in element.AABB, Color.magenta, _height, _lineDuration);
+                                EditorDraw.AABB(in element.AABB, _scale, _height, Color.magenta, _lineDuration);
                         }
                     }
 
@@ -116,24 +112,14 @@ namespace EeveeEditor.QuadTree
 
         private void BuildTree()
         {
-            _depthCounts = Array.Empty<DepthCount>();
-
-            if (_trees is null)
+            if (_trees.Count == 0)
                 return;
 
-            _trees.TryGetValue(_funcEnum, out var cacheTree);
-            if (cacheTree is null)
-                return;
-
-            _tree = cacheTree;
-            foreach (var tree in cacheTree)
-            {
-                if (tree is null)
-                    continue;
-
-                _depthCounts = new DepthCount[tree.MaxDepth]; // 不计算最后一层
-                break;
-            }
+            int maxDepth = 0;
+            foreach (int treeId in _treeIds)
+                if (_trees.TryGetValue(treeId, out var tree))
+                    maxDepth = Math.Max(maxDepth, tree.MaxDepth);
+            _depthCounts = new DepthCount[maxDepth]; // 不计算最后一层
         }
     }
 }

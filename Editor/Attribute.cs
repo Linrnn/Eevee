@@ -4,22 +4,20 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace EeveeEditor.QuadTree
+namespace EeveeEditor
 {
     #region SingleEnum
-    internal sealed class SingleEnumAttribute : PropertyAttribute
-    {
-    }
+    internal sealed class SingleEnumAttribute : PropertyAttribute { }
 
     [CustomPropertyDrawer(typeof(SingleEnumAttribute))]
     internal sealed class SingleEnumPropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var component = property.serializedObject.targetObject;
-            var componentType = component.GetType();
-            var field = componentType.GetField(property.propertyPath, BindingFlags.Instance | BindingFlags.NonPublic);
-            object enumValue = field?.GetValue(component);
+            var uObject = property.serializedObject.targetObject;
+            var objectType = uObject.GetType();
+            var field = objectType.GetField(property.propertyPath, BindingFlags.Instance | BindingFlags.NonPublic);
+            object enumValue = field?.GetValue(uObject);
 
             var enumPopup = EditorGUI.EnumPopup(position, label, (Enum)enumValue);
             property.enumValueFlag = Convert.ToInt32(enumPopup);
@@ -31,9 +29,7 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 适用于单高度字段（即GetPropertyHeight()为初始值）
     /// </summary>
-    internal sealed class ReadOnlyAttribute : PropertyAttribute
-    {
-    }
+    internal sealed class ReadOnlyAttribute : PropertyAttribute { }
 
     [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
     internal sealed class ReadOnlyPropertyDrawer : PropertyDrawer

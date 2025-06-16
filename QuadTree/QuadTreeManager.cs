@@ -14,7 +14,6 @@ namespace Eevee.QuadTree
     {
         #region 字段/构造方法
         public readonly int Scale; // 缩放比例，(int)(Fixed64 * Scale) = int
-        public readonly Fixed64 Reciprocal; // = 1 / Scale
         public readonly int DepthCount;
         public readonly AABB2DInt MaxBoundary;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
@@ -23,7 +22,6 @@ namespace Eevee.QuadTree
         public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
             Scale = scale;
-            Reciprocal = Fixed64.One / scale;
             DepthCount = depthCount;
             MaxBoundary = maxBoundary;
             BuildTrees(depthCount, in maxBoundary, configs);
@@ -365,22 +363,6 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 辅助方法
-        public int F2I(Fixed64 value) => Fixed64ToInt32(value);
-        public Vector2DInt F2I(in Vector2D value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y));
-        public CircleInt F2I(in Circle value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y), Fixed64ToInt32(value.R));
-        public AABB2DInt F2I(in AABB2D value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y), Fixed64ToInt32(value.W), Fixed64ToInt32(value.H));
-        public OBB2DInt F2I(in OBB2D value) => new(Fixed64ToInt32(value.X), Fixed64ToInt32(value.Y), Fixed64ToInt32(value.W), Fixed64ToInt32(value.H), value.A);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int Fixed64ToInt32(Fixed64 value) => (int)(value * Scale);
-
-        public Fixed64 I2F(int value) => Int32ToFixed64(value);
-        public Vector2D I2F(Vector2DInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y));
-        public Circle I2F(in CircleInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y), Int32ToFixed64(value.R));
-        public AABB2D I2F(in AABB2DInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y), Int32ToFixed64(value.W), Int32ToFixed64(value.H));
-        public OBB2D I2F(in OBB2DInt value) => new(Int32ToFixed64(value.X), Int32ToFixed64(value.Y), Int32ToFixed64(value.W), Int32ToFixed64(value.H), value.A);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Fixed64 Int32ToFixed64(int value) => value * Reciprocal;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void BuildTrees(int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
@@ -396,6 +378,13 @@ namespace Eevee.QuadTree
                 _trees.Add(config.TreeId, tree);
             }
         }
+
+        internal void GetTrees(ICollection<BasicQuadTree> trees)
+        {
+            foreach (var pair in _trees)
+                trees.Add(pair.Value);
+        }
+
         public void RemoveEmptyNode(int treeId)
         {
             var tree = _trees[treeId];
@@ -407,6 +396,7 @@ namespace Eevee.QuadTree
                 if (pair.Value is IQuadDynamic tree)
                     tree.RemoveEmptyNode();
         }
+
         public void Clean()
         {
             foreach (var pair in _trees)
