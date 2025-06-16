@@ -171,14 +171,19 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Remove(in QuadElement element)
         {
-            if (!Elements.Remove(element))
-                return false;
+            for (int length = Elements.Count, i = 0; i < length; ++i)
+            {
+                if (Elements[i] != element)
+                    continue;
+                Elements.RemoveAt(i);
+                CountSumSub();
+                return true;
+            }
 
-            CountSumSub();
-            return true;
+            return false;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void Remove(int index)
+        internal void RemoveAt(int index)
         {
             Elements.RemoveAt(index);
             CountSumSub();
@@ -186,11 +191,10 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Update(in QuadElement perElement, in QuadElement tarElement)
         {
-            for (int count = Elements.Count, i = 0; i < count; ++i)
+            for (int length = Elements.Count, i = 0; i < length; ++i)
             {
-                if (perElement != Elements[i])
+                if (Elements[i] != perElement)
                     continue;
-
                 Elements[i] = tarElement;
                 return true;
             }

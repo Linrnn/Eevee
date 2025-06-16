@@ -10,7 +10,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 动态网格 + 四叉树
     /// </summary>
-    public sealed class DynamicQuadTree : BasicQuadTree, IQuadDynamicNode
+    public sealed class DynamicQuadTree : BasicQuadTree, IQuadDynamic
     {
         #region Field
         private Dictionary<int, QuadNode>[] _nodes; // “Key”根据“QuadExt.GetNodeId”计算得出

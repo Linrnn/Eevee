@@ -75,7 +75,7 @@ namespace Eevee.QuadTree
             else
             {
                 if (usePre)
-                    preNode.Remove(index);
+                    preNode.RemoveAt(index);
                 else
                     hasError = !preNode.Remove(in preEle);
                 if (tree.AllowRemove(preNode))
@@ -392,9 +392,20 @@ namespace Eevee.QuadTree
                     --depth;
                 var tree = (BasicQuadTree)Activator.CreateInstance(config.TreeType);
                 tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary);
-                (tree as IQuadDynamicNode)?.Inject(_pool);
+                (tree as IQuadDynamic)?.Inject(_pool);
                 _trees.Add(config.TreeId, tree);
             }
+        }
+        public void RemoveEmptyNode(int treeId)
+        {
+            var tree = _trees[treeId];
+            (tree as IQuadDynamic)?.RemoveEmptyNode();
+        }
+        public void RemoveEmptyNode()
+        {
+            foreach (var pair in _trees)
+                if (pair.Value is IQuadDynamic tree)
+                    tree.RemoveEmptyNode();
         }
         public void Clean()
         {

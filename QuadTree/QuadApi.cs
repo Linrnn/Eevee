@@ -18,7 +18,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 动态节点标识
     /// </summary>
-    public interface IQuadDynamicNode
+    public interface IQuadDynamic
     {
         void Inject(IObjectPool<QuadNode> pool);
         void RemoveEmptyNode();

@@ -16,7 +16,7 @@ namespace Eevee.QuadTree
         internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
         {
             base.OnCreate(treeId, shape, depthCount, in maxBoundary);
-            QuadTreeExt.OnCreate(this, _root, depthCount, in maxBoundary, out _nodes);
+            QuadTreeExt.OnCreate(this, _root, depthCount, out _nodes);
         }
         internal override void OnDestroy()
         {
