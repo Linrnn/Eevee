@@ -160,11 +160,7 @@ namespace Eevee.Fixed
             return hashCode;
         }
         public bool Equals(Polygon other) => this == other;
-        public int CompareTo(Polygon other)
-        {
-            // todo eevee
-            throw new NotImplementedException();
-        }
+        public int CompareTo(Polygon other) => PointCount().CompareTo(other.PointCount());
 
         public override string ToString() => ToString(Format.Fractional, Format.Use);
         public string ToString(string format) => ToString(format, Format.Use);
