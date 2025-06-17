@@ -26,7 +26,7 @@ namespace EeveeEditor.QuadTree
                     return proxy;
 
                 var type = FindType.GetType(typeof(IQuadDrawProxy));
-                if (type == null)
+                if (type is null)
                     Debug.LogError($"{nameof(IQuadDrawProxy)}未被继承！");
 
                 var newGetter = Activator.CreateInstance(type) as IQuadDrawProxy;

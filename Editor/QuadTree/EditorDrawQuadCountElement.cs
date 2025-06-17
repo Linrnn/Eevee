@@ -49,7 +49,7 @@ namespace EeveeEditor.QuadTree
 
         [SerializeField] private int[] _treeIds;
         [SerializeField] private bool _drawLineBall;
-        [SerializeField] private float _height = 1;
+        [SerializeField] private float _height;
         [SerializeField] private DepthCount[] _depthCounts = Array.Empty<DepthCount>();
 
         private void OnEnable()
@@ -101,7 +101,7 @@ namespace EeveeEditor.QuadTree
                             depthCount.AddLineBall();
                             depthCount.AddSpaceUtility(space);
                             if (_drawLineBall)
-                                EditorDraw.AABB(in element.AABB, _scale, _height, Color.magenta, _lineDuration);
+                                ShapeDraw.AABB(in element.AABB, _scale, _height, Color.magenta, _lineDuration);
                         }
                     }
 

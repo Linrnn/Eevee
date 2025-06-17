@@ -65,9 +65,9 @@ namespace Eevee.QuadTree
             {
                 if (!preNode.Remove(in preElement))
                     LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:{_treeId}, PreEle:{preElement}, TarEle:{tarElement}");
-                if (AllowRemove(preNode))
-                    RemoveNode(preNode);
                 tarNode.Add(in tarElement);
+                if (AllowRemove(preNode)) // “tarNode”可能是“preNode”的子节点，所以要先“Add”，后“RemoveNode”
+                    RemoveNode(preNode);
             }
         }
         #endregion
@@ -290,7 +290,6 @@ namespace Eevee.QuadTree
             _maxDepth = QuadIndex.Invalid.Depth;
             _shape = QuadShape.None;
             _maxBoundary = default;
-            _root.OnRelease();
             _root = null;
         }
 

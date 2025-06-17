@@ -64,7 +64,7 @@ namespace Eevee.QuadTree
 
             unsafe
             {
-                Span<QuadIndex> indexes = stackalloc QuadIndex[_maxDepth - depth]; // 需要创建节点的索引
+                Span<QuadIndex> indexes = stackalloc QuadIndex[depth]; // 需要创建节点的索引
                 int count = 0;
 
                 for (var index = new QuadIndex(depth, x, y); index.IsValid(); index = index.Parent())
@@ -100,6 +100,8 @@ namespace Eevee.QuadTree
             if (node.HasChild())
                 foreach (var child in node.ChildAsIterator())
                     RemoveNode(child);
+            var depthNodes = _nodes[node.Index.Depth];
+            depthNodes.Remove(node.Index.GetNodeId());
             _pool.Release(node);
         }
 
@@ -128,6 +130,9 @@ namespace Eevee.QuadTree
             for (var nIdx = idx; nIdx.IsValid(); nIdx = nIdx.Parent())
             {
                 var extents = QuadExt.GetDepthExtents(in _maxBoundary, nIdx.Depth);
+                if (extents.X < area.W || extents.Y < area.Y)
+                    continue;
+
                 var center = QuadExt.GetNodeCenter(nIdx.X, nIdx.Y, left, top, extents.X, extents.Y);
                 var boundary = new AABB2DInt(center, extents);
                 if (!Geometry.Contain(in boundary, in area))

@@ -5,19 +5,18 @@ using UnityEngine;
 
 namespace EeveeEditor.Fixed
 {
-    internal readonly struct EditorDraw
+    internal readonly struct ShapeDraw
     {
         internal static void Circle(in CircleInt shape, int pointCount, float scale, float height, in Color color, float duration)
         {
-            float sr = MathF.PI * 2 / pointCount;
             float rad = 0;
+            float deltaRad = MathF.PI * 2 / pointCount;
             for (int i = 0; i < pointCount; ++i)
             {
-                float r = shape.R;
-                var p0 = new Vector2(MathF.Cos(rad) * r, MathF.Sin(rad) * r);
-                rad += sr;
-                var p1 = new Vector2(MathF.Cos(rad) * r, MathF.Sin(rad) * r);
-                Line(p0, p1, scale, height, in color, duration);
+                var p0 = new Vector2(MathF.Cos(rad), MathF.Sin(rad)) * shape.R;
+                rad += deltaRad;
+                var p1 = new Vector2(MathF.Cos(rad), MathF.Sin(rad)) * shape.R;
+                Line(shape.Center() + p0, shape.Center() + p1, scale, height, in color, duration);
             }
         }
         internal static void AABB(in AABB2DInt shape, float scale, float height, in Color color, float duration)

@@ -25,7 +25,7 @@ namespace Eevee.QuadTree
         /// 四分之一的面积
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector2DInt GetDepthExtents(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.X >> depth, maxBoundary.Y >> depth);
+        internal static Vector2DInt GetDepthExtents(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.W >> depth, maxBoundary.H >> depth);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool TrtGetArea(in AABB2DInt maxBoundary, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area)
@@ -108,8 +108,8 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Vector2DInt GetNodeCenter(int ix, int iy, int bl, int bt, int hw, int hh) => new()
         {
-            X = bl + ix * (hw << 1),
-            Y = bt - iy * (hh << 1),
+            X = bl + hw + ix * (hw << 1),
+            Y = bt - hh - iy * (hh << 1),
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -119,7 +119,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetChildId(this QuadIndex index) => GetChildId(index.X, index.Y);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int GetChildId(int x, int y) => x & 1 | y & 2; // 相对于父节点的索引
+        internal static int GetChildId(int x, int y) => x & 1 | (y & 1) << 1; // 相对于父节点的索引
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static Exception BuildShapeException(int treeId, QuadShape shape) => new NotImplementedException($"TreeId:{treeId}, Shape:{shape} not implement.");

@@ -19,7 +19,7 @@ namespace EeveeEditor.QuadTree
         [SerializeField][Range(0, 360)] private float _angle;
 
         [Space][SerializeField] private int _treeId;
-        [SerializeField] private float _height = 0.01F;
+        [SerializeField] private float _height;
         [SerializeField] private Color _color = Color.blue;
         [SerializeField] private List<int> _queries = new();
 
@@ -73,9 +73,9 @@ namespace EeveeEditor.QuadTree
         {
             switch (_quadShape)
             {
-                case QuadShape.Circle: EditorDraw.Circle(new CircleInt(_position, _radius), _pointCount, _scale, _height, in _color, _lineDuration); break;
-                case QuadShape.AABB: EditorDraw.AABB(new AABB2DInt(_position, _extents), _scale, _height, in _color, _lineDuration); break;
-                case QuadShape.OBB: EditorDraw.OBB(new OBB2DInt(_position, _extents, _angle), _scale, _height, in _color, _lineDuration); break;
+                case QuadShape.Circle: ShapeDraw.Circle(new CircleInt(_position, _radius), _pointCount, _scale, _height, in _color, _lineDuration); break;
+                case QuadShape.AABB: ShapeDraw.AABB(new AABB2DInt(_position, _extents), _scale, _height, in _color, _lineDuration); break;
+                case QuadShape.OBB: ShapeDraw.OBB(new OBB2DInt(_position, _extents, _angle), _scale, _height, in _color, _lineDuration); break;
             }
         }
 

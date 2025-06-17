@@ -58,7 +58,7 @@ namespace Eevee.Pool
         }
         public void TryRelease(ref T element)
         {
-            if (element == null)
+            if (element is null)
                 return;
             Release(element);
             element = null;

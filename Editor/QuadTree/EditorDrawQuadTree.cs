@@ -16,7 +16,7 @@ namespace EeveeEditor.QuadTree
         [SerializeField] private int[] _indexes = Array.Empty<int>(); // 搜索对象所在的节点
 
         [Space] [SerializeField] private int _treeId;
-        [SerializeField] private float _height = 1;
+        [SerializeField] private float _height;
 
         private float _lineDuration;
         private float _scale;
@@ -45,15 +45,15 @@ namespace EeveeEditor.QuadTree
             if (_showEmptyNode)
                 foreach (var node in QuadGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count == 0)
-                        EditorDraw.AABB(in node.Boundary, _scale, _height, Color.gray, _lineDuration);
+                        ShapeDraw.AABB(in node.Boundary, _scale, _height, Color.gray, _lineDuration);
 
             if (_showNode)
                 foreach (var node in QuadGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count > 0)
-                        EditorDraw.AABB(in node.Boundary, _scale, _height, Color.green, _lineDuration);
+                        ShapeDraw.AABB(in node.Boundary, _scale, _height, Color.green, _lineDuration);
 
             if (_showRoot)
-                EditorDraw.AABB(tree.MaxBoundary, _scale, _height, Color.red, _lineDuration);
+                ShapeDraw.AABB(tree.MaxBoundary, _scale, _height, Color.red, _lineDuration);
 
             if (_indexes.Length > 0)
                 foreach (var node in QuadGetter.GetNodes(tree, _nodes))
@@ -63,9 +63,9 @@ namespace EeveeEditor.QuadTree
         }
         private void DrawNodeAndElement(QuadNode node, in QuadElement element)
         {
-            EditorDraw.AABB(in node.LooseBoundary, _scale, _height, Color.magenta, _lineDuration);
-            EditorDraw.AABB(in node.Boundary, _scale, _height, Color.blue, _lineDuration);
-            EditorDraw.AABB(in element.AABB, _scale, _height, Color.yellow, _lineDuration);
+            ShapeDraw.AABB(in node.LooseBoundary, _scale, _height, Color.magenta, _lineDuration);
+            ShapeDraw.AABB(in node.Boundary, _scale, _height, Color.blue, _lineDuration);
+            ShapeDraw.AABB(in element.AABB, _scale, _height, Color.yellow, _lineDuration);
         }
     }
 }

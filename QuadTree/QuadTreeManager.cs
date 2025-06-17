@@ -76,9 +76,9 @@ namespace Eevee.QuadTree
                     preNode.RemoveAt(index);
                 else
                     hasError = !preNode.Remove(in preEle);
-                if (tree.AllowRemove(preNode))
-                    tree.RemoveNode(preNode);
                 tarNode.Add(in tarEle);
+                if (tree.AllowRemove(preNode)) // “tarNode”可能是“preNode”的子节点，所以要先“Add”，后“RemoveNode”
+                    tree.RemoveNode(preNode);
             }
 
             if (hasError)
@@ -101,6 +101,12 @@ namespace Eevee.QuadTree
             var element = new QuadElement(index, new AABB2DInt(center, extents));
             tree.Insert(in element);
         }
+        public void Insert(int treeId, int index, in AABB2DInt shape)
+        {
+            var tree = _trees[treeId];
+            var element = new QuadElement(index, in shape);
+            tree.Insert(in element);
+        }
 
         public bool Remove(int treeId, int index, Vector2DInt center, int extents)
         {
@@ -113,6 +119,13 @@ namespace Eevee.QuadTree
         {
             var tree = _trees[treeId];
             var element = new QuadElement(index, new AABB2DInt(center, extents));
+            bool success = tree.Remove(in element);
+            return success;
+        }
+        public bool Remove(int treeId, int index, in AABB2DInt shape)
+        {
+            var tree = _trees[treeId];
+            var element = new QuadElement(index, in shape);
             bool success = tree.Remove(in element);
             return success;
         }
@@ -164,6 +177,19 @@ namespace Eevee.QuadTree
 
             if (!preTree.Remove(in element))
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:{center}");
+            tarTree.Insert(in element);
+        }
+        public void Update(Change<int> treeId, int index, in AABB2DInt shape)
+        {
+            if (treeId.Equals())
+                return;
+
+            var preTree = _trees[treeId.Pre];
+            var tarTree = _trees[treeId.Tar];
+            var element = new QuadElement(index, in shape);
+
+            if (!preTree.Remove(in element))
+                LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:{shape.Center()}");
             tarTree.Insert(in element);
         }
 
@@ -373,8 +399,8 @@ namespace Eevee.QuadTree
                 for (int extents = Math.Max(config.Extents.X, config.Extents.Y) << depthCount - 1; depth > 1 && extents > maxExtents; extents >>= 1)
                     --depth;
                 var tree = (BasicQuadTree)Activator.CreateInstance(config.TreeType);
-                tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary);
                 (tree as IQuadDynamic)?.Inject(_pool);
+                tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary);
                 _trees.Add(config.TreeId, tree);
             }
         }

@@ -82,7 +82,7 @@ namespace EeveeEditor.QuadTree
         [SerializeField] private DrawRange _drawRange = DrawRange.Children;
         [SerializeField] private int[] _treeIds;
 
-        [Space] [SerializeField] private float _height = 0.01F;
+        [Space] [SerializeField] private float _height;
         [SerializeField] [Range(0, 1)] private float _alpha = 0.25F;
         [SerializeField] private List<DrawElement> _drawElements = new();
 
@@ -165,8 +165,8 @@ namespace EeveeEditor.QuadTree
         {
             switch (element.Shape)
             {
-                case QuadShape.Circle: EditorDraw.Circle(Converts.AsCircleInt(in element.AABB), _circlePointCount, _scale, _height, in element.Color, _lineDuration); break;
-                case QuadShape.AABB: EditorDraw.AABB(in element.AABB, _scale, _height, in element.Color, _lineDuration); break;
+                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.AABB), _circlePointCount, _scale, _height, in element.Color, _lineDuration); break;
+                case QuadShape.AABB: ShapeDraw.AABB(in element.AABB, _scale, _height, in element.Color, _lineDuration); break;
             }
         }
 

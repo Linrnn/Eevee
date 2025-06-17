@@ -26,7 +26,7 @@ namespace EeveeEditor
                     if (type.IsAbstract)
                         continue;
                     if (basType.IsAssignableFrom(type))
-                        types.Add(basType);
+                        types.Add(type);
                 }
             }
         }
