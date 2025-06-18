@@ -29,7 +29,7 @@ namespace EeveeEditor
     /// <summary>
     /// 适用于单高度字段（即GetPropertyHeight()为初始值）
     /// </summary>
-    internal sealed class ReadOnlyAttribute : PropertyAttribute { }
+    public sealed class ReadOnlyAttribute : PropertyAttribute { }
 
     [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
     internal sealed class ReadOnlyPropertyDrawer : PropertyDrawer

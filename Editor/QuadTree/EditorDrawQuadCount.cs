@@ -8,9 +8,12 @@ using UnityEngine;
 
 namespace EeveeEditor.QuadTree
 {
-    internal sealed class EditorDrawQuadCountElement : MonoBehaviour
+    /// <summary>
+    /// 统计四叉树性能数据
+    /// </summary>
+    internal sealed class EditorDrawQuadCount : MonoBehaviour
     {
-        #region Type
+        #region 类型
         [Serializable]
         private struct DepthCount
         {
@@ -42,15 +45,19 @@ namespace EeveeEditor.QuadTree
         }
         #endregion
 
-        private float _lineDuration;
-        private float _scale;
-        private readonly Dictionary<int, BasicQuadTree> _trees = new();
-        private readonly List<QuadNode> _nodes = new(); // 临时缓存
-
+        #region 序列化字段
         [SerializeField] private int[] _treeIds;
         [SerializeField] private bool _drawLineBall;
         [SerializeField] private float _height;
         [SerializeField] private DepthCount[] _depthCounts = Array.Empty<DepthCount>();
+        #endregion
+
+        #region 运行时缓存
+        private float _drawDuration;
+        private float _scale;
+        private readonly Dictionary<int, BasicQuadTree> _trees = new();
+        private readonly List<QuadNode> _nodes = new(); // 临时缓存
+        #endregion
 
         private void OnEnable()
         {
@@ -58,7 +65,7 @@ namespace EeveeEditor.QuadTree
             if (manager is null)
                 return;
 
-            _lineDuration = Time.fixedDeltaTime;
+            _drawDuration = Time.fixedDeltaTime;
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
             BuildTree();
@@ -101,7 +108,7 @@ namespace EeveeEditor.QuadTree
                             depthCount.AddLineBall();
                             depthCount.AddSpaceUtility(space);
                             if (_drawLineBall)
-                                ShapeDraw.AABB(in element.AABB, _scale, _height, Color.magenta, _lineDuration);
+                                ShapeDraw.AABB(in element.AABB, _scale, _height, Color.magenta, _drawDuration);
                         }
                     }
 

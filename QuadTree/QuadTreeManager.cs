@@ -19,6 +19,7 @@ namespace Eevee.QuadTree
         public readonly int Scale; // 缩放比例，(int)(Fixed64 * Scale) = int
         public readonly int DepthCount;
         public readonly AABB2DInt MaxBoundary;
+        private readonly Dictionary<int, QuadTreeConfig> _configs;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly ObjectDelPool<QuadNode> _pool = new(() => new QuadNode(), null, element => element.OnRelease(), null, Macro.HasCheckRelease);
 
@@ -26,12 +27,17 @@ namespace Eevee.QuadTree
         {
             int width = 1 << Maths.Log2(maxBoundary.W) + (Maths.IsPowerOf2(maxBoundary.W) ? 0 : 1);
             int height = 1 << Maths.Log2(maxBoundary.H) + (Maths.IsPowerOf2(maxBoundary.H) ? 0 : 1);
-            var newBoundary = new AABB2DInt(maxBoundary.X, maxBoundary.Y, width, height);
+            var realMaxBoundary = new AABB2DInt(maxBoundary.X, maxBoundary.Y, width, height);
+            var treeConfigs = new Dictionary<int, QuadTreeConfig>(configs.Count);
+            for (int count = configs.Count, i = 0; i < count; ++i)
+                if (configs[i] is { } config)
+                    treeConfigs.Add(config.TreeId, config);
 
             Scale = scale;
             DepthCount = depthCount;
-            MaxBoundary = newBoundary;
-            BuildTrees(depthCount, in newBoundary, configs);
+            MaxBoundary = realMaxBoundary;
+            _configs = treeConfigs;
+            BuildTrees(depthCount, in realMaxBoundary, configs);
         }
         #endregion
 
@@ -411,6 +417,7 @@ namespace Eevee.QuadTree
             }
         }
 
+        internal QuadTreeConfig GetConfig(int treeId) => _configs.GetValueOrDefault(treeId);
         internal void GetTrees(ICollection<BasicQuadTree> trees)
         {
             foreach (var pair in _trees)
