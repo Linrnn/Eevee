@@ -21,6 +21,7 @@ namespace Eevee.QuadTree
     public interface IQuadDynamic
     {
         void Inject(IObjectPool<QuadNode> pool);
+        void RemoveNode(QuadNode node);
         void RemoveEmptyNode();
     }
 

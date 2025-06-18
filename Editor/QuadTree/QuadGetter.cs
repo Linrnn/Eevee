@@ -12,7 +12,7 @@ namespace EeveeEditor.QuadTree
         Color GetElementColor(int treeId); // 获得绘制Element时的颜色
 
         int GetIndex(GameObject go); // 通过GO获得Index
-        void GetIndexes(GameObject go, ICollection<int> indexed); // 通过GO获得Index
+        void GetIndexes(GameObject go, ICollection<int> indexes); // 通过GO获得Index
     }
 
     internal readonly struct QuadGetter

@@ -47,7 +47,6 @@ namespace Eevee.QuadTree
         }
         internal override QuadNode GetOrAddNode(int depth, int x, int y) => _nodes[depth][x, y];
         internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][x, y];
-        internal override void RemoveNode(QuadNode node) { }
 
         internal override void GetNodes(ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, nodes);
         internal override void GetNodes(int depth, ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, depth, nodes);

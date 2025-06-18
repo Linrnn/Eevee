@@ -71,8 +71,8 @@ namespace Eevee.QuadTree
                     continue;
 
                 int left = maxBoundary.Left();
-                int top = maxBoundary.Top();
-                var idx = GetNodeIndex(area.X, area.Y, left, top, extents.X, extents.Y);
+                int bottom = maxBoundary.Bottom();
+                var idx = GetNodeIndex(area.X, area.Y, left, bottom, extents.X, extents.Y);
                 index = new QuadIndex(depth, idx.X, idx.Y);
                 return true;
             }
@@ -86,15 +86,15 @@ namespace Eevee.QuadTree
         /// </summary>
         /// <param name="bx">四叉树的横坐标</param>
         /// <param name="by">四叉树的纵坐标</param>
-        /// <param name="bl">四叉树的左边界</param>
-        /// <param name="bt">四叉树的上边界</param>
+        /// <param name="bb">四叉树的左边界</param>
+        /// <param name="bt">四叉树的下边界</param>
         /// <param name="hw">当前层级边界尺寸的半宽</param>
         /// <param name="hh">当前层级边界尺寸的半高</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector2DInt GetNodeIndex(int bx, int by, int bl, int bt, int hw, int hh) => new()
+        internal static Vector2DInt GetNodeIndex(int bx, int by, int bb, int bt, int hw, int hh) => new()
         {
-            X = (bx - bl) / (hw << 1),
-            Y = (bt - by) / (hh << 1),
+            X = (bx - bb) / (hw << 1),
+            Y = (by - bt) / (hh << 1),
         };
         /// <summary>
         /// 通过索引获得节点中心点
@@ -102,14 +102,14 @@ namespace Eevee.QuadTree
         /// <param name="ix">索引的横值</param>
         /// <param name="iy">索引的纵值</param>
         /// <param name="bl">四叉树的左边界</param>
-        /// <param name="bt">四叉树的上边界</param>
+        /// <param name="bb">四叉树的下边界</param>
         /// <param name="hw">当前层级边界尺寸的半宽</param>
         /// <param name="hh">当前层级边界尺寸的半高</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Vector2DInt GetNodeCenter(int ix, int iy, int bl, int bt, int hw, int hh) => new()
+        internal static Vector2DInt GetNodeCenter(int ix, int iy, int bl, int bb, int hw, int hh) => new()
         {
             X = bl + hw + ix * (hw << 1),
-            Y = bt - hh - iy * (hh << 1),
+            Y = bb + hh + iy * (hh << 1),
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

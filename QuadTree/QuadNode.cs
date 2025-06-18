@@ -147,7 +147,7 @@ namespace Eevee.QuadTree
         {
             if (!_valid)
             {
-                LogRelay.Warn($"[Quad] Index:{Index}, _valid is false.");
+                LogRelay.Error($"[Quad] Index:{Index}, _valid is false.");
                 return;
             }
 
@@ -251,10 +251,10 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal AABB2DInt GetChildBoundary(int childId) => childId switch // 计算子包围盒
         {
-            0 => Boundary.LeftTopAABB(),
-            1 => Boundary.RightTopAABB(),
-            2 => Boundary.LeftBottomAABB(),
-            3 => Boundary.RightBottomAABB(),
+            0 => Boundary.LeftBottomAABB(),
+            1 => Boundary.RightBottomAABB(),
+            2 => Boundary.LeftTopAABB(),
+            3 => Boundary.RightTopAABB(),
             _ => throw new IndexOutOfRangeException($"ChildId:{childId}，越界"),
         };
 

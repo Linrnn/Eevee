@@ -10,6 +10,9 @@ using System.Runtime.CompilerServices;
 
 namespace Eevee.QuadTree
 {
+    /// <summary>
+    /// 四叉树最下角：(0, 0)
+    /// </summary>
     public sealed class QuadTreeManager
     {
         #region 字段/构造方法
@@ -21,10 +24,14 @@ namespace Eevee.QuadTree
 
         public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
+            int width = 1 << Maths.Log2(maxBoundary.W) + (Maths.IsPowerOf2(maxBoundary.W) ? 0 : 1);
+            int height = 1 << Maths.Log2(maxBoundary.H) + (Maths.IsPowerOf2(maxBoundary.H) ? 0 : 1);
+            var newBoundary = new AABB2DInt(maxBoundary.X, maxBoundary.Y, width, height);
+
             Scale = scale;
             DepthCount = depthCount;
-            MaxBoundary = maxBoundary;
-            BuildTrees(depthCount, in maxBoundary, configs);
+            MaxBoundary = newBoundary;
+            BuildTrees(depthCount, in newBoundary, configs);
         }
         #endregion
 
@@ -77,8 +84,7 @@ namespace Eevee.QuadTree
                 else
                     hasError = !preNode.Remove(in preEle);
                 tarNode.Add(in tarEle);
-                if (tree.AllowRemove(preNode)) // “tarNode”可能是“preNode”的子节点，所以要先“Add”，后“RemoveNode”
-                    tree.RemoveNode(preNode);
+                tree.TryRemoveNode(preNode); // “tarNode”可能是“preNode”的子节点，所以要先“Add”，后“RemoveNode”
             }
 
             if (hasError)

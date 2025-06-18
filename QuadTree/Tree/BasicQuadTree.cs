@@ -38,8 +38,7 @@ namespace Eevee.QuadTree
             TryGetNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
             var node = GetNode(index.Depth, index.X, index.Y);
             bool remove = node.Remove(in element);
-            if (AllowRemove(node))
-                RemoveNode(node);
+            TryRemoveNode(node);
 
             if (remove && QuadDebug.CheckIndex(_treeId, element.Index))
                 LogRelay.Log($"[Quad] RemoveElement Success, TreeId:{_treeId}, Ele:{element}");
@@ -66,8 +65,7 @@ namespace Eevee.QuadTree
                 if (!preNode.Remove(in preElement))
                     LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:{_treeId}, PreEle:{preElement}, TarEle:{tarElement}");
                 tarNode.Add(in tarElement);
-                if (AllowRemove(preNode)) // “tarNode”可能是“preNode”的子节点，所以要先“Add”，后“RemoveNode”
-                    RemoveNode(preNode);
+                TryRemoveNode(preNode); // “tarNode”可能是“preNode”的子节点，所以要先“Add”，后“RemoveNode”
             }
         }
         #endregion
@@ -272,7 +270,16 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool AllowRemove(QuadNode node) => node != _root && node.IsEmpty();
+        internal void TryRemoveNode(QuadNode node)
+        {
+            if (node == _root)
+                return;
+            if (!node.IsEmpty())
+                return;
+            if (this is not IQuadDynamic { } quadDynamic)
+                return;
+            quadDynamic.RemoveNode(node);
+        }
         #endregion
 
         #region 待继承
@@ -297,7 +304,6 @@ namespace Eevee.QuadTree
         internal abstract QuadNode CreateNode(int depth, int x, int y, QuadNode parent); // 创建单个节点（此接口的父节点Children字段不会绑定子节点，但是子节点Parent字段会绑定父节点）
         internal abstract QuadNode GetOrAddNode(int depth, int x, int y); // 获取节点/创建单个节点（如果父节点不存在，会创建父节点）
         internal abstract QuadNode GetNode(int depth, int x, int y);
-        internal abstract void RemoveNode(QuadNode node);
 
         internal abstract void GetNodes(ICollection<QuadNode> nodes);
         internal abstract void GetNodes(int depth, ICollection<QuadNode> nodes);

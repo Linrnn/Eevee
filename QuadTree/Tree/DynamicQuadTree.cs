@@ -49,7 +49,7 @@ namespace Eevee.QuadTree
         {
             var maxBoundary = _maxBoundary;
             var extents = QuadExt.GetDepthExtents(in maxBoundary, depth);
-            var center = QuadExt.GetNodeCenter(x, y, maxBoundary.Left(), maxBoundary.Top(), extents.X, extents.Y);
+            var center = QuadExt.GetNodeCenter(x, y, maxBoundary.Left(), maxBoundary.Bottom(), extents.X, extents.Y);
             var boundary = new AABB2DInt(center, extents);
             var node = _pool.Alloc();
             node.OnAlloc(in boundary, in boundary, depth, x, y, parent);
@@ -94,16 +94,6 @@ namespace Eevee.QuadTree
             return depthNodes[nodeId];
         }
         internal override QuadNode GetNode(int depth, int x, int y) => _nodes[depth][QuadExt.GetNodeId(depth, x, y)];
-        internal override void RemoveNode(QuadNode node)
-        {
-            node.Parent.RemoveChild(node);
-            if (node.HasChild())
-                foreach (var child in node.ChildAsIterator())
-                    RemoveNode(child);
-            var depthNodes = _nodes[node.Index.Depth];
-            depthNodes.Remove(node.Index.GetNodeId());
-            _pool.Release(node);
-        }
 
         internal override void GetNodes(ICollection<QuadNode> nodes)
         {
@@ -126,14 +116,14 @@ namespace Eevee.QuadTree
             }
 
             int left = _maxBoundary.Left();
-            int top = _maxBoundary.Top();
+            int bottom = _maxBoundary.Bottom();
             for (var nIdx = idx; nIdx.IsValid(); nIdx = nIdx.Parent())
             {
                 var extents = QuadExt.GetDepthExtents(in _maxBoundary, nIdx.Depth);
                 if (extents.X < area.W || extents.Y < area.Y)
                     continue;
 
-                var center = QuadExt.GetNodeCenter(nIdx.X, nIdx.Y, left, top, extents.X, extents.Y);
+                var center = QuadExt.GetNodeCenter(nIdx.X, nIdx.Y, left, bottom, extents.X, extents.Y);
                 var boundary = new AABB2DInt(center, extents);
                 if (!Geometry.Contain(in boundary, in area))
                     continue;
@@ -162,6 +152,16 @@ namespace Eevee.QuadTree
 
         #region IQuadDynamicNode
         public void Inject(IObjectPool<QuadNode> pool) => _pool = pool;
+        public void RemoveNode(QuadNode node)
+        {
+            node.Parent.RemoveChild(node);
+            if (node.HasChild())
+                foreach (var child in node.ChildAsIterator())
+                    RemoveNode(child);
+            var depthNodes = _nodes[node.Index.Depth];
+            depthNodes.Remove(node.Index.GetNodeId());
+            _pool.Release(node);
+        }
         public void RemoveEmptyNode() => TryRemoveEmptyNode(_root);
         #endregion
 
