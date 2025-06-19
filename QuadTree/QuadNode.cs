@@ -124,6 +124,7 @@ namespace Eevee.QuadTree
 
         internal QuadNode Parent; // 父节点
         private readonly QuadNode[] _children = new QuadNode[QuadExt.ChildCount]; // 子节点
+        // todo eevee 接入对象池，减少GC
         internal readonly WeakOrderList<QuadElement> Elements = new(); // 存储元素的数组（禁止外部直接修改）
         internal int SumCount; // 当前节点及所有子节点存的数量（禁止外部直接修改）
 

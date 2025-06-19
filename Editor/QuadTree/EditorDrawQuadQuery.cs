@@ -19,7 +19,20 @@ namespace EeveeEditor.QuadTree
         [CustomEditor(typeof(EditorDrawQuadQuery))]
         private sealed class EditorDrawQuadQueryInspector : Editor
         {
-            private static readonly string[] _filedNames = { "m_Script", nameof(_quadShape), nameof(_position), nameof(_radius), nameof(_circleAccuracy), nameof(_extents), nameof(_angle), nameof(_treeId), nameof(_height), nameof(_color), nameof(_queries), };
+            private static readonly string[] _filedNames =
+            {
+                "m_Script",
+                nameof(_quadShape),
+                nameof(_position),
+                nameof(_radius),
+                nameof(_circleAccuracy),
+                nameof(_extents),
+                nameof(_angle),
+                nameof(_treeId),
+                nameof(_height),
+                nameof(_color),
+                nameof(_queries),
+            };
             private readonly SerializedProperty[] _serializedProperties = new SerializedProperty[_filedNames.Length];
 
             private void OnEnable()

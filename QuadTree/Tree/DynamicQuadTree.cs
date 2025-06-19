@@ -64,7 +64,7 @@ namespace Eevee.QuadTree
 
             unsafe
             {
-                Span<QuadIndex> indexes = stackalloc QuadIndex[depth]; // 需要创建节点的索引
+                var indexes = (Span<QuadIndex>)stackalloc QuadIndex[depth]; // 需要创建节点的索引
                 int count = 0;
 
                 for (var index = new QuadIndex(depth, x, y); index.IsValid(); index = index.Parent())
