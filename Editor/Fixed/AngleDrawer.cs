@@ -11,7 +11,10 @@ namespace EeveeEditor.Fixed
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             var valueProperty = property.FindPropertyRelative(nameof(Angle.Value));
+
             NumberDrawer.OnGUI(in position, valueProperty, label, property.displayName);
+
+            valueProperty.Dispose();
         }
     }
 }

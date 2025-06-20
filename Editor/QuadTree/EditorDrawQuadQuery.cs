@@ -38,11 +38,7 @@ namespace EeveeEditor.QuadTree
             private void OnEnable()
             {
                 for (int i = 0; i < _filedNames.Length; ++i)
-                {
-                    string filedName = _filedNames[i];
-                    var serializedProperty = serializedObject.FindProperty(filedName);
-                    _serializedProperties[i] = serializedProperty;
-                }
+                    _serializedProperties[i] = serializedObject.FindProperty(_filedNames[i]);
             }
             public override void OnInspectorGUI()
             {

@@ -19,6 +19,8 @@ namespace EeveeEditor.Fixed
             EditorGUI.BeginDisabledGroup(true);
             EditorGUI.TextField(displayPosition, label, new Fixed64(rawValueProperty.longValue).ToString());
             EditorGUI.EndDisabledGroup();
+
+            rawValueProperty.Dispose();
         }
     }
 }

@@ -74,10 +74,11 @@ namespace EeveeEditor.QuadTree
                 private const int HeightScale = 3;
                 public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
                 {
-                    var size = new Vector2(position.size.x, position.size.y / HeightScale);
                     var indexProperty = property.FindPropertyRelative(nameof(Index));
                     var treeIdProperty = property.FindPropertyRelative(nameof(TreeId));
                     var shapeProperty = property.FindPropertyRelative(nameof(Shape));
+
+                    var size = new Vector2(position.size.x, position.size.y / HeightScale);
                     var indexPosition = new Rect(position.position, size);
                     var treeIdPosition = new Rect(position.x, position.y + size.y, size.x, size.y);
                     var shapePosition = new Rect(position.x, position.y + size.y * 2, size.x, size.y);
@@ -89,6 +90,10 @@ namespace EeveeEditor.QuadTree
                     EditorGUI.PropertyField(shapePosition, shapeProperty);
                     EditorGUI.EndDisabledGroup();
                     EditorGUILayout.EndHorizontal();
+
+                    indexProperty.Dispose();
+                    treeIdProperty.Dispose();
+                    shapeProperty.Dispose();
                 }
                 public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => base.GetPropertyHeight(property, label) * HeightScale;
             }

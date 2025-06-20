@@ -20,16 +20,25 @@ namespace EeveeEditor.Collection
             EditorGUI.BeginDisabledGroup(true);
             EditorGUI.PropertyField(position, itemsProperty, label);
             EditorGUI.EndDisabledGroup();
+
+            itemsProperty.Dispose();
+            sizeProperty.Dispose();
         }
         internal static float GetPropertyHeight(float height, SerializedProperty property, GUIContent _)
         {
             var itemsProperty = property.FindPropertyRelative(Items);
             if (!itemsProperty.isExpanded)
+            {
+                itemsProperty.Dispose();
                 return height;
+            }
 
             var sizeProperty = property.FindPropertyRelative(Size);
+
             float elementHeight = height + 2;
             int scale = Math.Max(sizeProperty.intValue, 1);
+
+            sizeProperty.Dispose();
             return height * 3 + elementHeight * scale;
         }
     }
