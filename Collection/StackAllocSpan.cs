@@ -6,54 +6,52 @@ using System.Runtime.InteropServices;
 namespace Eevee.Collection
 {
     /// <summary>
-    /// 内存在栈分配的元素集合
+    /// 内存在栈分配的元素集合<br/>
+    /// 不支持以下情况：结构体存在引用类型
     /// </summary>
     internal readonly ref struct StackAllocSpan<T>
     {
         private readonly bool _referenceType;
-        private readonly int _scaleSize;
+        private readonly int _size;
         private readonly Span<byte> _span;
 
-        internal StackAllocSpan(int scaleSize, in Span<byte> span)
+        internal StackAllocSpan(int size, in Span<byte> span)
         {
             var type = typeof(T);
             _referenceType = type.IsClass || type.IsInterface;
-            _scaleSize = scaleSize;
+            _size = size;
             _span = span;
         }
 
         internal T Get(ref int index)
         {
             var element = Get(index);
-            index += _scaleSize;
+            index += _size;
             return element;
         }
-        internal T Get(int index)
+        internal unsafe T Get(int index)
         {
-            unsafe
+            fixed (void* ptr = &_span[index])
             {
-                fixed (void* ptr = &_span[index])
+                if (_referenceType)
                 {
-                    if (_referenceType)
+                    var handle = Unsafe.Read<GCHandle>(ptr);
+                    try
                     {
-                        var handle = Unsafe.Read<GCHandle>(ptr);
-                        try
-                        {
-                            return (T)handle.Target;
-                        }
-                        catch (Exception exception)
-                        {
-                            LogRelay.Fail(exception);
-                        }
-                        finally
-                        {
-                            handle.Free();
-                        }
+                        return (T)handle.Target;
                     }
-                    else
+                    catch (Exception exception)
                     {
-                        return Unsafe.Read<T>(ptr);
+                        LogRelay.Fail(exception);
                     }
+                    finally
+                    {
+                        handle.Free();
+                    }
+                }
+                else
+                {
+                    return Unsafe.Read<T>(ptr);
                 }
             }
 
@@ -63,18 +61,15 @@ namespace Eevee.Collection
         internal void Set(ref int index, T element)
         {
             Set(index, element);
-            index += _scaleSize;
+            index += _size;
         }
-        internal void Set(int index, T element)
+        internal unsafe void Set(int index, T element)
         {
-            unsafe
-            {
-                fixed (void* ptr = &_span[index])
-                    if (_referenceType)
-                        Unsafe.Write(ptr, GCHandle.Alloc(element, GCHandleType.Pinned));
-                    else
-                        Unsafe.Write(ptr, element);
-            }
+            fixed (void* ptr = &_span[index])
+                if (_referenceType)
+                    Unsafe.Write(ptr, GCHandle.Alloc(element, GCHandleType.Pinned));
+                else
+                    Unsafe.Write(ptr, element);
         }
     }
 }

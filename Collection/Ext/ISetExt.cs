@@ -1,5 +1,4 @@
 ﻿using Eevee.Pool;
-using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -23,9 +22,7 @@ namespace Eevee.Collection
         public static void IntersectWithLowGC<T>(this ISet<T> source, IEnumerable<T> input)
         {
             if (source.Count == 0 || ReferenceEquals(source, input))
-            {
                 return;
-            }
 
             bool hasInputCount = IEnumerableExt.TryGetNonEnumeratedCount<T>(input, out int inputCount);
             if (hasInputCount && inputCount == 0)
@@ -35,19 +32,14 @@ namespace Eevee.Collection
             }
 
             if (!hasInputCount)
-            {
                 IEnumerableExt.TryGetEnumeratedCount<T>(input, out inputCount);
-            }
 
-            var intersects = ArrayExt.SharedRent<T>(inputCount);
-            var intersectSpan = intersects.AsSpan(0, inputCount);
-
-            FillIntersect(source, input, inputCount, in intersectSpan, out int intersectCount);
+            int size = Unsafe.SizeOf<T>();
+            var intersectSpan = new StackAllocSpan<T>(size, stackalloc byte[inputCount * size]);
+            FillIntersect(source, input, inputCount, ref intersectSpan, out int intersectCount);
             source.Clear();
-            foreach (var item in intersectSpan[..intersectCount])
-                source.Add(item);
-
-            intersects.SharedReturn();
+            for (int i = 0; i < intersectCount;)
+                source.Add(intersectSpan.Get(ref i));
         }
         /// <summary>
         /// source ∩ ~input<br/>
@@ -74,24 +66,17 @@ namespace Eevee.Collection
 
             bool hasInputCount = IEnumerableExt.TryGetNonEnumeratedCount<T>(input, out int inputCount);
             if (hasInputCount && inputCount == 0)
-            {
                 return;
-            }
 
             if (!hasInputCount)
-            {
                 IEnumerableExt.TryGetEnumeratedCount<T>(input, out inputCount);
-            }
 
-            var intersects = ArrayExt.SharedRent<T>(inputCount);
-            var intersectSpan = intersects.AsSpan(0, inputCount);
-
-            FillIntersect(source, input, inputCount, in intersectSpan, out int intersectCount);
+            int size = Unsafe.SizeOf<T>();
+            var intersectSpan = new StackAllocSpan<T>(size, stackalloc byte[inputCount * size]);
+            FillIntersect(source, input, inputCount, ref intersectSpan, out int intersectCount);
             source.UnionWithLowGC(input);
-            foreach (var item in intersectSpan[..intersectCount])
-                source.Remove(item);
-
-            intersects.SharedReturn();
+            for (int i = 0; i < intersectCount;)
+                source.Remove(intersectSpan.Get(ref i));
         }
 
         /// <summary>
@@ -292,52 +277,52 @@ namespace Eevee.Collection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void FillIntersect<T>(ICollection<T> source, IEnumerable<T> input, int inputCount, in Span<T> intersects, out int intersectCount)
+        private static void FillIntersect<T>(ICollection<T> source, IEnumerable<T> input, int inputCount, ref StackAllocSpan<T> span, out int intersectCount)
         {
             intersectCount = 0;
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int i = 0; i < inputCount; ++i)
-                        FillItem(source, readOnlyList[i], in intersects, ref intersectCount);
+                        FillItem(source, readOnlyList[i], ref span, ref intersectCount);
                     break;
 
                 case IList<T> list:
                     for (int i = 0; i < inputCount; ++i)
-                        FillItem(source, list[i], in intersects, ref intersectCount);
+                        FillItem(source, list[i], ref span, ref intersectCount);
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        FillItem(source, item, in intersects, ref intersectCount);
+                        FillItem(source, item, ref span, ref intersectCount);
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        FillItem(source, item, in intersects, ref intersectCount);
+                        FillItem(source, item, ref span, ref intersectCount);
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        FillItem(source, item, in intersects, ref intersectCount);
+                        FillItem(source, item, ref span, ref intersectCount);
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        FillItem(source, item, in intersects, ref intersectCount);
+                        FillItem(source, item, ref span, ref intersectCount);
                     break;
 
                 default:
                     foreach (var item in input) // 迭代器可能存在GC
-                        FillItem(source, item, in intersects, ref intersectCount);
+                        FillItem(source, item, ref span, ref intersectCount);
                     break;
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void FillItem<T>(ICollection<T> source, T item, in Span<T> array, ref int index)
+        private static void FillItem<T>(ICollection<T> source, T item, ref StackAllocSpan<T> span, ref int index)
         {
             if (source.Contains(item))
-                array[index++] = item;
+                span.Set(ref index, item);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

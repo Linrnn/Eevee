@@ -3,7 +3,9 @@ using Eevee.Define;
 using Eevee.Diagnosis;
 using Eevee.Pool;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Eevee.Event
 {
@@ -13,7 +15,7 @@ namespace Eevee.Event
     public sealed class EventModule
     {
         #region 类型
-        private readonly struct Wrapper
+        private readonly struct Wrapper : IEquatable<Wrapper>
         {
             internal readonly int EventId;
             internal readonly IEventContext Context;
@@ -23,24 +25,28 @@ namespace Eevee.Event
                 EventId = eventId;
                 Context = context;
             }
-            internal bool BeContain(List<Wrapper> wrappers)
-            {
-                foreach (var other in wrappers)
-                    if (IsEqual(in other))
-                        return true;
 
-                return false;
-            }
-            private bool IsEqual(in Wrapper other)
-            {
-                return EventId == other.EventId && Context == other.Context;
-            }
+            public static bool operator ==(in Wrapper lhs, in Wrapper rhs) => lhs.EventId == rhs.EventId && lhs.Context == rhs.Context;
+            public static bool operator !=(in Wrapper lhs, in Wrapper rhs) => lhs.EventId != rhs.EventId || lhs.Context != rhs.Context;
+
+            public bool Equals(Wrapper other) => this == other;
+            public override bool Equals(object obj) => obj is Wrapper other && this == other;
+            public override int GetHashCode() => EventId ^ Context.GetHashCode();
         }
         #endregion
 
-        #region 字段
+        #region 字段/构造函数
         private readonly Dictionary<int, RefArray<Delegate>> _listeners = new(128); // 使用List而不是使用Set，因为listener需要有序性
         private readonly List<Wrapper> _waitWrappers = new(32); // 等待执行的事件
+        private ArrayPool<Delegate> _arrayPool;
+        private int _validStart; // “_waitWrappers”从“_validStart”开始是有效的
+
+        public EventModule(ArrayPool<Delegate> arrayPool)
+        {
+            Assert.NotNull<ArgumentNullException, AssertArgs>(arrayPool, nameof(arrayPool), "is null!");
+
+            _arrayPool = arrayPool;
+        }
         #endregion
 
         #region 生命周期，需要外部调用
@@ -53,13 +59,11 @@ namespace Eevee.Event
             if (waitWrapperCount == 0)
                 return;
 
-            var invokeWrappers = ArrayExt.SharedRent<Wrapper>(waitWrapperCount);
-            _waitWrappers.CopyTo(invokeWrappers); // 中转一层“invokeWrappers”，可以防止“Dispatch”的过程中，修改“_waitWrappers”
-            _waitWrappers.Clear(); // “Dispatch”前移除，“Dispatch”过程中可能会修改“_waitWrappers”
-
+            _validStart = waitWrapperCount; // “Dispatch”过程中可能会修改“_waitWrappers”，先记录有效的启示索引
             for (int i = 0; i < waitWrapperCount; ++i)
-                Invokes(invokeWrappers[i].EventId, invokeWrappers[i].Context, true);
-            invokeWrappers.SharedReturn();
+                if (_waitWrappers[i] is { } invokeWrapper)
+                    Invokes(invokeWrapper.EventId, invokeWrapper.Context, true);
+            _validStart = 0;
         }
         /// <summary>
         /// 生命周期，需要外部调用
@@ -70,10 +74,12 @@ namespace Eevee.Event
                 LogRelay.Warn($"[Event] Listeners.Count is {_listeners.Count}, need clear!");
 
             foreach (var pair in _listeners)
-                RefArray.Return(pair.Value);
+                RefArray.Return(pair.Value, _arrayPool);
 
             _listeners.Clear();
             _waitWrappers.Clear();
+            _arrayPool = null;
+            _validStart = 0;
         }
         #endregion
 
@@ -89,7 +95,7 @@ namespace Eevee.Event
             if (listeners.Contains(listener))
                 return;
 
-            RefArray.Add(ref listeners, listener);
+            RefArray.Add(ref listeners, listener, _arrayPool);
             _listeners[eventId] = listeners;
         }
         /// <summary>
@@ -109,7 +115,7 @@ namespace Eevee.Event
                 return;
             }
 
-            RefArray.Return(ref listeners);
+            RefArray.Return(ref listeners, _arrayPool);
             _listeners.Remove(eventId);
         }
         #endregion
@@ -137,7 +143,7 @@ namespace Eevee.Event
         public void Enqueue(int eventId, IEventContext context = null, bool allowRepeat = true)
         {
             var wrapper = new Wrapper(eventId, context);
-            if (allowRepeat || !wrapper.BeContain(_waitWrappers))
+            if (allowRepeat || _waitWrappers.IndexOf(wrapper) < _validStart)
                 _waitWrappers.Add(wrapper);
             else
                 LogRelay.Warn($"[Event] EventId:{eventId} is repeat");
@@ -150,12 +156,16 @@ namespace Eevee.Event
             if (!_listeners.TryGetValue(eventId, out var listeners))
                 return;
 
-            var newListeners = ArrayExt.SharedRent<Delegate>(listeners.Count);
-            Array.Copy(listeners.Items, 0, newListeners, 0, listeners.Count);
-            var span = newListeners.AsReadOnlySpan(0, listeners.Count);
+            int count = listeners.Count;
+            int size = Unsafe.SizeOf<Delegate>();
+            int index = 0;
+            var newListeners = new StackAllocSpan<Delegate>(size, stackalloc byte[count * size]);
+            for (int i = 0; i < count; ++i)
+                newListeners.Set(ref index, listeners.Items[i]); // “Invoke”可能会修改listeners，先提前拷贝
 
-            foreach (var listener in span)
+            for (int i = 0; i < index;)
             {
+                var listener = newListeners.Get(ref i);
                 if (Macro.HasTryCatch)
                 {
                     try
@@ -177,7 +187,6 @@ namespace Eevee.Event
                 }
             }
 
-            newListeners.SharedReturn();
             if (recycle)
                 (context as IRecyclable)?.Recycle();
         }

@@ -49,7 +49,7 @@ namespace Eevee.Fixed
                 if (prime >= value)
                     return prime;
             for (int i = value | 1; i < int.MaxValue; i += 2)
-                if (NumberIs(i) && ((i - 1) % HashPrime != 0))
+                if (NumberIs(i) && (i - 1) % HashPrime != 0)
                     return i;
             return value;
         }

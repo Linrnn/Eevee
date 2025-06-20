@@ -126,6 +126,7 @@ namespace Eevee.Collection
 
         public void Insert(int index, T item)
         {
+            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size, nameof(index), "set fail, index:{0} out of range [0, {1}]", new AssertArgs<int, int>(index, _size));
             if (_size == _items.Length)
                 EnsureCapacity(_size + 1);
 
@@ -138,6 +139,7 @@ namespace Eevee.Collection
         }
         public void RemoveAt(int index)
         {
+            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
             int size = _size - 1;
             if (index < size)
                 _items[index] = _items[size];

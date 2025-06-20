@@ -163,12 +163,8 @@ namespace Eevee.Event
         }
         private void UnAllRegister()
         {
-            foreach (var pair in _listeners)
-            {
-                var wrapper = pair.Value;
+            foreach (var (_, wrapper) in _listeners)
                 wrapper.Module.UnRegister(wrapper.EventId, wrapper.Listener);
-            }
-
             _listeners.Clear();
         }
         #endregion

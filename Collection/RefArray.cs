@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 
 namespace Eevee.Collection
 {
@@ -11,9 +12,9 @@ namespace Eevee.Collection
         internal readonly T[] Items;
         internal readonly int Count;
 
-        internal RefArray(int capacity = DefaultCapacity)
+        internal RefArray(ArrayPool<T> arrayPool, int capacity = DefaultCapacity)
         {
-            Items = ArrayExt.SharedRent<T>(capacity);
+            Items = ArrayExt.Rent(capacity, arrayPool);
             Count = capacity;
         }
         internal RefArray(T[] items)
@@ -44,18 +45,18 @@ namespace Eevee.Collection
     /// </summary>
     internal readonly struct RefArray
     {
-        internal static void Add<T>(ref RefArray<T> source, T item)
+        internal static void Add<T>(ref RefArray<T> source, T item, ArrayPool<T> pool)
         {
             var opArray = source.Items;
             if (source.IsEmpty())
             {
-                opArray = ArrayExt.SharedRent<T>(RefArray<T>.DefaultCapacity);
+                opArray = ArrayExt.Rent(RefArray<T>.DefaultCapacity, pool);
             }
             else if (source.IsFull())
             {
-                opArray = ArrayExt.SharedRent<T>(source.Count > 0 ? source.Count << 1 : RefArray<T>.DefaultCapacity);
+                opArray = ArrayExt.Rent(source.Count > 0 ? source.Count << 1 : RefArray<T>.DefaultCapacity, pool);
                 Array.Copy(source.Items, 0, opArray, 0, source.Count);
-                Return(ref source);
+                Return(ref source, pool);
             }
 
             opArray[source.Count] = item;
@@ -79,10 +80,10 @@ namespace Eevee.Collection
             return true;
         }
 
-        internal static void Return<T>(RefArray<T> source) => source.Items.SharedReturn();
-        internal static void Return<T>(ref RefArray<T> source)
+        internal static void Return<T>(RefArray<T> source, ArrayPool<T> pool) => source.Items.Return(pool);
+        internal static void Return<T>(ref RefArray<T> source, ArrayPool<T> pool)
         {
-            source.Items.SharedReturn();
+            source.Items.Return(pool);
             source = new RefArray<T>(null);
         }
 

@@ -1018,12 +1018,12 @@ namespace Eevee.Fixed
             var shapeSpan = shape.GetPoints();
             var otherSpan = other.GetPoints();
             bool intersect = false;
-            var simplex = new RefArray<Vector2D>(null);
+            var simplex = new StackAllocUnmanagedSpan<Vector2D>(stackalloc Vector2D[3]); // 单纯形最多3个元素
 
             var direction = Vector2D.Right; // 初始方向，可以任意指定
             var support = Support(in direction, in shapeSpan, in otherSpan); // 初始支持点
             direction = -support; // 指向原点
-            RefArray.Add(ref simplex, support);
+            simplex.Add(in support);
 
             // for (int count = shape.PointCount() * other.PointCount(), i = 0; i < count; ++i)
             while (true)
@@ -1033,7 +1033,7 @@ namespace Eevee.Fixed
                 if (dot.RawValue <= 0) // 原点不在包围体内
                     break;
 
-                RefArray.Add(ref simplex, support);
+                simplex.Add(in support);
                 if (!NearestSimplex(ref simplex, ref direction))
                     continue;
 
@@ -1041,7 +1041,6 @@ namespace Eevee.Fixed
                 break;
             }
 
-            RefArray.Return(simplex);
             return intersect;
         }
         public static bool Intersect(in PolygonInt shape, in CircleInt other)
@@ -1076,12 +1075,12 @@ namespace Eevee.Fixed
             var shapeSpan = shape.GetPoints();
             var otherSpan = other.GetPoints();
             bool intersect = false;
-            var simplex = new RefArray<Vector2DInt>(null);
+            var simplex = new StackAllocUnmanagedSpan<Vector2DInt>(stackalloc Vector2DInt[3]); // 单纯形最多3个元素
 
             var direction = Vector2DInt.Right; // 初始方向，可以任意指定
             var support = Support(direction, in shapeSpan, in otherSpan); // 初始支持点
             direction = -support; // 指向原点
-            RefArray.Add(ref simplex, support);
+            simplex.Add(support);
 
             // for (int count = shape.PointCount() * other.PointCount(), i = 0; i < count; ++i)
             while (true)
@@ -1091,7 +1090,7 @@ namespace Eevee.Fixed
                 if (dot <= 0) // 原点不在包围体内
                     break;
 
-                RefArray.Add(ref simplex, support);
+                simplex.Add(support);
                 if (!NearestSimplex(ref simplex, ref direction))
                     continue;
 
@@ -1099,7 +1098,6 @@ namespace Eevee.Fixed
                 break;
             }
 
-            RefArray.Return(simplex);
             return intersect;
         }
 
@@ -1134,14 +1132,14 @@ namespace Eevee.Fixed
             return shapeFurthest - otherFurthest;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool NearestSimplex(ref RefArray<Vector2D> simplex, ref Vector2D direction)
+        private static bool NearestSimplex(ref StackAllocUnmanagedSpan<Vector2D> simplex, ref Vector2D direction)
         {
             switch (simplex.Count)
             {
                 case 2:
                 {
-                    ref var p0 = ref simplex.Items[0];
-                    ref var p1 = ref simplex.Items[1];
+                    ref var p0 = ref simplex[0];
+                    ref var p1 = ref simplex[1];
                     var p01 = p0 - p1;
                     var np1 = -p1;
                     direction = TripleProduct(in p01, in np1, in p01); // 垂直于AB，指向原点
@@ -1149,9 +1147,9 @@ namespace Eevee.Fixed
                 }
                 case 3:
                 {
-                    ref var p0 = ref simplex.Items[0];
-                    ref var p1 = ref simplex.Items[1];
-                    ref var p2 = ref simplex.Items[2];
+                    ref var p0 = ref simplex[0];
+                    ref var p1 = ref simplex[1];
+                    ref var p2 = ref simplex[2];
                     var p12 = p1 - p2;
                     var p02 = p0 - p2;
                     var np2 = -p2;
@@ -1160,7 +1158,7 @@ namespace Eevee.Fixed
                     var dot0 = Vector2D.Dot(in product0, in np2);
                     if (dot0.RawValue > 0)
                     {
-                        RefArray.RemoveAt(ref simplex, 0); // 去掉 C
+                        simplex.RemoveAt(0); // 去掉 C
                         direction = product0;
                         return false;
                     }
@@ -1169,7 +1167,7 @@ namespace Eevee.Fixed
                     var dot1 = Vector2D.Dot(in product1, in np2);
                     if (dot1.RawValue > 0)
                     {
-                        RefArray.RemoveAt(ref simplex, 1); // 去掉 B
+                        simplex.RemoveAt(1); // 去掉 B
                         direction = product1;
                         return false;
                     }
@@ -1213,14 +1211,14 @@ namespace Eevee.Fixed
             return shapeFurthest - otherFurthest;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool NearestSimplex(ref RefArray<Vector2DInt> simplex, ref Vector2DInt direction)
+        private static bool NearestSimplex(ref StackAllocUnmanagedSpan<Vector2DInt> simplex, ref Vector2DInt direction)
         {
             switch (simplex.Count)
             {
                 case 2:
                 {
-                    var p0 = simplex.Items[0];
-                    var p1 = simplex.Items[1];
+                    var p0 = simplex[0];
+                    var p1 = simplex[1];
                     var p01 = p0 - p1;
                     var np1 = -p1;
                     direction = TripleProduct(p01, np1, p01); // 垂直于AB，指向原点
@@ -1228,9 +1226,9 @@ namespace Eevee.Fixed
                 }
                 case 3:
                 {
-                    var p0 = simplex.Items[0];
-                    var p1 = simplex.Items[1];
-                    var p2 = simplex.Items[2];
+                    var p0 = simplex[0];
+                    var p1 = simplex[1];
+                    var p2 = simplex[2];
                     var p12 = p1 - p2;
                     var p02 = p0 - p2;
                     var np2 = -p2;
@@ -1239,7 +1237,7 @@ namespace Eevee.Fixed
                     int dot0 = Vector2DInt.Dot(product0, np2);
                     if (dot0 > 0)
                     {
-                        RefArray.RemoveAt(ref simplex, 0); // 去掉 C
+                        simplex.RemoveAt(0); // 去掉 C
                         direction = product0;
                         return false;
                     }
@@ -1248,7 +1246,7 @@ namespace Eevee.Fixed
                     int dot1 = Vector2DInt.Dot(product1, np2);
                     if (dot1 > 0)
                     {
-                        RefArray.RemoveAt(ref simplex, 1); // 去掉 B
+                        simplex.RemoveAt(1); // 去掉 B
                         direction = product1;
                         return false;
                     }

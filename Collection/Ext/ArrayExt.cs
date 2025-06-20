@@ -30,16 +30,17 @@ namespace Eevee.Collection
             }
         }
 
-        public static T[] SharedRent<T>(int capacity) => SharedRent(capacity, ArrayPool<T>.Shared);
-        public static T[] SharedRent<T>(int capacity, ArrayPool<T> pool) => capacity > 0 ? pool.Rent(capacity) : Array.Empty<T>();
-        public static void SharedReturn<T>(this T[] source) => SharedReturn(source, ArrayPool<T>.Shared);
-        public static void SharedReturn<T>(this T[] source, ArrayPool<T> pool)
+        public static T[] SharedRent<T>(int capacity) => Rent(capacity, ArrayPool<T>.Shared);
+        public static void SharedReturn<T>(this T[] source) => Return(source, ArrayPool<T>.Shared);
+        public static void SharedReturn<T>(ref T[] source) => Return(ref source, ArrayPool<T>.Shared);
+
+        public static T[] Rent<T>(int capacity, ArrayPool<T> pool) => capacity > 0 ? pool.Rent(capacity) : Array.Empty<T>();
+        public static void Return<T>(this T[] source, ArrayPool<T> pool)
         {
             if (source.Length > 0)
                 pool.Return(source, true);
         }
-        public static void SharedReturn<T>(ref T[] source) => SharedReturn(ref source, ArrayPool<T>.Shared);
-        public static void SharedReturn<T>(ref T[] source, ArrayPool<T> pool)
+        public static void Return<T>(ref T[] source, ArrayPool<T> pool)
         {
             if (source.Length > 0)
                 pool.Return(source, true);
