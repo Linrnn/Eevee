@@ -1,4 +1,5 @@
-﻿using Eevee.Diagnosis;
+﻿using Eevee.Collection;
+using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System.Buffers;
 using System.Collections.Generic;
@@ -222,7 +223,7 @@ namespace Eevee.QuadTree
                         elements.Add(element);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void IterateQueryParentCheckRepeat<TChecker>(in TChecker checker, QuadNode node, ISet<QuadNode> iterated, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        internal void IterateQueryParentCheckRepeat<TChecker>(in TChecker checker, QuadNode node, ref StackAllocSet<QuadNode> iterated, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
             for (var parent = node; parent is not null; parent = parent.Parent)
                 if (iterated.Add(parent))

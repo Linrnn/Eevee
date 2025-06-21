@@ -186,7 +186,7 @@ namespace Eevee.Event
                 }
             }
 
-            newListeners.Clear();
+            newListeners.Dispose();
             if (recycle)
                 (context as IRecyclable)?.Recycle();
         }

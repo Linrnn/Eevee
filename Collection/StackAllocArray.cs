@@ -14,10 +14,15 @@ namespace Eevee.Collection
         private readonly int _scale;
         private readonly Span<byte> _span;
 
+        internal StackAllocArray(in Span<byte> span)
+        {
+            _referenceType = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+            _scale = Unsafe.SizeOf<T>();
+            _span = span;
+        }
         internal StackAllocArray(int scale, in Span<byte> span)
         {
-            var type = typeof(T);
-            _referenceType = type.IsClass || type.IsInterface;
+            _referenceType = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
             _scale = scale;
             _span = span;
         }
@@ -57,7 +62,7 @@ namespace Eevee.Collection
                     Unsafe.Write(ptr, element);
         }
 
-        internal unsafe void Clear()
+        internal unsafe void Dispose()
         {
             if (_referenceType)
                 for (int length = _span.Length, offset = 0; offset < length; offset += _scale)

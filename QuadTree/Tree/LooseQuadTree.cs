@@ -1,5 +1,5 @@
-﻿using Eevee.Fixed;
-using Eevee.Pool;
+﻿using Eevee.Collection;
+using Eevee.Fixed;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
@@ -65,13 +65,15 @@ namespace Eevee.QuadTree
         }
         protected override void IterateQuery<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
-            // todo eevee 需要是实现纯结构体的HashSet，内存由栈分配
-            var iterated = HashSetPool.Alloc<QuadNode>();
             int max = QuadExt.GetNodeSideCount(index.Depth) - 1;
             int si = Math.Max(index.X - 1, 0);
             int ei = Math.Min(index.X + 2, max);
             int sj = Math.Max(index.Y - 1, 0);
             int ej = Math.Min(index.Y + 2, max);
+
+            int iteratedCount = (ei - si) * (ej - ej) + (index.Depth << QuadExt.ChildSideCount);
+            StackAllocSet<QuadNode>.GetSize(ref iteratedCount, out int scale, out int capacity);
+            var iterated = new StackAllocSet<QuadNode>(scale, stackalloc int[iteratedCount], stackalloc byte[capacity]);
 
             for (int i = si; i < ei; ++i)
             {
@@ -83,12 +85,12 @@ namespace Eevee.QuadTree
                     if (!checker.CheckNode(in node.Boundary))
                         continue;
 
-                    IterateQueryParentCheckRepeat(in checker, node.Parent, iterated, elements);
+                    IterateQueryParentCheckRepeat(in checker, node.Parent, ref iterated, elements);
                     IterateQueryChildren(in checker, node, elements);
                 }
             }
 
-            iterated.Release2Pool();
+            iterated.Dispose();
         }
         #endregion
     }

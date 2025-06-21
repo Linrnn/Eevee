@@ -1,5 +1,4 @@
-﻿using Eevee.Pool;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Eevee.Collection
@@ -40,7 +39,7 @@ namespace Eevee.Collection
             source.Clear();
             for (int offset = 0; offset < intersectCount;)
                 source.Add(intersects.Get(ref offset));
-            intersects.Clear();
+            intersects.Dispose();
         }
         /// <summary>
         /// source ∩ ~input<br/>
@@ -78,7 +77,7 @@ namespace Eevee.Collection
             source.UnionWithLowGC(input);
             for (int offset = 0; offset < intersectCount;)
                 source.Remove(intersects.Get(ref offset));
-            intersects.Clear();
+            intersects.Dispose();
         }
 
         /// <summary>
@@ -350,66 +349,65 @@ namespace Eevee.Collection
             uniqueCount = 0;
             unFoundCount = 0;
             if (inputCount == 0)
-            {
                 return;
-            }
 
-            // todo eevee 需要是实现纯结构体的HashSet，内存由栈分配
-            var mark = HashSetPool.Alloc<T>();
+            int markCount = inputCount;
+            StackAllocSet<T>.GetSize(ref markCount, out int scale, out int capacity);
+            var mark = new StackAllocSet<T>(scale, stackalloc int[markCount], stackalloc byte[capacity]);
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:
                     for (int i = 0; i < inputCount; ++i)
-                        if (CountUniqueAndUnFoundItemIsBreak(source, mark, readOnlyList[i], returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, ref mark, readOnlyList[i], returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case IList<T> list:
                     for (int i = 0; i < inputCount; ++i)
-                        if (CountUniqueAndUnFoundItemIsBreak(source, mark, list[i], returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, ref mark, list[i], returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case Stack<T> stack:
                     foreach (var item in stack)
-                        if (CountUniqueAndUnFoundItemIsBreak(source, mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, ref mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case Queue<T> queue:
                     foreach (var item in queue)
-                        if (CountUniqueAndUnFoundItemIsBreak(source, mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, ref mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case HashSet<T> hashSet:
                     foreach (var item in hashSet)
-                        if (CountUniqueAndUnFoundItemIsBreak(source, mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, ref mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 case SortedSet<T> sortedSet:
                     foreach (var item in sortedSet)
-                        if (CountUniqueAndUnFoundItemIsBreak(source, mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                        if (CountUniqueAndUnFoundItemIsBreak(source, ref mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                             break;
                     break;
 
                 default:
                     if (inputCount >= 0)
                         foreach (var item in input) // 迭代器可能存在GC
-                            if (CountUniqueAndUnFoundItemIsBreak(source, mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                            if (CountUniqueAndUnFoundItemIsBreak(source, ref mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                                 break;
                             else { }
                     else if ((inputCount = 0) is { })
                         foreach (var item in input) // 迭代器可能存在GC
-                            if (++inputCount is { } && CountUniqueAndUnFoundItemIsBreak(source, mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
+                            if (++inputCount is { } && CountUniqueAndUnFoundItemIsBreak(source, ref mark, item, returnIfUnFound, ref uniqueCount, ref unFoundCount))
                                 break;
                     break;
             }
-            mark.Release2Pool();
+            mark.Dispose();
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool CountUniqueAndUnFoundItemIsBreak<T>(ICollection<T> source, ISet<T> mark, T item, bool returnIfUnFound, ref int uniqueCount, ref int unFoundCount)
+        private static bool CountUniqueAndUnFoundItemIsBreak<T>(ICollection<T> source, ref StackAllocSet<T> mark, T item, bool returnIfUnFound, ref int uniqueCount, ref int unFoundCount)
         {
             if (source.Contains(item))
             {
