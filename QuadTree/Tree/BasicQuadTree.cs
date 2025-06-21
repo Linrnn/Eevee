@@ -1,5 +1,6 @@
 ﻿using Eevee.Diagnosis;
 using Eevee.Fixed;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -15,6 +16,7 @@ namespace Eevee.QuadTree
         protected int _maxDepth = QuadIndex.Invalid.Depth; // 四叉树的最大深度
         protected QuadShape _shape; // 四叉树节点的形状（暂时只支持“Circle”和“AABB”）
         protected AABB2DInt _maxBoundary; // 最大包围盒
+        protected ArrayPool<QuadElement> _elementPool;
         protected QuadNode _root; // 根节点
 
         public int TreeId => _treeId;
@@ -283,13 +285,14 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 待继承
-        internal virtual void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
+        internal virtual void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary, ArrayPool<QuadElement> pool)
         {
             _treeId = treeId;
             _maxDepth = depthCount - 1;
             _shape = shape;
             _maxBoundary = maxBoundary;
-            _root = CreateRoot();
+            _elementPool = pool;
+            _root = CreateRoot(); // “CreateRoot()”依赖“_elementPool”
         }
         internal virtual void OnDestroy()
         {
@@ -297,6 +300,7 @@ namespace Eevee.QuadTree
             _maxDepth = QuadIndex.Invalid.Depth;
             _shape = QuadShape.None;
             _maxBoundary = default;
+            _elementPool = null;
             _root = null;
         }
 

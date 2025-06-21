@@ -1,6 +1,7 @@
 ﻿using Eevee.Fixed;
 using Eevee.Pool;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace Eevee.QuadTree
@@ -15,9 +16,9 @@ namespace Eevee.QuadTree
         #endregion
 
         #region BasicQuadTree
-        internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
+        internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary, ArrayPool<QuadElement> pool)
         {
-            base.OnCreate(treeId, shape, depthCount, in maxBoundary);
+            base.OnCreate(treeId, shape, depthCount, in maxBoundary, pool);
             QuadTreeExt.OnCreate(this, _root, depthCount, out _nodes);
         }
         internal override void OnDestroy()
@@ -32,7 +33,7 @@ namespace Eevee.QuadTree
             var looseBoundary = new AABB2DInt(boundary.Center(), boundary.Size());
             var rootIndex = QuadIndex.Root;
             var node = new QuadNode();
-            node.OnAlloc(in boundary, in looseBoundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, null);
+            node.OnAlloc(in boundary, in looseBoundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, null, _elementPool);
             return node;
         }
         internal override QuadNode CreateNode(int depth, int x, int y, QuadNode parent)
@@ -42,7 +43,7 @@ namespace Eevee.QuadTree
             var looseBoundary = new AABB2DInt(boundary.Center(), boundary.Size());
 
             var node = new QuadNode();
-            node.OnAlloc(in boundary, in looseBoundary, depth, x, y, parent);
+            node.OnAlloc(in boundary, in looseBoundary, depth, x, y, parent, _elementPool);
             return node;
         }
         internal override QuadNode GetOrAddNode(int depth, int x, int y) => _nodes[depth][x, y];

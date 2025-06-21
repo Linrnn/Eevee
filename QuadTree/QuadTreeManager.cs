@@ -5,6 +5,7 @@ using Eevee.Fixed;
 using Eevee.Pool;
 using Eevee.Utils;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -21,7 +22,8 @@ namespace Eevee.QuadTree
         public readonly AABB2DInt MaxBoundary;
         private readonly Dictionary<int, QuadTreeConfig> _configs;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
-        private readonly ObjectDelPool<QuadNode> _pool = new(() => new QuadNode(), null, element => element.OnRelease(), null, Macro.HasCheckRelease);
+        private readonly ObjectDelPool<QuadNode> _nodePool = new(() => new QuadNode(), null, element => element.OnRelease(), null, Macro.HasCheckRelease);
+        private readonly ArrayPool<QuadElement> _elementPool = ArrayPool<QuadElement>.Shared;
 
         public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
@@ -411,8 +413,8 @@ namespace Eevee.QuadTree
                 for (int extents = Math.Max(config.Extents.X, config.Extents.Y) << depthCount - 1; depth > 1 && extents > maxExtents; extents >>= 1)
                     --depth;
                 var tree = (BasicQuadTree)Activator.CreateInstance(config.TreeType);
-                (tree as IQuadDynamic)?.Inject(_pool);
-                tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary);
+                (tree as IQuadDynamic)?.Inject(_nodePool);
+                tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary, _elementPool);
                 _trees.Add(config.TreeId, tree);
             }
         }
@@ -440,9 +442,9 @@ namespace Eevee.QuadTree
         {
             foreach (var pair in _trees)
                 pair.Value.OnDestroy();
-            LogRelay.Log($"[Quad] Pool, CountRef:{_pool.CountRef}, HistoryCapacity:{_pool.HistoryCapacity}");
+            LogRelay.Log($"[Quad] Pool, CountRef:{_nodePool.CountRef}, HistoryCapacity:{_nodePool.HistoryCapacity}");
             _trees.Clear();
-            _pool.Clean();
+            _nodePool.Clean();
         }
         #endregion
     }

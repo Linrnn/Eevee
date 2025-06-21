@@ -2,6 +2,7 @@
 using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -124,8 +125,8 @@ namespace Eevee.QuadTree
 
         internal QuadNode Parent; // 父节点
         private readonly QuadNode[] _children = new QuadNode[QuadExt.ChildCount]; // 子节点
-        // todo eevee 接入对象池，减少GC
-        internal readonly WeakOrderList<QuadElement> Elements = new(); // 存储元素的数组（禁止外部直接修改）
+        internal RefArray<QuadElement> Elements = new(null); // 存储元素的数组（禁止外部直接修改）
+        private ArrayPool<QuadElement> _elementPool;
         internal int SumCount; // 当前节点及所有子节点存的数量（禁止外部直接修改）
 
         private int _childCount;
@@ -134,13 +135,13 @@ namespace Eevee.QuadTree
 
         #region 方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int x, int y, QuadNode parent)
+        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int x, int y, QuadNode parent, ArrayPool<QuadElement> pool)
         {
             Boundary = boundary;
             LooseBoundary = looseBoundary;
             Index = new QuadIndex(depth, x, y);
             Parent = parent;
-            _childCount = 0;
+            _elementPool = pool;
             _valid = true;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -157,7 +158,8 @@ namespace Eevee.QuadTree
             Index = QuadIndex.Invalid;
             Parent = null;
             _children.Clean();
-            Elements.Clear();
+            RefArray.Return(ref Elements, _elementPool);
+            _elementPool = null;
             SumCount = 0;
             _childCount = 0;
             _valid = false;
@@ -166,7 +168,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void Add(in QuadElement element)
         {
-            Elements.Add(element);
+            RefArray.Add(ref Elements, in element, _elementPool);
             CountSumAdd();
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -176,8 +178,7 @@ namespace Eevee.QuadTree
             {
                 if (Elements[i] != element)
                     continue;
-                Elements.RemoveAt(i);
-                CountSumSub();
+                RemoveAt(i);
                 return true;
             }
 
@@ -186,7 +187,9 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void RemoveAt(int index)
         {
-            Elements.RemoveAt(index);
+            RefArray.WeakOrderRemoveAt(ref Elements, index);
+            if (Elements.IsEmpty())
+                RefArray.Return(ref Elements, _elementPool);
             CountSumSub();
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -242,7 +245,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool IsEmpty() => SumCount == 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal int IndexOf(in QuadElement element) => Elements.IndexOf(element);
+        internal int IndexOf(in QuadElement element) => Elements.IndexOf(in element);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsRoot() => Parent is null; // 是否为根节点
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

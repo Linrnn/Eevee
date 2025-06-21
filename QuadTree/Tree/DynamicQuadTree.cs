@@ -2,6 +2,7 @@
 using Eevee.Fixed;
 using Eevee.Pool;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -14,13 +15,13 @@ namespace Eevee.QuadTree
     {
         #region Field
         private Dictionary<int, QuadNode>[] _nodes; // “Key”根据“QuadExt.GetNodeId”计算得出
-        private IObjectPool<QuadNode> _pool;
+        private IObjectPool<QuadNode> _nodePool;
         #endregion
 
         #region BasicQuadTree
-        internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary)
+        internal override void OnCreate(int treeId, QuadShape shape, int depthCount, in AABB2DInt maxBoundary, ArrayPool<QuadElement> pool)
         {
-            base.OnCreate(treeId, shape, depthCount, in maxBoundary);
+            base.OnCreate(treeId, shape, depthCount, in maxBoundary, pool);
             var nodes = new Dictionary<int, QuadNode>[depthCount];
             for (int i = 0; i < nodes.Length; ++i)
                 nodes[i] = new Dictionary<int, QuadNode>(1);
@@ -31,9 +32,9 @@ namespace Eevee.QuadTree
         {
             foreach (var depthNodes in _nodes)
             foreach (var pair in depthNodes)
-                _pool.Release(pair.Value);
+                _nodePool.Release(pair.Value);
             _nodes = null;
-            _pool = null;
+            _nodePool = null;
             base.OnDestroy();
         }
 
@@ -41,8 +42,8 @@ namespace Eevee.QuadTree
         {
             var boundary = _maxBoundary;
             var rootIndex = QuadIndex.Root;
-            var node = _pool.Alloc();
-            node.OnAlloc(in boundary, in boundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, null);
+            var node = _nodePool.Alloc();
+            node.OnAlloc(in boundary, in boundary, rootIndex.Depth, rootIndex.X, rootIndex.Y, null, _elementPool);
             return node;
         }
         internal override QuadNode CreateNode(int depth, int x, int y, QuadNode parent)
@@ -51,8 +52,8 @@ namespace Eevee.QuadTree
             var extents = QuadExt.GetDepthExtents(in maxBoundary, depth);
             var center = QuadExt.GetNodeCenter(x, y, maxBoundary.Left(), maxBoundary.Bottom(), extents.X, extents.Y);
             var boundary = new AABB2DInt(center, extents);
-            var node = _pool.Alloc();
-            node.OnAlloc(in boundary, in boundary, depth, x, y, parent);
+            var node = _nodePool.Alloc();
+            node.OnAlloc(in boundary, in boundary, depth, x, y, parent, _elementPool);
             return node;
         }
         internal override QuadNode GetOrAddNode(int depth, int x, int y)
@@ -151,7 +152,7 @@ namespace Eevee.QuadTree
         #endregion
 
         #region IQuadDynamicNode
-        public void Inject(IObjectPool<QuadNode> pool) => _pool = pool;
+        public void Inject(IObjectPool<QuadNode> pool) => _nodePool = pool;
         public void RemoveNode(QuadNode node)
         {
             node.Parent.RemoveChild(node);
@@ -160,7 +161,7 @@ namespace Eevee.QuadTree
                     RemoveNode(child);
             var depthNodes = _nodes[node.Index.Depth];
             depthNodes.Remove(node.Index.GetNodeId());
-            _pool.Release(node);
+            _nodePool.Release(node);
         }
         public void RemoveEmptyNode() => TryRemoveEmptyNode(_root);
         #endregion
