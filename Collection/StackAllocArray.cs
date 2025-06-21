@@ -6,27 +6,33 @@ using System.Runtime.InteropServices;
 namespace Eevee.Collection
 {
     /// <summary>
-    /// 内存在栈分配的元素集合<br/>
+    /// 内存在栈分配的数组<br/>
     /// 不支持以下情况：结构体存在引用类型
     /// </summary>
-    internal readonly ref struct StackAllocSpan<T>
+    internal readonly ref struct StackAllocArray<T>
     {
         private readonly bool _referenceType;
-        private readonly int _size;
+        private readonly int _scale;
         private readonly Span<byte> _span;
 
-        internal StackAllocSpan(int size, in Span<byte> span)
+        internal StackAllocArray(int scale, in Span<byte> span)
         {
             var type = typeof(T);
             _referenceType = type.IsClass || type.IsInterface;
-            _size = size;
+            _scale = scale;
             _span = span;
+        }
+        internal static void GetSize(int length, out int scale, out int capacity)
+        {
+            int size = Unsafe.SizeOf<Delegate>();
+            scale = size;
+            capacity = length * size;
         }
 
         internal T Get(ref int index)
         {
             var element = Get(index);
-            index += _size;
+            index += _scale;
             return element;
         }
         internal unsafe T Get(int index)
@@ -61,7 +67,7 @@ namespace Eevee.Collection
         internal void Set(ref int index, T element)
         {
             Set(index, element);
-            index += _size;
+            index += _scale;
         }
         internal unsafe void Set(int index, T element)
         {

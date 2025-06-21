@@ -5,7 +5,6 @@ using Eevee.Pool;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
 namespace Eevee.Event
 {
@@ -157,9 +156,9 @@ namespace Eevee.Event
                 return;
 
             int count = listeners.Count;
-            int size = Unsafe.SizeOf<Delegate>();
             int index = 0;
-            var newListeners = new StackAllocSpan<Delegate>(size, stackalloc byte[count * size]);
+            StackAllocArray<Delegate>.GetSize(count, out int scale, out int capacity);
+            var newListeners = new StackAllocArray<Delegate>(scale, stackalloc byte[capacity]);
             for (int i = 0; i < count; ++i)
                 newListeners.Set(ref index, listeners.Items[i]); // “Invoke”可能会修改listeners，先提前拷贝
 

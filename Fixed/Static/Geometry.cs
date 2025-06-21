@@ -1018,7 +1018,7 @@ namespace Eevee.Fixed
             var shapeSpan = shape.GetPoints();
             var otherSpan = other.GetPoints();
             bool intersect = false;
-            var simplex = new StackAllocUnmanagedSpan<Vector2D>(stackalloc Vector2D[3]); // 单纯形最多3个元素
+            var simplex = new StackAllocUnmanagedArray<Vector2D>(stackalloc Vector2D[3]); // 单纯形最多3个元素
 
             var direction = Vector2D.Right; // 初始方向，可以任意指定
             var support = Support(in direction, in shapeSpan, in otherSpan); // 初始支持点
@@ -1075,7 +1075,7 @@ namespace Eevee.Fixed
             var shapeSpan = shape.GetPoints();
             var otherSpan = other.GetPoints();
             bool intersect = false;
-            var simplex = new StackAllocUnmanagedSpan<Vector2DInt>(stackalloc Vector2DInt[3]); // 单纯形最多3个元素
+            var simplex = new StackAllocUnmanagedArray<Vector2DInt>(stackalloc Vector2DInt[3]); // 单纯形最多3个元素
 
             var direction = Vector2DInt.Right; // 初始方向，可以任意指定
             var support = Support(direction, in shapeSpan, in otherSpan); // 初始支持点
@@ -1132,7 +1132,7 @@ namespace Eevee.Fixed
             return shapeFurthest - otherFurthest;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool NearestSimplex(ref StackAllocUnmanagedSpan<Vector2D> simplex, ref Vector2D direction)
+        private static bool NearestSimplex(ref StackAllocUnmanagedArray<Vector2D> simplex, ref Vector2D direction)
         {
             switch (simplex.Count)
             {
@@ -1211,7 +1211,7 @@ namespace Eevee.Fixed
             return shapeFurthest - otherFurthest;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool NearestSimplex(ref StackAllocUnmanagedSpan<Vector2DInt> simplex, ref Vector2DInt direction)
+        private static bool NearestSimplex(ref StackAllocUnmanagedArray<Vector2DInt> simplex, ref Vector2DInt direction)
         {
             switch (simplex.Count)
             {

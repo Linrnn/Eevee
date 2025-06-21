@@ -5,26 +5,26 @@ using System.Runtime.CompilerServices;
 namespace Eevee.Collection
 {
     /// <summary>
-    /// 内存在栈分配的元素集合
+    /// 内存在栈分配的数组
     /// </summary>
-    internal ref struct StackAllocUnmanagedSpan<T> where T : unmanaged
+    internal ref struct StackAllocUnmanagedArray<T> where T : unmanaged
     {
         private readonly Span<T> _span;
         internal int Count;
 
-        internal StackAllocUnmanagedSpan(in Span<T> span)
+        internal StackAllocUnmanagedArray(in Span<T> span)
         {
             _span = span;
             Count = 0;
         }
 
-        internal ref T this[int index]
+        internal readonly ref T this[int index]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => ref _span[index];
         }
-        internal ref T RefGet(int index) => ref _span[index];
-        internal T Get(int index) => _span[index];
+        internal readonly ref T RefGet(int index) => ref _span[index];
+        internal readonly T Get(int index) => _span[index];
 
         internal void Set(int index, in T element)
         {
