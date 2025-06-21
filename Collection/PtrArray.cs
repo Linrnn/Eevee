@@ -7,7 +7,7 @@ using Unity.Collections;
 
 namespace Eevee.Collection
 {
-    public struct PtrArray<T> : IList<T>, IReadOnlyList<T> where T : struct, IEquatable<T>
+    public struct PtrArray<T> : IList<T>, IReadOnlyList<T>, IDisposable where T : struct, IEquatable<T>
     {
         #region Feild/Constructor
         public NativeArray<T> Ptr;
@@ -74,6 +74,10 @@ namespace Eevee.Collection
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly void CopyTo(T[] array, int arrayIndex) => NativeArray<T>.Copy(Ptr, array, arrayIndex);
+        #endregion
+
+        #region IDisposable
+        public void Dispose() => Ptr.Dispose();
         #endregion
 
         #region GetEnumerator

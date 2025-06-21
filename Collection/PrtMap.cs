@@ -8,7 +8,7 @@ using Unity.Collections;
 
 namespace Eevee.Collection
 {
-    public struct PrtMap<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue> where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
+    public struct PrtMap<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
         #region Feild/Constructor
         public NativeHashMap<TKey, TValue> Ptr;
@@ -70,6 +70,10 @@ namespace Eevee.Collection
             foreach (var pair in Ptr)
                 array[arrayIndex + index++] = new KeyValuePair<TKey, TValue>(pair.Key, pair.Value);
         }
+        #endregion
+
+        #region IDisposable
+        public void Dispose() => Ptr.Dispose();
         #endregion
 
         #region Keys/Values

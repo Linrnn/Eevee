@@ -38,8 +38,9 @@ namespace Eevee.Collection
             var intersects = new StackAllocArray<T>(scale, stackalloc byte[capacity]);
             FillIntersect(source, input, inputCount, ref intersects, out int intersectCount);
             source.Clear();
-            for (int i = 0; i < intersectCount;)
-                source.Add(intersects.Get(ref i));
+            for (int offset = 0; offset < intersectCount;)
+                source.Add(intersects.Get(ref offset));
+            intersects.Clear();
         }
         /// <summary>
         /// source ∩ ~input<br/>
@@ -75,8 +76,9 @@ namespace Eevee.Collection
             var intersects = new StackAllocArray<T>(scale, stackalloc byte[capacity]);
             FillIntersect(source, input, inputCount, ref intersects, out int intersectCount);
             source.UnionWithLowGC(input);
-            for (int i = 0; i < intersectCount;)
-                source.Remove(intersects.Get(ref i));
+            for (int offset = 0; offset < intersectCount;)
+                source.Remove(intersects.Get(ref offset));
+            intersects.Clear();
         }
 
         /// <summary>

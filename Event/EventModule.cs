@@ -162,9 +162,9 @@ namespace Eevee.Event
             for (int i = 0; i < count; ++i)
                 newListeners.Set(ref index, listeners.Items[i]); // “Invoke”可能会修改listeners，先提前拷贝
 
-            for (int i = 0; i < index;)
+            for (int offset = 0; offset < index;)
             {
-                var listener = newListeners.Get(ref i);
+                var listener = newListeners.Get(ref offset);
                 if (Macro.HasTryCatch)
                 {
                     try
@@ -186,6 +186,7 @@ namespace Eevee.Event
                 }
             }
 
+            newListeners.Clear();
             if (recycle)
                 (context as IRecyclable)?.Recycle();
         }

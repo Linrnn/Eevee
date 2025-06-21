@@ -1,5 +1,4 @@
-﻿using Eevee.Diagnosis;
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -24,58 +23,48 @@ namespace Eevee.Collection
         }
         internal static void GetSize(int length, out int scale, out int capacity)
         {
-            int size = Unsafe.SizeOf<Delegate>();
+            int size = Unsafe.SizeOf<T>();
             scale = size;
             capacity = length * size;
         }
 
-        internal T Get(ref int index)
+        internal T Get(ref int offset)
         {
-            var element = Get(index);
-            index += _scale;
+            var element = Get(offset);
+            offset += _scale;
             return element;
         }
-        internal unsafe T Get(int index)
+        internal unsafe T Get(int offset)
         {
-            fixed (void* ptr = &_span[index])
-            {
+            fixed (void* ptr = &_span[offset])
                 if (_referenceType)
-                {
-                    var handle = Unsafe.Read<GCHandle>(ptr);
-                    try
-                    {
-                        return (T)handle.Target;
-                    }
-                    catch (Exception exception)
-                    {
-                        LogRelay.Fail(exception);
-                    }
-                    finally
-                    {
-                        handle.Free();
-                    }
-                }
+                    return (T)Unsafe.Read<GCHandle>(ptr).Target;
                 else
-                {
                     return Unsafe.Read<T>(ptr);
-                }
-            }
-
-            return default;
         }
 
-        internal void Set(ref int index, T element)
+        internal void Set(ref int offset, T element)
         {
-            Set(index, element);
-            index += _scale;
+            Set(offset, element);
+            offset += _scale;
         }
-        internal unsafe void Set(int index, T element)
+        internal unsafe void Set(int offset, T element)
         {
-            fixed (void* ptr = &_span[index])
+            fixed (void* ptr = &_span[offset])
                 if (_referenceType)
                     Unsafe.Write(ptr, GCHandle.Alloc(element, GCHandleType.Pinned));
                 else
                     Unsafe.Write(ptr, element);
+        }
+
+        internal unsafe void Clear()
+        {
+            if (_referenceType)
+                for (int length = _span.Length, offset = 0; offset < length; offset += _scale)
+                    fixed (void* ptr = &_span[offset])
+                        if (Unsafe.Read<GCHandle>(ptr) is { IsAllocated: true } handle)
+                            handle.Free();
+            _span.Clear();
         }
     }
 }

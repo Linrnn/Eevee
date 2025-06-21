@@ -7,7 +7,7 @@ using Unity.Collections;
 
 namespace Eevee.Collection
 {
-    public struct PtrQueue<T> : ICollection<T>, IReadOnlyCollection<T> where T : unmanaged, IEquatable<T>
+    public struct PtrQueue<T> : ICollection<T>, IReadOnlyCollection<T>, IDisposable where T : unmanaged, IEquatable<T>
     {
         #region Feild/Constructor
         public NativeQueue<T> Ptr;
@@ -50,6 +50,10 @@ namespace Eevee.Collection
             NativeArray<T>.Copy(native, array, arrayIndex);
             native.Dispose();
         }
+        #endregion
+
+        #region IDisposable
+        public void Dispose() => Ptr.Dispose();
         #endregion
 
         #region GetEnumerator
