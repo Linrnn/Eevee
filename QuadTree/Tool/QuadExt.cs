@@ -28,15 +28,15 @@ namespace Eevee.QuadTree
         internal static Vector2DInt GetDepthExtents(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.W >> depth, maxBoundary.H >> depth);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool TrtGetArea(in AABB2DInt maxBoundary, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area)
+        internal static bool TrtGetArea(in AABB2DInt maxBoundary, in AABB2DInt shape, QuadCountNodeMode mode, out AABB2DInt area)
         {
             if (mode == QuadCountNodeMode.NotIntersect)
             {
-                area = aabb;
+                area = shape;
                 return true;
             }
 
-            if (Geometry.UnsafeIntersect(in aabb, in maxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
+            if (Geometry.UnsafeIntersect(in shape, in maxBoundary, out var intersect)) // 处理边界，减少触发“LooseBoundary.Contain()”的次数
             {
                 area = intersect;
                 return true;

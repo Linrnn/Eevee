@@ -96,7 +96,7 @@ namespace EeveeEditor.QuadTree
 
                         foreach (var element in node.Elements)
                         {
-                            int elementSqr = element.AABB.Size().SqrMagnitude();
+                            int elementSqr = element.Shape.Size().SqrMagnitude();
                             int boundarySqr = node.LooseBoundary.HalfSize().SqrMagnitude();
                             if (elementSqr >= boundarySqr)
                                 continue;
@@ -106,7 +106,7 @@ namespace EeveeEditor.QuadTree
                             depthCount.AddLineBall();
                             depthCount.AddSpaceUtility(space);
                             if (_drawLineBall)
-                                ShapeDraw.AABB(in element.AABB, _scale, _height, Color.magenta);
+                                ShapeDraw.AABB(in element.Shape, _scale, _height, Color.magenta);
                         }
                     }
 

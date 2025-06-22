@@ -120,12 +120,12 @@ namespace EeveeEditor.QuadTree
             var config = QuadGetter.Proxy.Manager.GetConfig(_treeId);
             ShapeDraw.AABB(in node.LooseBoundary, _scale, _height, in _looseColor);
             ShapeDraw.AABB(in node.Boundary, _scale, _height, in _boundaryColor);
-            ShapeDraw.Label(element.AABB.Center(), _scale, _height, element.Index.ToString(), in _shapeColor);
+            ShapeDraw.Label(element.Shape.Center(), _scale, _height, element.Index.ToString(), in _shapeColor);
 
             switch (config.Shape)
             {
-                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.AABB), _circleAccuracy, _scale, _height, in _shapeColor); break;
-                case QuadShape.AABB: ShapeDraw.AABB(in element.AABB, _scale, _height, in _shapeColor); break;
+                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.Shape), _circleAccuracy, _scale, _height, in _shapeColor); break;
+                case QuadShape.AABB: ShapeDraw.AABB(in element.Shape, _scale, _height, in _shapeColor); break;
                 default: LogRelay.Error($"[Editor][Quad] TreeId:{_treeId}, Shape:{config.Shape}, not impl!"); break;
             }
         }

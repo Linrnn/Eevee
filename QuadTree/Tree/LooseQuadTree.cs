@@ -52,9 +52,9 @@ namespace Eevee.QuadTree
         internal override void GetNodes(ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, nodes);
         internal override void GetNodes(int depth, ICollection<QuadNode> nodes) => QuadTreeExt.GetNodes(_nodes, depth, nodes);
 
-        internal override bool TryGetNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
+        internal override bool TryGetNodeIndex(in AABB2DInt shape, QuadCountNodeMode mode, out QuadIndex index)
         {
-            if (!QuadTreeExt.TryGetNodeIndex(in _maxBoundary, _maxDepth, in aabb, mode, out _, out var idx))
+            if (!QuadTreeExt.TryGetNodeIndex(in _maxBoundary, _maxDepth, in shape, mode, out _, out var idx))
             {
                 index = QuadIndex.Invalid;
                 return false;

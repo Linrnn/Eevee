@@ -56,9 +56,9 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool TryGetNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt aabb, QuadCountNodeMode mode, out AABB2DInt area, out QuadIndex index)
+        internal static bool TryGetNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt shape, QuadCountNodeMode mode, out AABB2DInt area, out QuadIndex index)
         {
-            if (!QuadExt.TrtGetArea(in maxBoundary, in aabb, mode, out area))
+            if (!QuadExt.TrtGetArea(in maxBoundary, in shape, mode, out area))
             {
                 index = QuadIndex.Invalid;
                 return false;

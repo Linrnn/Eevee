@@ -35,14 +35,14 @@ namespace EeveeEditor.QuadTree
         private struct DrawElement : IComparable<DrawElement>
         {
             [SerializeField] internal int Index;
-            internal readonly AABB2DInt AABB;
+            internal readonly AABB2DInt Content;
             [SerializeField] internal int TreeId;
             [SerializeField] internal QuadShape Shape;
             internal readonly Color Color;
             internal DrawElement(in QuadElement element, in DrawTree drawTree)
             {
                 Index = element.Index;
-                AABB = element.AABB;
+                Content = element.Shape;
                 TreeId = drawTree.TreeId;
                 Shape = drawTree.Shape;
                 Color = drawTree.Color;
@@ -53,11 +53,11 @@ namespace EeveeEditor.QuadTree
                 if (match0 != 0)
                     return match0;
 
-                int match1 = AABB.Center().CompareTo(other.AABB.Center());
+                int match1 = Content.Center().CompareTo(other.Content.Center());
                 if (match1 != 0)
                     return match1;
 
-                int match2 = AABB.HalfSize().CompareTo(other.AABB.HalfSize());
+                int match2 = Content.HalfSize().CompareTo(other.Content.HalfSize());
                 if (match2 != 0)
                     return match2;
 
@@ -192,11 +192,11 @@ namespace EeveeEditor.QuadTree
         }
         private void DrawElements(in DrawElement element)
         {
-            ShapeDraw.Label(element.AABB.Center(), _scale, _height, element.Index.ToString(), in element.Color);
+            ShapeDraw.Label(element.Content.Center(), _scale, _height, element.Index.ToString(), in element.Color);
             switch (element.Shape)
             {
-                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.AABB), _circleAccuracy, _scale, _height, in element.Color); break;
-                case QuadShape.AABB: ShapeDraw.AABB(in element.AABB, _scale, _height, in element.Color); break;
+                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.Content), _circleAccuracy, _scale, _height, in element.Color); break;
+                case QuadShape.AABB: ShapeDraw.AABB(in element.Content, _scale, _height, in element.Color); break;
             }
         }
 

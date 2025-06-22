@@ -29,7 +29,7 @@ namespace Eevee.QuadTree
         #region 操作
         public void Insert(in QuadElement element)
         {
-            TryGetNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
+            TryGetNodeIndex(in element.Shape, QuadExt.CountMode, out var index);
             var node = GetOrAddNode(index.Depth, index.X, index.Y);
             node.Add(in element);
 
@@ -38,7 +38,7 @@ namespace Eevee.QuadTree
         }
         public bool Remove(in QuadElement element)
         {
-            TryGetNodeIndex(in element.AABB, QuadExt.CountMode, out var index);
+            TryGetNodeIndex(in element.Shape, QuadExt.CountMode, out var index);
             var node = GetNode(index.Depth, index.X, index.Y);
             bool remove = node.Remove(in element);
             TryRemoveNode(node);
@@ -51,8 +51,8 @@ namespace Eevee.QuadTree
         }
         public void Update(in QuadElement preElement, in QuadElement tarElement)
         {
-            TryGetNodeIndex(in preElement.AABB, QuadExt.CountMode, out var preIndex);
-            TryGetNodeIndex(in tarElement.AABB, QuadExt.CountMode, out var tarIndex);
+            TryGetNodeIndex(in preElement.Shape, QuadExt.CountMode, out var preIndex);
+            TryGetNodeIndex(in tarElement.Shape, QuadExt.CountMode, out var tarIndex);
             var preNode = GetNode(preIndex.Depth, preIndex.X, preIndex.Y);
             var tarNode = GetOrAddNode(tarIndex.Depth, tarIndex.X, tarIndex.Y);
 
@@ -209,9 +209,9 @@ namespace Eevee.QuadTree
                     IterateQueryOnly(child, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void IterateQueryStart<TChecker>(in TChecker checker, in AABB2DInt aabb, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
+        protected void IterateQueryStart<TChecker>(in TChecker checker, in AABB2DInt shape, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
-            if (TryGetNodeIndex(in aabb, QuadExt.CountMode, out var index))
+            if (TryGetNodeIndex(in shape, QuadExt.CountMode, out var index))
                 IterateQuery(in checker, index, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -219,7 +219,7 @@ namespace Eevee.QuadTree
         {
             for (var parent = node; parent is not null; parent = parent.Parent)
                 foreach (var element in parent.Elements.AsReadOnlySpan())
-                    if (checker.CheckElement(in element.AABB))
+                    if (checker.CheckElement(in element.Shape))
                         elements.Add(element);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -228,7 +228,7 @@ namespace Eevee.QuadTree
             for (var parent = node; parent is not null; parent = parent.Parent)
                 if (iterated.Add(parent))
                     foreach (var element in parent.Elements.AsReadOnlySpan())
-                        if (checker.CheckElement(in element.AABB))
+                        if (checker.CheckElement(in element.Shape))
                             elements.Add(element);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -243,7 +243,7 @@ namespace Eevee.QuadTree
                     return;
 
                 foreach (var element in node.Elements.AsReadOnlySpan())
-                    if (checker.CheckElement(in element.AABB))
+                    if (checker.CheckElement(in element.Shape))
                         elements.Add(element);
             }
 
@@ -263,7 +263,7 @@ namespace Eevee.QuadTree
                     return;
 
                 foreach (var element in node.Elements.AsReadOnlySpan())
-                    if (checker.CheckElement(in element.AABB))
+                    if (checker.CheckElement(in element.Shape))
                         elements.Add(element);
             }
 
@@ -313,7 +313,7 @@ namespace Eevee.QuadTree
         internal abstract void GetNodes(ICollection<QuadNode> nodes);
         internal abstract void GetNodes(int depth, ICollection<QuadNode> nodes);
 
-        internal abstract bool TryGetNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index);
+        internal abstract bool TryGetNodeIndex(in AABB2DInt shape, QuadCountNodeMode mode, out QuadIndex index);
         protected abstract void IterateQuery<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker;
         #endregion
     }

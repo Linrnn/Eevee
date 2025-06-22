@@ -108,9 +108,9 @@ namespace Eevee.QuadTree
                 nodes.Add(pair.Value);
         }
 
-        internal override bool TryGetNodeIndex(in AABB2DInt aabb, QuadCountNodeMode mode, out QuadIndex index)
+        internal override bool TryGetNodeIndex(in AABB2DInt shape, QuadCountNodeMode mode, out QuadIndex index)
         {
-            if (!QuadTreeExt.TryGetNodeIndex(in _maxBoundary, _maxDepth, in aabb, mode, out var area, out var idx))
+            if (!QuadTreeExt.TryGetNodeIndex(in _maxBoundary, _maxDepth, in shape, mode, out var area, out var idx))
             {
                 index = QuadIndex.Invalid;
                 return false;
