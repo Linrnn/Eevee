@@ -120,7 +120,6 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
-        private float _drawDuration;
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly HashSet<int> _customIndexes = new();
@@ -134,7 +133,6 @@ namespace EeveeEditor.QuadTree
             if (manager is null)
                 return;
 
-            _drawDuration = Time.fixedDeltaTime;
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
         }
@@ -142,6 +140,9 @@ namespace EeveeEditor.QuadTree
         {
             ReadyEntity();
             ReadyTrees();
+        }
+        private void OnDrawGizmos()
+        {
             DrawTrees();
         }
         private void OnDisable() => _elements.Clear();
@@ -177,7 +178,6 @@ namespace EeveeEditor.QuadTree
         }
         private void DrawTrees()
         {
-            _elements.Sort();
             if (_draw)
                 foreach (var element in _elements)
                     DrawElements(element);
@@ -192,10 +192,11 @@ namespace EeveeEditor.QuadTree
         }
         private void DrawElements(in DrawElement element)
         {
+            ShapeDraw.Label(element.AABB.Center(), _scale, _height, element.Index.ToString(), in element.Color);
             switch (element.Shape)
             {
-                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.AABB), _circleAccuracy, _scale, _height, in element.Color, _drawDuration); break;
-                case QuadShape.AABB: ShapeDraw.AABB(in element.AABB, _scale, _height, in element.Color, _drawDuration); break;
+                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.AABB), _circleAccuracy, _scale, _height, in element.Color); break;
+                case QuadShape.AABB: ShapeDraw.AABB(in element.AABB, _scale, _height, in element.Color); break;
             }
         }
 

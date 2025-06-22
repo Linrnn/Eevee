@@ -112,7 +112,6 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
-        private float _drawDuration;
         private float _scale;
         private readonly List<QuadElement> _elements = new(); // 缓存
         #endregion
@@ -123,7 +122,6 @@ namespace EeveeEditor.QuadTree
             if (manager is null)
                 return;
 
-            _drawDuration = Time.fixedDeltaTime;
             _scale = 1F / manager.Scale;
         }
         private void FixedUpdate()
@@ -133,6 +131,9 @@ namespace EeveeEditor.QuadTree
             Query();
             BuildData();
             SetValue();
+        }
+        private void OnDrawGizmos()
+        {
             Draw();
         }
 
@@ -164,9 +165,9 @@ namespace EeveeEditor.QuadTree
         {
             switch (_quadShape)
             {
-                case QuadShape.Circle: ShapeDraw.Circle(new CircleInt(_position, _radius), _circleAccuracy, _scale, _height, in _color, _drawDuration); break;
-                case QuadShape.AABB: ShapeDraw.AABB(new AABB2DInt(_position, _extents), _scale, _height, in _color, _drawDuration); break;
-                case QuadShape.OBB: ShapeDraw.OBB(new OBB2DInt(_position, _extents, _angle), _scale, _height, in _color, _drawDuration); break;
+                case QuadShape.Circle: ShapeDraw.Circle(new CircleInt(_position, _radius), _circleAccuracy, _scale, _height, in _color); break;
+                case QuadShape.AABB: ShapeDraw.AABB(new AABB2DInt(_position, _extents), _scale, _height, in _color); break;
+                case QuadShape.OBB: ShapeDraw.OBB(new OBB2DInt(_position, _extents, _angle), _scale, _height, in _color); break;
                 default: LogRelay.Error($"[Editor][Quad] TreeId:{_treeId}, QuadShape:{_quadShape}, not impl!"); break;
             }
         }

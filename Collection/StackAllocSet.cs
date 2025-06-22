@@ -156,12 +156,11 @@ namespace Eevee.Collection
         }
         internal unsafe void Dispose()
         {
-            int count = _count;
-            if (count <= 0)
+            if (_count <= 0)
                 return;
 
             if (_referenceType)
-                for (int i = 0, offset = 0; i < count; ++i, offset += _scale)
+                for (int i = 0, offset = 0; i < _count; ++i, offset += _scale)
                     fixed (void* ptr = &_entries[offset])
                         if (Unsafe.Read<Entry>(ptr) is { Handle: { IsAllocated: true } handle })
                             handle.Free();
@@ -227,17 +226,8 @@ namespace Eevee.Collection
                 CheckNum(num);
             }
 
-            int index1;
-            if (_freeCount > 0)
-            {
-                index1 = _freeList;
-                --_freeCount;
-            }
-            else
-            {
-                index1 = _count;
-            }
-
+            bool hasFree = _freeCount > 0;
+            int index1 = hasFree ? _freeList : _count;
             int offset1 = index1 * _scale;
             var entry1 = GetEntry(offset1);
             int next1 = entry1.Next;
@@ -249,6 +239,8 @@ namespace Eevee.Collection
 
             bucket = index1 + 1;
             ++_count;
+            if (hasFree)
+                --_freeCount;
             _freeList = StartOfFreeList - next1;
             location = index1;
             return true;

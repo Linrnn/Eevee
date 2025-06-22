@@ -73,7 +73,6 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
-        private float _drawDuration;
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
@@ -85,11 +84,10 @@ namespace EeveeEditor.QuadTree
             if (manager is null)
                 return;
 
-            _drawDuration = Time.fixedDeltaTime;
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
         }
-        private void FixedUpdate()
+        private void OnDrawGizmos()
         {
             if (_trees.TryGetValue(_treeId, out var tree))
                 DrawTree(tree);
@@ -101,15 +99,15 @@ namespace EeveeEditor.QuadTree
             if (_emptyNode.Show)
                 foreach (var node in QuadGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count == 0)
-                        ShapeDraw.AABB(in node.Boundary, _scale, _height, in _emptyNode.Color, _drawDuration);
+                        ShapeDraw.AABB(in node.Boundary, _scale, _height, in _emptyNode.Color);
 
             if (_normalNode.Show)
                 foreach (var node in QuadGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count > 0)
-                        ShapeDraw.AABB(in node.Boundary, _scale, _height, in _normalNode.Color, _drawDuration);
+                        ShapeDraw.AABB(in node.Boundary, _scale, _height, in _normalNode.Color);
 
             if (_rootNode.Show)
-                ShapeDraw.AABB(tree.MaxBoundary, _scale, _height, in _rootNode.Color, _drawDuration);
+                ShapeDraw.AABB(tree.MaxBoundary, _scale, _height, in _rootNode.Color);
 
             if (_indexes.Length > 0)
                 foreach (var node in QuadGetter.GetNodes(tree, _nodes))
@@ -120,13 +118,14 @@ namespace EeveeEditor.QuadTree
         private void DrawNodeAndElement(QuadNode node, in QuadElement element)
         {
             var config = QuadGetter.Proxy.Manager.GetConfig(_treeId);
-            ShapeDraw.AABB(in node.LooseBoundary, _scale, _height, in _looseColor, _drawDuration);
-            ShapeDraw.AABB(in node.Boundary, _scale, _height, in _boundaryColor, _drawDuration);
+            ShapeDraw.AABB(in node.LooseBoundary, _scale, _height, in _looseColor);
+            ShapeDraw.AABB(in node.Boundary, _scale, _height, in _boundaryColor);
+            ShapeDraw.Label(element.AABB.Center(), _scale, _height, element.Index.ToString(), in _shapeColor);
 
             switch (config.Shape)
             {
-                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.AABB), _circleAccuracy, _scale, _height, in _shapeColor, _drawDuration); break;
-                case QuadShape.AABB: ShapeDraw.AABB(in element.AABB, _scale, _height, in _shapeColor, _drawDuration); break;
+                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.AABB), _circleAccuracy, _scale, _height, in _shapeColor); break;
+                case QuadShape.AABB: ShapeDraw.AABB(in element.AABB, _scale, _height, in _shapeColor); break;
                 default: LogRelay.Error($"[Editor][Quad] TreeId:{_treeId}, Shape:{config.Shape}, not impl!"); break;
             }
         }

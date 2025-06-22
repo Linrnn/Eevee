@@ -53,7 +53,6 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
-        private float _drawDuration;
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
@@ -65,7 +64,6 @@ namespace EeveeEditor.QuadTree
             if (manager is null)
                 return;
 
-            _drawDuration = Time.fixedDeltaTime;
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
             BuildTree();
@@ -75,7 +73,7 @@ namespace EeveeEditor.QuadTree
             if (enabled)
                 BuildTree();
         }
-        private void FixedUpdate()
+        private void OnDrawGizmos()
         {
             _depthCounts.Clean();
             if (_treeIds.Length == 0)
@@ -108,7 +106,7 @@ namespace EeveeEditor.QuadTree
                             depthCount.AddLineBall();
                             depthCount.AddSpaceUtility(space);
                             if (_drawLineBall)
-                                ShapeDraw.AABB(in element.AABB, _scale, _height, Color.magenta, _drawDuration);
+                                ShapeDraw.AABB(in element.AABB, _scale, _height, Color.magenta);
                         }
                     }
 

@@ -275,11 +275,11 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void TryRemoveNode(QuadNode node)
         {
-            if (node == _root)
+            if (this is not IQuadDynamic { } quadDynamic)
                 return;
             if (!node.IsEmpty())
                 return;
-            if (this is not IQuadDynamic { } quadDynamic)
+            if (node == _root)
                 return;
             quadDynamic.RemoveNode(node);
         }

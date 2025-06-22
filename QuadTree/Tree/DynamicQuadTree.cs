@@ -121,7 +121,7 @@ namespace Eevee.QuadTree
             for (var nIdx = idx; nIdx.IsValid(); nIdx = nIdx.Parent())
             {
                 var extents = QuadExt.GetDepthExtents(in _maxBoundary, nIdx.Depth);
-                if (extents.X < area.W || extents.Y < area.Y)
+                if (extents.X < area.W || extents.Y < area.H)
                     continue;
 
                 var center = QuadExt.GetNodeCenter(nIdx.X, nIdx.Y, left, bottom, extents.X, extents.Y);
