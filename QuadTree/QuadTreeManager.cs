@@ -17,7 +17,8 @@ namespace Eevee.QuadTree
     public sealed class QuadTreeManager
     {
         #region 字段/构造方法
-        public readonly int Scale; // 缩放比例，(int)(Fixed64 * Scale) = int
+        public readonly int Scale; // 缩放比例，引擎尺寸 * Scale = 四叉树尺寸
+        public readonly Fixed64 ScaleReciprocal; // 1 / Scale
         public readonly int DepthCount;
         public readonly AABB2DInt MaxBoundary;
         private readonly Dictionary<int, QuadTreeConfig> _configs;
@@ -36,6 +37,7 @@ namespace Eevee.QuadTree
                     treeConfigs.Add(config.TreeId, config);
 
             Scale = scale;
+            ScaleReciprocal = Fixed64.One / scale;
             DepthCount = depthCount;
             MaxBoundary = realMaxBoundary;
             _configs = treeConfigs;

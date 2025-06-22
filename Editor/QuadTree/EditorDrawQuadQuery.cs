@@ -124,7 +124,7 @@ namespace EeveeEditor.QuadTree
 
             _scale = 1F / manager.Scale;
         }
-        private void FixedUpdate()
+        private void Update()
         {
             _queries.Clear(); // 下一帧清除数据
             _elements.Clear();

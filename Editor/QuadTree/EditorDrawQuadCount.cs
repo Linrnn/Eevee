@@ -4,6 +4,7 @@ using Eevee.QuadTree;
 using EeveeEditor.Fixed;
 using System;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace EeveeEditor.QuadTree
@@ -17,37 +18,62 @@ namespace EeveeEditor.QuadTree
         [Serializable]
         private struct DepthCount
         {
-            [ReadOnly] [SerializeField] internal int Depth;
-            [ReadOnly] [SerializeField] internal int TotalCount;
+            [SerializeField] internal int Depth;
+            [SerializeField] internal int SumCross; // 层级以下的压线数总和
+            [SerializeField] internal int Cross; // 压线数
+            [SerializeField] internal int Count; // 节点数量
+            [SerializeField] private float _crossRatio; // 压线率，越低越好
+            [SerializeField] internal int Used;
+            [SerializeField] internal long Space;
+            [SerializeField] private float _usedRatio; // 压线情况下的空间利用率，越高越好
 
-            [Space] [ReadOnly] [SerializeField] internal int LineBallCount;
-            [ReadOnly] [SerializeField] internal float LineBallRatio; // AABB压线率，越低越好
-
-            internal float SpaceUtility;
-            [ReadOnly] [SerializeField] internal float SpaceUtilityRatio; // 压线情况下的AABB空间利用率，越高越好
-
-            internal void AddTotalCount(int count)
+            internal void CountData()
             {
-                TotalCount += count;
-                LineBallRatio = LineBallCount / (float)TotalCount;
+                _crossRatio = Count == 0 ? 0 : Cross / (float)Count;
+                _usedRatio = Space == 0 ? 1 : MathF.Sqrt(Used / (float)Space);
             }
-            internal void AddLineBall()
+
+            [CustomPropertyDrawer(typeof(DepthCount))]
+            internal sealed class DepthCountDrawer : PropertyDrawer
             {
-                ++LineBallCount;
-                LineBallRatio = LineBallCount / (float)TotalCount;
-                SpaceUtilityRatio = SpaceUtility / LineBallCount;
-            }
-            internal void AddSpaceUtility(float count)
-            {
-                SpaceUtility += count;
-                SpaceUtilityRatio = SpaceUtility / LineBallCount;
+                private const int HeightScale = 5;
+                public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+                {
+                    var size = new Vector2(position.size.x, position.size.y / HeightScale);
+                    var depthPosition = new Rect(position.position, size);
+                    var sumCrossPosition = new Rect(position.x, position.y + size.y, size.x, size.y);
+                    var crossPosition = new Rect(position.x, position.y + size.y * 2, size.x, size.y);
+                    var crossRatioPosition = new Rect(position.x, position.y + size.y * 3, size.x, size.y);
+                    var usedRatioPosition = new Rect(position.x, position.y + size.y * 4, size.x, size.y);
+
+                    var depthProperty = property.FindPropertyRelative(nameof(Depth));
+                    var sumCrossProperty = property.FindPropertyRelative(nameof(SumCross));
+                    var crossProperty = property.FindPropertyRelative(nameof(Cross));
+                    var crossRatioProperty = property.FindPropertyRelative(nameof(_crossRatio));
+                    var usedRatioProperty = property.FindPropertyRelative(nameof(_usedRatio));
+
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUI.PropertyField(depthPosition, depthProperty);
+                    EditorGUI.PropertyField(sumCrossPosition, sumCrossProperty);
+                    EditorGUI.PropertyField(crossPosition, crossProperty);
+                    EditorGUI.TextField(crossRatioPosition, crossRatioProperty.displayName, crossRatioProperty.floatValue.ToString("p"));
+                    EditorGUI.TextField(usedRatioPosition, usedRatioProperty.displayName, usedRatioProperty.floatValue.ToString("p"));
+                    EditorGUI.EndDisabledGroup();
+
+                    depthProperty.Dispose();
+                    crossProperty.Dispose();
+                    crossRatioProperty.Dispose();
+                    sumCrossProperty.Dispose();
+                    usedRatioProperty.Dispose();
+                }
+                public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => base.GetPropertyHeight(property, label) * HeightScale;
             }
         }
         #endregion
 
         #region 序列化字段
         [SerializeField] private int[] _treeIds;
-        [SerializeField] private bool _drawLineBall;
+        [SerializeField] private ShowNode _lineBall = new(true, Color.magenta); // 压线的节点
         [SerializeField] private float _height;
         [SerializeField] private DepthCount[] _depthCounts = Array.Empty<DepthCount>();
         #endregion
@@ -56,6 +82,7 @@ namespace EeveeEditor.QuadTree
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
+        private readonly List<QuadElement> _elements = new(); // 临时缓存
         #endregion
 
         private void OnEnable()
@@ -73,46 +100,14 @@ namespace EeveeEditor.QuadTree
             if (enabled)
                 BuildTree();
         }
+        private void Update()
+        {
+            BuildData();
+        }
         private void OnDrawGizmos()
         {
-            _depthCounts.Clean();
-            if (_treeIds.Length == 0)
-                return;
-
-            foreach (int treeId in _treeIds)
-            {
-                if (!_trees.TryGetValue(treeId, out var tree))
-                    continue;
-
-                for (int length = _depthCounts.Length, depth = 0; depth < length; ++depth)
-                {
-                    var nodes = QuadGetter.GetNodes(tree, depth, _nodes);
-                    var depthCount = _depthCounts[depth];
-                    depthCount.Depth = depth;
-
-                    foreach (var node in nodes)
-                    {
-                        depthCount.AddTotalCount(node.SumCount);
-
-                        foreach (var element in node.Elements)
-                        {
-                            int elementSqr = element.Shape.Size().SqrMagnitude();
-                            int boundarySqr = node.LooseBoundary.HalfSize().SqrMagnitude();
-                            if (elementSqr >= boundarySqr)
-                                continue;
-
-                            float bits = MathF.Ceiling(MathF.Log(elementSqr, 2));
-                            float space = MathF.Sqrt((1 << (int)bits) / (float)boundarySqr);
-                            depthCount.AddLineBall();
-                            depthCount.AddSpaceUtility(space);
-                            if (_drawLineBall)
-                                ShapeDraw.AABB(in element.Shape, _scale, _height, Color.magenta);
-                        }
-                    }
-
-                    _depthCounts[depth] = depthCount;
-                }
-            }
+            if (_lineBall.Show)
+                DrawElements();
         }
 
         private void BuildTree()
@@ -124,7 +119,62 @@ namespace EeveeEditor.QuadTree
             foreach (int treeId in _treeIds)
                 if (_trees.TryGetValue(treeId, out var tree))
                     maxDepth = Math.Max(maxDepth, tree.MaxDepth);
-            _depthCounts = new DepthCount[maxDepth]; // 不计算最后一层
+
+            _depthCounts = new DepthCount[maxDepth + 1]; // depth从0开始，所以+1
+        }
+        private void BuildData()
+        {
+            _depthCounts.Clean();
+            _elements.Clear();
+
+            if (_treeIds.Length == 0)
+                return;
+
+            foreach (int treeId in _treeIds)
+            {
+                if (!_trees.TryGetValue(treeId, out var tree))
+                    continue;
+
+                for (int lastIndex = _depthCounts.Length - 1, depth = lastIndex; depth >= 0; --depth)
+                {
+                    var nodes = QuadGetter.GetNodes(tree, depth, _nodes);
+                    ref var depthCount = ref _depthCounts[depth];
+                    depthCount.Depth = depth;
+
+                    foreach (var node in nodes)
+                    {
+                        int boundarySqr = node.Boundary.HalfSize().SqrMagnitude();
+                        depthCount.Count += node.Elements.Count;
+
+                        foreach (var element in node.Elements)
+                        {
+                            if (element.Shape.W << 1 >= node.Boundary.W || element.Shape.H << 1 >= node.Boundary.H)
+                                continue;
+
+                            int elementSqr = element.Shape.Size().SqrMagnitude();
+                            int pow = Mathf.CeilToInt(MathF.Log(elementSqr, 2));
+
+                            ++depthCount.Cross;
+                            depthCount.Used += 1 << pow;
+                            depthCount.Space += boundarySqr;
+                            if (_lineBall.Show)
+                                _elements.Add(element);
+                        }
+                    }
+
+                    for (int childDepth = lastIndex; childDepth >= depth; --childDepth)
+                        depthCount.SumCross += _depthCounts[childDepth].Cross;
+                    depthCount.CountData();
+                }
+            }
+        }
+        private void DrawElements()
+        {
+            foreach (var element in _elements)
+            {
+                ShapeDraw.Label(element.Shape.Center(), _scale, _height, element.Index.ToString(), in _lineBall.Color);
+                ShapeDraw.AABB(in element.Shape, _scale, _height, in _lineBall.Color);
+            }
         }
     }
 }

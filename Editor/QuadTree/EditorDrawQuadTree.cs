@@ -6,7 +6,6 @@ using EeveeEditor.Fixed;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 namespace EeveeEditor.QuadTree
@@ -16,46 +15,6 @@ namespace EeveeEditor.QuadTree
     /// </summary>
     internal sealed class EditorDrawQuadTree : MonoBehaviour
     {
-        #region 类型
-        [Serializable]
-        private struct ShowNode
-        {
-            [SerializeField] internal bool Show;
-            [SerializeField] internal Color Color;
-            internal ShowNode(bool show, in Color color)
-            {
-                Show = show;
-                Color = color;
-            }
-
-            [CustomPropertyDrawer(typeof(ShowNode))]
-            private sealed class ShowNodeDrawer : PropertyDrawer
-            {
-                private const int HeightScale = 2;
-                public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-                {
-                    var showProperty = property.FindPropertyRelative(nameof(Show));
-                    var colorProperty = property.FindPropertyRelative(nameof(Color));
-
-                    var size = new Vector2(position.size.x, position.size.y / HeightScale);
-                    var showPosition = new Rect(position.position, size);
-                    var colorPosition = new Rect(position.x, position.y + size.y, size.x, size.y);
-
-                    EditorGUILayout.BeginHorizontal();
-                    showProperty.boolValue = EditorGUI.Toggle(showPosition, label, showProperty.boolValue);
-                    ++EditorGUI.indentLevel;
-                    EditorGUI.PropertyField(colorPosition, colorProperty);
-                    --EditorGUI.indentLevel;
-                    EditorGUILayout.EndHorizontal();
-
-                    showProperty.Dispose();
-                    colorProperty.Dispose();
-                }
-                public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => base.GetPropertyHeight(property, label) * HeightScale;
-            }
-        }
-        #endregion
-
         #region 序列化字段
         [Header("四叉树设置")] [SerializeField] private int _treeId;
         [SerializeField] private int[] _indexes = Array.Empty<int>(); // 搜索对象所在的节点
@@ -67,7 +26,7 @@ namespace EeveeEditor.QuadTree
 
         [Header("渲染数据")] [SerializeField] private Color _looseColor = Color.magenta; // 搜索对象所在的节点的松散边界
         [SerializeField] private Color _boundaryColor = Color.blue; // 搜索对象所在的节点的边界
-        [SerializeField] private Color _shapeColor = Color.black; // 搜索对象所在的节点实际的AABB
+        [SerializeField] private Color _shapeColor = Color.black; // 搜索对象所在的节点实际的形状
         [SerializeField] private int _circleAccuracy = 12;
         [SerializeField] private float _height;
         #endregion
