@@ -73,7 +73,7 @@ namespace EeveeEditor.QuadTree
 
         #region 序列化字段
         [SerializeField] private int[] _treeIds;
-        [SerializeField] private ShowNode _lineBall = new(true, Color.magenta); // 压线的节点
+        [SerializeField] private ColorSetting _lineBall = new(true, Color.magenta); // 压线的元素
         [SerializeField] private float _height;
         [SerializeField] private DepthCount[] _depthCounts = Array.Empty<DepthCount>();
         #endregion

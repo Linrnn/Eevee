@@ -6,19 +6,19 @@ using UnityEngine;
 namespace EeveeEditor.QuadTree
 {
     [Serializable]
-    internal struct ShowNode
+    internal struct ColorSetting
     {
         [SerializeField] internal bool Show;
         [SerializeField] internal Color Color;
-        internal ShowNode(bool show, in Color color)
+        internal ColorSetting(bool show, in Color color)
         {
             Show = show;
             Color = color;
         }
     }
 
-    [CustomPropertyDrawer(typeof(ShowNode))]
-    internal sealed class ShowNodeDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(ColorSetting))]
+    internal sealed class ColorSettingDrawer : PropertyDrawer
     {
         private const int HeightScale = 2;
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -27,8 +27,8 @@ namespace EeveeEditor.QuadTree
             var showPosition = new Rect(position.position, size);
             var colorPosition = new Rect(position.x, position.y + size.y, size.x, size.y);
 
-            var showProperty = property.FindPropertyRelative(nameof(ShowNode.Show));
-            var colorProperty = property.FindPropertyRelative(nameof(ShowNode.Color));
+            var showProperty = property.FindPropertyRelative(nameof(ColorSetting.Show));
+            var colorProperty = property.FindPropertyRelative(nameof(ColorSetting.Color));
 
             EditorGUILayout.BeginHorizontal();
             showProperty.boolValue = EditorGUI.Toggle(showPosition, label, showProperty.boolValue);

@@ -18,9 +18,9 @@ namespace EeveeEditor.QuadTree
         [SerializeField] private int[] _indexes = Array.Empty<int>(); // 搜索对象所在的节点
 
         [Header("渲染设置")] [SerializeField] private Empty _; // 使“Header”特性正常绘制缩进
-        [SerializeField] private ShowNode _emptyNode = new(false, Color.gray); // 空节点
-        [SerializeField] private ShowNode _normalNode = new(true, Color.green); // 非空节点
-        [SerializeField] private ShowNode _rootNode = new(false, Color.red); // 根节点
+        [SerializeField] private ColorSetting _emptyNode = new(false, Color.gray); // 空节点
+        [SerializeField] private ColorSetting _normalNode = new(true, Color.green); // 非空节点
+        [SerializeField] private ColorSetting _rootNode = new(false, Color.red); // 根节点
 
         [Header("渲染数据")] [SerializeField] private Color _looseColor = Color.magenta; // 搜索对象所在的节点的松散边界
         [SerializeField] private Color _boundaryColor = Color.blue; // 搜索对象所在的节点的边界
