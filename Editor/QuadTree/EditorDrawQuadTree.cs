@@ -1,6 +1,4 @@
 ﻿#if UNITY_EDITOR
-using Eevee.Diagnosis;
-using Eevee.Fixed;
 using Eevee.QuadTree;
 using EeveeEditor.Fixed;
 using System;
@@ -32,6 +30,7 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
+        private QuadTreeManager _manager;
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
@@ -43,11 +42,14 @@ namespace EeveeEditor.QuadTree
             if (manager is null)
                 return;
 
+            _manager = manager;
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
         }
         private void OnDrawGizmos()
         {
+            if (!enabled)
+                return;
             if (_trees.TryGetValue(_treeId, out var tree))
                 DrawTree(tree);
         }
@@ -76,17 +78,10 @@ namespace EeveeEditor.QuadTree
         }
         private void DrawNodeAndElement(QuadNode node, in QuadElement element)
         {
-            var config = QuadGetter.Proxy.Manager.GetConfig(_treeId);
+            var config = _manager.GetConfig(_treeId);
             ShapeDraw.AABB(in node.LooseBoundary, _scale, _height, in _looseColor);
             ShapeDraw.AABB(in node.Boundary, _scale, _height, in _boundaryColor);
-            ShapeDraw.Label(element.Shape.Center(), _scale, _height, element.Index.ToString(), in _shapeColor);
-
-            switch (config.Shape)
-            {
-                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.Shape), _circleAccuracy, _scale, _height, in _shapeColor); break;
-                case QuadShape.AABB: ShapeDraw.AABB(in element.Shape, _scale, _height, in _shapeColor); break;
-                default: LogRelay.Error($"[Editor][Quad] TreeId:{_treeId}, Shape:{config.Shape}, not impl!"); break;
-            }
+            QuadDraw.Element(config.Shape, config.TreeId, in element, _circleAccuracy, _scale, _height, in _shapeColor);
         }
     }
 }

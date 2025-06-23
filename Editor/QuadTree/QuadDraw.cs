@@ -1,0 +1,40 @@
+﻿#if UNITY_EDITOR
+using Eevee.Diagnosis;
+using Eevee.Fixed;
+using Eevee.QuadTree;
+using EeveeEditor.Fixed;
+using UnityEngine;
+
+namespace EeveeEditor.QuadTree
+{
+    internal readonly struct QuadDraw
+    {
+        internal static void Element(QuadShape shape, in QuadElement element, int circleAccuracy, float scale, float height, in Color color)
+        {
+            if (!TryElement(shape, in element, circleAccuracy, scale, height, in color))
+                LogRelay.Error($"[Editor][Quad] Shape:{shape}, not impl!");
+        }
+        internal static void Element(QuadShape shape, int treeId, in QuadElement element, int circleAccuracy, float scale, float height, in Color color)
+        {
+            if (!TryElement(shape, in element, circleAccuracy, scale, height, in color))
+                LogRelay.Error($"[Editor][Quad] TreeId:{treeId}, Shape:{shape}, not impl!");
+        }
+        private static bool TryElement(QuadShape shape, in QuadElement element, int circleAccuracy, float scale, float height, in Color color)
+        {
+            ShapeDraw.Label(element.Shape.Center(), scale, height, element.Index.ToString(), in color);
+            switch (shape)
+            {
+                case QuadShape.Circle:
+                    ShapeDraw.Circle(Converts.AsCircleInt(in element.Shape), circleAccuracy, scale, height, in color);
+                    return true;
+
+                case QuadShape.AABB:
+                    ShapeDraw.AABB(in element.Shape, scale, height, in color);
+                    return true;
+
+                default: return false;
+            }
+        }
+    }
+}
+#endif

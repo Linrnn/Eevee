@@ -140,8 +140,8 @@ namespace Eevee.QuadTree
         {
             for (var idx = index; idx.IsValid(); idx = idx.Parent())
             {
-                var node = GetNode(index.Depth, index.X, index.Y);
-                if (node is null)
+                var nodes = _nodes[idx.Depth];
+                if (!nodes.TryGetValue(idx.GetNodeId(), out var node))
                     continue;
 
                 IterateQueryParent(in checker, node.Parent, elements);

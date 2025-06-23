@@ -1,9 +1,7 @@
 ﻿#if UNITY_EDITOR
 using Eevee.Collection;
 using Eevee.Diagnosis;
-using Eevee.Fixed;
 using Eevee.QuadTree;
-using EeveeEditor.Fixed;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -31,7 +29,6 @@ namespace EeveeEditor.QuadTree
                 nameof(_treeId),
                 nameof(_height),
                 nameof(_color),
-                nameof(_queries),
             };
             private readonly SerializedProperty[] _serializedProperties = new SerializedProperty[_filedNames.Length];
 
@@ -79,20 +76,12 @@ namespace EeveeEditor.QuadTree
                 DrawField(7);
                 DrawField(8);
                 DrawField(9);
-                DrawField(10, false);
             }
             private void DrawField(int index, bool allowSet = true)
             {
-                if (allowSet)
-                {
-                    EditorGUILayout.PropertyField(_serializedProperties[index]);
-                }
-                else
-                {
-                    EditorGUI.BeginDisabledGroup(true);
-                    EditorGUILayout.PropertyField(_serializedProperties[index]);
-                    EditorGUI.EndDisabledGroup();
-                }
+                EditorGUI.BeginDisabledGroup(!allowSet);
+                EditorGUILayout.PropertyField(_serializedProperties[index]);
+                EditorGUI.EndDisabledGroup();
             }
         }
         #endregion
@@ -108,10 +97,10 @@ namespace EeveeEditor.QuadTree
         [Header("渲染数据")] [SerializeField] private int _treeId;
         [SerializeField] private float _height;
         [SerializeField] private Color _color = Color.blue;
-        [SerializeField] private List<int> _queries = new();
         #endregion
 
         #region 运行时缓存
+        private QuadTreeManager _manager;
         private float _scale;
         private readonly List<QuadElement> _elements = new(); // 缓存
         #endregion
@@ -122,54 +111,36 @@ namespace EeveeEditor.QuadTree
             if (manager is null)
                 return;
 
+            _manager = manager;
             _scale = 1F / manager.Scale;
         }
         private void Update()
         {
-            _queries.Clear(); // 下一帧清除数据
-            _elements.Clear();
-            Query();
-            BuildData();
-            SetValue();
+            ReadyElements();
         }
         private void OnDrawGizmos()
         {
-            Draw();
+            if (!enabled)
+                return;
+            DrawElements();
         }
 
-        private void Query()
+        private void ReadyElements()
         {
-            var manager = QuadGetter.Proxy.Manager;
+            _elements.Clear();
             switch (_quadShape)
             {
-                case QuadShape.Circle: manager.QueryCircle(_treeId, _position, _radius, false, _elements); break;
-                case QuadShape.AABB: manager.QueryAABB(_treeId, _position, _extents, false, _elements); break;
-                case QuadShape.OBB: manager.QueryOBB(_treeId, _position, _extents, _angle, false, _elements); break;
+                case QuadShape.Circle: _manager.QueryCircle(_treeId, _position, _radius, true, _elements); break;
+                case QuadShape.AABB: _manager.QueryAABB(_treeId, _position, _extents, true, _elements); break;
+                case QuadShape.OBB: _manager.QueryOBB(_treeId, _position, _extents, _angle, true, _elements); break;
                 default: LogRelay.Error($"[Editor][Quad] TreeId:{_treeId}, QuadShape:{_quadShape}, not impl!"); break;
             }
         }
-        private void BuildData()
+
+        private void DrawElements()
         {
             foreach (var element in _elements)
-                _queries.Add(element.Index);
-        }
-        private void SetValue()
-        {
-            if (TryGetComponent<EditorDrawQuadElement>(out var component))
-                component = gameObject.AddComponent<EditorDrawQuadElement>();
-            component.SetDrawRangeCustom();
-            component.SetTreeId(_treeId);
-            component.SetCustomIndexes(_queries);
-        }
-        private void Draw()
-        {
-            switch (_quadShape)
-            {
-                case QuadShape.Circle: ShapeDraw.Circle(new CircleInt(_position, _radius), _circleAccuracy, _scale, _height, in _color); break;
-                case QuadShape.AABB: ShapeDraw.AABB(new AABB2DInt(_position, _extents), _scale, _height, in _color); break;
-                case QuadShape.OBB: ShapeDraw.OBB(new OBB2DInt(_position, _extents, _angle), _scale, _height, in _color); break;
-                default: LogRelay.Error($"[Editor][Quad] TreeId:{_treeId}, QuadShape:{_quadShape}, not impl!"); break;
-            }
+                QuadDraw.Element(_quadShape, _treeId, in element, _circleAccuracy, _scale, _height, in _color);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿#if UNITY_EDITOR
 using Eevee.Fixed;
 using Eevee.QuadTree;
-using EeveeEditor.Fixed;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -20,12 +19,9 @@ namespace EeveeEditor.QuadTree
             internal readonly int TreeId;
             internal readonly QuadShape Shape;
             internal readonly Color Color;
-            internal DrawTree(BasicQuadTree tree)
+            internal DrawTree(BasicQuadTree tree, in Color color)
             {
-                int treeId = tree.TreeId;
-                var color = QuadGetter.Proxy.GetElementColor(treeId);
-
-                TreeId = treeId;
+                TreeId = tree.TreeId;
                 Shape = tree.Shape;
                 Color = color;
             }
@@ -105,7 +101,6 @@ namespace EeveeEditor.QuadTree
             Single,
             Children,
             All,
-            Custom,
         }
         #endregion
 
@@ -116,14 +111,13 @@ namespace EeveeEditor.QuadTree
 
         [Header("渲染数据")] [SerializeField] private float _height;
         [SerializeField] private bool _draw = true;
-        [SerializeField] private List<DrawElement> _elements = new();
         #endregion
 
         #region 运行时缓存
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
-        private readonly HashSet<int> _customIndexes = new();
         private readonly HashSet<int> _drawIndexes = new();
+        private readonly List<DrawElement> _elements = new();
         private readonly List<QuadNode> _nodes = new(); // 临时缓存
         #endregion
 
@@ -138,31 +132,29 @@ namespace EeveeEditor.QuadTree
         }
         private void Update()
         {
-            ReadyEntity();
+            ReadyIndexes();
             ReadyTrees();
         }
         private void OnDrawGizmos()
         {
+            if (!enabled)
+                return;
             DrawTrees();
         }
-        private void OnDisable() => _elements.Clear();
 
-        private void ReadyEntity()
+        private void ReadyIndexes()
         {
             _drawIndexes.Clear();
-
             switch (_drawRange)
             {
                 case DrawRange.Single: _drawIndexes.Add(QuadGetter.Proxy.GetIndex(gameObject)); break;
                 case DrawRange.Children: QuadGetter.Proxy.GetIndexes(gameObject, _drawIndexes); break;
                 case DrawRange.All:
-                    foreach (var pair in _trees)
-                    foreach (var node in QuadGetter.GetNodes(pair.Value, _nodes))
+                    foreach (var (_, tree) in _trees)
+                    foreach (var node in QuadGetter.GetNodes(tree, _nodes))
                     foreach (var element in node.Elements)
                         _drawIndexes.Add(element.Index);
                     break;
-
-                case DrawRange.Custom: _drawIndexes.UnionWith(_customIndexes); break;
             }
         }
         private void ReadyTrees()
@@ -172,17 +164,11 @@ namespace EeveeEditor.QuadTree
                 return;
             if (_drawIndexes.Count == 0)
                 return;
+            var proxy = QuadGetter.Proxy;
             foreach (int treeId in _treeIds)
                 if (_trees.TryGetValue(treeId, out var tree))
-                    ReadyElements(tree, new DrawTree(tree));
+                    ReadyElements(tree, new DrawTree(tree, proxy.GetElementColor(treeId)));
         }
-        private void DrawTrees()
-        {
-            if (_draw)
-                foreach (var element in _elements)
-                    DrawElements(element);
-        }
-
         private void ReadyElements(BasicQuadTree tree, in DrawTree drawTree)
         {
             foreach (var node in QuadGetter.GetNodes(tree, _nodes))
@@ -190,27 +176,12 @@ namespace EeveeEditor.QuadTree
                 if (_drawIndexes.Contains(element.Index))
                     _elements.Add(new DrawElement(in element, in drawTree));
         }
-        private void DrawElements(in DrawElement element)
-        {
-            ShapeDraw.Label(element.Content.Center(), _scale, _height, element.Index.ToString(), in element.Color);
-            switch (element.Shape)
-            {
-                case QuadShape.Circle: ShapeDraw.Circle(Converts.AsCircleInt(in element.Content), _circleAccuracy, _scale, _height, in element.Color); break;
-                case QuadShape.AABB: ShapeDraw.AABB(in element.Content, _scale, _height, in element.Color); break;
-            }
-        }
 
-        internal void SetDrawRangeCustom() => _drawRange = DrawRange.Custom;
-        internal void SetTreeId(int value)
+        private void DrawTrees()
         {
-            if (_treeIds.Length != 1)
-                _treeIds = new int[1];
-            _treeIds[0] = value;
-        }
-        internal void SetCustomIndexes(IEnumerable<int> value)
-        {
-            _customIndexes.Clear();
-            _customIndexes.UnionWith(value);
+            if (_draw)
+                foreach (var element in _elements)
+                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _circleAccuracy, _scale, _height, in element.Color);
         }
     }
 }

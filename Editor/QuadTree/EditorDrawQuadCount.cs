@@ -93,24 +93,28 @@ namespace EeveeEditor.QuadTree
 
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
-            BuildTree();
+            ReadyTree();
         }
         private void OnValidate()
         {
             if (enabled)
-                BuildTree();
+                ReadyTree();
         }
         private void Update()
         {
-            BuildData();
+            ReadyData();
         }
         private void OnDrawGizmos()
         {
-            if (_lineBall.Show)
-                DrawElements();
+            if (!_lineBall.Show)
+                return;
+            if (!enabled)
+                return;
+            DrawElements();
         }
+        private void OnDisable() => _depthCounts = Array.Empty<DepthCount>();
 
-        private void BuildTree()
+        private void ReadyTree()
         {
             if (_trees.Count == 0)
                 return;
@@ -122,7 +126,7 @@ namespace EeveeEditor.QuadTree
 
             _depthCounts = new DepthCount[maxDepth + 1]; // depth从0开始，所以+1
         }
-        private void BuildData()
+        private void ReadyData()
         {
             _depthCounts.Clean();
             _elements.Clear();
@@ -168,6 +172,7 @@ namespace EeveeEditor.QuadTree
                 }
             }
         }
+
         private void DrawElements()
         {
             foreach (var element in _elements)
