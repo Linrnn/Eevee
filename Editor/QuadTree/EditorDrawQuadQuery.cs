@@ -1,6 +1,5 @@
 ﻿#if UNITY_EDITOR
 using Eevee.Collection;
-using Eevee.Diagnosis;
 using Eevee.QuadTree;
 using System.Collections.Generic;
 using UnityEditor;
@@ -133,7 +132,7 @@ namespace EeveeEditor.QuadTree
                 case QuadShape.Circle: _manager.QueryCircle(_treeId, _position, _radius, true, _elements); break;
                 case QuadShape.AABB: _manager.QueryAABB(_treeId, _position, _extents, true, _elements); break;
                 case QuadShape.OBB: _manager.QueryOBB(_treeId, _position, _extents, _angle, true, _elements); break;
-                default: LogRelay.Error($"[Editor][Quad] TreeId:{_treeId}, QuadShape:{_quadShape}, not impl!"); break;
+                default: Debug.LogError($"[Editor][Quad] TreeId:{_treeId}, QuadShape:{_quadShape}, not impl!"); break;
             }
         }
 

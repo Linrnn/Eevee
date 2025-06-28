@@ -64,8 +64,6 @@ namespace Eevee.QuadTree
             int preIndex = preNode?.IndexOf(in preEle) ?? -1;
 
             cache = new QuadPreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
-            if (QuadDebug.CheckIndex(treeId, index))
-                LogRelay.Info($"[Quad] PreCountElement, NodeEqual:{preNodeIndex == tarNodeIndex}, TreeId:{tree.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
             return true;
         }
 
@@ -99,7 +97,7 @@ namespace Eevee.QuadTree
 
             if (hasError)
                 LogRelay.Error($"[Quad] PreUpdateElement Fail, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
-            else if (QuadDebug.Check())
+            else if (QuadDebug.CheckIndex(cache.TreeId, preEle.Index))
                 LogRelay.Info($"[Quad] PreUpdateElement Success, NodeEqual:{preNode == tarNode}, UsePre:{usePre}, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
         }
         #endregion

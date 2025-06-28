@@ -1,5 +1,4 @@
 ﻿#if UNITY_EDITOR
-using Eevee.Diagnosis;
 using Eevee.Fixed;
 using Eevee.QuadTree;
 using EeveeEditor.Fixed;
@@ -12,12 +11,12 @@ namespace EeveeEditor.QuadTree
         internal static void Element(QuadShape shape, in QuadElement element, int circleAccuracy, float scale, float height, in Color color)
         {
             if (!TryElement(shape, in element, circleAccuracy, scale, height, in color))
-                LogRelay.Error($"[Editor][Quad] Shape:{shape}, not impl!");
+                Debug.LogError($"[Editor][Quad] Shape:{shape}, not impl!");
         }
         internal static void Element(QuadShape shape, int treeId, in QuadElement element, int circleAccuracy, float scale, float height, in Color color)
         {
             if (!TryElement(shape, in element, circleAccuracy, scale, height, in color))
-                LogRelay.Error($"[Editor][Quad] TreeId:{treeId}, Shape:{shape}, not impl!");
+                Debug.LogError($"[Editor][Quad] TreeId:{treeId}, Shape:{shape}, not impl!");
         }
         private static bool TryElement(QuadShape shape, in QuadElement element, int circleAccuracy, float scale, float height, in Color color)
         {
