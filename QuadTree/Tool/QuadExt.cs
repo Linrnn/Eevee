@@ -8,7 +8,8 @@ namespace Eevee.QuadTree
     {
         internal const int ChildSideCount = 2; // Sqrt(ChildCount)
         internal const int ChildCount = 4; // 节点的子节点数量
-        internal const QuadCountNodeMode CountMode = QuadCountNodeMode.NotIntersect;
+        internal const QuadCountNodeMode ElementCountMode = QuadCountNodeMode.NotIntersect;
+        internal const QuadCountNodeMode QueryCountMode = QuadCountNodeMode.IntersectOffset;
 
         /// <summary>
         /// 每一层的节点数量的根号

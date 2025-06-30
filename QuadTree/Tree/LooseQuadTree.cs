@@ -65,23 +65,21 @@ namespace Eevee.QuadTree
         }
         protected override void IterateQuery<TChecker>(in TChecker checker, in QuadIndex index, ICollection<QuadElement> elements)
         {
-            int max = QuadExt.GetNodeSideCount(index.Depth) - 1;
+            int count = QuadExt.GetNodeSideCount(index.Depth) - 1;
             int si = Math.Max(index.X - 1, 0);
-            int ei = Math.Min(index.X + 2, max);
+            int ei = Math.Min(index.X + 1, count);
             int sj = Math.Max(index.Y - 1, 0);
-            int ej = Math.Min(index.Y + 2, max);
+            int ej = Math.Min(index.Y + 1, count);
 
             int iteratedCount = (ei - si) * (ej - ej) + (index.Depth << QuadExt.ChildSideCount);
             StackAllocSet<QuadNode>.GetSize(ref iteratedCount, out int scale, out int capacity);
             var iterated = new StackAllocSet<QuadNode>(scale, stackalloc int[iteratedCount], stackalloc byte[capacity]);
 
-            for (int i = si; i < ei; ++i)
+            for (int i = si; i <= ei; ++i)
             {
-                for (int j = sj; j < ej; ++j)
+                for (int j = sj; j <= ej; ++j)
                 {
                     var node = GetNode(index.Depth, si, sj);
-                    if (node.SumCount == 0)
-                        continue;
                     if (!checker.CheckNode(in node.Boundary))
                         continue;
 

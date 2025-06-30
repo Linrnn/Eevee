@@ -24,14 +24,31 @@ namespace EeveeEditor.Fixed
             style.normal.textColor = oldColor;
             style.alignment = oldAlignment;
         }
-        internal static void Circle(in CircleInt shape, int circleAccuracy, float scale, float height, in Color color)
+        internal static void Point(Vector2DInt shape, float scale, float height, in Color color)
         {
             var oldColor = Handles.color;
             float rad = 0;
-            float deltaRad = MathF.PI * 2 / circleAccuracy;
+            const int accuracy = 3;
+            const float deltaRad = MathF.PI * 2 / accuracy;
 
             Handles.color = color;
-            for (int i = 0; i < circleAccuracy; ++i)
+            for (int i = 0; i < accuracy; ++i)
+            {
+                var p0 = new Vector2(MathF.Cos(rad), MathF.Sin(rad));
+                rad += deltaRad;
+                var p1 = new Vector2(MathF.Cos(rad), MathF.Sin(rad));
+                Line(shape + p0, shape + p1, scale, height);
+            }
+            Handles.color = oldColor;
+        }
+        internal static void Circle(in CircleInt shape, int accuracy, float scale, float height, in Color color)
+        {
+            var oldColor = Handles.color;
+            float rad = 0;
+            float deltaRad = MathF.PI * 2 / accuracy;
+
+            Handles.color = color;
+            for (int i = 0; i < accuracy; ++i)
             {
                 var p0 = new Vector2(MathF.Cos(rad), MathF.Sin(rad)) * shape.R;
                 rad += deltaRad;
@@ -67,7 +84,20 @@ namespace EeveeEditor.Fixed
             Line(in p3, in p0, scale, height);
             Handles.color = oldColor;
         }
-        internal static void OBB(in PolygonInt shape, float scale, float height, in Color color)
+        internal static void Polygon(in Span<Vector2Int> shape, float scale, float height, in Color color)
+        {
+            var oldColor = Handles.color;
+
+            Handles.color = color;
+            for (int count = shape.Length, i = 0, j = count - 1; i < count; j = i++)
+            {
+                var pi = shape[i];
+                var pj = shape[j];
+                Line(pi, pj, scale, height);
+            }
+            Handles.color = oldColor;
+        }
+        internal static void Polygon(in PolygonInt shape, float scale, float height, in Color color)
         {
             var oldColor = Handles.color;
 

@@ -29,7 +29,7 @@ namespace Eevee.QuadTree
         #region 操作
         public void Insert(in QuadElement element)
         {
-            TryGetNodeIndex(in element.Shape, QuadExt.CountMode, out var index);
+            TryGetNodeIndex(in element.Shape, QuadExt.ElementCountMode, out var index);
             var node = GetOrAddNode(index.Depth, index.X, index.Y);
             node.Add(in element);
 
@@ -38,7 +38,7 @@ namespace Eevee.QuadTree
         }
         public bool Remove(in QuadElement element)
         {
-            TryGetNodeIndex(in element.Shape, QuadExt.CountMode, out var index);
+            TryGetNodeIndex(in element.Shape, QuadExt.ElementCountMode, out var index);
             var node = GetNode(index.Depth, index.X, index.Y);
             bool remove = node.Remove(in element);
             TryRemoveNode(node);
@@ -51,8 +51,8 @@ namespace Eevee.QuadTree
         }
         public void Update(in QuadElement preElement, in QuadElement tarElement)
         {
-            TryGetNodeIndex(in preElement.Shape, QuadExt.CountMode, out var preIndex);
-            TryGetNodeIndex(in tarElement.Shape, QuadExt.CountMode, out var tarIndex);
+            TryGetNodeIndex(in preElement.Shape, QuadExt.ElementCountMode, out var preIndex);
+            TryGetNodeIndex(in tarElement.Shape, QuadExt.ElementCountMode, out var tarIndex);
             var preNode = GetNode(preIndex.Depth, preIndex.X, preIndex.Y);
             var tarNode = GetOrAddNode(tarIndex.Depth, tarIndex.X, tarIndex.Y);
 
@@ -76,19 +76,19 @@ namespace Eevee.QuadTree
         #region 查询
         public void QueryPoint(Vector2DInt shape, ICollection<QuadElement> elements)
         {
-            if (_root.IsEmpty())
+            if (_root.SumIsEmpty())
                 return;
 
             switch (_shape)
             {
-                case QuadShape.Circle: IterateQueryStart(new IQuadPoint2CircleChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
-                case QuadShape.AABB: IterateQueryStart(new IQuadPoint2AABBChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
+                case QuadShape.Circle: IterateQueryStart(new QuadPoint2CircleChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
+                case QuadShape.AABB: IterateQueryStart(new QuadPoint2AABBChecker(shape), Converts.AsAABB2DInt(shape), elements); break;
                 default: throw QuadExt.BuildShapeException(_treeId, _shape);
             }
         }
         public void QueryCircle(in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
-            if (_root.IsEmpty())
+            if (_root.SumIsEmpty())
             {
                 return;
             }
@@ -101,14 +101,14 @@ namespace Eevee.QuadTree
 
             switch (_shape)
             {
-                case QuadShape.Circle: IterateQueryStart(new IQuadCircle2CircleChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
-                case QuadShape.AABB: IterateQueryStart(new IQuadCircle2AABBChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
+                case QuadShape.Circle: IterateQueryStart(new QuadCircle2CircleChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
+                case QuadShape.AABB: IterateQueryStart(new QuadCircle2AABBChecker(in shape), Converts.AsAABB2DInt(in shape), elements); break;
                 default: throw QuadExt.BuildShapeException(_treeId, _shape);
             }
         }
         public void QueryAABB(in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
-            if (_root.IsEmpty())
+            if (_root.SumIsEmpty())
             {
                 return;
             }
@@ -121,14 +121,14 @@ namespace Eevee.QuadTree
 
             switch (_shape)
             {
-                case QuadShape.Circle: IterateQueryStart(new IQuadAABB2CircleChecker(in shape), in shape, elements); break;
-                case QuadShape.AABB: IterateQueryStart(new IQuadAABB2AABBChecker(in shape), in shape, elements); break;
+                case QuadShape.Circle: IterateQueryStart(new QuadAABB2CircleChecker(in shape), in shape, elements); break;
+                case QuadShape.AABB: IterateQueryStart(new QuadAABB2AABBChecker(in shape), in shape, elements); break;
                 default: throw QuadExt.BuildShapeException(_treeId, _shape);
             }
         }
         public void QueryOBB(in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
-            if (_root.IsEmpty())
+            if (_root.SumIsEmpty())
             {
                 return;
             }
@@ -143,14 +143,14 @@ namespace Eevee.QuadTree
             {
                 case QuadShape.Circle:
                 {
-                    var checker = new IQuadOBB2CircleChecker(in shape);
+                    var checker = new QuadOBB2CircleChecker(in shape);
                     IterateQueryStart(in checker, in checker.Shape, elements);
                     break;
                 }
 
                 case QuadShape.AABB:
                 {
-                    var checker = new IQuadOBB2AABBChecker(in shape);
+                    var checker = new QuadOBB2AABBChecker(in shape);
                     IterateQueryStart(in checker, in checker.Shape, elements);
                     break;
                 }
@@ -160,7 +160,7 @@ namespace Eevee.QuadTree
         }
         public void QueryPolygon(in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
         {
-            if (_root.IsEmpty())
+            if (_root.SumIsEmpty())
             {
                 return;
             }
@@ -175,7 +175,7 @@ namespace Eevee.QuadTree
             {
                 case QuadShape.Circle:
                 {
-                    var checker = new IQuadPolygon2CircleChecker(in shape);
+                    var checker = new QuadPolygon2CircleChecker(in shape);
                     IterateQueryStart(in checker, in checker.Shape, elements);
                     checker.Checker.Dispose();
                     break;
@@ -183,7 +183,7 @@ namespace Eevee.QuadTree
 
                 case QuadShape.AABB:
                 {
-                    var checker = new IQuadPolygon2AABBChecker(in shape);
+                    var checker = new QuadPolygon2AABBChecker(in shape);
                     IterateQueryStart(in checker, in checker.Shape, elements);
                     checker.Checker.Dispose();
                     break;
@@ -198,7 +198,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void IterateQueryOnly(QuadNode node, ICollection<QuadElement> elements)
         {
-            if (node.IsEmpty())
+            if (node.SumIsEmpty())
                 return;
 
             foreach (var element in node.Elements.AsReadOnlySpan())
@@ -211,7 +211,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected void IterateQueryStart<TChecker>(in TChecker checker, in AABB2DInt shape, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
-            if (TryGetNodeIndex(in shape, QuadExt.CountMode, out var index))
+            if (TryGetNodeIndex(in shape, QuadExt.QueryCountMode, out var index))
                 IterateQuery(in checker, index, elements);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -234,7 +234,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void IterateQueryChildren<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
-            if (node.IsEmpty())
+            if (node.SumIsEmpty())
                 return;
 
             if (node.Elements.Count > 0)
@@ -254,7 +254,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void IterateQueryChildrenCheckNull<TChecker>(in TChecker checker, QuadNode node, ICollection<QuadElement> elements) where TChecker : struct, IQuadChecker
         {
-            if (node is null || node.IsEmpty())
+            if (node is null || node.SumIsEmpty())
                 return;
 
             if (node.Elements.Count > 0)
@@ -277,7 +277,7 @@ namespace Eevee.QuadTree
         {
             if (this is not IQuadDynamic { } quadDynamic)
                 return;
-            if (!node.IsEmpty())
+            if (!node.SumIsEmpty())
                 return;
             if (node == _root)
                 return;

@@ -172,7 +172,7 @@ namespace Eevee.QuadTree
         {
             if (node.HasChild())
                 foreach (var child in node.ChildAsIterator())
-                    if (child.IsEmpty())
+                    if (child.SumIsEmpty())
                         RemoveNode(child);
                     else
                         TryRemoveEmptyNode(child);

@@ -840,26 +840,15 @@ namespace Eevee.Fixed
         #region 相交
         public static bool Intersect(in Circle shape, in Circle other) // 外切/相交/内切
         {
-            var d = shape.SqrDistance(in other);
-            if (d > (shape.R + other.R).Sqr())
-                return false;
-            if (d < (shape.R - other.R).Sqr())
-                return false;
-            return true;
+            var distance = shape.SqrDistance(in other);
+            var sumRadius = shape.R + other.R;
+            return distance <= sumRadius.Sqr();
         }
         public static bool Intersect(in CircleInt shape, in CircleInt other) // 外切/相交/内切
         {
-            int d = shape.SqrDistance(in other);
-
-            int ra = shape.R + other.R;
-            if (d > ra * ra)
-                return false;
-
-            int rs = shape.R - other.R;
-            if (d < rs * rs)
-                return false;
-
-            return true;
+            int distance = shape.SqrDistance(in other);
+            int sumRadius = shape.R + other.R;
+            return distance <= sumRadius * sumRadius;
         }
 
         public static bool Intersect(in AABB2D shape, in Circle other)

@@ -26,11 +26,12 @@ namespace Eevee.QuadTree
     }
 
     /// <summary>
-    /// 四叉树节点的形状
+    /// 四叉树形状
     /// </summary>
     public enum QuadShape : byte
     {
         None,
+        Point, // 点
         Circle, // 圆形
         AABB, // 轴对齐包围盒
         OBB, // 定向包围盒

@@ -163,12 +163,12 @@ namespace Eevee.Fixed
             var hy = H * dir.Y;
             p0 = new Vector2D(X - wx - hy, Y - wy + hx);
             p1 = new Vector2D(X + wx - hy, Y + wy + hx);
-            p2 = new Vector2D(X - wx + hy, Y - wy - hx);
-            p3 = new Vector2D(X + wx + hy, Y + wy - hx);
+            p2 = new Vector2D(X + wx + hy, Y + wy - hx);
+            p3 = new Vector2D(X - wx + hy, Y - wy - hx);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2D ForLeftBoundary() => A.Value.RawValue switch // 决定左边界的点
+        private Vector2D ForLeftBoundary() => A.Value.RawValue switch // 决定左边界的点
         {
             >= Const.Zero and < Const.Deg90 => new Vector2D(-W, H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2D(W, H),
@@ -177,7 +177,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2D ForRightBoundary() => A.Value.RawValue switch // 决定右边界的点
+        private Vector2D ForRightBoundary() => A.Value.RawValue switch // 决定右边界的点
         {
             >= Const.Zero and < Const.Deg90 => new Vector2D(W, -H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2D(-W, -H),
@@ -186,7 +186,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2D ForBottomBoundary() => A.Value.RawValue switch // 决定下边界的点
+        private Vector2D ForBottomBoundary() => A.Value.RawValue switch // 决定下边界的点
         {
             >= Const.Zero and < Const.Deg90 => new Vector2D(-W, -H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2D(-W, H),
@@ -195,7 +195,7 @@ namespace Eevee.Fixed
             _ => throw new ArgumentOutOfRangeException(nameof(A), $"Invalid angle:{A}!"),
         };
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal Vector2D ForTopBoundary() => A.Value.RawValue switch // 决定上边界的点
+        private Vector2D ForTopBoundary() => A.Value.RawValue switch // 决定上边界的点
         {
             >= Const.Zero and < Const.Deg90 => new Vector2D(W, H),
             >= Const.Deg90 and < Const.Deg180 => new Vector2D(W, -H),

@@ -97,8 +97,9 @@ namespace EeveeEditor.QuadTree
         }
         private void OnValidate()
         {
-            if (enabled)
-                ReadyTree();
+            if (!enabled)
+                return;
+            ReadyTree();
         }
         private void Update()
         {

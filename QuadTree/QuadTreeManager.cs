@@ -58,8 +58,8 @@ namespace Eevee.QuadTree
             var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
             var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
 
-            tree.TryGetNodeIndex(in preEle.Shape, QuadExt.CountMode, out var preNodeIndex);
-            tree.TryGetNodeIndex(in tarEle.Shape, QuadExt.CountMode, out var tarNodeIndex);
+            tree.TryGetNodeIndex(in preEle.Shape, QuadExt.ElementCountMode, out var preNodeIndex);
+            tree.TryGetNodeIndex(in tarEle.Shape, QuadExt.ElementCountMode, out var tarNodeIndex);
             var preNode = tree.GetNode(preNodeIndex.Depth, preNodeIndex.X, preNodeIndex.Y);
             int preIndex = preNode?.IndexOf(in preEle) ?? -1;
 

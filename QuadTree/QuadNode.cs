@@ -243,7 +243,7 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool IsEmpty() => SumCount == 0;
+        internal bool SumIsEmpty() => SumCount == 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal int IndexOf(in QuadElement element) => Elements.IndexOf(in element);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
