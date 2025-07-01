@@ -62,18 +62,19 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Contain(Vector2DInt shape) // 向量方向相同
         {
-            for (int flag = 0, count = Shape.PointCount(), i = 0; i < count; ++i)
+            int flag = 0;
+            for (int count = Shape.PointCount(), i = 0; i < count; ++i)
             {
                 int cross = Vector2DInt.Cross(shape - Shape[i], _deltas[i]);
                 if (cross == 0)
                     continue;
                 if (flag == 0)
-                    flag = cross;
-                else if (flag != cross)
+                    flag = Math.Sign(cross);
+                else if (flag != Math.Sign(cross))
                     return false;
             }
 
-            return true;
+            return flag != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in CircleInt shape)
@@ -83,7 +84,7 @@ namespace Eevee.Fixed
             foreach (var segment in _sides.AsReadOnlySpan())
                 if (Geometry.SqrDistance(in segment, center) <= rSqr)
                     return true;
-            return false;
+            return Contain(center);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in AABB2DInt shape)

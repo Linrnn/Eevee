@@ -127,7 +127,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal QuadPolygon2CircleChecker(in PolygonInt shape)
         {
-            var checker = new PolygonIntIntersectChecker(in shape, false, true);
+            var checker = new PolygonIntIntersectChecker(in shape, true, true);
 
             Origin = shape;
             Shape = AABB2DInt.Create(checker.Shape.Left(), checker.Shape.Right(), checker.Shape.Bottom(), checker.Shape.Top());

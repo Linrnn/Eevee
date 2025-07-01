@@ -962,20 +962,8 @@ namespace Eevee.Fixed
 
         public static bool Intersect(in Polygon shape, in Circle other)
         {
-            var center = other.Center();
-            var rSqr = other.R.Sqr();
-            for (int count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
-            {
-                ref var pi = ref shape[i];
-                ref var pj = ref shape[j];
-
-                var side = new Segment2D(in pi, in pj);
-                var sqrDistance = SqrDistance(in side, in center);
-                if (sqrDistance <= rSqr)
-                    return true;
-            }
-
-            return false;
+            using var checker = new PolygonIntersectChecker(in shape, true, false);
+            return checker.Intersect(in other);
         }
         public static bool Intersect(in Polygon shape, in AABB2D other)
         {
@@ -1034,20 +1022,8 @@ namespace Eevee.Fixed
         }
         public static bool Intersect(in PolygonInt shape, in CircleInt other)
         {
-            var center = other.Center();
-            var rSqr = (Fixed64)(other.R * other.R);
-            for (int count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
-            {
-                var pi = shape[i];
-                var pj = shape[j];
-
-                var side = new Segment2DInt(pi, pj);
-                var sqrDistance = SqrDistance(side, center);
-                if (sqrDistance <= rSqr)
-                    return true;
-            }
-
-            return false;
+            using var checker = new PolygonIntIntersectChecker(in shape, true, false);
+            return checker.Intersect(in other);
         }
         public static bool Intersect(in PolygonInt shape, in AABB2DInt other)
         {

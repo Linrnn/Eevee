@@ -62,7 +62,8 @@ namespace Eevee.Fixed
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Contain(in Vector2D shape) // 向量方向相同
         {
-            for (int flag = 0, count = Shape.PointCount(), i = 0; i < count; ++i)
+            int flag = 0;
+            for (int count = Shape.PointCount(), i = 0; i < count; ++i)
             {
                 var cross = Vector2D.Cross(shape - Shape[i], in _deltas[i]);
                 if (cross.RawValue == 0)
@@ -73,7 +74,7 @@ namespace Eevee.Fixed
                     return false;
             }
 
-            return true;
+            return flag != 0;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in Circle shape)
@@ -83,7 +84,7 @@ namespace Eevee.Fixed
             foreach (var segment in _sides.AsReadOnlySpan())
                 if (Geometry.SqrDistance(in segment, in center) <= rSqr)
                     return true;
-            return false;
+            return Contain(in center);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool Intersect(in AABB2D shape)
