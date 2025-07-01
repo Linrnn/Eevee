@@ -24,12 +24,10 @@ namespace EeveeEditor.QuadTree
             private const string Shape = nameof(_shape);
             private const string Center = nameof(_center);
             private const string Radius = nameof(_radius);
-            private const string QueryAccuracy = nameof(_queryAccuracy);
             private const string Extents = nameof(_extents);
             private const string Angle = nameof(_angle);
             private const string Polygon = nameof(_polygon);
             private const string TreeId = nameof(_treeId);
-            private const string ElementAccuracy = nameof(_elementAccuracy);
             private const string Height = nameof(_height);
             private const string QueryColor = nameof(_queryColor);
             private const string ElementColor = nameof(_elementColor);
@@ -59,7 +57,7 @@ namespace EeveeEditor.QuadTree
                 switch (GetOrFind(Shape).enumValueFlag)
                 {
                     case (int)QuadShape.Point: DrawLine(Center); break;
-                    case (int)QuadShape.Circle: DrawLine(Center).DrawLine(Radius).DrawLine(QueryAccuracy); break;
+                    case (int)QuadShape.Circle: DrawLine(Center).DrawLine(Radius); break;
                     case (int)QuadShape.AABB: DrawLine(Center).DrawLine(Extents); break;
                     case (int)QuadShape.OBB: DrawLine(Center).DrawLine(Extents).DrawLine(Angle); break;
                     case (int)QuadShape.Polygon: DrawLine(Polygon); break;
@@ -67,7 +65,6 @@ namespace EeveeEditor.QuadTree
                 }
 
                 DrawLine(TreeId);
-                DrawLine(ElementAccuracy);
                 DrawLine(Height);
                 DrawLine(QueryColor);
                 DrawLine(ElementColor);
@@ -139,13 +136,11 @@ namespace EeveeEditor.QuadTree
         [Header("四叉树设置（非Unity尺度）")] [SerializeField] private QuadShape _shape = QuadShape.Circle;
         [SerializeField] private Vector2Int _center;
         [SerializeField] private int _radius = 1;
-        [SerializeField] private int _queryAccuracy = 36;
         [SerializeField] private Vector2Int _extents = Vector2Int.one;
         [SerializeField] [Range(0, 359.999F)] private float _angle;
         [SerializeField] private Vector2Int[] _polygon = Array.Empty<Vector2Int>();
 
         [Header("渲染数据")] [SerializeField] private int _treeId;
-        [SerializeField] private int _elementAccuracy = 12;
         [SerializeField] private float _height;
         [SerializeField] private Color _queryColor = Color.black;
         [SerializeField] private Color _elementColor = Color.blue;
@@ -206,7 +201,7 @@ namespace EeveeEditor.QuadTree
             switch (_shape)
             {
                 case QuadShape.Point: ShapeDraw.Point(_center, _scale, _height, in _queryColor); break;
-                case QuadShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), _queryAccuracy, _scale, _height, in _queryColor); break;
+                case QuadShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), _scale, _height, in _queryColor); break;
                 case QuadShape.AABB: ShapeDraw.AABB(new AABB2DInt(_center, _extents), _scale, _height, in _queryColor); break;
                 case QuadShape.OBB: ShapeDraw.OBB(new OBB2DInt(_center, _extents, _angle), _scale, _height, in _queryColor); break;
                 case QuadShape.Polygon: ShapeDraw.Polygon(_polygon, _scale, _height, in _queryColor); break;
@@ -217,7 +212,7 @@ namespace EeveeEditor.QuadTree
         {
             var config = _manager.GetConfig(_treeId);
             foreach (var element in _elements)
-                QuadDraw.Element(config.Shape, _treeId, in element, _elementAccuracy, _scale, _height, in _elementColor);
+                QuadDraw.Element(config.Shape, _treeId, in element, _scale, _height, in _elementColor);
         }
 
         #region 缓存

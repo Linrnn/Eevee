@@ -105,8 +105,7 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 序列化字段
-        [Header("四叉树设置")] [SerializeField] private int _circleAccuracy = 12;
-        [SerializeField] private DrawRange _drawRange = DrawRange.All;
+        [Header("四叉树设置")] [SerializeField] private DrawRange _drawRange = DrawRange.All;
         [SerializeField] private int[] _treeIds;
 
         [Header("渲染数据")] [SerializeField] private float _height;
@@ -181,7 +180,7 @@ namespace EeveeEditor.QuadTree
         {
             if (_draw)
                 foreach (var element in _elements)
-                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _circleAccuracy, _scale, _height, in element.Color);
+                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _scale, _height, in element.Color);
         }
     }
 }

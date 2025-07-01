@@ -25,7 +25,6 @@ namespace EeveeEditor.QuadTree
         [Header("渲染数据")] [SerializeField] private Color _looseColor = Color.magenta; // 搜索对象所在的节点的松散边界
         [SerializeField] private Color _boundaryColor = Color.blue; // 搜索对象所在的节点的边界
         [SerializeField] private Color _shapeColor = Color.black; // 搜索对象所在的节点实际的形状
-        [SerializeField] private int _circleAccuracy = 12;
         [SerializeField] private float _height;
         #endregion
 
@@ -81,7 +80,7 @@ namespace EeveeEditor.QuadTree
             var config = _manager.GetConfig(_treeId);
             ShapeDraw.AABB(in node.LooseBoundary, _scale, _height, in _looseColor);
             ShapeDraw.AABB(in node.Boundary, _scale, _height, in _boundaryColor);
-            QuadDraw.Element(config.Shape, config.TreeId, in element, _circleAccuracy, _scale, _height, in _shapeColor);
+            QuadDraw.Element(config.Shape, config.TreeId, in element, _scale, _height, in _shapeColor);
         }
     }
 }
