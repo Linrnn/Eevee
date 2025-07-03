@@ -3,6 +3,7 @@ using Eevee.Fixed;
 using System;
 using UnityEditor;
 using UnityEngine;
+using UQuaternion = UnityEngine.Quaternion;
 
 namespace EeveeEditor.Fixed
 {
@@ -45,20 +46,16 @@ namespace EeveeEditor.Fixed
         internal static void AABB(in AABB2DInt shape, float scale, float height, in Color color)
         {
             var oldColor = Handles.color;
-            var lt = shape.LeftTop();
-            var rt = shape.RightTop();
-            var rb = shape.RightBottom();
-            var lb = shape.LeftBottom();
+            var center = AsVector3(shape.Center(), scale, height);
+            var size = AsVector3(shape.Size(), scale, 0);
 
             Handles.color = color;
-            Line(lt, rt, scale, height);
-            Line(rt, rb, scale, height);
-            Line(rb, lb, scale, height);
-            Line(lb, lt, scale, height);
+            Handles.DrawWireCube(center, size);
             Handles.color = oldColor;
         }
         internal static void OBB(in OBB2DInt shape, float scale, float height, in Color color)
         {
+            // todo eevee 尝试Handles旋转
             var oldColor = Handles.color;
             shape.RotatedCorner(out var p0, out var p1, out var p2, out var p3);
 
@@ -69,7 +66,7 @@ namespace EeveeEditor.Fixed
             Line(in p3, in p0, scale, height);
             Handles.color = oldColor;
         }
-        internal static void Polygon(in Span<Vector2Int> shape, float scale, float height, in Color color)
+        internal static void Polygon(in ReadOnlySpan<Vector2Int> shape, float scale, float height, in Color color)
         {
             var oldColor = Handles.color;
 
@@ -82,18 +79,52 @@ namespace EeveeEditor.Fixed
             }
             Handles.color = oldColor;
         }
-        internal static void Polygon(in PolygonInt shape, float scale, float height, in Color color)
-        {
-            var oldColor = Handles.color;
 
-            Handles.color = color;
-            for (int count = shape.PointCount(), i = 0, j = count - 1; i < count; j = i++)
+        internal static void Point(ref Vector2Int point, float scale, float height)
+        {
+            var center = AsVector3(point, scale, height);
+
+            point = AsVector2Int(Handles.PositionHandle(center, UQuaternion.identity), scale);
+        }
+        internal static void Circle(ref Vector2Int point, ref int radius, float scale, float height)
+        {
+            var center = AsVector3(point, scale, height);
+            float rad = radius * scale;
+            var size = new Vector3(rad, 0, rad);
+
+            Handles.TransformHandle(ref center, UQuaternion.identity, ref size);
+            point = AsVector2Int(center, scale);
+            radius = (int)(EditorUtils.Diff(new Vector2(size.x, size.z), rad) / scale);
+        }
+        internal static void AABB(ref Vector2Int point, ref Vector2Int extents, float scale, float height)
+        {
+            var center = AsVector3(point, scale, height);
+            var size = AsVector3(extents, scale, 0);
+
+            Handles.TransformHandle(ref center, UQuaternion.identity, ref size);
+            point = AsVector2Int(center, scale);
+            extents = AsVector2Int(size, scale);
+        }
+        internal static void OBB(ref Vector2Int point, ref Vector2Int extents, ref float angle, float scale, float height)
+        {
+            var center = AsVector3(point, scale, height);
+            var rotation = UQuaternion.Euler(0, -angle, 0);
+            var size = AsVector3(extents, scale, 0);
+
+            Handles.TransformHandle(ref center, ref rotation, ref size);
+            point = AsVector2Int(center, scale);
+            angle = (-rotation.eulerAngles.y % 360 + 360) % 360;
+            extents = AsVector2Int(size, scale);
+        }
+        internal static void Polygon(ref Vector2Int[] shape, float scale, float height)
+        {
+            // todo eevee 插入和删除
+            for (int length = shape.Length, i = 0; i < length; ++i)
             {
-                var pi = shape[i];
-                var pj = shape[j];
-                Line(pi, pj, scale, height);
+                ref var point = ref shape[i];
+                var center = AsVector3(point, scale, height);
+                point = AsVector2Int(Handles.PositionHandle(center, UQuaternion.identity), scale);
             }
-            Handles.color = oldColor;
         }
 
         private static void Line(in Vector2D p0, in Vector2D p1, float scale, float height)
@@ -109,9 +140,9 @@ namespace EeveeEditor.Fixed
             Handles.DrawLine(v0, v1);
         }
 
-        private static Vector3 AsVector3(in Vector2 shape, float scale, float height) => new(shape.x * scale, height, shape.y * scale);
-        private static Vector3 AsVector3(in Vector2D shape, float scale, float height) => new((float)shape.X * scale, height, (float)shape.Y * scale);
-        private static Vector3 AsVector3(Vector2DInt shape, float scale, float height) => new(shape.X * scale, height, shape.Y * scale);
+        private static Vector3 AsVector3(in Vector2D vector, float scale, float height) => new((float)vector.X * scale, height, (float)vector.Y * scale);
+        private static Vector3 AsVector3(Vector2DInt vector, float scale, float height) => new(vector.X * scale, height, vector.Y * scale);
+        private static Vector2DInt AsVector2Int(Vector3 vector, float scale) => new((int)(vector.x / scale), (int)(vector.z / scale));
     }
 }
 #endif

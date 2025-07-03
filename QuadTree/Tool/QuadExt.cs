@@ -50,13 +50,21 @@ namespace Eevee.QuadTree
                     return false;
 
                 case QuadCountNodeMode.IntersectOffset:
-                    area = (intersect.W >= 0, intersect.H >= 0) switch
+                    int x = intersect.X;
+                    int y = intersect.Y;
+                    int w = intersect.W;
+                    int h = intersect.H;
+                    if (intersect.W < 0)
                     {
-                        (false, false) => new AABB2DInt(intersect.X - intersect.W, intersect.Y - intersect.H, 0, 0),
-                        (false, true) => new AABB2DInt(intersect.X - intersect.W, intersect.Y, 0, intersect.H),
-                        (true, false) => new AABB2DInt(intersect.X, intersect.Y - intersect.H, intersect.W, 0),
-                        _ => intersect,
-                    };
+                        x = intersect.X < maxBoundary.X ? intersect.X - intersect.W : intersect.X + intersect.W - 1;
+                        w = 0;
+                    }
+                    if (intersect.H < 0)
+                    {
+                        y = intersect.Y < maxBoundary.Y ? intersect.Y - intersect.H : intersect.Y + intersect.H - 1;
+                        h = 0;
+                    }
+                    area = new AABB2DInt(x, y, w, h);
                     return true;
 
                 default: throw new ArgumentOutOfRangeException(nameof(mode), mode, "Error!");

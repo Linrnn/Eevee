@@ -20,7 +20,6 @@ namespace EeveeEditor.QuadTree
         private sealed class EditorDrawQuadQueryInspector : Editor
         {
             #region Property Path
-            private const string Script = "m_Script";
             private const string Shape = nameof(_shape);
             private const string Center = nameof(_center);
             private const string Radius = nameof(_radius);
@@ -35,11 +34,24 @@ namespace EeveeEditor.QuadTree
             #endregion
 
             private readonly Dictionary<string, SerializedProperty> _serializedProperties = new();
+            private float _scale;
+            private Vector2Int[] _polygon = Array.Empty<Vector2Int>();
 
             public override void OnInspectorGUI()
             {
                 serializedObject.Update();
                 DrawClass();
+                serializedObject.ApplyModifiedProperties();
+            }
+            private void OnSceneGUI()
+            {
+                if (_scale == 0 && QuadGetter.Proxy.Manager is { } manager)
+                    _scale = 1F / manager.Scale;
+                if (_scale == 0)
+                    return;
+                if (target is MonoBehaviour { enabled: false })
+                    return;
+                DrawQueryShape();
                 serializedObject.ApplyModifiedProperties();
             }
             private void OnDisable()
@@ -51,7 +63,7 @@ namespace EeveeEditor.QuadTree
 
             private void DrawClass()
             {
-                DrawLine(Script, false);
+                DrawLine(EditorUtils.Script, false);
                 DrawLine(Shape);
 
                 switch (GetOrFind(Shape).enumValueFlag)
@@ -74,6 +86,64 @@ namespace EeveeEditor.QuadTree
                 DrawUseButton("使用缓存");
                 EditorGUILayout.EndHorizontal();
             }
+            private void DrawQueryShape()
+            {
+                var shapeProperty = GetOrFind(Shape);
+                var centerProperty = GetOrFind(Center);
+                var radiusProperty = GetOrFind(Radius);
+                var extentsProperty = GetOrFind(Extents);
+                var angleProperty = GetOrFind(Angle);
+                var polygonProperty = GetOrFind(Polygon);
+                var heightProperty = GetOrFind(Height);
+
+                var shape = (QuadShape)shapeProperty.enumValueFlag;
+                var center = centerProperty.vector2IntValue;
+                int radius = radiusProperty.intValue;
+                var extents = extentsProperty.vector2IntValue;
+                float angle = angleProperty.floatValue;
+                var polygon = _polygon.Length == polygonProperty.arraySize ? _polygon : new Vector2Int[polygonProperty.arraySize];
+                float height = heightProperty.floatValue;
+
+                switch (shape)
+                {
+                    case QuadShape.Point:
+                        ShapeDraw.Point(ref center, _scale, height);
+                        centerProperty.vector2IntValue = center;
+                        break;
+
+                    case QuadShape.Circle:
+                        ShapeDraw.Circle(ref center, ref radius, _scale, height);
+                        centerProperty.vector2IntValue = center;
+                        radiusProperty.intValue = radius;
+                        break;
+
+                    case QuadShape.AABB:
+                        ShapeDraw.AABB(ref center, ref extents, _scale, height);
+                        centerProperty.vector2IntValue = center;
+                        extentsProperty.vector2IntValue = extents;
+                        break;
+
+                    case QuadShape.OBB:
+                        ShapeDraw.OBB(ref center, ref extents, ref angle, _scale, height);
+                        centerProperty.vector2IntValue = center;
+                        extentsProperty.vector2IntValue = extents;
+                        angleProperty.floatValue = angle;
+                        break;
+
+                    case QuadShape.Polygon:
+                        for (int i = 0; i < polygon.Length; ++i)
+                            polygon[i] = polygonProperty.GetArrayElementAtIndex(i).vector2IntValue;
+                        ShapeDraw.Polygon(ref polygon, _scale, height);
+                        EditorUtils.SetArrayLength(polygonProperty, polygon.Length);
+                        for (int i = 0; i < polygon.Length; ++i)
+                            polygonProperty.GetArrayElementAtIndex(i).vector2IntValue = polygon[i];
+                        _polygon = polygon;
+                        break;
+
+                    default: Debug.LogError($"[Editor][Quad] Shape:{shape}, not impl!"); break;
+                }
+            }
+
             private EditorDrawQuadQueryInspector DrawLine(string path, bool allowSet = true)
             {
                 var property = GetOrFind(path);

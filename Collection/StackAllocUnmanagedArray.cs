@@ -26,7 +26,7 @@ namespace Eevee.Collection
         internal readonly ref T RefGet(int index) => ref _span[index];
         internal readonly T Get(int index) => _span[index];
 
-        internal void Set(int index, in T element)
+        internal readonly void Set(int index, in T element)
         {
             Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
             _span[index] = element;

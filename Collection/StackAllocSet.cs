@@ -175,13 +175,13 @@ namespace Eevee.Collection
 
         #region Private 方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe Entry GetEntry(int offset)
+        private readonly unsafe Entry GetEntry(int offset)
         {
             fixed (void* ptr = &_entries[offset])
                 return Unsafe.Read<Entry>(ptr);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private unsafe void SetEntry(int offset, in Entry entry)
+        private readonly unsafe void SetEntry(int offset, in Entry entry)
         {
             fixed (void* ptr = &_entries[offset])
                 Unsafe.Write(ptr, entry);
@@ -246,7 +246,7 @@ namespace Eevee.Collection
             return true;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref int GetBucketRef(int hashCode)
+        private readonly ref int GetBucketRef(int hashCode)
         {
 #if TARGET_64BIT
             int index = (int)HashHelper.FastMod((uint)hashCode, (uint)_capacity, _fastModMultiplier);
@@ -258,10 +258,10 @@ namespace Eevee.Collection
 
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
-        private void CheckNum(int num) => Assert.LessEqual<IndexOutOfRangeException, AssertArgs<int, int>, int>(num, _capacity, nameof(num), "num:{0} > _capacity:{1}", new AssertArgs<int, int>(num, _scale));
+        private readonly void CheckNum(int num) => Assert.LessEqual<IndexOutOfRangeException, AssertArgs<int, int>, int>(num, _capacity, nameof(num), "num:{0} > _capacity:{1}", new AssertArgs<int, int>(num, _scale));
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
-        private void CheckItem(T item)
+        private readonly void CheckItem(T item)
         {
             if (_referenceType)
                 Assert.NotNull<ArgumentNullException, AssertArgs>(item, nameof(item), "is null!");
