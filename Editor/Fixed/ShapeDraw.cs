@@ -9,12 +9,9 @@ namespace EeveeEditor.Fixed
 {
     internal readonly struct ShapeDraw
     {
-        private static GUIStyle _style;
-        private static GUIStyle AllocStyle() => _style ??= new GUIStyle();
-
         internal static void Label(Vector2DInt point, float scale, float height, string label, in Color color)
         {
-            var style = AllocStyle();
+            var style = GUI.skin.label;
             var oldColor = style.normal.textColor;
             var oldAlignment = style.alignment;
             var position = AsVector3(point, scale, height);
@@ -55,15 +52,16 @@ namespace EeveeEditor.Fixed
         }
         internal static void OBB(in OBB2DInt shape, float scale, float height, in Color color)
         {
-            // todo eevee 尝试Handles旋转
+            var oldMatrix = Handles.matrix;
             var oldColor = Handles.color;
-            shape.RotatedCorner(out var p0, out var p1, out var p2, out var p3);
+            var center = AsVector3(shape.Center(), scale, height);
+            var rotation = UQuaternion.Euler(0, -(float)shape.A.Value, 0);
+            var size = AsVector3(shape.Size(), scale, 0);
 
+            Handles.matrix = Matrix4x4.TRS(center, rotation, size);
             Handles.color = color;
-            Line(in p0, in p1, scale, height);
-            Line(in p1, in p2, scale, height);
-            Line(in p2, in p3, scale, height);
-            Line(in p3, in p0, scale, height);
+            Handles.DrawWireCube(default, Vector3.one);
+            Handles.matrix = oldMatrix;
             Handles.color = oldColor;
         }
         internal static void Polygon(in ReadOnlySpan<Vector2Int> shape, float scale, float height, in Color color)
@@ -118,7 +116,6 @@ namespace EeveeEditor.Fixed
         }
         internal static void Polygon(ref Vector2Int[] shape, float scale, float height)
         {
-            // todo eevee 插入和删除
             for (int length = shape.Length, i = 0; i < length; ++i)
             {
                 ref var point = ref shape[i];
@@ -127,20 +124,12 @@ namespace EeveeEditor.Fixed
             }
         }
 
-        private static void Line(in Vector2D p0, in Vector2D p1, float scale, float height)
-        {
-            var v0 = AsVector3(p0, scale, height);
-            var v1 = AsVector3(p1, scale, height);
-            Handles.DrawLine(v0, v1);
-        }
         private static void Line(Vector2DInt p0, Vector2DInt p1, float scale, float height)
         {
             var v0 = AsVector3(p0, scale, height);
             var v1 = AsVector3(p1, scale, height);
             Handles.DrawLine(v0, v1);
         }
-
-        private static Vector3 AsVector3(in Vector2D vector, float scale, float height) => new((float)vector.X * scale, height, (float)vector.Y * scale);
         private static Vector3 AsVector3(Vector2DInt vector, float scale, float height) => new(vector.X * scale, height, vector.Y * scale);
         private static Vector2DInt AsVector2Int(Vector3 vector, float scale) => new((int)(vector.x / scale), (int)(vector.z / scale));
     }

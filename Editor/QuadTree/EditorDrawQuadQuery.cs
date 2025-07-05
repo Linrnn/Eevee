@@ -40,7 +40,7 @@ namespace EeveeEditor.QuadTree
             public override void OnInspectorGUI()
             {
                 serializedObject.Update();
-                DrawClass();
+                DrawProperties();
                 serializedObject.ApplyModifiedProperties();
             }
             private void OnSceneGUI()
@@ -61,28 +61,28 @@ namespace EeveeEditor.QuadTree
                 _serializedProperties.Clear();
             }
 
-            private void DrawClass()
+            private void DrawProperties()
             {
-                DrawLine(EditorUtils.Script, false);
-                DrawLine(Shape);
+                DrawProperty(EditorUtils.Script, false);
+                DrawProperty(Shape);
 
                 switch (GetOrFind(Shape).enumValueFlag)
                 {
-                    case (int)QuadShape.Point: DrawLine(Center); break;
-                    case (int)QuadShape.Circle: DrawLine(Center).DrawLine(Radius); break;
-                    case (int)QuadShape.AABB: DrawLine(Center).DrawLine(Extents); break;
-                    case (int)QuadShape.OBB: DrawLine(Center).DrawLine(Extents).DrawLine(Angle); break;
-                    case (int)QuadShape.Polygon: DrawLine(Polygon); break;
+                    case (int)QuadShape.Point: DrawProperty(Center); break;
+                    case (int)QuadShape.Circle: DrawProperty(Center).DrawProperty(Radius); break;
+                    case (int)QuadShape.AABB: DrawProperty(Center).DrawProperty(Extents); break;
+                    case (int)QuadShape.OBB: DrawProperty(Center).DrawProperty(Extents).DrawProperty(Angle); break;
+                    case (int)QuadShape.Polygon: DrawProperty(Polygon); break;
                     default: return;
                 }
 
-                DrawLine(TreeId);
-                DrawLine(Height);
-                DrawLine(QueryColor);
-                DrawLine(ElementColor);
+                DrawProperty(TreeId);
+                DrawProperty(Height);
+                DrawProperty(QueryColor);
+                DrawProperty(ElementColor);
 
                 EditorGUILayout.BeginHorizontal();
-                DrawLine(CacheIndex);
+                DrawProperty(CacheIndex);
                 DrawUseButton("使用缓存");
                 EditorGUILayout.EndHorizontal();
             }
@@ -144,7 +144,7 @@ namespace EeveeEditor.QuadTree
                 }
             }
 
-            private EditorDrawQuadQueryInspector DrawLine(string path, bool allowSet = true)
+            private EditorDrawQuadQueryInspector DrawProperty(string path, bool allowSet = true)
             {
                 var property = GetOrFind(path);
                 EditorGUI.BeginDisabledGroup(!allowSet);
