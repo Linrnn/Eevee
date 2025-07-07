@@ -69,7 +69,7 @@ namespace Eevee.Collection
             _freeCount = 0;
             _freeList = -1;
 #if TARGET_64BIT
-            _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
+            _fastModMultiplier = Utils.HashUtils.GetFastModMultiplier((uint)newSize);
 #endif
         }
         internal StackAllocSet(int scale, in Span<int> buckets, in Span<byte> entries)
@@ -84,7 +84,7 @@ namespace Eevee.Collection
             _freeCount = 0;
             _freeList = -1;
 #if TARGET_64BIT
-            _fastModMultiplier = HashHelpers.GetFastModMultiplier((uint)newSize);
+            _fastModMultiplier = Utils.HashUtils.GetFastModMultiplier((uint)newSize);
 #endif
         }
         internal static void GetSize(ref int length, out int scale, out int capacity)
@@ -249,7 +249,7 @@ namespace Eevee.Collection
         private readonly ref int GetBucketRef(int hashCode)
         {
 #if TARGET_64BIT
-            int index = (int)HashHelper.FastMod((uint)hashCode, (uint)_capacity, _fastModMultiplier);
+            int index = (int)Utils.HashUtils.FastMod((uint)hashCode, (uint)_capacity, _fastModMultiplier);
 #else
             int index = (int)((uint)hashCode % (uint)_capacity);
 #endif

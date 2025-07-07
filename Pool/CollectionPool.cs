@@ -1,13 +1,12 @@
-﻿using Eevee.Diagnosis;
-using System;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Eevee.Pool
 {
-    public sealed class CollectionPool<TCollection> where TCollection : class, new()
+    public sealed class CollectionPool<TCollection> where TCollection : class, IEnumerable, new()
     {
         private CollectionPool _pool;
-        private const bool ReleaseCheck = true;
 
         #region Alloc
         public TCollection Alloc() => PrivateAlloc(_pool);
@@ -28,8 +27,8 @@ namespace Eevee.Pool
         {
             collectionPool ??= new CollectionPool();
             var value = collectionPool.Value(typeof(TCollection));
-            if (ReleaseCheck)
-                Assert.False<InvalidOperationException, AssertArgs<Type, int>>(value?.GetPool<TCollection>()?.Contains(collection) ?? false, nameof(collection), "Pools is Contains, Type:{0}, HashCode:{1}", new AssertArgs<Type, int>(collection.GetType(), collection.GetHashCode()));
+            if (CollectionPool.ReleaseCheck && value?.GetPool<TCollection>() is { } pool && pool.Contains(collection))
+                throw new InvalidOperationException($"Pools is Contains, FullName:{collection.GetType().FullName}, HashCode:{collection.GetHashCode()}");
 
             var newValue = value ?? collectionPool.SetMaxCount<TCollection>();
             if (!newValue.IsFull())
@@ -67,6 +66,8 @@ namespace Eevee.Pool
         #endregion
 
         #region 静态成员
+        public static bool ReleaseCheck = true;
+
         internal static CollectionPool Impl;
         public static void CleanImpl() => Impl = null;
         #endregion
