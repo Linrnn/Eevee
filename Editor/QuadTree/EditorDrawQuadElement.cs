@@ -110,6 +110,7 @@ namespace EeveeEditor.QuadTree
 
         [Header("渲染数据")] [SerializeField] private float _height;
         [SerializeField] private bool _draw = true;
+        [SerializeField] private bool _drawIndex = true;
         #endregion
 
         #region 运行时缓存
@@ -180,7 +181,7 @@ namespace EeveeEditor.QuadTree
         {
             if (_draw)
                 foreach (var element in _elements)
-                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _scale, _height, in element.Color);
+                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _scale, _height, _drawIndex, in element.Color);
         }
     }
 }

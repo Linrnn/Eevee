@@ -16,6 +16,7 @@ namespace EeveeEditor.QuadTree
         #region 序列化字段
         [Header("四叉树设置")] [SerializeField] private int _treeId;
         [SerializeField] private int[] _indexes = Array.Empty<int>(); // 搜索对象所在的节点
+        [SerializeField] private bool _drawIndex = true;
 
         [Header("渲染设置")] [SerializeField] private Empty _; // 使“Header”特性正常绘制缩进
         [SerializeField] private ColorSetting _emptyNode = new(false, Color.gray); // 空节点
@@ -80,7 +81,7 @@ namespace EeveeEditor.QuadTree
             var config = _manager.GetConfig(_treeId);
             ShapeDraw.AABB(in node.LooseBoundary, _scale, _height, in _looseColor);
             ShapeDraw.AABB(in node.Boundary, _scale, _height, in _boundaryColor);
-            QuadDraw.Element(config.Shape, config.TreeId, in element, _scale, _height, in _shapeColor);
+            QuadDraw.Element(config.Shape, config.TreeId, in element, _scale, _height, _drawIndex, in _shapeColor);
         }
     }
 }

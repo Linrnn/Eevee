@@ -75,6 +75,7 @@ namespace EeveeEditor.QuadTree
         [SerializeField] private int[] _treeIds;
         [SerializeField] private ColorSetting _lineBall = new(true, Color.magenta); // 压线的元素
         [SerializeField] private float _height;
+        [SerializeField] private bool _drawIndex = true;
         [SerializeField] private DepthCount[] _depthCounts = Array.Empty<DepthCount>();
         #endregion
 
@@ -176,10 +177,20 @@ namespace EeveeEditor.QuadTree
 
         private void DrawElements()
         {
-            foreach (var element in _elements)
+            if (_drawIndex)
             {
-                ShapeDraw.Label(element.Shape.Center(), _scale, _height, element.Index.ToString(), in _lineBall.Color);
-                ShapeDraw.AABB(in element.Shape, _scale, _height, in _lineBall.Color);
+                foreach (var element in _elements)
+                {
+                    ShapeDraw.Label(element.Shape.Center(), _scale, _height, element.Index.ToString(), in _lineBall.Color);
+                    ShapeDraw.AABB(in element.Shape, _scale, _height, in _lineBall.Color);
+                }
+            }
+            else
+            {
+                foreach (var element in _elements)
+                {
+                    ShapeDraw.AABB(in element.Shape, _scale, _height, in _lineBall.Color);
+                }
             }
         }
     }

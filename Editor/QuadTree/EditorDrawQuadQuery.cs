@@ -28,6 +28,7 @@ namespace EeveeEditor.QuadTree
             private const string Polygon = nameof(_polygon);
             private const string TreeId = nameof(_treeId);
             private const string Height = nameof(_height);
+            private const string DrawIndex = nameof(_drawIndex);
             private const string QueryColor = nameof(_queryColor);
             private const string ElementColor = nameof(_elementColor);
             private const string CacheIndex = nameof(_cacheIndex);
@@ -78,6 +79,7 @@ namespace EeveeEditor.QuadTree
 
                 DrawProperty(TreeId);
                 DrawProperty(Height);
+                DrawProperty(DrawIndex);
                 DrawProperty(QueryColor);
                 DrawProperty(ElementColor);
 
@@ -212,6 +214,7 @@ namespace EeveeEditor.QuadTree
 
         [Header("渲染数据")] [SerializeField] private int _treeId;
         [SerializeField] private float _height;
+        [SerializeField] private bool _drawIndex = true;
         [SerializeField] private Color _queryColor = Color.black;
         [SerializeField] private Color _elementColor = Color.blue;
         [SerializeField] private int _cacheIndex;
@@ -282,7 +285,7 @@ namespace EeveeEditor.QuadTree
         {
             var config = _manager.GetConfig(_treeId);
             foreach (var element in _elements)
-                QuadDraw.Element(config.Shape, _treeId, in element, _scale, _height, in _elementColor);
+                QuadDraw.Element(config.Shape, _treeId, in element, _scale, _height, _drawIndex, in _elementColor);
         }
 
         #region 缓存

@@ -16,8 +16,8 @@ namespace Eevee.Fixed
         public static readonly Vector2DInt16 Left = new(-1, 0);
         public static readonly Vector2DInt16 Up = new(0, 1);
         public static readonly Vector2DInt16 Down = new(0, -1);
-        public static readonly Vector2DInt16 Infinitesimal = new(int.MinValue, int.MinValue);
-        public static readonly Vector2DInt16 Infinity = new(int.MaxValue, int.MaxValue);
+        public static readonly Vector2DInt16 Infinitesimal = new(short.MinValue, short.MinValue);
+        public static readonly Vector2DInt16 Infinity = new(short.MaxValue, short.MaxValue);
 
         public short X;
         public short Y;
