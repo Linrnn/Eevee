@@ -33,7 +33,7 @@ namespace Eevee.QuadTree
             var node = GetOrAddNode(index.Depth, index.X, index.Y);
             node.Add(in element);
 
-            if (QuadDebug.CheckIndex(_treeId, element.Index))
+            if (QuadDiagnosis.CheckIndex(_treeId, element.Index))
                 LogRelay.Log($"[Quad] InsertElement Success, TreeId:{_treeId}, Ele:{element}");
         }
         public bool Remove(in QuadElement element)
@@ -43,9 +43,9 @@ namespace Eevee.QuadTree
             bool remove = node.Remove(in element);
             TryRemoveNode(node);
 
-            if (remove && QuadDebug.CheckIndex(_treeId, element.Index))
+            if (remove && QuadDiagnosis.CheckIndex(_treeId, element.Index))
                 LogRelay.Log($"[Quad] RemoveElement Success, TreeId:{_treeId}, Ele:{element}");
-            if (!remove && QuadDebug.CheckIndex(_treeId, element.Index))
+            if (!remove && QuadDiagnosis.CheckIndex(_treeId, element.Index))
                 LogRelay.Warn($"[Quad] RemoveElement Fail, TreeId:{_treeId}, Ele:{element}");
             return remove;
         }
@@ -60,7 +60,7 @@ namespace Eevee.QuadTree
             {
                 if (!preNode.Update(in preElement, in tarElement))
                     LogRelay.Error($"[Quad] UpdateElement Fail, TreeId:{_treeId}, PreEle:{preElement}, TarEle:{tarElement}");
-                else if (QuadDebug.CheckIndex(_treeId, preElement.Index))
+                else if (QuadDiagnosis.CheckIndex(_treeId, preElement.Index))
                     LogRelay.Log($"[Quad] UpdateElement Success, TreeId:{_treeId}, PreEle:{preElement}, TarEle:{tarElement}");
             }
             else

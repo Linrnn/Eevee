@@ -19,7 +19,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsNullOrEmpty<T>(this ICollection<T> source) => source is null || source.Count == 0;
 
-        public static void Set<T>(this ICollection<T> source, T item)
+        public static void SetOne<T>(this ICollection<T> source, T item)
         {
             source.Clear();
             source.Add(item);

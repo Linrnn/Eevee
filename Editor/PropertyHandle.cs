@@ -16,8 +16,8 @@ namespace EeveeEditor
         }
         internal void Dispose()
         {
-            foreach (var (_, serializedProperty) in _serializedProperties)
-                serializedProperty.Dispose();
+            foreach (var (_, property) in _serializedProperties)
+                property.Dispose();
             _serializedProperties.Clear();
             _serializedObject.Dispose();
         }

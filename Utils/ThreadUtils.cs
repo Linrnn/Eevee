@@ -210,7 +210,7 @@ namespace Eevee.Utils
         /// minStateCount，默认值：20
         /// maxThreadCount，默认值：4
         /// timeout，默认值：100
-        public static void Start<T>(Action<T, int> action, IReadOnlyList<T> states, int leastStateCount, int mostThreadCount, int timeout, bool enable, CollectionPool<List<ReuseTaskHandle<T>>> handlesPool, ObjectInterPool<ReuseTaskHandle<T>> handlePool) where T : class
+        public static void Start<T>(Action<T, int> action, IReadOnlyList<T> states, int leastStateCount, int mostThreadCount, int timeout, bool enable, CollectionPool<List<ReuseTaskHandle<T>>> handlesPool, ObjectInterPool<ReuseTaskHandle<T>> handlePool)
         {
             int stateCount = states.Count;
             if (stateCount == 0)
@@ -256,7 +256,7 @@ namespace Eevee.Utils
                     action(states[i], i);
             }
         }
-        public static void Start<T>(Action<T, int> action, IReadOnlyList<T> states, int leastStateCount, int mostThreadCount, int timeout, bool enable, CollectionPool<List<TaskHandle<T>>> handlesPool, ObjectInterPool<TaskHandle<T>> handlePool) where T : class
+        public static void Start<T>(Action<T, int> action, IReadOnlyList<T> states, int leastStateCount, int mostThreadCount, int timeout, bool enable, CollectionPool<List<TaskHandle<T>>> handlesPool, ObjectInterPool<TaskHandle<T>> handlePool)
         {
             int stateCount = states.Count;
             if (stateCount == 0)

@@ -1,4 +1,5 @@
-﻿using Eevee.Define;
+﻿using Eevee.Collection;
+using Eevee.Define;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -8,11 +9,11 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 四叉树调试相关
     /// </summary>
-    public readonly struct QuadDebug
+    public readonly struct QuadDiagnosis
     {
         public static bool Print = false; // 是否输出日志
-        public static readonly int[] TreeIds; // 需要检测的TreeId，null/Empty代表不限制检测
-        public static readonly int[] Indexes; // 需要检测的Index，null/Empty代表不限制检测
+        public static int[] TreeIds; // 需要检测的TreeId，null/Empty代表不限制检测
+        public static int[] Indexes; // 需要检测的Index，null/Empty代表不限制检测
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool Check()
@@ -65,7 +66,7 @@ namespace Eevee.QuadTree
             return allow;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool CheckTargets(ICollection<int> targets, int id) => targets is null || targets.Contains(id);
+        private static bool CheckTargets(ICollection<int> targets, int id) => targets.IsNullOrEmpty() || targets.Contains(id);
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -97,7 +97,7 @@ namespace Eevee.QuadTree
 
             if (hasError)
                 LogRelay.Error($"[Quad] PreUpdateElement Fail, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
-            else if (QuadDebug.CheckIndex(cache.TreeId, preEle.Index))
+            else if (QuadDiagnosis.CheckIndex(cache.TreeId, preEle.Index))
                 LogRelay.Info($"[Quad] PreUpdateElement Success, NodeEqual:{preNode == tarNode}, UsePre:{usePre}, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
         }
         #endregion

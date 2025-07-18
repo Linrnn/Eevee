@@ -3,7 +3,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace EeveeEditor.QuadTree
+namespace EeveeEditor
 {
     [Serializable]
     internal struct ColorSetting
