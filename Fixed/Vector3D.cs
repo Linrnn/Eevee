@@ -154,6 +154,10 @@ namespace Eevee.Fixed
         };
 
         /// <summary>
+        /// 符号值
+        /// </summary>
+        public readonly Vector3D Sign() => new(X.Sign(), Y.Sign(), Z.Sign());
+        /// <summary>
         /// 绝对值
         /// </summary>
         public readonly Vector3D Abs() => new(X.Abs(), Y.Abs(), Z.Abs());

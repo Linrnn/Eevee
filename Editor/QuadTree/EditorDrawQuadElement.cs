@@ -14,6 +14,53 @@ namespace EeveeEditor.QuadTree
     internal sealed class EditorDrawQuadElement : MonoBehaviour
     {
         #region 类型
+        [CustomEditor(typeof(EditorDrawQuadElement))]
+        private sealed class EditorDrawQuadElementInspector : Editor
+        {
+            #region Property Path
+            private const string Range = nameof(_range);
+            private const string TreeIds = nameof(_treeIds);
+            private const string Indexes = nameof(_indexes);
+            private const string Height = nameof(_height);
+            private const string Draw = nameof(_draw);
+            private const string DrawIndex = nameof(_drawIndex);
+            #endregion
+
+            private PropertyHandle _propertyHandle;
+
+            public override void OnInspectorGUI()
+            {
+                serializedObject.Update();
+                DrawProperties();
+                serializedObject.ApplyModifiedProperties();
+            }
+            private void OnEnable() => _propertyHandle.Initialize(this);
+            private void OnDisable() => _propertyHandle.Dispose();
+
+            private void DrawProperties()
+            {
+                var rangeProperty = _propertyHandle.Get(Range);
+
+                _propertyHandle.Draw(EditorUtils.Script, false);
+                _propertyHandle.Draw(Range);
+
+                switch (rangeProperty.enumValueIndex)
+                {
+                    case (int)DrawRange.Single:
+                    case (int)DrawRange.Children:
+                    case (int)DrawRange.All: _propertyHandle.Draw(TreeIds); break;
+                    case (int)DrawRange.Custom:
+                        _propertyHandle.Draw(TreeIds);
+                        _propertyHandle.Draw(Indexes);
+                        break;
+                }
+
+                _propertyHandle.Draw(Height);
+                _propertyHandle.Draw(Draw);
+                _propertyHandle.Draw(DrawIndex);
+            }
+        }
+
         private readonly struct DrawTree
         {
             internal readonly int TreeId;
@@ -101,12 +148,14 @@ namespace EeveeEditor.QuadTree
             Single,
             Children,
             All,
+            Custom,
         }
         #endregion
 
         #region 序列化字段
-        [Header("四叉树设置")] [SerializeField] private DrawRange _drawRange = DrawRange.All;
+        [Header("四叉树设置")] [SerializeField] private DrawRange _range = DrawRange.All;
         [SerializeField] private int[] _treeIds;
+        [SerializeField] private int[] _indexes;
 
         [Header("渲染数据")] [SerializeField] private float _height;
         [SerializeField] private bool _draw = true;
@@ -145,7 +194,7 @@ namespace EeveeEditor.QuadTree
         private void ReadyIndexes()
         {
             _drawIndexes.Clear();
-            switch (_drawRange)
+            switch (_range)
             {
                 case DrawRange.Single: _drawIndexes.Add(QuadGetter.Proxy.GetIndex(gameObject)); break;
                 case DrawRange.Children: QuadGetter.Proxy.GetIndexes(gameObject, _drawIndexes); break;
@@ -155,6 +204,7 @@ namespace EeveeEditor.QuadTree
                     foreach (var element in node.Elements)
                         _drawIndexes.Add(element.Index);
                     break;
+                case DrawRange.Custom: _drawIndexes.UnionWith(_indexes); break;
             }
         }
         private void ReadyTrees()

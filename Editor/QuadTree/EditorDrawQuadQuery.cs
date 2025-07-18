@@ -34,7 +34,7 @@ namespace EeveeEditor.QuadTree
             private const string CacheIndex = nameof(_cacheIndex);
             #endregion
 
-            private readonly Dictionary<string, SerializedProperty> _serializedProperties = new();
+            private PropertyHandle _propertyHandle;
             private float _scale;
             private Vector2Int[] _polygon = Array.Empty<Vector2Int>();
 
@@ -44,6 +44,7 @@ namespace EeveeEditor.QuadTree
                 DrawProperties();
                 serializedObject.ApplyModifiedProperties();
             }
+            private void OnEnable() => _propertyHandle.Initialize(this);
             private void OnSceneGUI()
             {
                 if (_scale == 0 && QuadGetter.Proxy.Manager is { } manager)
@@ -55,48 +56,43 @@ namespace EeveeEditor.QuadTree
                 DrawQueryShape();
                 serializedObject.ApplyModifiedProperties();
             }
-            private void OnDisable()
-            {
-                foreach (var (_, serializedProperty) in _serializedProperties)
-                    serializedProperty.Dispose();
-                _serializedProperties.Clear();
-            }
+            private void OnDisable() => _propertyHandle.Dispose();
 
             private void DrawProperties()
             {
-                DrawProperty(EditorUtils.Script, false);
-                DrawProperty(Shape);
+                _propertyHandle.Draw(EditorUtils.Script, false);
+                _propertyHandle.Draw(Shape);
 
-                switch (GetOrFind(Shape).enumValueFlag)
+                switch (_propertyHandle.Get(Shape).enumValueFlag)
                 {
-                    case (int)QuadShape.Point: DrawProperty(Center); break;
-                    case (int)QuadShape.Circle: DrawProperty(Center).DrawProperty(Radius); break;
-                    case (int)QuadShape.AABB: DrawProperty(Center).DrawProperty(Extents); break;
-                    case (int)QuadShape.OBB: DrawProperty(Center).DrawProperty(Extents).DrawProperty(Angle); break;
-                    case (int)QuadShape.Polygon: DrawProperty(Polygon); break;
+                    case (int)QuadShape.Point: _propertyHandle.Draw(Center); break;
+                    case (int)QuadShape.Circle: _propertyHandle.Draw(Center).Draw(Radius); break;
+                    case (int)QuadShape.AABB: _propertyHandle.Draw(Center).Draw(Extents); break;
+                    case (int)QuadShape.OBB: _propertyHandle.Draw(Center).Draw(Extents).Draw(Angle); break;
+                    case (int)QuadShape.Polygon: _propertyHandle.Draw(Polygon); break;
                     default: return;
                 }
 
-                DrawProperty(TreeId);
-                DrawProperty(Height);
-                DrawProperty(DrawIndex);
-                DrawProperty(QueryColor);
-                DrawProperty(ElementColor);
+                _propertyHandle.Draw(TreeId);
+                _propertyHandle.Draw(Height);
+                _propertyHandle.Draw(DrawIndex);
+                _propertyHandle.Draw(QueryColor);
+                _propertyHandle.Draw(ElementColor);
 
                 EditorGUILayout.BeginHorizontal();
-                DrawProperty(CacheIndex);
+                _propertyHandle.Draw(CacheIndex);
                 DrawUseButton("使用缓存");
                 EditorGUILayout.EndHorizontal();
             }
             private void DrawQueryShape()
             {
-                var shapeProperty = GetOrFind(Shape);
-                var centerProperty = GetOrFind(Center);
-                var radiusProperty = GetOrFind(Radius);
-                var extentsProperty = GetOrFind(Extents);
-                var angleProperty = GetOrFind(Angle);
-                var polygonProperty = GetOrFind(Polygon);
-                var heightProperty = GetOrFind(Height);
+                var shapeProperty = _propertyHandle.Get(Shape);
+                var centerProperty = _propertyHandle.Get(Center);
+                var radiusProperty = _propertyHandle.Get(Radius);
+                var extentsProperty = _propertyHandle.Get(Extents);
+                var angleProperty = _propertyHandle.Get(Angle);
+                var polygonProperty = _propertyHandle.Get(Polygon);
+                var heightProperty = _propertyHandle.Get(Height);
 
                 var shape = (QuadShape)shapeProperty.enumValueFlag;
                 var center = centerProperty.vector2IntValue;
@@ -145,45 +141,36 @@ namespace EeveeEditor.QuadTree
                     default: Debug.LogError($"[Editor][Quad] Shape:{shape}, not impl!"); break;
                 }
             }
-
-            private EditorDrawQuadQueryInspector DrawProperty(string path, bool allowSet = true)
-            {
-                var property = GetOrFind(path);
-                EditorGUI.BeginDisabledGroup(!allowSet);
-                EditorGUILayout.PropertyField(property);
-                EditorGUI.EndDisabledGroup();
-                return this;
-            }
             private void DrawUseButton(string text)
             {
                 if (!GUILayout.Button(text))
                     return;
 
-                var quadShape = (QuadShape)GetOrFind(Shape).enumValueFlag;
-                int cacheIndex = GetOrFind(CacheIndex).intValue;
+                var quadShape = (QuadShape)_propertyHandle.Get(Shape).enumValueFlag;
+                int cacheIndex = _propertyHandle.Get(CacheIndex).intValue;
                 object shape = ReadShape(quadShape, cacheIndex);
                 switch (shape)
                 {
-                    case Vector2DInt point: GetOrFind(Center).vector2IntValue = point; break;
+                    case Vector2DInt point: _propertyHandle.Get(Center).vector2IntValue = point; break;
 
                     case CircleInt circle:
-                        GetOrFind(Center).vector2IntValue = circle.Center();
-                        GetOrFind(Radius).intValue = circle.R;
+                        _propertyHandle.Get(Center).vector2IntValue = circle.Center();
+                        _propertyHandle.Get(Radius).intValue = circle.R;
                         break;
 
                     case AABB2DInt aabb:
-                        GetOrFind(Center).vector2IntValue = aabb.Center();
-                        GetOrFind(Extents).vector2IntValue = aabb.HalfSize();
+                        _propertyHandle.Get(Center).vector2IntValue = aabb.Center();
+                        _propertyHandle.Get(Extents).vector2IntValue = aabb.HalfSize();
                         break;
 
                     case OBB2DInt obb:
-                        GetOrFind(Center).vector2IntValue = obb.Center();
-                        GetOrFind(Extents).vector2IntValue = obb.HalfSize();
-                        GetOrFind(Angle).floatValue = (float)obb.A.Value;
+                        _propertyHandle.Get(Center).vector2IntValue = obb.Center();
+                        _propertyHandle.Get(Extents).vector2IntValue = obb.HalfSize();
+                        _propertyHandle.Get(Angle).floatValue = (float)obb.A.Value;
                         break;
 
                     case PolygonInt polygon:
-                        var polygonProperty = GetOrFind(Polygon);
+                        var polygonProperty = _propertyHandle.Get(Polygon);
                         int polygonCount = polygon.PointCount();
                         polygonProperty.arraySize = polygonCount;
                         for (int i = 0; i < polygonCount; ++i)
@@ -193,13 +180,6 @@ namespace EeveeEditor.QuadTree
 
                     default: Debug.LogError($"[Editor][Quad] Use cache fail. Shape:{quadShape}, Type:{shape?.GetType().FullName ?? "null"}, Context:{shape?.ToString() ?? "null"}, CacheIndex:{cacheIndex}."); break;
                 }
-            }
-            private SerializedProperty GetOrFind(string path)
-            {
-                var property = _serializedProperties.GetValueOrDefault(path);
-                var newProperty = property ?? serializedObject.FindProperty(path);
-                _serializedProperties[path] = newProperty;
-                return newProperty;
             }
         }
         #endregion

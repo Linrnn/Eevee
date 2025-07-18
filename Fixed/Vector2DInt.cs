@@ -94,6 +94,10 @@ namespace Eevee.Fixed
         };
 
         /// <summary>
+        /// 符号值
+        /// </summary>
+        public readonly Vector2DInt Sign() => new(Math.Sign(X), Math.Sign(Y));
+        /// <summary>
         /// 绝对值
         /// </summary>
         public readonly Vector2DInt Abs() => new(Math.Abs(X), Math.Abs(Y));
