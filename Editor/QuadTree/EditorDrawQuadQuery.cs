@@ -60,7 +60,7 @@ namespace EeveeEditor.QuadTree
 
             private void DrawProperties()
             {
-                _propertyHandle.Draw(EditorUtils.Script, false);
+                _propertyHandle.DrawScript();
                 _propertyHandle.Draw(Shape);
 
                 switch (_propertyHandle.Get(Shape).enumValueFlag)
@@ -73,7 +73,7 @@ namespace EeveeEditor.QuadTree
                     default: return;
                 }
 
-                _propertyHandle.Draw(TreeId);
+                _propertyHandle.DrawEnumQuadFunc(TreeId);
                 _propertyHandle.Draw(Height);
                 _propertyHandle.Draw(DrawIndex);
                 _propertyHandle.Draw(QueryColor);

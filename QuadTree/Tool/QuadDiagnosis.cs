@@ -70,6 +70,7 @@ namespace Eevee.QuadTree
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // ReSharper disable once RedundantAssignment
         private static void SetAllow(ref bool allow) => allow = true;
     }
 }

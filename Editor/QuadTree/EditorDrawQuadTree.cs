@@ -4,6 +4,7 @@ using EeveeEditor.Fixed;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace EeveeEditor.QuadTree
@@ -13,17 +14,59 @@ namespace EeveeEditor.QuadTree
     /// </summary>
     internal sealed class EditorDrawQuadTree : MonoBehaviour
     {
+        #region 类型
+        [CustomEditor(typeof(EditorDrawQuadTree))]
+        private sealed class EditorDrawQuadTreeInspector : Editor
+        {
+            #region Property Path
+            private const string TreeId = nameof(_treeId);
+            private const string Indexes = nameof(_indexes);
+            private const string EmptyNode = nameof(_emptyNode);
+            private const string NormalNode = nameof(_normalNode);
+            private const string RootNode = nameof(_rootNode);
+            private const string LooseColor = nameof(_looseColor);
+            private const string BoundaryColor = nameof(_boundaryColor);
+            private const string ShapeColor = nameof(_shapeColor);
+            private const string Height = nameof(_height);
+            #endregion
+
+            private PropertyHandle _propertyHandle;
+
+            public override void OnInspectorGUI()
+            {
+                serializedObject.Update();
+                DrawProperties();
+                serializedObject.ApplyModifiedProperties();
+            }
+            private void OnEnable() => _propertyHandle.Initialize(this);
+            private void OnDisable() => _propertyHandle.Dispose();
+
+            private void DrawProperties()
+            {
+                _propertyHandle.DrawScript();
+                _propertyHandle.DrawEnumQuadFunc(TreeId);
+                _propertyHandle.Draw(Indexes);
+                _propertyHandle.Draw(EmptyNode);
+                _propertyHandle.Draw(NormalNode);
+                _propertyHandle.Draw(RootNode);
+                _propertyHandle.Draw(LooseColor);
+                _propertyHandle.Draw(BoundaryColor);
+                _propertyHandle.Draw(ShapeColor);
+                _propertyHandle.Draw(Height);
+            }
+        }
+        #endregion
+
         #region 序列化字段
-        [Header("四叉树设置")] [SerializeField] private int _treeId;
+        [Header("渲染数据")] [SerializeField] private int _treeId;
         [SerializeField] private int[] _indexes = Array.Empty<int>(); // 搜索对象所在的节点
         [SerializeField] private bool _drawIndex = true;
 
-        [Header("渲染设置")] [SerializeField] private Empty _; // 使“Header”特性正常绘制缩进
-        [SerializeField] private ColorSetting _emptyNode = new(false, Color.gray); // 空节点
+        [Header("渲染设置")] [SerializeField] private ColorSetting _emptyNode = new(false, Color.gray); // 空节点
         [SerializeField] private ColorSetting _normalNode = new(true, Color.green); // 非空节点
         [SerializeField] private ColorSetting _rootNode = new(false, Color.red); // 根节点
 
-        [Header("渲染数据")] [SerializeField] private Color _looseColor = Color.magenta; // 搜索对象所在的节点的松散边界
+        [Header("渲染参数")] [SerializeField] private Color _looseColor = Color.magenta; // 搜索对象所在的节点的松散边界
         [SerializeField] private Color _boundaryColor = Color.blue; // 搜索对象所在的节点的边界
         [SerializeField] private Color _shapeColor = Color.black; // 搜索对象所在的节点实际的形状
         [SerializeField] private float _height;

@@ -41,16 +41,16 @@ namespace EeveeEditor.QuadTree
             {
                 var rangeProperty = _propertyHandle.Get(Range);
 
-                _propertyHandle.Draw(EditorUtils.Script, false);
+                _propertyHandle.DrawScript();
                 _propertyHandle.Draw(Range);
 
                 switch (rangeProperty.enumValueIndex)
                 {
                     case (int)DrawRange.Single:
                     case (int)DrawRange.Children:
-                    case (int)DrawRange.All: _propertyHandle.Draw(TreeIds); break;
+                    case (int)DrawRange.All: _propertyHandle.DrawEnumQuadFunc(TreeIds); break;
                     case (int)DrawRange.Custom:
-                        _propertyHandle.Draw(TreeIds);
+                        _propertyHandle.DrawEnumQuadFunc(TreeIds);
                         _propertyHandle.Draw(Indexes);
                         break;
                 }
@@ -153,11 +153,11 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 序列化字段
-        [Header("四叉树设置")] [SerializeField] private DrawRange _range = DrawRange.All;
+        [Header("渲染数据")] [SerializeField] private DrawRange _range = DrawRange.All;
         [SerializeField] private int[] _treeIds;
         [SerializeField] private int[] _indexes;
 
-        [Header("渲染数据")] [SerializeField] private float _height;
+        [Header("渲染参数")] [SerializeField] private float _height;
         [SerializeField] private bool _draw = true;
         [SerializeField] private bool _drawIndex = true;
         #endregion

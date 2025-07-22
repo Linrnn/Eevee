@@ -15,6 +15,39 @@ namespace EeveeEditor.QuadTree
     internal sealed class EditorDrawQuadCount : MonoBehaviour
     {
         #region 类型
+        [CustomEditor(typeof(EditorDrawQuadCount))]
+        private sealed class EditorDrawQuadCountInspector : Editor
+        {
+            #region Property Path
+            private const string TreeIds = nameof(_treeIds);
+            private const string LineBall = nameof(_lineBall);
+            private const string Height = nameof(_height);
+            private const string DrawIndex = nameof(_drawIndex);
+            private const string DepthCounts = nameof(_depthCounts);
+            #endregion
+
+            private PropertyHandle _propertyHandle;
+
+            public override void OnInspectorGUI()
+            {
+                serializedObject.Update();
+                DrawProperties();
+                serializedObject.ApplyModifiedProperties();
+            }
+            private void OnEnable() => _propertyHandle.Initialize(this);
+            private void OnDisable() => _propertyHandle.Dispose();
+
+            private void DrawProperties()
+            {
+                _propertyHandle.DrawScript();
+                _propertyHandle.DrawEnumQuadFunc(TreeIds);
+                _propertyHandle.Draw(LineBall);
+                _propertyHandle.Draw(Height);
+                _propertyHandle.Draw(DrawIndex);
+                _propertyHandle.Draw(DepthCounts, true);
+            }
+        }
+
         [Serializable]
         private struct DepthCount
         {

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace EeveeEditor.QuadTree
 {
-    internal readonly struct QuadDraw
+    internal static class QuadDraw
     {
         internal static void Element(QuadShape shape, in QuadElement element, float scale, float height, bool drawIndex, in Color color)
         {
@@ -35,6 +35,11 @@ namespace EeveeEditor.QuadTree
 
                 default: return false;
             }
+        }
+
+        internal static PropertyHandle DrawEnumQuadFunc(this PropertyHandle handle, string path, bool disabled = false)
+        {
+            return handle.DrawEnum(path, QuadGetter.Proxy.TreeEnum, disabled);
         }
     }
 }
