@@ -20,7 +20,7 @@ namespace Eevee.Collection
 
         #region ISet`1
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        bool ISet<T>.Add(T item) => Ptr.Add(item);
+        public bool Add(T item) => Ptr.Add(item);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly void ISet<T>.UnionWith(IEnumerable<T> other) => throw new NotImplementedException();
@@ -49,17 +49,15 @@ namespace Eevee.Collection
         #region ICollection`1
         public readonly int Count
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ptr.Count;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Ptr.Count;
         }
         readonly bool ICollection<T>.IsReadOnly
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => false;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(T item) => Ptr.Add(item);
+        void ICollection<T>.Add(T item) => Ptr.Add(item);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Remove(T item) => Ptr.Remove(item);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

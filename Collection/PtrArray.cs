@@ -25,10 +25,8 @@ namespace Eevee.Collection
         #region IList`1
         public T this[int index]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => Ptr[index];
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Ptr[index] = value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly get => Ptr[index];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => Ptr[index] = value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -48,13 +46,11 @@ namespace Eevee.Collection
         #region ICollection`1
         public readonly int Count
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ptr.Length;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Ptr.Length;
         }
         readonly bool ICollection<T>.IsReadOnly
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => false;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

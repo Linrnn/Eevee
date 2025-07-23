@@ -8,24 +8,22 @@ using Unity.Collections;
 
 namespace Eevee.Collection
 {
-    public struct PrtMap<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
+    public struct PtrMap<TKey, TValue> : IDictionary<TKey, TValue>, IReadOnlyDictionary<TKey, TValue>, IDisposable where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged, IEquatable<TValue>
     {
         #region Feild/Constructor
         public NativeHashMap<TKey, TValue> Ptr;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PrtMap(AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashMap<TKey, TValue>(7, allocator);
+        public PtrMap(AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashMap<TKey, TValue>(7, allocator);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public PrtMap(int capacity, AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashMap<TKey, TValue>(capacity, allocator);
+        public PtrMap(int capacity, AllocatorManager.AllocatorHandle allocator) => Ptr = new NativeHashMap<TKey, TValue>(capacity, allocator);
         #endregion
 
         #region IDictionary`2
         public TValue this[TKey key]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            readonly get => Ptr[key];
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            set => Ptr[key] = value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] readonly get => Ptr[key];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] set => Ptr[key] = value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -42,13 +40,11 @@ namespace Eevee.Collection
         #region ICollection`1
         public readonly int Count
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ptr.Count;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Ptr.Count;
         }
         readonly bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => false;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -79,24 +75,20 @@ namespace Eevee.Collection
         #region Keys/Values
         readonly ICollection<TKey> IDictionary<TKey, TValue>.Keys
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => throw new NotImplementedException();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => throw new NotImplementedException();
         }
         readonly ICollection<TValue> IDictionary<TKey, TValue>.Values
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => throw new NotImplementedException();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => throw new NotImplementedException();
         }
 
         readonly IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => throw new NotImplementedException();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => throw new NotImplementedException();
         }
         readonly IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => throw new NotImplementedException();
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => throw new NotImplementedException();
         }
         #endregion
 

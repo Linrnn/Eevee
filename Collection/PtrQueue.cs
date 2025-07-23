@@ -19,13 +19,11 @@ namespace Eevee.Collection
         #region ICollection`1
         public readonly int Count
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ptr.Count;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Ptr.Count;
         }
         readonly bool ICollection<T>.IsReadOnly
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => false;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
