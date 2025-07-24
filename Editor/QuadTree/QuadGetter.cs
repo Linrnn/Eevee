@@ -10,7 +10,6 @@ namespace EeveeEditor.QuadTree
     {
         Type TreeEnum { get; } // Tree的枚举类型，null代表int类型
         QuadTreeManager Manager { get; } // 获得四叉树管理器
-        Color GetElementColor(int treeId); // 获得绘制Element时的颜色
 
         int GetIndex(GameObject go); // 通过GO获得Index
         void GetIndexes(GameObject go, ICollection<int> indexes); // 通过GO获得Index

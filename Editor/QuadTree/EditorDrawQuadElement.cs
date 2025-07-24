@@ -21,6 +21,7 @@ namespace EeveeEditor.QuadTree
             private const string Range = nameof(_range);
             private const string TreeIds = nameof(_treeIds);
             private const string Indexes = nameof(_indexes);
+            private const string Color = nameof(_color);
             private const string Height = nameof(_height);
             private const string Draw = nameof(_draw);
             private const string DrawIndex = nameof(_drawIndex);
@@ -55,22 +56,10 @@ namespace EeveeEditor.QuadTree
                         break;
                 }
 
+                _propertyHandle.Draw(Color);
                 _propertyHandle.Draw(Height);
                 _propertyHandle.Draw(Draw);
                 _propertyHandle.Draw(DrawIndex);
-            }
-        }
-
-        private readonly struct DrawTree
-        {
-            internal readonly int TreeId;
-            internal readonly QuadShape Shape;
-            internal readonly Color Color;
-            internal DrawTree(BasicQuadTree tree, in Color color)
-            {
-                TreeId = tree.TreeId;
-                Shape = tree.Shape;
-                Color = color;
             }
         }
 
@@ -81,14 +70,13 @@ namespace EeveeEditor.QuadTree
             internal readonly AABB2DInt Content;
             [SerializeField] internal int TreeId;
             [SerializeField] internal QuadShape Shape;
-            internal readonly Color Color;
-            internal DrawElement(in QuadElement element, in DrawTree drawTree)
+
+            internal DrawElement(in QuadElement element, in BasicQuadTree tree)
             {
                 Index = element.Index;
                 Content = element.Shape;
-                TreeId = drawTree.TreeId;
-                Shape = drawTree.Shape;
-                Color = drawTree.Color;
+                TreeId = tree.TreeId;
+                Shape = tree.Shape;
             }
             public readonly int CompareTo(DrawElement other)
             {
@@ -157,7 +145,8 @@ namespace EeveeEditor.QuadTree
         [SerializeField] private int[] _treeIds;
         [SerializeField] private int[] _indexes;
 
-        [Header("渲染参数")] [SerializeField] private float _height;
+        [Header("渲染参数")] [SerializeField] private Color _color = Color.green;
+        [SerializeField] private float _height;
         [SerializeField] private bool _draw = true;
         [SerializeField] private bool _drawIndex = true;
         #endregion
@@ -214,24 +203,23 @@ namespace EeveeEditor.QuadTree
                 return;
             if (_drawIndexes.Count == 0)
                 return;
-            var proxy = QuadGetter.Proxy;
             foreach (int treeId in _treeIds)
                 if (_trees.TryGetValue(treeId, out var tree))
-                    ReadyElements(tree, new DrawTree(tree, proxy.GetElementColor(treeId)));
+                    ReadyElements(tree);
         }
-        private void ReadyElements(BasicQuadTree tree, in DrawTree drawTree)
+        private void ReadyElements(BasicQuadTree tree)
         {
             foreach (var node in QuadGetter.GetNodes(tree, _nodes))
             foreach (var element in node.Elements)
                 if (_drawIndexes.Contains(element.Index))
-                    _elements.Add(new DrawElement(in element, in drawTree));
+                    _elements.Add(new DrawElement(in element, tree));
         }
 
         private void DrawTrees()
         {
             if (_draw)
                 foreach (var element in _elements)
-                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _scale, _height, _drawIndex, in element.Color);
+                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _scale, _height, _drawIndex, in _color);
         }
     }
 }
