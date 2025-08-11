@@ -47,12 +47,11 @@ namespace EeveeEditor.QuadTree
             private void OnEnable() => _propertyHandle.Initialize(this);
             private void OnSceneGUI()
             {
-                if (_scale == 0 && QuadGetter.Proxy.Manager is { } manager)
-                    _scale = 1F / manager.Scale;
+                var behaviour = (Behaviour)target;
+                if (!behaviour.enabled)
+                    return;
                 if (_scale == 0)
-                    return;
-                if (target is MonoBehaviour { enabled: false })
-                    return;
+                    _scale = ((EditorDrawQuadQuery)behaviour)._scale;
                 DrawQueryShape();
                 serializedObject.ApplyModifiedProperties();
             }
@@ -213,9 +212,6 @@ namespace EeveeEditor.QuadTree
         private void OnEnable()
         {
             var manager = QuadGetter.Proxy.Manager;
-            if (manager is null)
-                return;
-
             _manager = manager;
             _scale = 1F / manager.Scale;
         }

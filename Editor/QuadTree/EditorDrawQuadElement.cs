@@ -152,6 +152,7 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
+        private IQuadDrawProxy _proxy;
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly HashSet<int> _drawIndexes = new();
@@ -161,10 +162,9 @@ namespace EeveeEditor.QuadTree
 
         private void OnEnable()
         {
-            var manager = QuadGetter.Proxy.Manager;
-            if (manager is null)
-                return;
-
+            var proxy = QuadGetter.Proxy;
+            var manager = proxy.Manager;
+            _proxy = proxy;
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
         }
@@ -185,8 +185,8 @@ namespace EeveeEditor.QuadTree
             _drawIndexes.Clear();
             switch (_range)
             {
-                case DrawRange.Single: _drawIndexes.Add(QuadGetter.Proxy.GetIndex(gameObject)); break;
-                case DrawRange.Children: QuadGetter.Proxy.GetIndexes(gameObject, _drawIndexes); break;
+                case DrawRange.Single: _drawIndexes.Add(_proxy.GetIndex(gameObject)); break;
+                case DrawRange.Children: _proxy.GetIndexes(gameObject, _drawIndexes); break;
                 case DrawRange.All:
                     foreach (var (_, tree) in _trees)
                     foreach (var node in QuadGetter.GetNodes(tree, _nodes))

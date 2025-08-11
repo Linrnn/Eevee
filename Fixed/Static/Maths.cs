@@ -461,16 +461,18 @@ namespace Eevee.Fixed
         /// <summary>
         /// 幂运算/指数运算
         /// </summary>
-        public static Fixed64 Pow(Fixed64 b, Fixed64 e)
+        public static Fixed64 Pow(Fixed64 b, Fixed64 a)
         {
-            if (e.RawValue == 0)
+            if (a.RawValue == 0)
                 return Fixed64.One;
-
+            if ((a.RawValue & Const.FractionalPart) == 0)
+                return Pow(b, (int)a);
             return b.RawValue switch
             {
-                Const.Zero => e.RawValue < 0 ? Fixed64.Infinity : Fixed64.Zero,
+                < Const.Zero => throw new InvalidOperationException($"Number is {a}"),
+                Const.Zero => a.RawValue < 0 ? Fixed64.Infinity : Fixed64.Zero,
                 Const.One => Fixed64.One,
-                _ => Pow2(e * Log2(b)),
+                _ => Pow2(a * Log2(b)),
             };
         }
         /// <summary>
@@ -480,10 +482,8 @@ namespace Eevee.Fixed
         {
             if (b.RawValue == Const.Zero)
                 return Fixed64.Zero;
-
-            if (b.Abs().RawValue > Const.One)
+            if (Math.Abs(b.RawValue) > Const.One)
                 return a > 0 ? PrivatePow(b, a) : PrivatePow(b, -a).Reciprocal();
-
             return a > 0 ? PrivatePow(b.Reciprocal(), a).Reciprocal() : PrivatePow(b.RawValue, -a);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -491,10 +491,8 @@ namespace Eevee.Fixed
         {
             if (b.RawValue == Const.One || a == 0)
                 return Fixed64.One;
-
             if (a == 1)
                 return b;
-
             var pow = PrivatePow(b, a >> 1);
             return (a & 1) == 0 ? pow.Sqr() : b * pow.Sqr();
         }

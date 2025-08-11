@@ -23,15 +23,20 @@ namespace EeveeEditor.QuadTree
             get
             {
                 if (_proxy is { } proxy)
+                {
                     return proxy;
+                }
 
-                var type = FindType.GetType(typeof(IQuadDrawProxy));
-                if (type is null)
-                    Debug.LogError($"{nameof(IQuadDrawProxy)}未被继承！");
+                var proxyType = FindType.GetType(typeof(IQuadDrawProxy));
+                if (proxyType is null)
+                {
+                    Debug.LogError("IQuadDrawProxy 未被继承！");
+                    return null;
+                }
 
-                var newGetter = Activator.CreateInstance(type) as IQuadDrawProxy;
-                _proxy = newGetter;
-                return newGetter;
+                var proxyInstance = Activator.CreateInstance(proxyType) as IQuadDrawProxy;
+                _proxy = proxyInstance;
+                return proxyInstance;
             }
         }
 

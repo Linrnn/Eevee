@@ -82,9 +82,6 @@ namespace EeveeEditor.QuadTree
         private void OnEnable()
         {
             var manager = QuadGetter.Proxy.Manager;
-            if (manager is null)
-                return;
-
             _manager = manager;
             _scale = 1F / manager.Scale;
             QuadGetter.GetTrees(manager, _trees);
