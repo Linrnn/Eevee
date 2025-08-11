@@ -23,8 +23,8 @@ namespace Eevee.QuadTree
         public readonly AABB2DInt MaxBoundary;
         private readonly Dictionary<int, QuadTreeConfig> _configs;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
-        private readonly ObjectDelPool<QuadNode> _nodePool = new(() => new QuadNode(), null, element => element.OnRelease(), null, Macro.HasCheckRelease);
-        private readonly ArrayPool<QuadElement> _elementPool = ArrayPool<QuadElement>.Shared;
+        private readonly ObjectDelPool<QuadTreeNode> _nodePool = new(() => new QuadTreeNode(), null, element => element.OnRelease(), null, Macro.HasCheckRelease);
+        private readonly ArrayPool<QuadTreeElement> _elementPool = ArrayPool<QuadTreeElement>.Shared;
 
         public QuadTreeManager(int scale, int depthCount, in AABB2DInt maxBoundary, IReadOnlyList<QuadTreeConfig> configs)
         {
@@ -46,7 +46,7 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 预处理
-        public bool PreCount(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents, out QuadPreCache cache)
+        public bool PreCount(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents, out QuadTreePreCache cache)
         {
             if (center.Equals())
             {
@@ -55,19 +55,19 @@ namespace Eevee.QuadTree
             }
 
             var tree = _trees[treeId];
-            var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
-            var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
+            var preEle = new QuadTreeElement(index, new AABB2DInt(center.Pre, extents));
+            var tarEle = new QuadTreeElement(index, new AABB2DInt(center.Tar, extents));
 
-            tree.TryGetNodeIndex(in preEle.Shape, QuadExt.ElementCountMode, out var preNodeIndex);
-            tree.TryGetNodeIndex(in tarEle.Shape, QuadExt.ElementCountMode, out var tarNodeIndex);
+            tree.TryGetNodeIndex(in preEle.Shape, QuadTreeNodeExt.ElementCountMode, out var preNodeIndex);
+            tree.TryGetNodeIndex(in tarEle.Shape, QuadTreeNodeExt.ElementCountMode, out var tarNodeIndex);
             var preNode = tree.GetNode(preNodeIndex.Depth, preNodeIndex.X, preNodeIndex.Y);
             int preIndex = preNode?.IndexOf(in preEle) ?? -1;
 
-            cache = new QuadPreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
+            cache = new QuadTreePreCache(in preEle, in tarEle, in preNodeIndex, in tarNodeIndex, preIndex, tree.TreeId);
             return true;
         }
 
-        public void PreUpdate(in QuadPreCache cache)
+        public void PreUpdate(in QuadTreePreCache cache)
         {
             var tree = _trees[cache.TreeId];
             var preEle = cache.PreEle;
@@ -97,7 +97,7 @@ namespace Eevee.QuadTree
 
             if (hasError)
                 LogRelay.Error($"[Quad] PreUpdateElement Fail, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
-            else if (QuadDiagnosis.CheckIndex(cache.TreeId, preEle.Index))
+            else if (QuadTreeDiagnosis.CheckIndex(cache.TreeId, preEle.Index))
                 LogRelay.Info($"[Quad] PreUpdateElement Success, NodeEqual:{preNode == tarNode}, UsePre:{usePre}, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
         }
         #endregion
@@ -106,40 +106,40 @@ namespace Eevee.QuadTree
         public void Insert(int treeId, int index, Vector2DInt center, int extents)
         {
             var tree = _trees[treeId];
-            var element = new QuadElement(index, new AABB2DInt(center, extents));
+            var element = new QuadTreeElement(index, new AABB2DInt(center, extents));
             tree.Insert(in element);
         }
         public void Insert(int treeId, int index, Vector2DInt center, Vector2DInt extents)
         {
             var tree = _trees[treeId];
-            var element = new QuadElement(index, new AABB2DInt(center, extents));
+            var element = new QuadTreeElement(index, new AABB2DInt(center, extents));
             tree.Insert(in element);
         }
         public void Insert(int treeId, int index, in AABB2DInt shape)
         {
             var tree = _trees[treeId];
-            var element = new QuadElement(index, in shape);
+            var element = new QuadTreeElement(index, in shape);
             tree.Insert(in element);
         }
 
         public bool Remove(int treeId, int index, Vector2DInt center, int extents)
         {
             var tree = _trees[treeId];
-            var element = new QuadElement(index, new AABB2DInt(center, extents));
+            var element = new QuadTreeElement(index, new AABB2DInt(center, extents));
             bool success = tree.Remove(in element);
             return success;
         }
         public bool Remove(int treeId, int index, Vector2DInt center, Vector2DInt extents)
         {
             var tree = _trees[treeId];
-            var element = new QuadElement(index, new AABB2DInt(center, extents));
+            var element = new QuadTreeElement(index, new AABB2DInt(center, extents));
             bool success = tree.Remove(in element);
             return success;
         }
         public bool Remove(int treeId, int index, in AABB2DInt shape)
         {
             var tree = _trees[treeId];
-            var element = new QuadElement(index, in shape);
+            var element = new QuadTreeElement(index, in shape);
             bool success = tree.Remove(in element);
             return success;
         }
@@ -152,8 +152,8 @@ namespace Eevee.QuadTree
                 return;
 
             var tree = _trees[treeId];
-            var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
-            var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
+            var preEle = new QuadTreeElement(index, new AABB2DInt(center.Pre, extents));
+            var tarEle = new QuadTreeElement(index, new AABB2DInt(center.Tar, extents));
             tree.Update(in preEle, in tarEle);
         }
         public void Update(int treeId, int index, in Change<Vector2DInt> center, Vector2DInt extents)
@@ -162,8 +162,8 @@ namespace Eevee.QuadTree
                 return;
 
             var tree = _trees[treeId];
-            var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
-            var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
+            var preEle = new QuadTreeElement(index, new AABB2DInt(center.Pre, extents));
+            var tarEle = new QuadTreeElement(index, new AABB2DInt(center.Tar, extents));
             tree.Update(in preEle, in tarEle);
         }
 
@@ -174,7 +174,7 @@ namespace Eevee.QuadTree
 
             var preTree = _trees[treeId.Pre];
             var tarTree = _trees[treeId.Tar];
-            var element = new QuadElement(index, new AABB2DInt(center, extents));
+            var element = new QuadTreeElement(index, new AABB2DInt(center, extents));
 
             if (!preTree.Remove(in element))
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:{center}");
@@ -187,7 +187,7 @@ namespace Eevee.QuadTree
 
             var preTree = _trees[treeId.Pre];
             var tarTree = _trees[treeId.Tar];
-            var element = new QuadElement(index, new AABB2DInt(center, extents));
+            var element = new QuadTreeElement(index, new AABB2DInt(center, extents));
 
             if (!preTree.Remove(in element))
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:{center}");
@@ -200,7 +200,7 @@ namespace Eevee.QuadTree
 
             var preTree = _trees[treeId.Pre];
             var tarTree = _trees[treeId.Tar];
-            var element = new QuadElement(index, in shape);
+            var element = new QuadTreeElement(index, in shape);
 
             if (!preTree.Remove(in element))
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:{shape.Center()}");
@@ -214,8 +214,8 @@ namespace Eevee.QuadTree
 
             var preTree = _trees[treeId.Pre];
             var tarTree = _trees[treeId.Tar];
-            var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
-            var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
+            var preEle = new QuadTreeElement(index, new AABB2DInt(center.Pre, extents));
+            var tarEle = new QuadTreeElement(index, new AABB2DInt(center.Tar, extents));
 
             if (!preTree.Remove(in preEle))
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:[{center}]");
@@ -228,8 +228,8 @@ namespace Eevee.QuadTree
 
             var preTree = _trees[treeId.Pre];
             var tarTree = _trees[treeId.Tar];
-            var preEle = new QuadElement(index, new AABB2DInt(center.Pre, extents));
-            var tarEle = new QuadElement(index, new AABB2DInt(center.Tar, extents));
+            var preEle = new QuadTreeElement(index, new AABB2DInt(center.Pre, extents));
+            var tarEle = new QuadTreeElement(index, new AABB2DInt(center.Tar, extents));
 
             if (!preTree.Remove(in preEle))
                 LogRelay.Error($"[Quad] RemoveElement Fail, TreeId:({treeId}), Index:{index}, Center:[{center}]");
@@ -238,18 +238,18 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询Point
-        public void QueryPoint(int treeId, Vector2DInt center, ICollection<QuadElement> elements)
+        public void QueryPoint(int treeId, Vector2DInt center, ICollection<QuadTreeElement> elements)
         {
             QueryShape(treeId, center, elements);
         }
-        public void QueryPoint(IReadOnlyList<int> treeIds, Vector2DInt center, ICollection<QuadElement> elements)
+        public void QueryPoint(IReadOnlyList<int> treeIds, Vector2DInt center, ICollection<QuadTreeElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], center, elements);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void QueryShape(int treeId, Vector2DInt center, ICollection<QuadElement> elements)
+        private void QueryShape(int treeId, Vector2DInt center, ICollection<QuadTreeElement> elements)
         {
             var tree = _trees[treeId];
             tree.QueryPoint(center, elements);
@@ -257,30 +257,30 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询Circle区域
-        public void QueryCircle(int treeId, Vector2DInt center, int radius, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryCircle(int treeId, Vector2DInt center, int radius, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new CircleInt(center, radius);
             QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryCircle(int treeId, in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryCircle(int treeId, in CircleInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             QueryShape(treeId, in shape, checkRoot, elements);
         }
 
-        public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, int radius, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryCircle(IReadOnlyList<int> treeIds, Vector2DInt center, int radius, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new CircleInt(center, radius);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryCircle(IReadOnlyList<int> treeIds, in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryCircle(IReadOnlyList<int> treeIds, in CircleInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void QueryShape(int treeId, in CircleInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        private void QueryShape(int treeId, in CircleInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var tree = _trees[treeId];
             tree.QueryCircle(in shape, checkRoot, elements);
@@ -288,41 +288,41 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询AABB区域
-        public void QueryAABB(int treeId, Vector2DInt center, int extents, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryAABB(int treeId, Vector2DInt center, int extents, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new AABB2DInt(center, extents);
             QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryAABB(int treeId, Vector2DInt center, Vector2DInt extents, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryAABB(int treeId, Vector2DInt center, Vector2DInt extents, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new AABB2DInt(center, extents);
             QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryAABB(int treeId, in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryAABB(int treeId, in AABB2DInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             QueryShape(treeId, in shape, checkRoot, elements);
         }
 
-        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryAABB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new AABB2DInt(center, extents);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryAABB(IReadOnlyList<int> treeIds, in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryAABB(IReadOnlyList<int> treeIds, in AABB2DInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void QueryShape(int treeId, in AABB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        private void QueryShape(int treeId, in AABB2DInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var tree = _trees[treeId];
             tree.QueryAABB(in shape, checkRoot, elements);
@@ -330,41 +330,41 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询OBB区域
-        public void QueryOBB(int treeId, Vector2DInt center, int extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryOBB(int treeId, Vector2DInt center, int extents, Fixed64 angle, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new OBB2DInt(center, extents, angle);
             QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryOBB(int treeId, Vector2DInt center, Vector2DInt extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryOBB(int treeId, Vector2DInt center, Vector2DInt extents, Fixed64 angle, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new OBB2DInt(center, extents, angle);
             QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryOBB(int treeId, in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryOBB(int treeId, in OBB2DInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             QueryShape(treeId, in shape, checkRoot, elements);
         }
 
-        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, int extents, Fixed64 angle, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new OBB2DInt(center, extents, angle);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, Fixed64 angle, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryOBB(IReadOnlyList<int> treeIds, Vector2DInt center, Vector2DInt extents, Fixed64 angle, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new OBB2DInt(center, extents, angle);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryOBB(IReadOnlyList<int> treeIds, in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryOBB(IReadOnlyList<int> treeIds, in OBB2DInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void QueryShape(int treeId, in OBB2DInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        private void QueryShape(int treeId, in OBB2DInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var tree = _trees[treeId];
             tree.QueryOBB(in shape, checkRoot, elements);
@@ -372,30 +372,30 @@ namespace Eevee.QuadTree
         #endregion
 
         #region 查询Polygon区域
-        public void QueryPolygon(int treeId, in ReadOnlyArray<Vector2DInt> points, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryPolygon(int treeId, in ReadOnlyArray<Vector2DInt> points, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new PolygonInt(points);
             QueryShape(treeId, in shape, checkRoot, elements);
         }
-        public void QueryPolygon(int treeId, in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryPolygon(int treeId, in PolygonInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             QueryShape(treeId, in shape, checkRoot, elements);
         }
 
-        public void QueryPolygon(IReadOnlyList<int> treeIds, in ReadOnlyArray<Vector2DInt> points, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryPolygon(IReadOnlyList<int> treeIds, in ReadOnlyArray<Vector2DInt> points, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var shape = new PolygonInt(points);
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
-        public void QueryPolygon(IReadOnlyList<int> treeIds, in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        public void QueryPolygon(IReadOnlyList<int> treeIds, in PolygonInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             for (int count = treeIds.Count, i = 0; i < count; ++i)
                 QueryShape(treeIds[i], in shape, checkRoot, elements);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void QueryShape(int treeId, in PolygonInt shape, bool checkRoot, ICollection<QuadElement> elements)
+        private void QueryShape(int treeId, in PolygonInt shape, bool checkRoot, ICollection<QuadTreeElement> elements)
         {
             var tree = _trees[treeId];
             tree.QueryPolygon(in shape, checkRoot, elements);
@@ -413,7 +413,7 @@ namespace Eevee.QuadTree
                 for (int extents = Math.Max(config.Extents.X, config.Extents.Y) << depthCount - 1; depth > 1 && extents > maxExtents; extents >>= 1)
                     --depth;
                 var tree = (BasicQuadTree)Activator.CreateInstance(config.TreeType);
-                (tree as IQuadDynamic)?.Inject(_nodePool);
+                (tree as IDynamicQuadTree)?.Inject(_nodePool);
                 tree.OnCreate(config.TreeId, config.Shape, depth, in maxBoundary, _elementPool);
                 _trees.Add(config.TreeId, tree);
             }
@@ -429,12 +429,12 @@ namespace Eevee.QuadTree
         public void RemoveEmptyNode(int treeId)
         {
             var tree = _trees[treeId];
-            (tree as IQuadDynamic)?.RemoveEmptyNode();
+            (tree as IDynamicQuadTree)?.RemoveEmptyNode();
         }
         public void RemoveEmptyNode()
         {
             foreach (var pair in _trees)
-                if (pair.Value is IQuadDynamic tree)
+                if (pair.Value is IDynamicQuadTree tree)
                     tree.RemoveEmptyNode();
         }
 

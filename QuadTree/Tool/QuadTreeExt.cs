@@ -10,30 +10,30 @@ namespace Eevee.QuadTree
     internal static class QuadTreeExt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnCreate(BasicQuadTree tree, QuadNode root, int depthCount, out QuadNode[][,] nodes)
+        internal static void OnCreate(BasicQuadTree tree, QuadTreeNode root, int depthCount, out QuadTreeNode[][,] nodes)
         {
-            int rootSideCount = QuadExt.GetNodeSideCount(0);
-            var rootIndex = QuadIndex.Root;
-            var rootNodes = new QuadNode[rootSideCount, rootSideCount];
+            int rootSideCount = QuadTreeNodeExt.GetNodeSideCount(0);
+            var rootIndex = QuadTreeIndex.Root;
+            var rootNodes = new QuadTreeNode[rootSideCount, rootSideCount];
             rootNodes[rootIndex.X, rootIndex.Y] = root;
-            nodes = new QuadNode[depthCount][,];
+            nodes = new QuadTreeNode[depthCount][,];
             nodes[rootIndex.Depth] = rootNodes;
 
             for (int depth = rootIndex.Depth + 1; depth < depthCount; ++depth)
             {
-                int sideCount = QuadExt.GetNodeSideCount(depth);
+                int sideCount = QuadTreeNodeExt.GetNodeSideCount(depth);
                 var upperNodes = nodes[depth - 1];
-                var depthNodes = new QuadNode[sideCount, sideCount];
+                var depthNodes = new QuadTreeNode[sideCount, sideCount];
                 nodes[depth] = depthNodes;
 
-                for (int px = 0; px < sideCount; px += QuadExt.ChildSideCount)
+                for (int px = 0; px < sideCount; px += QuadTreeNodeExt.ChildSideCount)
                 {
-                    for (int py = 0; py < sideCount; py += QuadExt.ChildSideCount)
+                    for (int py = 0; py < sideCount; py += QuadTreeNodeExt.ChildSideCount)
                     {
                         var parent = upperNodes[px >> 1, py >> 1];
-                        for (int cx = 0; cx < QuadExt.ChildSideCount; ++cx)
+                        for (int cx = 0; cx < QuadTreeNodeExt.ChildSideCount; ++cx)
                         {
-                            for (int cy = 0; cy < QuadExt.ChildSideCount; ++cy)
+                            for (int cy = 0; cy < QuadTreeNodeExt.ChildSideCount; ++cy)
                             {
                                 int x = px | cx;
                                 int y = py | cy;
@@ -47,7 +47,7 @@ namespace Eevee.QuadTree
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void OnDestroy(ref QuadNode[][,] nodes)
+        internal static void OnDestroy(ref QuadTreeNode[][,] nodes)
         {
             foreach (var depthNodes in nodes)
             foreach (var node in depthNodes)
@@ -56,17 +56,17 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool TryGetNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt shape, QuadCountNodeMode mode, out AABB2DInt area, out QuadIndex index)
+        internal static bool TryGetNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt shape, QuadTreeCountNodeMode mode, out AABB2DInt area, out QuadTreeIndex index)
         {
-            if (!QuadExt.TrtGetArea(in maxBoundary, in shape, mode, out area))
+            if (!QuadTreeNodeExt.TrtGetArea(in maxBoundary, in shape, mode, out area))
             {
-                index = QuadIndex.Invalid;
+                index = QuadTreeIndex.Invalid;
                 return false;
             }
 
-            if (!QuadExt.TrtGetNodeIndex(in maxBoundary, maxDepth, in area, out var idx))
+            if (!QuadTreeNodeExt.TrtGetNodeIndex(in maxBoundary, maxDepth, in area, out var idx))
             {
-                index = QuadIndex.Invalid;
+                index = QuadTreeIndex.Invalid;
                 return false;
             }
 
@@ -75,14 +75,14 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodes(QuadNode[][,] nodes, ICollection<QuadNode> returnNodes)
+        internal static void GetNodes(QuadTreeNode[][,] nodes, ICollection<QuadTreeNode> returnNodes)
         {
             foreach (var depthNodes in nodes)
             foreach (var node in depthNodes)
                 returnNodes.Add(node);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static void GetNodes(QuadNode[][,] nodes, int depth, ICollection<QuadNode> returnNodes)
+        internal static void GetNodes(QuadTreeNode[][,] nodes, int depth, ICollection<QuadTreeNode> returnNodes)
         {
             foreach (var node in nodes[depth])
                 returnNodes.Add(node);

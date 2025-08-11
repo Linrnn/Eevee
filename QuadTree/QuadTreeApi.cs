@@ -9,7 +9,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 检测器
     /// </summary>
-    public interface IQuadChecker
+    public interface IQuadTreeChecker
     {
         bool CheckNode(in AABB2DInt boundary);
         bool CheckElement(in AABB2DInt boundary);
@@ -18,17 +18,17 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 动态节点标识
     /// </summary>
-    public interface IQuadDynamic
+    public interface IDynamicQuadTree
     {
-        void Inject(IObjectPool<QuadNode> pool);
-        void RemoveNode(QuadNode node);
+        void Inject(IObjectPool<QuadTreeNode> pool);
+        void RemoveNode(QuadTreeNode node);
         void RemoveEmptyNode();
     }
 
     /// <summary>
     /// 四叉树形状
     /// </summary>
-    public enum QuadShape : byte
+    public enum QuadTreeShape : byte
     {
         None,
         Point, // 点
@@ -41,7 +41,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 计算四叉树节点的方式
     /// </summary>
-    internal enum QuadCountNodeMode : byte
+    internal enum QuadTreeCountNodeMode : byte
     {
         NotIntersect, // 不和四叉树边界做检测
         OnlyIntersect, // 和四叉树边界做检测，但是输入的aabb不做偏移
@@ -54,19 +54,19 @@ namespace Eevee.QuadTree
     public readonly struct QuadTreeConfig
     {
         public readonly int TreeId;
-        public readonly QuadShape Shape; // 目前只支持“Circle/AABB”
+        public readonly QuadTreeShape Shape; // 目前只支持“Circle/AABB”
         public readonly Vector2DInt Extents; // 节点理想的最小尺寸，必须是2的幂
         public readonly Type TreeType; // 树的类型，必须继承“QuadTreeBasic”
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private QuadTreeConfig(int treeId, QuadShape shape, Vector2DInt extents, Type treeType)
+        private QuadTreeConfig(int treeId, QuadTreeShape shape, Vector2DInt extents, Type treeType)
         {
             TreeId = treeId;
             Shape = shape;
             Extents = extents;
             TreeType = treeType;
         }
-        public static QuadTreeConfig Build<TTree>(int treeId, QuadShape shape, Vector2DInt extents) where TTree : BasicQuadTree, new()
+        public static QuadTreeConfig Build<TTree>(int treeId, QuadTreeShape shape, Vector2DInt extents) where TTree : BasicQuadTree, new()
         {
             Assert.True<ArgumentException, AssertArgs<int>>(Maths.IsPowerOf2(extents.X), nameof(extents.X), "{0} isn't power of 2", new AssertArgs<int>(extents.X));
             Assert.True<ArgumentException, AssertArgs<int>>(Maths.IsPowerOf2(extents.Y), nameof(extents.Y), "{0} isn't power of 2", new AssertArgs<int>(extents.Y));
@@ -77,16 +77,16 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 预处理缓存
     /// </summary>
-    public readonly struct QuadPreCache
+    public readonly struct QuadTreePreCache
     {
-        public readonly QuadElement PreEle;
-        public readonly QuadElement TarEle;
-        public readonly QuadIndex PreNodeIndex; // “QuadNode”在“QuadTree”的索引位置
-        public readonly QuadIndex TarNodeIndex; // “QuadNode”在“QuadTree”的索引位置
+        public readonly QuadTreeElement PreEle;
+        public readonly QuadTreeElement TarEle;
+        public readonly QuadTreeIndex PreNodeIndex; // “QuadNode”在“QuadTree”的索引位置
+        public readonly QuadTreeIndex TarNodeIndex; // “QuadNode”在“QuadTree”的索引位置
         public readonly int PreElementIndex; // “Element”在“QuadNode”的索引位置
         public readonly int TreeId;
 
-        public QuadPreCache(in QuadElement preEle, in QuadElement tarEle, in QuadIndex preNodeIndex, in QuadIndex tarNodeIndex, int preElementIndex, int treeId)
+        public QuadTreePreCache(in QuadTreeElement preEle, in QuadTreeElement tarEle, in QuadTreeIndex preNodeIndex, in QuadTreeIndex tarNodeIndex, int preElementIndex, int treeId)
         {
             PreEle = preEle;
             TarEle = tarEle;

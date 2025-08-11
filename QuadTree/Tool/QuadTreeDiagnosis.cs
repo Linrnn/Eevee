@@ -9,7 +9,7 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 四叉树调试相关
     /// </summary>
-    public readonly struct QuadDiagnosis
+    public readonly struct QuadTreeDiagnosis
     {
         public static bool Print = false; // 是否输出日志
         public static int[] TreeIds; // 需要检测的TreeId，null/Empty代表不限制检测

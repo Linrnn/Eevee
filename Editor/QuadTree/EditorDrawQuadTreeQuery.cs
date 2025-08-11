@@ -13,11 +13,11 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 绘制搜索区域内的四叉树元素
     /// </summary>
-    internal sealed class EditorDrawQuadQuery : MonoBehaviour
+    internal sealed class EditorDrawQuadTreeQuery : MonoBehaviour
     {
         #region 类型
-        [CustomEditor(typeof(EditorDrawQuadQuery))]
-        private sealed class EditorDrawQuadQueryInspector : Editor
+        [CustomEditor(typeof(EditorDrawQuadTreeQuery))]
+        private sealed class EditorDrawQuadTreeQueryInspector : Editor
         {
             #region Property Path
             private const string Shape = nameof(_shape);
@@ -51,7 +51,7 @@ namespace EeveeEditor.QuadTree
                 if (!behaviour.enabled)
                     return;
                 if (_scale == 0)
-                    _scale = ((EditorDrawQuadQuery)behaviour)._scale;
+                    _scale = ((EditorDrawQuadTreeQuery)behaviour)._scale;
                 DrawQueryShape();
                 serializedObject.ApplyModifiedProperties();
             }
@@ -64,15 +64,15 @@ namespace EeveeEditor.QuadTree
 
                 switch (_propertyHandle.Get(Shape).enumValueFlag)
                 {
-                    case (int)QuadShape.Point: _propertyHandle.Draw(Center); break;
-                    case (int)QuadShape.Circle: _propertyHandle.Draw(Center).Draw(Radius); break;
-                    case (int)QuadShape.AABB: _propertyHandle.Draw(Center).Draw(Extents); break;
-                    case (int)QuadShape.OBB: _propertyHandle.Draw(Center).Draw(Extents).Draw(Angle); break;
-                    case (int)QuadShape.Polygon: _propertyHandle.Draw(Polygon); break;
+                    case (int)QuadTreeShape.Point: _propertyHandle.Draw(Center); break;
+                    case (int)QuadTreeShape.Circle: _propertyHandle.Draw(Center).Draw(Radius); break;
+                    case (int)QuadTreeShape.AABB: _propertyHandle.Draw(Center).Draw(Extents); break;
+                    case (int)QuadTreeShape.OBB: _propertyHandle.Draw(Center).Draw(Extents).Draw(Angle); break;
+                    case (int)QuadTreeShape.Polygon: _propertyHandle.Draw(Polygon); break;
                     default: return;
                 }
 
-                _propertyHandle.DrawEnumQuadFunc(TreeId);
+                _propertyHandle.EnumTreeFunc(TreeId);
                 _propertyHandle.Draw(Height);
                 _propertyHandle.Draw(DrawIndex);
                 _propertyHandle.Draw(QueryColor);
@@ -93,7 +93,7 @@ namespace EeveeEditor.QuadTree
                 var polygonProperty = _propertyHandle.Get(Polygon);
                 var heightProperty = _propertyHandle.Get(Height);
 
-                var shape = (QuadShape)shapeProperty.enumValueFlag;
+                var shape = (QuadTreeShape)shapeProperty.enumValueFlag;
                 var center = centerProperty.vector2IntValue;
                 int radius = radiusProperty.intValue;
                 var extents = extentsProperty.vector2IntValue;
@@ -103,31 +103,31 @@ namespace EeveeEditor.QuadTree
 
                 switch (shape)
                 {
-                    case QuadShape.Point:
+                    case QuadTreeShape.Point:
                         ShapeDraw.Point(ref center, _scale, height);
                         centerProperty.vector2IntValue = center;
                         break;
 
-                    case QuadShape.Circle:
+                    case QuadTreeShape.Circle:
                         ShapeDraw.Circle(ref center, ref radius, _scale, height);
                         centerProperty.vector2IntValue = center;
                         radiusProperty.intValue = radius;
                         break;
 
-                    case QuadShape.AABB:
+                    case QuadTreeShape.AABB:
                         ShapeDraw.AABB(ref center, ref extents, _scale, height);
                         centerProperty.vector2IntValue = center;
                         extentsProperty.vector2IntValue = extents;
                         break;
 
-                    case QuadShape.OBB:
+                    case QuadTreeShape.OBB:
                         ShapeDraw.OBB(ref center, ref extents, ref angle, _scale, height);
                         centerProperty.vector2IntValue = center;
                         extentsProperty.vector2IntValue = extents;
                         angleProperty.floatValue = angle;
                         break;
 
-                    case QuadShape.Polygon:
+                    case QuadTreeShape.Polygon:
                         for (int i = 0; i < polygon.Length; ++i)
                             polygon[i] = polygonProperty.GetArrayElementAtIndex(i).vector2IntValue;
                         ShapeDraw.Polygon(ref polygon, _scale, height);
@@ -145,7 +145,7 @@ namespace EeveeEditor.QuadTree
                 if (!GUILayout.Button(text))
                     return;
 
-                var quadShape = (QuadShape)_propertyHandle.Get(Shape).enumValueFlag;
+                var quadShape = (QuadTreeShape)_propertyHandle.Get(Shape).enumValueFlag;
                 int cacheIndex = _propertyHandle.Get(CacheIndex).intValue;
                 object shape = ReadShape(quadShape, cacheIndex);
                 switch (shape)
@@ -184,7 +184,7 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 序列化字段
-        [Header("四叉树设置（非Unity尺度）")] [SerializeField] private QuadShape _shape = QuadShape.Circle;
+        [Header("四叉树设置（非Unity尺度）")] [SerializeField] private QuadTreeShape _shape = QuadTreeShape.Circle;
         [SerializeField] private Vector2Int _center;
         [SerializeField] private int _radius = 1;
         [SerializeField] private Vector2Int _extents = Vector2Int.one;
@@ -201,17 +201,17 @@ namespace EeveeEditor.QuadTree
 
         #region 运行时缓存
         private const int PolygonSide = 3; // 多边形的最小边
-        private static readonly Dictionary<QuadShape, List<object>> _shapes = new(); // 缓存形状
+        private static readonly Dictionary<QuadTreeShape, List<object>> _shapes = new(); // 缓存形状
 
         private QuadTreeManager _manager;
         private float _scale;
         private Vector2DInt[] _polygonRuntime = new Vector2DInt[PolygonSide];
-        private readonly List<QuadElement> _elements = new(); // 缓存
+        private readonly List<QuadTreeElement> _elements = new(); // 缓存
         #endregion
 
         private void OnEnable()
         {
-            var manager = QuadGetter.Proxy.Manager;
+            var manager = QuadTreeGetter.Proxy.Manager;
             _manager = manager;
             _scale = 1F / manager.Scale;
         }
@@ -236,11 +236,11 @@ namespace EeveeEditor.QuadTree
             _elements.Clear();
             switch (_shape)
             {
-                case QuadShape.Point: _manager.QueryPoint(_treeId, _center, _elements); break;
-                case QuadShape.Circle: _manager.QueryCircle(_treeId, _center, _radius, true, _elements); break;
-                case QuadShape.AABB: _manager.QueryAABB(_treeId, _center, _extents, true, _elements); break;
-                case QuadShape.OBB: _manager.QueryOBB(_treeId, _center, _extents, _angle, true, _elements); break;
-                case QuadShape.Polygon: _manager.QueryPolygon(_treeId, new ReadOnlyArray<Vector2DInt>(_polygonRuntime, Math.Max(_polygon.Length, PolygonSide)), true, _elements); break;
+                case QuadTreeShape.Point: _manager.QueryPoint(_treeId, _center, _elements); break;
+                case QuadTreeShape.Circle: _manager.QueryCircle(_treeId, _center, _radius, true, _elements); break;
+                case QuadTreeShape.AABB: _manager.QueryAABB(_treeId, _center, _extents, true, _elements); break;
+                case QuadTreeShape.OBB: _manager.QueryOBB(_treeId, _center, _extents, _angle, true, _elements); break;
+                case QuadTreeShape.Polygon: _manager.QueryPolygon(_treeId, new ReadOnlyArray<Vector2DInt>(_polygonRuntime, Math.Max(_polygon.Length, PolygonSide)), true, _elements); break;
                 default: Debug.LogError($"[Editor][Quad] TreeId:{_treeId}, Shape:{_shape}, not impl!"); break;
             }
         }
@@ -249,11 +249,11 @@ namespace EeveeEditor.QuadTree
         {
             switch (_shape)
             {
-                case QuadShape.Point: ShapeDraw.Point(_center, _scale, _height, in _queryColor); break;
-                case QuadShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), _scale, _height, in _queryColor); break;
-                case QuadShape.AABB: ShapeDraw.AABB(new AABB2DInt(_center, _extents), _scale, _height, in _queryColor); break;
-                case QuadShape.OBB: ShapeDraw.OBB(new OBB2DInt(_center, _extents, _angle), _scale, _height, in _queryColor); break;
-                case QuadShape.Polygon: ShapeDraw.Polygon(_polygon, _scale, _height, in _queryColor); break;
+                case QuadTreeShape.Point: ShapeDraw.Point(_center, _scale, _height, in _queryColor); break;
+                case QuadTreeShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), _scale, _height, in _queryColor); break;
+                case QuadTreeShape.AABB: ShapeDraw.AABB(new AABB2DInt(_center, _extents), _scale, _height, in _queryColor); break;
+                case QuadTreeShape.OBB: ShapeDraw.OBB(new OBB2DInt(_center, _extents, _angle), _scale, _height, in _queryColor); break;
+                case QuadTreeShape.Polygon: ShapeDraw.Polygon(_polygon, _scale, _height, in _queryColor); break;
                 default: Debug.LogError($"[Editor][Quad] Shape:{_shape}, not impl!"); break;
             }
         }
@@ -261,11 +261,11 @@ namespace EeveeEditor.QuadTree
         {
             var config = _manager.GetConfig(_treeId);
             foreach (var element in _elements)
-                QuadDraw.Element(config.Shape, _treeId, in element, _scale, _height, _drawIndex, in _elementColor);
+                QuadTreeDraw.Element(config.Shape, _treeId, in element, _scale, _height, _drawIndex, in _elementColor);
         }
 
         #region 缓存
-        internal static object ReadShape(QuadShape shape, int index)
+        internal static object ReadShape(QuadTreeShape shape, int index)
         {
             if (index < 0)
                 return null;
@@ -276,13 +276,13 @@ namespace EeveeEditor.QuadTree
             return shapes[index];
         }
 
-        internal static void WriteShape(Vector2DInt shape) => WriteShape(QuadShape.Point, shape);
-        internal static void WriteShape(in CircleInt shape) => WriteShape(QuadShape.Circle, shape);
-        internal static void WriteShape(in AABB2DInt shape) => WriteShape(QuadShape.AABB, shape);
-        internal static void WriteShape(in OBB2DInt shape) => WriteShape(QuadShape.OBB, shape);
-        internal static void WriteShape(in PolygonInt shape) => WriteShape(QuadShape.Polygon, new PolygonInt(new ReadOnlyArray<Vector2DInt>(shape.GetPoints().ToArray())));
+        internal static void WriteShape(Vector2DInt shape) => WriteShape(QuadTreeShape.Point, shape);
+        internal static void WriteShape(in CircleInt shape) => WriteShape(QuadTreeShape.Circle, shape);
+        internal static void WriteShape(in AABB2DInt shape) => WriteShape(QuadTreeShape.AABB, shape);
+        internal static void WriteShape(in OBB2DInt shape) => WriteShape(QuadTreeShape.OBB, shape);
+        internal static void WriteShape(in PolygonInt shape) => WriteShape(QuadTreeShape.Polygon, new PolygonInt(new ReadOnlyArray<Vector2DInt>(shape.GetPoints().ToArray())));
 
-        private static void WriteShape(QuadShape shape, object content)
+        private static void WriteShape(QuadTreeShape shape, object content)
         {
             var contexts = _shapes.GetValueOrDefault(shape);
             var newContexts = contexts ?? new List<object>();

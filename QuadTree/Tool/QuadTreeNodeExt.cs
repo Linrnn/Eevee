@@ -4,12 +4,12 @@ using System.Runtime.CompilerServices;
 
 namespace Eevee.QuadTree
 {
-    internal static class QuadExt
+    internal static class QuadTreeNodeExt
     {
         internal const int ChildSideCount = 2; // Sqrt(ChildCount)
         internal const int ChildCount = 4; // 节点的子节点数量
-        internal const QuadCountNodeMode ElementCountMode = QuadCountNodeMode.NotIntersect;
-        internal const QuadCountNodeMode QueryCountMode = QuadCountNodeMode.IntersectOffset;
+        internal const QuadTreeCountNodeMode ElementCountMode = QuadTreeCountNodeMode.NotIntersect;
+        internal const QuadTreeCountNodeMode QueryCountMode = QuadTreeCountNodeMode.IntersectOffset;
 
         /// <summary>
         /// 每一层的节点数量的根号
@@ -29,9 +29,9 @@ namespace Eevee.QuadTree
         internal static Vector2DInt GetDepthExtents(in AABB2DInt maxBoundary, int depth) => new(maxBoundary.W >> depth, maxBoundary.H >> depth);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool TrtGetArea(in AABB2DInt maxBoundary, in AABB2DInt shape, QuadCountNodeMode mode, out AABB2DInt area)
+        internal static bool TrtGetArea(in AABB2DInt maxBoundary, in AABB2DInt shape, QuadTreeCountNodeMode mode, out AABB2DInt area)
         {
-            if (mode == QuadCountNodeMode.NotIntersect)
+            if (mode == QuadTreeCountNodeMode.NotIntersect)
             {
                 area = shape;
                 return true;
@@ -45,11 +45,11 @@ namespace Eevee.QuadTree
 
             switch (mode)
             {
-                case QuadCountNodeMode.OnlyIntersect:
+                case QuadTreeCountNodeMode.OnlyIntersect:
                     area = default;
                     return false;
 
-                case QuadCountNodeMode.IntersectOffset:
+                case QuadTreeCountNodeMode.IntersectOffset:
                     int x = intersect.X;
                     int y = intersect.Y;
                     int w = intersect.W;
@@ -71,7 +71,7 @@ namespace Eevee.QuadTree
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool TrtGetNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt area, out QuadIndex index)
+        internal static bool TrtGetNodeIndex(in AABB2DInt maxBoundary, int maxDepth, in AABB2DInt area, out QuadTreeIndex index)
         {
             for (int depth = maxDepth; depth >= 0; --depth)
             {
@@ -82,11 +82,11 @@ namespace Eevee.QuadTree
                 int left = maxBoundary.Left();
                 int bottom = maxBoundary.Bottom();
                 var idx = GetNodeIndex(area.X, area.Y, left, bottom, extents.X, extents.Y);
-                index = new QuadIndex(depth, idx.X, idx.Y);
+                index = new QuadTreeIndex(depth, idx.X, idx.Y);
                 return true;
             }
 
-            index = QuadIndex.Invalid;
+            index = QuadTreeIndex.Invalid;
             return false;
         }
 
@@ -122,15 +122,15 @@ namespace Eevee.QuadTree
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int GetNodeId(this QuadIndex index) => index.IsValid() ? GetNodeId(index.Depth, index.X, index.Y) : -1;
+        internal static int GetNodeId(this QuadTreeIndex index) => index.IsValid() ? GetNodeId(index.Depth, index.X, index.Y) : -1;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetNodeId(int depth, int x, int y) => x + (1 << depth) * y;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static int GetChildId(this QuadIndex index) => GetChildId(index.X, index.Y);
+        internal static int GetChildId(this QuadTreeIndex index) => GetChildId(index.X, index.Y);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int GetChildId(int x, int y) => x & 1 | (y & 1) << 1; // 相对于父节点的索引
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static Exception BuildShapeException(int treeId, QuadShape shape) => new NotImplementedException($"TreeId:{treeId}, Shape:{shape} not implement.");
+        internal static Exception BuildShapeException(int treeId, QuadTreeShape shape) => new NotImplementedException($"TreeId:{treeId}, Shape:{shape} not implement.");
     }
 }

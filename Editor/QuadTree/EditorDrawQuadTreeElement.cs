@@ -11,11 +11,11 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 绘制四叉树元素
     /// </summary>
-    internal sealed class EditorDrawQuadElement : MonoBehaviour
+    internal sealed class EditorDrawQuadTreeElement : MonoBehaviour
     {
         #region 类型
-        [CustomEditor(typeof(EditorDrawQuadElement))]
-        private sealed class EditorDrawQuadElementInspector : Editor
+        [CustomEditor(typeof(EditorDrawQuadTreeElement))]
+        private sealed class EditorDrawQuadTreeElementInspector : Editor
         {
             #region Property Path
             private const string Range = nameof(_range);
@@ -49,9 +49,9 @@ namespace EeveeEditor.QuadTree
                 {
                     case (int)DrawRange.Single:
                     case (int)DrawRange.Children:
-                    case (int)DrawRange.All: _propertyHandle.DrawEnumQuadFunc(TreeIds); break;
+                    case (int)DrawRange.All: _propertyHandle.EnumTreeFunc(TreeIds); break;
                     case (int)DrawRange.Custom:
-                        _propertyHandle.DrawEnumQuadFunc(TreeIds);
+                        _propertyHandle.EnumTreeFunc(TreeIds);
                         _propertyHandle.Draw(Indexes);
                         break;
                 }
@@ -69,9 +69,9 @@ namespace EeveeEditor.QuadTree
             [SerializeField] internal int Index;
             internal readonly AABB2DInt Content;
             [SerializeField] internal int TreeId;
-            [SerializeField] internal QuadShape Shape;
+            [SerializeField] internal QuadTreeShape Shape;
 
-            internal DrawElement(in QuadElement element, in BasicQuadTree tree)
+            internal DrawElement(in QuadTreeElement element, in BasicQuadTree tree)
             {
                 Index = element.Index;
                 Content = element.Shape;
@@ -152,21 +152,21 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
-        private IQuadDrawProxy _proxy;
+        private IQuadTreeDrawProxy _proxy;
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly HashSet<int> _drawIndexes = new();
         private readonly List<DrawElement> _elements = new();
-        private readonly List<QuadNode> _nodes = new(); // 临时缓存
+        private readonly List<QuadTreeNode> _nodes = new(); // 临时缓存
         #endregion
 
         private void OnEnable()
         {
-            var proxy = QuadGetter.Proxy;
+            var proxy = QuadTreeGetter.Proxy;
             var manager = proxy.Manager;
             _proxy = proxy;
             _scale = 1F / manager.Scale;
-            QuadGetter.GetTrees(manager, _trees);
+            QuadTreeGetter.GetTrees(manager, _trees);
         }
         private void Update()
         {
@@ -189,7 +189,7 @@ namespace EeveeEditor.QuadTree
                 case DrawRange.Children: _proxy.GetIndexes(gameObject, _drawIndexes); break;
                 case DrawRange.All:
                     foreach (var (_, tree) in _trees)
-                    foreach (var node in QuadGetter.GetNodes(tree, _nodes))
+                    foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
                     foreach (var element in node.Elements)
                         _drawIndexes.Add(element.Index);
                     break;
@@ -209,7 +209,7 @@ namespace EeveeEditor.QuadTree
         }
         private void ReadyElements(BasicQuadTree tree)
         {
-            foreach (var node in QuadGetter.GetNodes(tree, _nodes))
+            foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
             foreach (var element in node.Elements)
                 if (_drawIndexes.Contains(element.Index))
                     _elements.Add(new DrawElement(in element, tree));
@@ -219,7 +219,7 @@ namespace EeveeEditor.QuadTree
         {
             if (_draw)
                 foreach (var element in _elements)
-                    QuadDraw.Element(element.Shape, element.TreeId, new QuadElement(element.Index, in element.Content), _scale, _height, _drawIndex, in _color);
+                    QuadTreeDraw.Element(element.Shape, element.TreeId, new QuadTreeElement(element.Index, in element.Content), _scale, _height, _drawIndex, in _color);
         }
     }
 }

@@ -12,16 +12,16 @@ namespace Eevee.QuadTree
     /// <summary>
     /// 四叉树节点
     /// </summary>
-    public sealed class QuadNode
+    public sealed class QuadTreeNode
     {
         #region 迭代器
         internal readonly struct Iterator
         {
-            private readonly IReadOnlyList<QuadNode> _enumerator;
+            private readonly IReadOnlyList<QuadTreeNode> _enumerator;
             private readonly bool _checkNull;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Iterator(IReadOnlyList<QuadNode> enumerator, bool checkNull)
+            internal Iterator(IReadOnlyList<QuadTreeNode> enumerator, bool checkNull)
             {
                 _enumerator = enumerator;
                 _checkNull = checkNull;
@@ -29,15 +29,15 @@ namespace Eevee.QuadTree
             public Enumerator GetEnumerator() => new(_enumerator, _checkNull);
         }
 
-        internal struct Enumerator : IEnumerator<QuadNode>
+        internal struct Enumerator : IEnumerator<QuadTreeNode>
         {
-            private readonly IReadOnlyList<QuadNode> _enumerator;
+            private readonly IReadOnlyList<QuadTreeNode> _enumerator;
             private bool _checkNull;
             private int _index;
-            private QuadNode _current;
+            private QuadTreeNode _current;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(IReadOnlyList<QuadNode> enumerator, bool checkNull)
+            internal Enumerator(IReadOnlyList<QuadTreeNode> enumerator, bool checkNull)
             {
                 _enumerator = enumerator;
                 _checkNull = checkNull;
@@ -46,10 +46,9 @@ namespace Eevee.QuadTree
             }
 
             #region IEnumerator`1
-            public readonly QuadNode Current
+            public readonly QuadTreeNode Current
             {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => _current;
+                [MethodImpl(MethodImplOptions.AggressiveInlining)] get => _current;
             }
             #endregion
 
@@ -121,12 +120,12 @@ namespace Eevee.QuadTree
         #region 字段
         internal AABB2DInt Boundary; // 边界
         internal AABB2DInt LooseBoundary; // 松散四叉树的节点边界
-        internal QuadIndex Index = QuadIndex.Invalid; // 节点所在层级的二维坐标
+        internal QuadTreeIndex Index = QuadTreeIndex.Invalid; // 节点所在层级的二维坐标
 
-        internal QuadNode Parent; // 父节点
-        private readonly QuadNode[] _children = new QuadNode[QuadExt.ChildCount]; // 子节点
-        internal RefArray<QuadElement> Elements = new(null); // 存储元素的数组（禁止外部直接修改）
-        private ArrayPool<QuadElement> _elementPool;
+        internal QuadTreeNode Parent; // 父节点
+        private readonly QuadTreeNode[] _children = new QuadTreeNode[QuadTreeNodeExt.ChildCount]; // 子节点
+        internal RefArray<QuadTreeElement> Elements = new(null); // 存储元素的数组（禁止外部直接修改）
+        private ArrayPool<QuadTreeElement> _elementPool;
         internal int SumCount; // 当前节点及所有子节点存的数量（禁止外部直接修改）
 
         private int _childCount;
@@ -135,11 +134,11 @@ namespace Eevee.QuadTree
 
         #region 方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int x, int y, QuadNode parent, ArrayPool<QuadElement> pool)
+        internal void OnAlloc(in AABB2DInt boundary, in AABB2DInt looseBoundary, int depth, int x, int y, QuadTreeNode parent, ArrayPool<QuadTreeElement> pool)
         {
             Boundary = boundary;
             LooseBoundary = looseBoundary;
-            Index = new QuadIndex(depth, x, y);
+            Index = new QuadTreeIndex(depth, x, y);
             Parent = parent;
             _elementPool = pool;
             _valid = true;
@@ -155,7 +154,7 @@ namespace Eevee.QuadTree
 
             Boundary = default;
             LooseBoundary = default;
-            Index = QuadIndex.Invalid;
+            Index = QuadTreeIndex.Invalid;
             Parent = null;
             _children.Clean();
             RefArray.Return(ref Elements, _elementPool);
@@ -166,13 +165,13 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void Add(in QuadElement element)
+        internal void Add(in QuadTreeElement element)
         {
             RefArray.Add(ref Elements, in element, _elementPool);
             CountSumAdd();
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool Remove(in QuadElement element)
+        internal bool Remove(in QuadTreeElement element)
         {
             for (int length = Elements.Count, i = 0; i < length; ++i)
             {
@@ -193,7 +192,7 @@ namespace Eevee.QuadTree
             CountSumSub();
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool Update(in QuadElement perElement, in QuadElement tarElement)
+        internal bool Update(in QuadTreeElement perElement, in QuadTreeElement tarElement)
         {
             for (int length = Elements.Count, i = 0; i < length; ++i)
             {
@@ -206,7 +205,7 @@ namespace Eevee.QuadTree
             return false;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void Update(int index, in QuadElement element) => Elements[index] = element;
+        internal void Update(int index, in QuadTreeElement element) => Elements[index] = element;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void CountSumAdd()
@@ -222,22 +221,22 @@ namespace Eevee.QuadTree
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void AddChild(QuadNode node)
+        internal void AddChild(QuadTreeNode node)
         {
             var index = node.Index;
             int childId = index.GetChildId();
             var children = _children;
-            Assert.Null<InvalidOperationException, AssertArgs<QuadIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, has node!", new AssertArgs<QuadIndex, int>(index, childId));
+            Assert.Null<InvalidOperationException, AssertArgs<QuadTreeIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, has node!", new AssertArgs<QuadTreeIndex, int>(index, childId));
             children[childId] = node;
             ++_childCount;
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void RemoveChild(QuadNode node)
+        internal void RemoveChild(QuadTreeNode node)
         {
             var index = node.Index;
             int childId = index.GetChildId();
             var children = _children;
-            Assert.NotNull<InvalidOperationException, AssertArgs<QuadIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, no node!", new AssertArgs<QuadIndex, int>(index, childId));
+            Assert.NotNull<InvalidOperationException, AssertArgs<QuadTreeIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, no node!", new AssertArgs<QuadTreeIndex, int>(index, childId));
             children[childId] = null;
             --_childCount;
         }
@@ -245,7 +244,7 @@ namespace Eevee.QuadTree
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool SumIsEmpty() => SumCount == 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal int IndexOf(in QuadElement element) => Elements.IndexOf(in element);
+        internal int IndexOf(in QuadTreeElement element) => Elements.IndexOf(in element);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsRoot() => Parent is null; // 是否为根节点
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -263,7 +262,7 @@ namespace Eevee.QuadTree
         };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal ReadOnlySpan<QuadNode> ChildAsSpan() => _children.AsReadOnlySpan();
+        internal ReadOnlySpan<QuadTreeNode> ChildAsSpan() => _children.AsReadOnlySpan();
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Iterator ChildAsIterator() => new(_children, true);
         #endregion

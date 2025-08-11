@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace EeveeEditor.QuadTree
 {
-    internal sealed class EditorQuadDiagnosis : MonoBehaviour
+    internal sealed class EditorDrawQuadTreeDiagnosis : MonoBehaviour
     {
         #region 类型
-        [CustomEditor(typeof(EditorQuadDiagnosis))]
-        private sealed class EditorQuadDiagnosisInspector : Editor
+        [CustomEditor(typeof(EditorDrawQuadTreeDiagnosis))]
+        private sealed class EditorDrawQuadTreeDiagnosisInspector : Editor
         {
             #region Property Path
             private const string Print = nameof(_print);
@@ -32,7 +32,7 @@ namespace EeveeEditor.QuadTree
             {
                 _propertyHandle.DrawScript();
                 _propertyHandle.Draw(Print);
-                _propertyHandle.DrawEnumQuadFunc(TreeIds);
+                _propertyHandle.EnumTreeFunc(TreeIds);
                 _propertyHandle.Draw(Indexes);
             }
         }
@@ -48,15 +48,15 @@ namespace EeveeEditor.QuadTree
 
         private void SetParam()
         {
-            QuadDiagnosis.Print = _print;
-            QuadDiagnosis.TreeIds = _treeIds;
-            QuadDiagnosis.Indexes = _indexes;
+            QuadTreeDiagnosis.Print = _print;
+            QuadTreeDiagnosis.TreeIds = _treeIds;
+            QuadTreeDiagnosis.Indexes = _indexes;
         }
         private void ResetParam()
         {
-            QuadDiagnosis.Print = false;
-            QuadDiagnosis.TreeIds = null;
-            QuadDiagnosis.Indexes = null;
+            QuadTreeDiagnosis.Print = false;
+            QuadTreeDiagnosis.TreeIds = null;
+            QuadTreeDiagnosis.Indexes = null;
         }
     }
 }

@@ -12,11 +12,11 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 统计四叉树性能数据
     /// </summary>
-    internal sealed class EditorDrawQuadCount : MonoBehaviour
+    internal sealed class EditorDrawQuadTreeCount : MonoBehaviour
     {
         #region 类型
-        [CustomEditor(typeof(EditorDrawQuadCount))]
-        private sealed class EditorDrawQuadCountInspector : Editor
+        [CustomEditor(typeof(EditorDrawQuadTreeCount))]
+        private sealed class EditorDrawQuadTreeCountInspector : Editor
         {
             #region Property Path
             private const string TreeIds = nameof(_treeIds);
@@ -40,7 +40,7 @@ namespace EeveeEditor.QuadTree
             private void DrawProperties()
             {
                 _propertyHandle.DrawScript();
-                _propertyHandle.DrawEnumQuadFunc(TreeIds);
+                _propertyHandle.EnumTreeFunc(TreeIds);
                 _propertyHandle.Draw(LineBall);
                 _propertyHandle.Draw(Height);
                 _propertyHandle.Draw(DrawIndex);
@@ -115,15 +115,15 @@ namespace EeveeEditor.QuadTree
         #region 运行时缓存
         private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
-        private readonly List<QuadNode> _nodes = new(); // 临时缓存
-        private readonly List<QuadElement> _elements = new(); // 临时缓存
+        private readonly List<QuadTreeNode> _nodes = new(); // 临时缓存
+        private readonly List<QuadTreeElement> _elements = new(); // 临时缓存
         #endregion
 
         private void OnEnable()
         {
-            var manager = QuadGetter.Proxy.Manager;
+            var manager = QuadTreeGetter.Proxy.Manager;
             _scale = 1F / manager.Scale;
-            QuadGetter.GetTrees(manager, _trees);
+            QuadTreeGetter.GetTrees(manager, _trees);
             ReadyTree();
         }
         private void OnValidate()
@@ -173,7 +173,7 @@ namespace EeveeEditor.QuadTree
 
                 for (int lastIndex = _depthCounts.Length - 1, depth = lastIndex; depth >= 0; --depth)
                 {
-                    var nodes = QuadGetter.GetNodes(tree, depth, _nodes);
+                    var nodes = QuadTreeGetter.GetNodes(tree, depth, _nodes);
                     ref var depthCount = ref _depthCounts[depth];
                     depthCount.Depth = depth;
 
