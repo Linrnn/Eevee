@@ -12,6 +12,7 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 统计四叉树性能数据
     /// </summary>
+    [AddComponentMenu("Eevee Editor/Quad Tree/Editor Draw Quad Tree Count")]
     internal sealed class EditorDrawQuadTreeCount : MonoBehaviour
     {
         #region 类型

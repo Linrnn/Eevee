@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace EeveeEditor.QuadTree
 {
+    [AddComponentMenu("Eevee Editor/Quad Tree/Editor Draw Quad Tree Diagnosis")]
     internal sealed class EditorDrawQuadTreeDiagnosis : MonoBehaviour
     {
         #region 类型

@@ -13,6 +13,7 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 绘制搜索区域内的四叉树元素
     /// </summary>
+    [AddComponentMenu("Eevee Editor/Quad Tree/Editor Draw Quad Tree Query")]
     internal sealed class EditorDrawQuadTreeQuery : MonoBehaviour
     {
         #region 类型

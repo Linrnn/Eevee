@@ -12,11 +12,12 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 绘制四叉树节点，目标所在的四叉树节点
     /// </summary>
-    internal sealed class EditorDrawQuadTree : MonoBehaviour
+    [AddComponentMenu("Eevee Editor/Quad Tree/Editor Draw Quad Tree Node")]
+    internal sealed class EditorDrawQuadTreeNode : MonoBehaviour
     {
         #region 类型
-        [CustomEditor(typeof(EditorDrawQuadTree))]
-        private sealed class EditorDrawQuadTreeInspector : Editor
+        [CustomEditor(typeof(EditorDrawQuadTreeNode))]
+        private sealed class EditorDrawQuadTreeNodeInspector : Editor
         {
             #region Property Path
             private const string TreeId = nameof(_treeId);

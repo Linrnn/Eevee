@@ -11,6 +11,7 @@ namespace EeveeEditor.QuadTree
     /// <summary>
     /// 绘制四叉树元素
     /// </summary>
+    [AddComponentMenu("Eevee Editor/Quad Tree/Editor Draw Quad Tree Element")]
     internal sealed class EditorDrawQuadTreeElement : MonoBehaviour
     {
         #region 类型
