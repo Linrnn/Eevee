@@ -69,7 +69,7 @@ namespace Eevee.Collection
                 }
             }
 
-            Assert.NotReferenceEquals<InvalidOperationException, AssertArgs>(source, input, nameof(input), "source is reference equals input");
+            Assert.NotReferenceEquals<InvalidOperationException, DiagnosisArgs>(source, input, nameof(input), "source is reference equals input");
             switch (input)
             {
                 case IReadOnlyList<T> readOnlyList:

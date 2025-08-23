@@ -208,7 +208,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool AddIfNotPresent(T value, out int location)
         {
-            Assert.Less<InvalidOperationException, AssertArgs<int, int>, int>(_count, _capacity, nameof(_count), "_count:{0} >= _capacity:{1}", new AssertArgs<int, int>(_count, _capacity));
+            Assert.Less<InvalidOperationException, DiagnosisArgs<int, int>, int>(_count, _capacity, nameof(_count), "_count:{0} >= _capacity:{1}", new DiagnosisArgs<int, int>(_count, _capacity));
             int hashCode = _comparer.GetHashCode(value);
             ref int bucket = ref GetBucketRef(hashCode);
             int next0 = bucket - 1;
@@ -258,13 +258,13 @@ namespace Eevee.Collection
 
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
-        private readonly void CheckNum(int num) => Assert.LessEqual<IndexOutOfRangeException, AssertArgs<int, int>, int>(num, _capacity, nameof(num), "num:{0} > _capacity:{1}", new AssertArgs<int, int>(num, _scale));
+        private readonly void CheckNum(int num) => Assert.LessEqual<IndexOutOfRangeException, DiagnosisArgs<int, int>, int>(num, _capacity, nameof(num), "num:{0} > _capacity:{1}", new DiagnosisArgs<int, int>(num, _scale));
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         private readonly void CheckItem(T item)
         {
             if (_referenceType)
-                Assert.NotNull<ArgumentNullException, AssertArgs>(item, nameof(item), "is null!");
+                Assert.NotNull<ArgumentNullException, DiagnosisArgs>(item, nameof(item), "is null!");
         }
         #endregion
     }

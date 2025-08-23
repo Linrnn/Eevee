@@ -209,7 +209,7 @@ namespace Eevee.Collection
             get
             {
                 CheckCount();
-                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _collection.Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _collection.Count));
+                Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, _collection.Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, _collection.Count));
                 return _order[index];
             }
         }
@@ -295,12 +295,12 @@ namespace Eevee.Collection
         private void CheckComparer(IEqualityComparer<T> comparer = null)
         {
             if (comparer is null || comparer == EqualityComparer<T>.Default)
-                Assert.Convert<ArgumentException, AssertArgs<object>, T, IEquatable<T>>(nameof(comparer), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(T)));
+                Assert.Convert<ArgumentException, DiagnosisArgs<object>, T, IEquatable<T>>(nameof(comparer), "T:{0} 未继承 IEquatable<T>", new DiagnosisArgs<object>(typeof(T)));
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CheckCount() => Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_collection.Count, _order.Count, nameof(_collection.Count), "Count fail, _data.Count:{0} != _order.Count:{1}", new AssertArgs<int, int>(_collection.Count, _order.Count));
+        private void CheckCount() => Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int>, int>(_collection.Count, _order.Count, nameof(_collection.Count), "Count fail, _data.Count:{0} != _order.Count:{1}", new DiagnosisArgs<int, int>(_collection.Count, _order.Count));
         #endregion
     }
 }

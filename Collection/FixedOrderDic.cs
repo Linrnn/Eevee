@@ -58,7 +58,7 @@ namespace Eevee.Collection
             {
                 int version = _enumerator._order.GetVersion();
                 int count = _enumerator.Count;
-                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, version, nameof(_version), "MoveNext fail, _version:{0} != _enumerator._order._version:{1}", new AssertArgs<int, int>(_version, version));
+                Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int>, int>(_version, version, nameof(_version), "MoveNext fail, _version:{0} != _enumerator._order._version:{1}", new DiagnosisArgs<int, int>(_version, version));
 
                 if (_version != version || _index >= count)
                 {
@@ -120,7 +120,7 @@ namespace Eevee.Collection
             void ICollection.CopyTo(Array array, int index)
             {
                 _enumerator.CheckCount();
-                Assert.Equal<ArgumentException, AssertArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new AssertArgs<object, int>(array.GetType(), array.Rank));
+                Assert.Equal<ArgumentException, DiagnosisArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new DiagnosisArgs<object, int>(array.GetType(), array.Rank));
 
                 switch (array)
                 {
@@ -168,7 +168,7 @@ namespace Eevee.Collection
             {
                 int version = _enumerator._order.GetVersion();
                 int count = _enumerator.Count;
-                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, version, nameof(_version), "MoveNext fail, _version:{0} != _enumerator._order._version:{1}", new AssertArgs<int, int>(_version, version));
+                Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int>, int>(_version, version, nameof(_version), "MoveNext fail, _version:{0} != _enumerator._order._version:{1}", new DiagnosisArgs<int, int>(_version, version));
 
                 if (_version != version || _index >= count)
                 {
@@ -361,7 +361,7 @@ namespace Eevee.Collection
             get
             {
                 CheckCount();
-                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _collection.Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _collection.Count));
+                Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, _collection.Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, _collection.Count));
                 return _order[index];
             }
         }
@@ -401,7 +401,7 @@ namespace Eevee.Collection
         void ICollection.CopyTo(Array array, int index)
         {
             CheckCount();
-            Assert.Equal<ArgumentException, AssertArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new AssertArgs<object, int>(array.GetType(), array.Rank));
+            Assert.Equal<ArgumentException, DiagnosisArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new DiagnosisArgs<object, int>(array.GetType(), array.Rank));
 
             switch (array)
             {
@@ -525,12 +525,12 @@ namespace Eevee.Collection
         private void CheckComparer(IEqualityComparer<TKey> comparer = null)
         {
             if (comparer is null || comparer == EqualityComparer<TKey>.Default)
-                Assert.Convert<ArgumentException, AssertArgs<object>, TKey, IEquatable<TKey>>(nameof(comparer), "T:{0} 未继承 IEquatable<T>", new AssertArgs<object>(typeof(TKey)));
+                Assert.Convert<ArgumentException, DiagnosisArgs<object>, TKey, IEquatable<TKey>>(nameof(comparer), "T:{0} 未继承 IEquatable<T>", new DiagnosisArgs<object>(typeof(TKey)));
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void CheckCount() => Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_collection.Count, _order.Count, nameof(_collection.Count), "Count fail, _data.Count:{0} != _order.Count:{1}", new AssertArgs<int, int>(_collection.Count, _order.Count));
+        private void CheckCount() => Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int>, int>(_collection.Count, _order.Count, nameof(_collection.Count), "Count fail, _data.Count:{0} != _order.Count:{1}", new DiagnosisArgs<int, int>(_collection.Count, _order.Count));
         #endregion
     }
 }

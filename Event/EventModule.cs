@@ -42,7 +42,7 @@ namespace Eevee.Event
 
         public EventModule(ArrayPool<Delegate> arrayPool)
         {
-            Assert.NotNull<ArgumentNullException, AssertArgs>(arrayPool, nameof(arrayPool), "is null!");
+            Assert.NotNull<ArgumentNullException, DiagnosisArgs>(arrayPool, nameof(arrayPool), "is null!");
 
             _arrayPool = arrayPool;
         }

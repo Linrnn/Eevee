@@ -502,7 +502,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(int a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<int>, int>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<int>(a));
+            Assert.Greater<ArgumentOutOfRangeException, DiagnosisArgs<int>, int>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new DiagnosisArgs<int>(a));
             return PrivateLog2((uint)a);
         }
         /// <summary>
@@ -510,7 +510,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(uint a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<uint>, uint>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<uint>(a));
+            Assert.Greater<ArgumentOutOfRangeException, DiagnosisArgs<uint>, uint>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new DiagnosisArgs<uint>(a));
             return PrivateLog2(a);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -549,7 +549,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(long a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<long>, long>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<long>(a));
+            Assert.Greater<ArgumentOutOfRangeException, DiagnosisArgs<long>, long>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new DiagnosisArgs<long>(a));
             return PrivateLog2((ulong)a);
         }
         /// <summary>
@@ -557,7 +557,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Log2(ulong a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<ulong>, ulong>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<ulong>(a));
+            Assert.Greater<ArgumentOutOfRangeException, DiagnosisArgs<ulong>, ulong>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new DiagnosisArgs<ulong>(a));
             return PrivateLog2(a);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -639,7 +639,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Lg(int a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<int>, int>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new AssertArgs<int>(a));
+            Assert.Greater<ArgumentOutOfRangeException, DiagnosisArgs<int>, int>(a, 0, nameof(a), "a：{0}≤0，无法计算对数", new DiagnosisArgs<int>(a));
             int log = 0;
             for (int num = a; num >= 10; num /= 10)
                 ++log;
@@ -650,7 +650,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int Lg(long a)
         {
-            Assert.Greater<ArgumentOutOfRangeException, AssertArgs<long>, long>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new AssertArgs<long>(a));
+            Assert.Greater<ArgumentOutOfRangeException, DiagnosisArgs<long>, long>(a, 0, nameof(a), "a：{0}=0，无法计算对数", new DiagnosisArgs<long>(a));
             int log = 0;
             for (long num = a; num >= 10; num /= 10)
                 ++log;

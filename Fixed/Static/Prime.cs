@@ -44,7 +44,7 @@ namespace Eevee.Fixed
         /// </summary>
         public static int GetNumber(int value)
         {
-            Assert.GreaterEqual<ArgumentException, AssertArgs<int>, int>(value, 0, nameof(value), "获取质数传入参数错误：{0}<0", new AssertArgs<int>(value));
+            Assert.GreaterEqual<ArgumentException, DiagnosisArgs<int>, int>(value, 0, nameof(value), "获取质数传入参数错误：{0}<0", new DiagnosisArgs<int>(value));
             foreach (int prime in _primes)
                 if (prime >= value)
                     return prime;

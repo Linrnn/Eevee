@@ -3,88 +3,88 @@
     /// <summary>
     /// 断言参数约束
     /// </summary>
-    internal interface IAssertArgs
+    internal interface IDiagnosisArgs
     {
-        string BuildMessage(string format);
+        string Build(string format);
     }
 
     /// <summary>
     /// 断言参数
     /// </summary>
-    internal readonly struct AssertArgs : IAssertArgs
+    internal readonly struct DiagnosisArgs : IDiagnosisArgs
     {
-        public string BuildMessage(string format) => format;
+        public string Build(string format) => format;
     }
 
     /// <summary>
     /// 断言参数
     /// </summary>
-    internal readonly struct AssertArgs<TArg0> : IAssertArgs
+    internal readonly struct DiagnosisArgs<TArg0> : IDiagnosisArgs
     {
         internal readonly TArg0 Arg0;
 
-        internal AssertArgs(TArg0 arg0) => Arg0 = arg0;
-        public string BuildMessage(string format) => string.Format(format, Arg0);
+        internal DiagnosisArgs(TArg0 arg0) => Arg0 = arg0;
+        public string Build(string format) => string.Format(format, Arg0);
     }
 
     /// <summary>
     /// 断言参数
     /// </summary>
-    internal readonly struct AssertArgs<TArg0, TArg1> : IAssertArgs
+    internal readonly struct DiagnosisArgs<TArg0, TArg1> : IDiagnosisArgs
     {
         internal readonly TArg0 Arg0;
         internal readonly TArg1 Arg1;
 
-        internal AssertArgs(TArg0 arg0, TArg1 arg1)
+        internal DiagnosisArgs(TArg0 arg0, TArg1 arg1)
         {
             Arg0 = arg0;
             Arg1 = arg1;
         }
-        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1);
+        public string Build(string format) => string.Format(format, Arg0, Arg1);
     }
 
     /// <summary>
     /// 断言参数
     /// </summary>
-    internal readonly struct AssertArgs<TArg0, TArg1, TArg2> : IAssertArgs
+    internal readonly struct DiagnosisArgs<TArg0, TArg1, TArg2> : IDiagnosisArgs
     {
         internal readonly TArg0 Arg0;
         internal readonly TArg1 Arg1;
         internal readonly TArg2 Arg2;
 
-        internal AssertArgs(TArg0 arg0, TArg1 arg1, TArg2 arg2)
+        internal DiagnosisArgs(TArg0 arg0, TArg1 arg1, TArg2 arg2)
         {
             Arg0 = arg0;
             Arg1 = arg1;
             Arg2 = arg2;
         }
-        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1, Arg2);
+        public string Build(string format) => string.Format(format, Arg0, Arg1, Arg2);
     }
 
     /// <summary>
     /// 断言参数
     /// </summary>
-    internal readonly struct AssertArgs<TArg0, TArg1, TArg2, TArg3> : IAssertArgs
+    internal readonly struct DiagnosisArgs<TArg0, TArg1, TArg2, TArg3> : IDiagnosisArgs
     {
         internal readonly TArg0 Arg0;
         internal readonly TArg1 Arg1;
         internal readonly TArg2 Arg2;
         internal readonly TArg3 Arg3;
 
-        internal AssertArgs(TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3)
+        internal DiagnosisArgs(TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3)
         {
             Arg0 = arg0;
             Arg1 = arg1;
             Arg2 = arg2;
             Arg3 = arg3;
         }
-        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3);
+        public string Build(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3);
     }
 
     /// <summary>
     /// 断言参数
     /// </summary>
-    internal readonly struct AssertArgs<TArg0, TArg1, TArg2, TArg3, TArg4> : IAssertArgs
+    internal readonly struct DiagnosisArgs<TArg0, TArg1, TArg2, TArg3, TArg4> : IDiagnosisArgs
     {
         internal readonly TArg0 Arg0;
         internal readonly TArg1 Arg1;
@@ -92,7 +92,7 @@
         internal readonly TArg3 Arg3;
         internal readonly TArg4 Arg4;
 
-        internal AssertArgs(TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4)
+        internal DiagnosisArgs(TArg0 arg0, TArg1 arg1, TArg2 arg2, TArg3 arg3, TArg4 arg4)
         {
             Arg0 = arg0;
             Arg1 = arg1;
@@ -100,6 +100,6 @@
             Arg3 = arg3;
             Arg4 = arg4;
         }
-        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3, Arg4);
+        public string Build(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3, Arg4);
     }
 }

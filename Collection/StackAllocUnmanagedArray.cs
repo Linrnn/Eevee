@@ -28,13 +28,13 @@ namespace Eevee.Collection
 
         internal readonly void Set(int index, in T element)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, Count));
             _span[index] = element;
         }
         internal void Add(in T element) => _span[Count++] = element;
         internal void RemoveAt(int index)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, Count));
             int count = --Count;
             if (index < count)
             {

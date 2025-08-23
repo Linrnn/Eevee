@@ -74,7 +74,7 @@ namespace Eevee.QuadTree
                     if (depNodes.ContainsKey(index.GetNodeId()))
                         break;
 
-                    Assert.Less<IndexOutOfRangeException, AssertArgs<int, int>, int>(count, indexes.Length, nameof(count), "Span<QuadIndex>, count:{0} >= indexes.Length:{1}!", new AssertArgs<int, int>(count, indexes.Length));
+                    Assert.Less<IndexOutOfRangeException, DiagnosisArgs<int, int>, int>(count, indexes.Length, nameof(count), "Span<QuadIndex>, count:{0} >= indexes.Length:{1}!", new DiagnosisArgs<int, int>(count, indexes.Length));
                     indexes[count] = index;
                     ++count;
                 }

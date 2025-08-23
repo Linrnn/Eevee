@@ -479,12 +479,12 @@ namespace Eevee.Fixed
 
         public static Circle AsCircle(in AABB2DInt value) // “AABB”的宽高需要相等
         {
-            Assert.Equal<InvalidOperationException, AssertArgs<Fixed64, Fixed64>, Fixed64>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new AssertArgs<Fixed64, Fixed64>(value.W, value.H));
+            Assert.Equal<InvalidOperationException, DiagnosisArgs<Fixed64, Fixed64>, Fixed64>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new DiagnosisArgs<Fixed64, Fixed64>(value.W, value.H));
             return new Circle(value.X, value.Y, value.W);
         }
         public static CircleInt AsCircleInt(in AABB2DInt value) // “AABB”的宽高需要相等
         {
-            Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new AssertArgs<int, int>(value.W, value.H));
+            Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int>, int>(value.W, value.H, nameof(value), "as fail, W:{0} != H:{1}", new DiagnosisArgs<int, int>(value.W, value.H));
             return new CircleInt(value.X, value.Y, value.W);
         }
 

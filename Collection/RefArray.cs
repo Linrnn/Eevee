@@ -79,7 +79,7 @@ namespace Eevee.Collection
         }
         internal static void RemoveAt<T>(ref RefArray<T> source, int index)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, source.Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, source.Count));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, source.Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, source.Count));
             int count = source.Count - 1;
             var items = source.Items;
             if (index < count)
@@ -89,7 +89,7 @@ namespace Eevee.Collection
         }
         internal static void WeakOrderRemoveAt<T>(ref RefArray<T> source, int index)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, source.Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, source.Count));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, source.Count - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, source.Count));
             int count = source.Count - 1;
             var items = source.Items;
             if (index < count)

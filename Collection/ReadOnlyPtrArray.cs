@@ -12,7 +12,7 @@ namespace Eevee.Collection
 
         public ReadOnlyPtrArray(T* ptr, int count)
         {
-            Assert.NotNull<ArgumentNullException, AssertArgs>(ptr, nameof(ptr), "is null!");
+            Assert.NotNull<ArgumentNullException, DiagnosisArgs>(ptr, nameof(ptr), "is null!");
             _ptr = ptr;
             Count = count;
         }
@@ -22,13 +22,13 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T Get(int index)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, Count));
             return _ptr[index];
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T RefGet(int index)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, Count));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, Count - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, Count));
             return ref _ptr[index];
         }
 

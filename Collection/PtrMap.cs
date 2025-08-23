@@ -59,9 +59,9 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         readonly void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            Assert.NotNull<ArgumentNullException, AssertArgs>(array, nameof(array), "Target array cannot be null.");
-            Assert.GreaterEqual<ArgumentOutOfRangeException, AssertArgs<int>, int>(arrayIndex, 0, nameof(arrayIndex), "Starting index cannot be negative. arrayIndex is {0}.", new AssertArgs<int>(arrayIndex));
-            Assert.GreaterEqual<ArgumentException, AssertArgs<int, int, int>, int>(array.Length - arrayIndex, Ptr.Count, nameof(arrayIndex), "The destination array has insufficient space to copy all the items starting from the specified index. {0} - {1} < {2}.", new AssertArgs<int, int, int>(array.Length, arrayIndex, Ptr.Count));
+            Assert.NotNull<ArgumentNullException, DiagnosisArgs>(array, nameof(array), "Target array cannot be null.");
+            Assert.GreaterEqual<ArgumentOutOfRangeException, DiagnosisArgs<int>, int>(arrayIndex, 0, nameof(arrayIndex), "Starting index cannot be negative. arrayIndex is {0}.", new DiagnosisArgs<int>(arrayIndex));
+            Assert.GreaterEqual<ArgumentException, DiagnosisArgs<int, int, int>, int>(array.Length - arrayIndex, Ptr.Count, nameof(arrayIndex), "The destination array has insufficient space to copy all the items starting from the specified index. {0} - {1} < {2}.", new DiagnosisArgs<int, int, int>(array.Length, arrayIndex, Ptr.Count));
             int index = 0;
             foreach (var pair in Ptr)
                 array[arrayIndex + index++] = new KeyValuePair<TKey, TValue>(pair.Key, pair.Value);

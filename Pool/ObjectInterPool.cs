@@ -29,7 +29,7 @@ namespace Eevee.Pool
 
         public ObjectInterPool(bool releaseCheck = true, int capacity = 100)
         {
-            Assert.Greater<ArgumentException, AssertArgs<int>, int>(capacity, 0, nameof(capacity), "Max Size must be greater than 0, value is {0}", new AssertArgs<int>(capacity));
+            Assert.Greater<ArgumentException, DiagnosisArgs<int>, int>(capacity, 0, nameof(capacity), "Max Size must be greater than 0, value is {0}", new DiagnosisArgs<int>(capacity));
 
             ReleaseCheck = releaseCheck;
             Capacity = capacity;
@@ -59,7 +59,7 @@ namespace Eevee.Pool
         }
         public void Release(T element)
         {
-            Assert.NotNull<ArgumentNullException, AssertArgs>(element, nameof(element), "element is null");
+            Assert.NotNull<ArgumentNullException, DiagnosisArgs>(element, nameof(element), "element is null");
             if (ReleaseCheck && _pool is not null && _pool.Contains(element))
                 throw new InvalidOperationException("Trying to release an object that has already been released to the pool.");
 

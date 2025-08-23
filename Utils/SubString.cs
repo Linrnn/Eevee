@@ -76,14 +76,14 @@ namespace Eevee.Utils
             Obj = str;
             Start = start;
             Length = str.Length - start;
-            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<string, int, int>, int>(start, str.Length, nameof(str), "Sub异常长度！str：{0}，start：{1}，totalLength：{2}", new AssertArgs<string, int, int>(str, start, str.Length));
+            Assert.LessEqual<IndexOutOfRangeException, DiagnosisArgs<string, int, int>, int>(start, str.Length, nameof(str), "Sub异常长度！str：{0}，start：{1}，totalLength：{2}", new DiagnosisArgs<string, int, int>(str, start, str.Length));
         }
         public SubString(string str, int start, int length)
         {
             Obj = str;
             Start = start;
             Length = length;
-            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<string, int, int, int>, int>(start + length, str.Length, nameof(str), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<string, int, int, int>(str, start, length, str.Length));
+            Assert.LessEqual<IndexOutOfRangeException, DiagnosisArgs<string, int, int, int>, int>(start + length, str.Length, nameof(str), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new DiagnosisArgs<string, int, int, int>(str, start, length, str.Length));
         }
         public SubString(StringBuilder sb)
         {
@@ -96,21 +96,21 @@ namespace Eevee.Utils
             Obj = sb;
             Start = start;
             Length = sb.Length - start;
-            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<StringBuilder, int, int>, int>(start, sb.Length, nameof(sb), "Sub异常长度！sb：{0}，start：{1}，totalLength：{2}", new AssertArgs<StringBuilder, int, int>(sb, start, sb.Length));
+            Assert.LessEqual<IndexOutOfRangeException, DiagnosisArgs<StringBuilder, int, int>, int>(start, sb.Length, nameof(sb), "Sub异常长度！sb：{0}，start：{1}，totalLength：{2}", new DiagnosisArgs<StringBuilder, int, int>(sb, start, sb.Length));
         }
         public SubString(StringBuilder sb, int start, int length)
         {
             Obj = sb;
             Start = start;
             Length = length;
-            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<StringBuilder, int, int, int>, int>(start + length, sb.Length, nameof(sb), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<StringBuilder, int, int, int>(sb, start, length, sb.Length));
+            Assert.LessEqual<IndexOutOfRangeException, DiagnosisArgs<StringBuilder, int, int, int>, int>(start + length, sb.Length, nameof(sb), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new DiagnosisArgs<StringBuilder, int, int, int>(sb, start, length, sb.Length));
         }
         public SubString(in SubString sub, int start, int length)
         {
             Obj = sub.Obj;
             Start = start;
             Length = length;
-            Assert.LessEqual<IndexOutOfRangeException, AssertArgs<object, int, int, int>, int>(start + length, sub.GetTotalLength(), nameof(sub), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new AssertArgs<object, int, int, int>(sub.Obj, start, length, sub.GetTotalLength()));
+            Assert.LessEqual<IndexOutOfRangeException, DiagnosisArgs<object, int, int, int>, int>(start + length, sub.GetTotalLength(), nameof(sub), "Sub异常长度！str：{0}，start：{1}，length：{2}，totalLength：{3}", new DiagnosisArgs<object, int, int, int>(sub.Obj, start, length, sub.GetTotalLength()));
         }
         #endregion
 
@@ -119,7 +119,7 @@ namespace Eevee.Utils
         {
             get
             {
-                Assert.Range<IndexOutOfRangeException, AssertArgs<object, int, int, int>, int>(index, 0, Length - 1, nameof(index), "Obj:{0}, index:{1}, start:{2}, length:{3}, Index Out!", new AssertArgs<object, int, int, int>(Obj, index, Start, Length));
+                Assert.Range<IndexOutOfRangeException, DiagnosisArgs<object, int, int, int>, int>(index, 0, Length - 1, nameof(index), "Obj:{0}, index:{1}, start:{2}, length:{3}, Index Out!", new DiagnosisArgs<object, int, int, int>(Obj, index, Start, Length));
                 return Obj switch
                 {
                     string str => str[Start + index],

@@ -226,7 +226,7 @@ namespace Eevee.QuadTree
             var index = node.Index;
             int childId = index.GetChildId();
             var children = _children;
-            Assert.Null<InvalidOperationException, AssertArgs<QuadTreeIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, has node!", new AssertArgs<QuadTreeIndex, int>(index, childId));
+            Assert.Null<InvalidOperationException, DiagnosisArgs<QuadTreeIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, has node!", new DiagnosisArgs<QuadTreeIndex, int>(index, childId));
             children[childId] = node;
             ++_childCount;
         }
@@ -236,7 +236,7 @@ namespace Eevee.QuadTree
             var index = node.Index;
             int childId = index.GetChildId();
             var children = _children;
-            Assert.NotNull<InvalidOperationException, AssertArgs<QuadTreeIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, no node!", new AssertArgs<QuadTreeIndex, int>(index, childId));
+            Assert.NotNull<InvalidOperationException, DiagnosisArgs<QuadTreeIndex, int>>(children[childId], nameof(index), "Index:{0}, ChildId:{1}, no node!", new DiagnosisArgs<QuadTreeIndex, int>(index, childId));
             children[childId] = null;
             --_childCount;
         }

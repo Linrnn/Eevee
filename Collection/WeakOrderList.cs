@@ -44,7 +44,7 @@ namespace Eevee.Collection
 
             public bool MoveNext()
             {
-                Assert.Equal<InvalidOperationException, AssertArgs<int, int>, int>(_version, _enumerator._version, nameof(_version), "MoveNext fail, _version:{0} != _list._version:{1}", new AssertArgs<int, int>(_version, _enumerator._version));
+                Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int>, int>(_version, _enumerator._version, nameof(_version), "MoveNext fail, _version:{0} != _list._version:{1}", new DiagnosisArgs<int, int>(_version, _enumerator._version));
                 if (_version != _enumerator._version || _index >= _enumerator._size)
                 {
                     _index = _enumerator._size + 1;
@@ -103,13 +103,13 @@ namespace Eevee.Collection
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
-                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
+                Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, _size));
                 return _items[index];
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
-                Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
+                Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, _size));
                 _items[index] = value;
                 ++_version;
             }
@@ -126,7 +126,7 @@ namespace Eevee.Collection
 
         public void Insert(int index, T item)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size, nameof(index), "set fail, index:{0} out of range [0, {1}]", new AssertArgs<int, int>(index, _size));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, _size, nameof(index), "set fail, index:{0} out of range [0, {1}]", new DiagnosisArgs<int, int>(index, _size));
             if (_size == _items.Length)
                 EnsureCapacity(_size + 1);
 
@@ -139,7 +139,7 @@ namespace Eevee.Collection
         }
         public void RemoveAt(int index)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "set fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, _size));
             int size = _size - 1;
             if (index < size)
                 _items[index] = _items[size];
@@ -218,7 +218,7 @@ namespace Eevee.Collection
 
         void ICollection.CopyTo(Array array, int index)
         {
-            Assert.Equal<ArgumentException, AssertArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new AssertArgs<object, int>(array.GetType(), array.Rank));
+            Assert.Equal<ArgumentException, DiagnosisArgs<object, int>, int>(array.Rank, 1, nameof(array), "array:{0}, Rank is {1}, isn't 1.", new DiagnosisArgs<object, int>(array.GetType(), array.Rank));
             Array.Copy(_items, 0, array, index, _size);
         }
         #endregion
@@ -240,7 +240,7 @@ namespace Eevee.Collection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T Get(int index)
         {
-            Assert.Range<ArgumentOutOfRangeException, AssertArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new AssertArgs<int, int>(index, _size));
+            Assert.Range<ArgumentOutOfRangeException, DiagnosisArgs<int, int>, int>(index, 0, _size - 1, nameof(index), "get fail, index:{0} out of range [0, {1})", new DiagnosisArgs<int, int>(index, _size));
             return ref _items[index];
         }
 

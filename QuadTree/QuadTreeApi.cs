@@ -68,8 +68,8 @@ namespace Eevee.QuadTree
         }
         public static QuadTreeConfig Build<TTree>(int treeId, QuadTreeShape shape, Vector2DInt extents) where TTree : BasicQuadTree, new()
         {
-            Assert.True<ArgumentException, AssertArgs<int>>(Maths.IsPowerOf2(extents.X), nameof(extents.X), "{0} isn't power of 2", new AssertArgs<int>(extents.X));
-            Assert.True<ArgumentException, AssertArgs<int>>(Maths.IsPowerOf2(extents.Y), nameof(extents.Y), "{0} isn't power of 2", new AssertArgs<int>(extents.Y));
+            Assert.True<ArgumentException, DiagnosisArgs<int>>(Maths.IsPowerOf2(extents.X), nameof(extents.X), "{0} isn't power of 2", new DiagnosisArgs<int>(extents.X));
+            Assert.True<ArgumentException, DiagnosisArgs<int>>(Maths.IsPowerOf2(extents.Y), nameof(extents.Y), "{0} isn't power of 2", new DiagnosisArgs<int>(extents.Y));
             return new QuadTreeConfig(treeId, shape, extents, typeof(TTree));
         }
     }
