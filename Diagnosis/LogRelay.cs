@@ -13,7 +13,7 @@ namespace Eevee.Diagnosis
         public static void Trace(string message) => LogProxy.Impl.Trace(message);
 
         [Conditional(Macro.Editor), Conditional(Macro.Debug)]
-        public static void Log(string message) => LogProxy.Impl.Log(message);
+        public static void Debug(string message) => LogProxy.Impl.Debug(message);
 
         [Conditional(Macro.Editor), Conditional(Macro.Debug), Conditional(Macro.Release)]
         public static void Info(string message) => LogProxy.Impl.Info(message);

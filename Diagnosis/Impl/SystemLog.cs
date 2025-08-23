@@ -8,7 +8,7 @@ namespace Eevee.Diagnosis
     public sealed class SystemLog : ILog
     {
         public void Trace(string message) => Console.WriteLine(message);
-        public void Log(string message) => Console.WriteLine(message);
+        public void Debug(string message) => Console.WriteLine(message);
         public void Info(string message) => Console.WriteLine(message);
         public void Warn(string message) => Console.WriteLine(message);
         public void Error(string message) => Console.WriteLine(message);

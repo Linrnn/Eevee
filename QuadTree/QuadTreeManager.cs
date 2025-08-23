@@ -97,8 +97,8 @@ namespace Eevee.QuadTree
 
             if (hasError)
                 LogRelay.Error($"[Quad] PreUpdateElement Fail, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
-            else if (QuadTreeDiagnosis.CheckIndex(cache.TreeId, preEle.Index))
-                LogRelay.Info($"[Quad] PreUpdateElement Success, NodeEqual:{preNode == tarNode}, UsePre:{usePre}, TreeId:{cache.TreeId}, PreEle:{preEle}, TarEle:{tarEle}");
+            else
+                QuadTreeDiagnosis.LogIndex(cache.TreeId, preEle.Index, LogType.Info, "[Quad] PreUpdateElement Success, NodeEqual:{0}, UsePre:{1}, TreeId:{2}, PreEle:{3}, TarEle:{4}", new DiagnosisArgs<bool, bool, int, QuadTreeElement, QuadTreeElement>(preNode == tarNode, usePre, cache.TreeId, preEle, tarEle));
         }
         #endregion
 
@@ -442,7 +442,7 @@ namespace Eevee.QuadTree
         {
             foreach (var pair in _trees)
                 pair.Value.OnDestroy();
-            LogRelay.Log($"[Quad] Pool, CountRef:{_nodePool.CountRef}, HistoryCapacity:{_nodePool.HistoryCapacity}");
+            LogRelay.Debug($"[Quad] Pool, CountRef:{_nodePool.CountRef}, HistoryCapacity:{_nodePool.HistoryCapacity}");
             _trees.Clear();
             _nodePool.Clean();
         }

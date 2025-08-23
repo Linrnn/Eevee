@@ -248,7 +248,7 @@ namespace Eevee.Diagnosis
             where TException : Exception
             where TArgs : struct, IDiagnosisArgs
         {
-            string message = args.Build(format);
+            string message = args.BuildMessage(format);
             var exception = BuildException(typeof(TException), paramName, message);
             throw exception;
         }

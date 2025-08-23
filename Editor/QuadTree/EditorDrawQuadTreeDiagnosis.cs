@@ -13,7 +13,7 @@ namespace EeveeEditor.QuadTree
         private sealed class EditorDrawQuadTreeDiagnosisInspector : Editor
         {
             #region Property Path
-            private const string Print = nameof(_print);
+            private const string EnableLog = nameof(_enableLog);
             private const string TreeIds = nameof(_treeIds);
             private const string Indexes = nameof(_indexes);
             #endregion
@@ -32,14 +32,14 @@ namespace EeveeEditor.QuadTree
             private void DrawProperties()
             {
                 _propertyHandle.DrawScript();
-                _propertyHandle.Draw(Print);
+                _propertyHandle.Draw(EnableLog);
                 _propertyHandle.EnumTreeFunc(TreeIds);
                 _propertyHandle.Draw(Indexes);
             }
         }
         #endregion
 
-        [SerializeField] private bool _print;
+        [SerializeField] private bool _enableLog;
         [SerializeField] private int[] _treeIds;
         [SerializeField] private int[] _indexes;
 
@@ -49,13 +49,13 @@ namespace EeveeEditor.QuadTree
 
         private void SetParam()
         {
-            QuadTreeDiagnosis.Print = _print;
+            QuadTreeDiagnosis.EnableLog = _enableLog;
             QuadTreeDiagnosis.TreeIds = _treeIds;
             QuadTreeDiagnosis.Indexes = _indexes;
         }
         private void ResetParam()
         {
-            QuadTreeDiagnosis.Print = false;
+            QuadTreeDiagnosis.EnableLog = false;
             QuadTreeDiagnosis.TreeIds = null;
             QuadTreeDiagnosis.Indexes = null;
         }

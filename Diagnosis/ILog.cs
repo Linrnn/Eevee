@@ -14,7 +14,7 @@ namespace Eevee.Diagnosis
         /// 生效范围：UNITY_EDITOR，DEBUG<br/>
         /// 默认实现：UnityEngine.Log()
         /// </summary>
-        void Log(string message);
+        void Debug(string message);
 
         /// <summary>
         /// 生效范围：UNITY_EDITOR，DEBUG，RELEASE<br/>

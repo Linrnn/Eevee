@@ -5,7 +5,7 @@
     /// </summary>
     internal interface IDiagnosisArgs
     {
-        string Build(string format);
+        string BuildMessage(string format);
     }
 
     /// <summary>
@@ -13,7 +13,7 @@
     /// </summary>
     internal readonly struct DiagnosisArgs : IDiagnosisArgs
     {
-        public string Build(string format) => format;
+        public string BuildMessage(string format) => format;
     }
 
     /// <summary>
@@ -24,7 +24,7 @@
         internal readonly TArg0 Arg0;
 
         internal DiagnosisArgs(TArg0 arg0) => Arg0 = arg0;
-        public string Build(string format) => string.Format(format, Arg0);
+        public string BuildMessage(string format) => string.Format(format, Arg0);
     }
 
     /// <summary>
@@ -40,7 +40,7 @@
             Arg0 = arg0;
             Arg1 = arg1;
         }
-        public string Build(string format) => string.Format(format, Arg0, Arg1);
+        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@
             Arg1 = arg1;
             Arg2 = arg2;
         }
-        public string Build(string format) => string.Format(format, Arg0, Arg1, Arg2);
+        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1, Arg2);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@
             Arg2 = arg2;
             Arg3 = arg3;
         }
-        public string Build(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3);
+        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3);
     }
 
     /// <summary>
@@ -100,6 +100,6 @@
             Arg3 = arg3;
             Arg4 = arg4;
         }
-        public string Build(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3, Arg4);
+        public string BuildMessage(string format) => string.Format(format, Arg0, Arg1, Arg2, Arg3, Arg4);
     }
 }

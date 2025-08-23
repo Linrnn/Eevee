@@ -32,9 +32,7 @@ namespace Eevee.QuadTree
             TryGetNodeIndex(in element.Shape, QuadTreeNodeExt.ElementCountMode, out var index);
             var node = GetOrAddNode(index.Depth, index.X, index.Y);
             node.Add(in element);
-
-            if (QuadTreeDiagnosis.CheckIndex(_treeId, element.Index))
-                LogRelay.Log($"[Quad] InsertElement Success, TreeId:{_treeId}, Ele:{element}");
+            QuadTreeDiagnosis.LogIndex(_treeId, element.Index, LogType.Debug, "[Quad] InsertElement Success, TreeId:{0}, Ele:{1}", new DiagnosisArgs<int, QuadTreeElement>(_treeId, element));
         }
         public bool Remove(in QuadTreeElement element)
         {
@@ -42,11 +40,10 @@ namespace Eevee.QuadTree
             var node = GetNode(index.Depth, index.X, index.Y);
             bool remove = node.Remove(in element);
             TryRemoveNode(node);
-
-            if (remove && QuadTreeDiagnosis.CheckIndex(_treeId, element.Index))
-                LogRelay.Log($"[Quad] RemoveElement Success, TreeId:{_treeId}, Ele:{element}");
-            if (!remove && QuadTreeDiagnosis.CheckIndex(_treeId, element.Index))
-                LogRelay.Warn($"[Quad] RemoveElement Fail, TreeId:{_treeId}, Ele:{element}");
+            if (remove)
+                QuadTreeDiagnosis.LogIndex(_treeId, element.Index, LogType.Debug, "[Quad] RemoveElement Success, TreeId:{0}, Ele:{1}", new DiagnosisArgs<int, QuadTreeElement>(_treeId, element));
+            else
+                QuadTreeDiagnosis.LogIndex(_treeId, element.Index, LogType.Warn, "[Quad] RemoveElement Fail, TreeId:{0}, Ele:{1}", new DiagnosisArgs<int, QuadTreeElement>(_treeId, element));
             return remove;
         }
         public void Update(in QuadTreeElement preElement, in QuadTreeElement tarElement)
@@ -58,10 +55,10 @@ namespace Eevee.QuadTree
 
             if (preNode == tarNode)
             {
-                if (!preNode.Update(in preElement, in tarElement))
+                if (preNode.Update(in preElement, in tarElement))
+                    QuadTreeDiagnosis.LogIndex(_treeId, preElement.Index, LogType.Debug, "[Quad] UpdateElement Success, TreeId:{0}, PreEle:{1}, TarEle:{2}", new DiagnosisArgs<int, QuadTreeElement, QuadTreeElement>(_treeId, preElement, tarElement));
+                else
                     LogRelay.Error($"[Quad] UpdateElement Fail, TreeId:{_treeId}, PreEle:{preElement}, TarEle:{tarElement}");
-                else if (QuadTreeDiagnosis.CheckIndex(_treeId, preElement.Index))
-                    LogRelay.Log($"[Quad] UpdateElement Success, TreeId:{_treeId}, PreEle:{preElement}, TarEle:{tarElement}");
             }
             else
             {
