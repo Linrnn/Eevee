@@ -5,9 +5,11 @@ using UnityEngine;
 
 namespace EeveeEditor
 {
-    internal readonly struct EditorUtils
+    internal static class EditorUtils
     {
         internal const string Script = "m_Script";
+
+        internal static Color RGBScale(this Color color, float scale) => new(color.r * scale, color.g * scale, color.b * scale, color.a);
 
         internal static float Diff(Vector2 vector, float value)
         {

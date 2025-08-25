@@ -18,7 +18,7 @@ namespace EeveeEditor
             _properties ??= new Dictionary<string, SerializedProperty>();
             _reorderableLists ??= new Dictionary<string, ReorderableList>();
         }
-        internal void Dispose()
+        internal readonly void Dispose()
         {
             foreach (var (_, property) in _properties)
                 property.Dispose();
@@ -27,7 +27,7 @@ namespace EeveeEditor
             _reorderableLists.Clear();
         }
 
-        internal SerializedProperty Get(string path)
+        internal readonly SerializedProperty Get(string path)
         {
             if (_properties.TryGetValue(path, out var oldProperty))
                 return oldProperty;
@@ -36,7 +36,7 @@ namespace EeveeEditor
             return newProperty;
         }
 
-        internal PropertyHandle Draw(string path, bool disabled = false)
+        internal readonly PropertyHandle Draw(string path, bool disabled = false)
         {
             var property = Get(path);
             EditorGUI.BeginDisabledGroup(disabled);
@@ -44,7 +44,7 @@ namespace EeveeEditor
             EditorGUI.EndDisabledGroup();
             return this;
         }
-        internal PropertyHandle DrawScript()
+        internal readonly PropertyHandle DrawScript()
         {
             var property = Get(EditorUtils.Script);
             EditorGUI.BeginDisabledGroup(true);
@@ -52,18 +52,22 @@ namespace EeveeEditor
             EditorGUI.EndDisabledGroup();
             return this;
         }
-        internal PropertyHandle DrawEnum(string path, Type enumType, bool disabled = false)
+        internal readonly PropertyHandle DrawEnum(string path, Type enumType, bool disabled = false)
         {
             var property = Get(path);
             EditorGUI.BeginDisabledGroup(disabled);
 
-            if (property.isArray)
+            if (enumType is null)
+            {
+                EditorGUILayout.PropertyField(property);
+            }
+            else if (property.isArray)
             {
                 if (_reorderableLists.TryGetValue(path, out var reorderableList))
                 {
                     reorderableList.DoLayoutList();
                 }
-                else if (enumType is not null)
+                else if (enumType.IsEnum)
                 {
                     string[] enumNames = enumType.GetEnumNames();
                     _reorderableLists.Add(path, new ReorderableList(_serializedObject, property)
@@ -75,6 +79,10 @@ namespace EeveeEditor
                             element.intValue = EditorGUI.Popup(rect, element.displayName, element.intValue, enumNames);
                         },
                     });
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(property);
                 }
             }
             else

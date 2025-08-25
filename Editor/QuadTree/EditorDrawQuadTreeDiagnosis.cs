@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using Eevee.QuadTree;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -50,8 +51,8 @@ namespace EeveeEditor.QuadTree
         private void SetParam()
         {
             QuadTreeDiagnosis.EnableLog = _enableLog;
-            QuadTreeDiagnosis.TreeIds = _treeIds;
-            QuadTreeDiagnosis.Indexes = _indexes;
+            QuadTreeDiagnosis.TreeIds = _treeIds.ToArray();
+            QuadTreeDiagnosis.Indexes = _indexes.ToArray();
         }
         private void ResetParam()
         {

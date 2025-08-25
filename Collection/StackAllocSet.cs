@@ -97,7 +97,7 @@ namespace Eevee.Collection
         #endregion
 
         #region Internal 方法
-        internal bool Contains(T item)
+        internal readonly bool Contains(T item)
         {
             CheckItem(item);
             return FindItemIndex(item) >= 0;
@@ -188,7 +188,7 @@ namespace Eevee.Collection
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int FindItemIndex(T item)
+        private readonly int FindItemIndex(T item)
         {
             if (_count == 0)
                 return -1;

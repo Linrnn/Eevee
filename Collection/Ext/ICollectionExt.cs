@@ -9,7 +9,12 @@ namespace Eevee.Collection
     public static class ICollectionExt
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Has<T>(this ICollection<T> source, T item) => source.Contains(item);
+        public static bool Has<T>(this ICollection<T> source, T item)
+        {
+            if (source is T[] array)
+                return Array.IndexOf(array, item) >= array.GetLowerBound(0);
+            return source.Contains(item);
+        }
 
         public static bool IsEmpty(ICollection source) => source.Count == 0;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

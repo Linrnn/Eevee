@@ -39,7 +39,7 @@ namespace EeveeEditor.QuadTree
 
         internal static PropertyHandle EnumTreeFunc(this PropertyHandle handle, string path, bool disabled = false)
         {
-            return handle.DrawEnum(path, QuadTreeGetter.Proxy.TreeEnum, disabled);
+            return handle.DrawEnum(path, QuadTreeGetter.Proxy?.TreeEnum, disabled);
         }
     }
 }
