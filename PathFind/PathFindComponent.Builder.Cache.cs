@@ -194,7 +194,7 @@ namespace Eevee.PathFind
                         foreach (var dir in PathFindExt.ObliqueDirections)
                             TryAddJumpPoints(i, j, dir.X, dir.Y);
 
-                var rangeJumpPoints = _objectPoolGetter.MapAlloc<Vector2DInt16, int?>();
+                var rangeJumpPoints = _objectPoolGetter.MapAlloc<Vector2DInt16, int?>(_enableThread);
                 GetJumpPoints(rangeJumpPoints);
                 if (forceJumpPoint.HasValue)
                     rangeJumpPoints[forceJumpPoint.Value] = null;
@@ -218,7 +218,7 @@ namespace Eevee.PathFind
                     }
                 }
 
-                _objectPoolGetter.Release(rangeJumpPoints);
+                _objectPoolGetter.Release(rangeJumpPoints, _enableThread);
             }
 
             private bool CleanNextJPs(int i, int j, int dirIndex)
@@ -347,7 +347,7 @@ namespace Eevee.PathFind
                 }
                 else
                 {
-                    var newHandles = _objectPoolGetter.ListAlloc<PathFindJumpPointHandle>();
+                    var newHandles = _objectPoolGetter.ListAlloc<PathFindJumpPointHandle>(_enableThread);
                     newHandles.Add(handle);
                     _jumpPoints.Add(point, newHandles);
                 }

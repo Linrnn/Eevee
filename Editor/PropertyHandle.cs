@@ -69,14 +69,17 @@ namespace EeveeEditor
                 }
                 else if (enumType.IsEnum)
                 {
-                    string[] enumNames = enumType.GetEnumNames();
+                    int[] enumValues = EnumHandle.GetEnumValues(enumType);
+                    string[] enumNames = EnumHandle.GetEnumNames(enumType);
                     _reorderableLists.Add(path, new ReorderableList(_serializedObject, property)
                     {
                         drawHeaderCallback = rect => EditorGUI.LabelField(rect, property.displayName),
                         drawElementCallback = (rect, index, _, _) =>
                         {
                             var element = property.GetArrayElementAtIndex(index);
-                            element.intValue = EditorGUI.Popup(rect, element.displayName, element.intValue, enumNames);
+                            int enumIndex = Array.IndexOf(enumValues, element.intValue);
+                            int newEnumIndex = EditorGUI.Popup(rect, element.displayName, enumIndex, enumNames);
+                            element.intValue = enumValues[newEnumIndex];
                         },
                     });
                 }
@@ -87,7 +90,11 @@ namespace EeveeEditor
             }
             else
             {
-                property.intValue = EditorGUILayout.Popup(property.displayName, property.intValue, enumType.GetEnumNames());
+                int[] enumValues = EnumHandle.GetEnumValues(enumType);
+                string[] enumNames = EnumHandle.GetEnumNames(enumType);
+                int enumIndex = Array.IndexOf(enumValues, property.intValue);
+                int newEnumIndex = EditorGUILayout.Popup(property.displayName, enumIndex, enumNames);
+                property.intValue = enumValues[newEnumIndex];
             }
 
             EditorGUI.EndDisabledGroup();

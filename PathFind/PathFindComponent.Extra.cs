@@ -18,13 +18,13 @@ namespace Eevee.PathFind
         }
         internal int[,] GetMoveableNodes(MoveFunc moveType)
         {
-            if (_moveTypeIndexes.TryGetValue((MoveFunc)moveType, out var moveTypeInfo))
+            if (_moveTypeIndexes.TryGetValue(moveType, out var moveTypeInfo))
                 return _moveableNodes[moveTypeInfo.GroupIndex];
             return null;
         }
         internal CollSize[,] GetPassNodes(MoveFunc moveType)
         {
-            if (_moveTypeIndexes.TryGetValue((MoveFunc)moveType, out var moveTypeInfo))
+            if (_moveTypeIndexes.TryGetValue(moveType, out var moveTypeInfo))
                 return _passes[moveTypeInfo.TypeIndex];
             return null;
         }
@@ -35,9 +35,9 @@ namespace Eevee.PathFind
 
         private PathFindMtCs GetMoveColl(MoveFunc moveType, CollSize coll)
         {
-            if (!_moveTypeIndexes.TryGetValue((MoveFunc)moveType, out var moveTypeInfo))
+            if (!_moveTypeIndexes.TryGetValue(moveType, out var moveTypeInfo))
                 return default;
-            if (!_collisionIndexes.TryGetValue((CollSize)coll, out int collIndex))
+            if (!_collisionIndexes.TryGetValue(coll, out int collIndex))
                 return default;
             return _moveCollisions[moveTypeInfo.TypeIndex, collIndex];
         }
