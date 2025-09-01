@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using Eevee.QuadTree;
+using System;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -14,9 +15,10 @@ namespace EeveeEditor.QuadTree
         private sealed class EditorDrawQuadTreeDiagnosisInspector : Editor
         {
             #region Property Path
-            private const string EnableLog = nameof(_enableLog);
+            private const string Log = nameof(_log);
             private const string TreeIds = nameof(_treeIds);
             private const string Indexes = nameof(_indexes);
+            private const string Height = nameof(_height);
             #endregion
 
             private PropertyHandle _propertyHandle;
@@ -33,16 +35,21 @@ namespace EeveeEditor.QuadTree
             private void DrawProperties()
             {
                 _propertyHandle.DrawScript();
-                _propertyHandle.Draw(EnableLog);
-                _propertyHandle.EnumTreeFunc(TreeIds);
-                _propertyHandle.Draw(Indexes);
+                _propertyHandle.Draw(Log);
+                if (_propertyHandle.Get(Log).boolValue)
+                {
+                    _propertyHandle.EnumTreeFunc(TreeIds);
+                    _propertyHandle.Draw(Indexes);
+                }
+                _propertyHandle.Draw(Height);
             }
         }
         #endregion
 
-        [SerializeField] private bool _enableLog;
-        [SerializeField] private int[] _treeIds;
-        [SerializeField] private int[] _indexes;
+        [Header("日志参数")] [SerializeField] private bool _log;
+        [SerializeField] private int[] _treeIds = Array.Empty<int>();
+        [SerializeField] private int[] _indexes = Array.Empty<int>();
+        [Header("绘制参数")] [SerializeField] private float _height;
 
         private void OnEnable() => SetParam();
         private void OnValidate() => SetParam();
@@ -50,15 +57,17 @@ namespace EeveeEditor.QuadTree
 
         private void SetParam()
         {
-            QuadTreeDiagnosis.EnableLog = _enableLog;
+            QuadTreeDiagnosis.EnableLog = _log;
             QuadTreeDiagnosis.TreeIds = _treeIds.ToArray();
             QuadTreeDiagnosis.Indexes = _indexes.ToArray();
+            QuadTreeDraw.Height = _height;
         }
         private void ResetParam()
         {
-            QuadTreeDiagnosis.EnableLog = false;
-            QuadTreeDiagnosis.TreeIds = null;
-            QuadTreeDiagnosis.Indexes = null;
+            QuadTreeDiagnosis.EnableLog = default;
+            QuadTreeDiagnosis.TreeIds = Array.Empty<int>();
+            QuadTreeDiagnosis.Indexes = Array.Empty<int>();
+            QuadTreeDraw.Height = default;
         }
     }
 }

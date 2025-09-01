@@ -28,7 +28,6 @@ namespace EeveeEditor.QuadTree
             private const string Angle = nameof(_angle);
             private const string Polygon = nameof(_polygon);
             private const string TreeId = nameof(_treeId);
-            private const string Height = nameof(_height);
             private const string DrawIndex = nameof(_drawIndex);
             private const string QueryColor = nameof(_queryColor);
             private const string ElementColor = nameof(_elementColor);
@@ -74,7 +73,6 @@ namespace EeveeEditor.QuadTree
                 }
 
                 _propertyHandle.EnumTreeFunc(TreeId);
-                _propertyHandle.Draw(Height);
                 _propertyHandle.Draw(DrawIndex);
                 _propertyHandle.Draw(QueryColor);
                 _propertyHandle.Draw(ElementColor);
@@ -92,7 +90,6 @@ namespace EeveeEditor.QuadTree
                 var extentsProperty = _propertyHandle.Get(Extents);
                 var angleProperty = _propertyHandle.Get(Angle);
                 var polygonProperty = _propertyHandle.Get(Polygon);
-                var heightProperty = _propertyHandle.Get(Height);
 
                 var shape = (QuadTreeShape)shapeProperty.enumValueFlag;
                 var center = centerProperty.vector2IntValue;
@@ -100,7 +97,7 @@ namespace EeveeEditor.QuadTree
                 var extents = extentsProperty.vector2IntValue;
                 float angle = angleProperty.floatValue;
                 var polygon = _polygon.Length == polygonProperty.arraySize ? _polygon : new Vector2Int[polygonProperty.arraySize];
-                float height = heightProperty.floatValue;
+                float height = QuadTreeDraw.Height;
 
                 switch (shape)
                 {
@@ -193,7 +190,6 @@ namespace EeveeEditor.QuadTree
         [SerializeField] private Vector2Int[] _polygon = Array.Empty<Vector2Int>();
 
         [Header("渲染数据")] [SerializeField] private int _treeId;
-        [SerializeField] private float _height;
         [SerializeField] private bool _drawIndex = true;
         [SerializeField] private Color _queryColor = Color.black;
         [SerializeField] private Color _elementColor = Color.blue;
@@ -248,13 +244,14 @@ namespace EeveeEditor.QuadTree
 
         private void DrawQueryShape()
         {
+            float height = QuadTreeDraw.Height;
             switch (_shape)
             {
-                case QuadTreeShape.Point: ShapeDraw.Point(_center, _scale, _height, in _queryColor); break;
-                case QuadTreeShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), _scale, _height, in _queryColor); break;
-                case QuadTreeShape.AABB: ShapeDraw.AABB(new AABB2DInt(_center, _extents), _scale, _height, in _queryColor); break;
-                case QuadTreeShape.OBB: ShapeDraw.OBB(new OBB2DInt(_center, _extents, _angle), _scale, _height, in _queryColor); break;
-                case QuadTreeShape.Polygon: ShapeDraw.Polygon(_polygon, _scale, _height, in _queryColor); break;
+                case QuadTreeShape.Point: ShapeDraw.Point(_center, _scale, height, in _queryColor); break;
+                case QuadTreeShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), _scale, height, in _queryColor); break;
+                case QuadTreeShape.AABB: ShapeDraw.AABB(new AABB2DInt(_center, _extents), _scale, height, in _queryColor); break;
+                case QuadTreeShape.OBB: ShapeDraw.OBB(new OBB2DInt(_center, _extents, _angle), _scale, height, in _queryColor); break;
+                case QuadTreeShape.Polygon: ShapeDraw.Polygon(_polygon, _scale, height, in _queryColor); break;
                 default: Debug.LogError($"[Editor][Quad] Shape:{_shape}, not impl!"); break;
             }
         }
@@ -262,7 +259,7 @@ namespace EeveeEditor.QuadTree
         {
             var config = _manager.GetConfig(_treeId);
             foreach (var element in _elements)
-                QuadTreeDraw.Element(config.Shape, _treeId, in element, _scale, _height, _drawIndex, in _elementColor);
+                QuadTreeDraw.Element(config.Shape, _treeId, in element, _scale, _drawIndex, in _elementColor);
         }
 
         #region 缓存
