@@ -27,7 +27,6 @@ namespace EeveeEditor.PathFind
             private const string Color = nameof(_color);
             private const string PrevColor = nameof(_prevColor);
             private const string NextColor = nameof(_nextColor);
-            private const string Height = nameof(_height);
             #endregion
 
             private PropertyHandle _propertyHandle;
@@ -53,7 +52,6 @@ namespace EeveeEditor.PathFind
                 _propertyHandle.Draw(Color);
                 _propertyHandle.Draw(PrevColor);
                 _propertyHandle.Draw(NextColor);
-                _propertyHandle.Draw(Height);
             }
         }
         #endregion
@@ -67,7 +65,6 @@ namespace EeveeEditor.PathFind
         [Header("渲染参数")] [SerializeField] private Color _color = Color.yellow;
         [SerializeField] private Color _prevColor = Color.yellow.RGBScale(0.8F);
         [SerializeField] private Color _nextColor = Color.yellow.RGBScale(0.5F);
-        [SerializeField] private float _height;
 
         private PathFindComponent _component;
         private Vector2 _minBoundary;
@@ -129,14 +126,14 @@ namespace EeveeEditor.PathFind
                     foreach (var jumpPoint in handles)
                     {
                         var prevPoint = jumpPoint.PrevPoint;
-                        PathFindDraw.ObliqueArrow(prevPoint.X, prevPoint.Y, jumpPoint.Direction, _gridSize, _minBoundary, _height, in _prevColor);
+                        PathFindDraw.ObliqueArrow(prevPoint.X, prevPoint.Y, jumpPoint.Direction, _gridSize, _minBoundary, in _prevColor);
                         if (_points.Add(prevPoint))
-                            PathFindDraw.Grid(prevPoint.X, prevPoint.Y, _gridSize, _minBoundary, _height, in _prevColor);
+                            PathFindDraw.Grid(prevPoint.X, prevPoint.Y, _gridSize, _minBoundary, in _prevColor);
                     }
                 }
 
-                PathFindDraw.Grid(point.X, point.Y, _gridSize, _minBoundary, _height, in _color);
-                PathFindDraw.Text(point.X, point.Y, _gridSize, _minBoundary, _height, in _color, _drawPoint);
+                PathFindDraw.Grid(point.X, point.Y, _gridSize, _minBoundary, in _color);
+                PathFindDraw.Text(point.X, point.Y, _gridSize, _minBoundary, in _color, _drawPoint);
             }
 
             if (_drawNext)
@@ -149,8 +146,8 @@ namespace EeveeEditor.PathFind
                     var offset = ro + (Vector2)dir * -0.5F;
                     float ex = line.ex + offset.x;
                     float ey = line.ey + offset.y;
-                    PathFindDraw.Line(line.sx + offset.x, line.sy + offset.y, ex, ey, _gridSize, _minBoundary, _height, in _nextColor);
-                    PathFindDraw.Arrow(ex, ey, dir, _gridSize, _minBoundary, _height, in _nextColor);
+                    PathFindDraw.Line(line.sx + offset.x, line.sy + offset.y, ex, ey, _gridSize, _minBoundary, in _nextColor);
+                    PathFindDraw.Arrow(ex, ey, dir, _gridSize, _minBoundary, in _nextColor);
 
                     if (_intervalNext > 0)
                     {
@@ -160,8 +157,8 @@ namespace EeveeEditor.PathFind
                         while ((next - start).Sign() == dir)
                         {
                             if (_points.Add(next))
-                                PathFindDraw.Grid(next.X, next.Y, _gridSize, _minBoundary, _height, in _nextColor);
-                            PathFindDraw.Text(next.X + ro.x, next.Y + ro.y, _gridSize, _minBoundary, _height, in _nextColor, _drawPoint, dis.ToString());
+                                PathFindDraw.Grid(next.X, next.Y, _gridSize, _minBoundary, in _nextColor);
+                            PathFindDraw.Text(next.X + ro.x, next.Y + ro.y, _gridSize, _minBoundary, in _nextColor, _drawPoint, dis.ToString());
                             next -= _intervalNext * dir;
                             dis += _intervalNext;
                         }

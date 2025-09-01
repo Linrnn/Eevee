@@ -9,7 +9,6 @@ namespace EeveeEditor.PathFind
         [SerializeField] private Vector2Int[] _points;
         [SerializeField] private bool _drawPoint = true;
         [SerializeField] private Color _color = Color.gray;
-        [SerializeField] private float _height;
 
         private Vector2 _minBoundary;
         private float _gridSize;
@@ -35,8 +34,8 @@ namespace EeveeEditor.PathFind
 
             foreach (var point in points)
             {
-                PathFindDraw.Grid(point.x, point.y, _gridSize, _minBoundary, _height, in _color);
-                PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, _height, in _color, _drawPoint);
+                PathFindDraw.Grid(point.x, point.y, _gridSize, _minBoundary, in _color);
+                PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint);
             }
         }
     }

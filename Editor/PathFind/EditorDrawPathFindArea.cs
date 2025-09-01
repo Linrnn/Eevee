@@ -20,7 +20,6 @@ namespace EeveeEditor.PathFind
             private const string AllocatorId = nameof(_allocatorId);
             private const string DrawPoint = nameof(_drawPoint);
             private const string Color = nameof(_color);
-            private const string Height = nameof(_height);
             #endregion
 
             private PropertyHandle _propertyHandle;
@@ -42,7 +41,6 @@ namespace EeveeEditor.PathFind
                 _propertyHandle.Draw(AllocatorId, true);
                 _propertyHandle.Draw(DrawPoint);
                 _propertyHandle.Draw(Color);
-                _propertyHandle.Draw(Height);
             }
         }
         #endregion
@@ -52,7 +50,6 @@ namespace EeveeEditor.PathFind
         [SerializeField] private int _allocatorId;
         [SerializeField] private bool _drawPoint;
         [SerializeField] private Color _color = Color.red;
-        [SerializeField] private float _height;
 
         private PathFindComponent _component;
         private Vector2 _minBoundary;
@@ -87,9 +84,9 @@ namespace EeveeEditor.PathFind
             foreach ((int areaId, var boundary) in _areaProcessor)
             {
                 foreach (var side in boundary.Sides())
-                    PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, _height, in _color);
+                    PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, in _color);
                 foreach (var point in boundary.Girds())
-                    PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, _height, in _color, _drawPoint, areaId.ToString());
+                    PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint, areaId.ToString());
             }
         }
     }

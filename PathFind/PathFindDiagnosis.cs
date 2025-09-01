@@ -2,6 +2,7 @@
 using Eevee.Define;
 using Eevee.Diagnosis;
 using Eevee.Fixed;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -19,7 +20,7 @@ namespace Eevee.PathFind
         public static bool EnablePath = false;
         public static bool EnableProcess = false;
         public static bool EnableLog = false;
-        public static int[] Indexes; // 需要检测的Index，null/Empty代表不限制检测
+        public static int[] Indexes = Array.Empty<int>(); // 需要检测的Index，null/Empty代表不限制检测
 
         private static readonly Dictionary<Vector2DInt16, Vector2DInt16> _nextPoints = new();
         private static readonly Dictionary<Vector2DInt16, ICollection<Vector2DInt16>> _paths = new();

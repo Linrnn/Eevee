@@ -29,7 +29,6 @@ namespace EeveeEditor.PathFind
             private const string Loop = nameof(_loop);
             private const string Color = nameof(_color);
             private const string Decrease = nameof(_decrease);
-            private const string Height = nameof(_height);
             #endregion
 
             private PropertyHandle _propertyHandle;
@@ -68,7 +67,6 @@ namespace EeveeEditor.PathFind
                 EditorGUILayout.EndHorizontal();
                 _propertyHandle.Draw(Color);
                 _propertyHandle.Draw(Decrease);
-                _propertyHandle.Draw(Height);
             }
 
             private void ButtonPrev()
@@ -144,7 +142,6 @@ namespace EeveeEditor.PathFind
         [SerializeField] private bool _loop;
         [Header("渲染参数")] [SerializeField] private Color _color = Color.white;
         [SerializeField] private float _decrease = 0.2F;
-        [SerializeField] private float _height;
 
         private Vector2 _minBoundary;
         private float _gridSize;
@@ -210,7 +207,7 @@ namespace EeveeEditor.PathFind
                 var point = _points[i];
                 int count = _pointDrawTimes.GetValueOrDefault(point);
                 _pointDrawTimes[point] = count + 1;
-                PathFindDraw.Grid(point.X, point.Y, _gridSize, _gridSize * (1 - count * _decrease), _minBoundary, _height, in _color);
+                PathFindDraw.Grid(point.X, point.Y, _gridSize, _gridSize * (1 - count * _decrease), _minBoundary, in _color);
             }
         }
     }

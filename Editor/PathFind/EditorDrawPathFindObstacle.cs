@@ -1,4 +1,5 @@
 ﻿#if UNITY_EDITOR
+using Eevee.Collection;
 using Eevee.PathFind;
 using UnityEditor;
 using UnityEngine;
@@ -15,11 +16,11 @@ namespace EeveeEditor.PathFind
         {
             #region Property Path
             private const string ObstacleType = nameof(_obstacleType);
+            private const string Indexes = nameof(_indexes);
             private const string DrawIndex = nameof(_drawIndex);
             private const string DrawPoint = nameof(_drawPoint);
             private const string DrawTerrain = nameof(_drawTerrain);
             private const string Color = nameof(_color);
-            private const string Height = nameof(_height);
             #endregion
 
             private PropertyHandle _propertyHandle;
@@ -37,21 +38,21 @@ namespace EeveeEditor.PathFind
             {
                 _propertyHandle.DrawScript();
                 _propertyHandle.EnumGroupType(ObstacleType);
+                _propertyHandle.Draw(Indexes);
                 _propertyHandle.Draw(DrawIndex);
                 _propertyHandle.Draw(DrawPoint);
                 _propertyHandle.Draw(DrawTerrain);
                 _propertyHandle.Draw(Color);
-                _propertyHandle.Draw(Height);
             }
         }
         #endregion
 
-        [SerializeField] private Ground _obstacleType;
-        [SerializeField] private bool _drawIndex;
+        [Header("输入参数")] [SerializeField] private Ground _obstacleType;
+        [SerializeField] private int[] _indexes;
+        [Header("调试参数")] [SerializeField] private bool _drawIndex;
         [SerializeField] private bool _drawPoint;
         [SerializeField] private bool _drawTerrain;
-        [SerializeField] private Color _color = Color.magenta;
-        [SerializeField] private float _height;
+        [Header("渲染参数")] [SerializeField] private Color _color = Color.magenta;
 
         private PathFindComponent _component;
         private Vector2 _minBoundary;
@@ -88,16 +89,17 @@ namespace EeveeEditor.PathFind
         {
             foreach ((int index, var boundary) in _obstacleProcessor)
             {
+                if (!_indexes.IsNullOrEmpty() && !_indexes.Has(index))
+                    continue;
                 foreach (var side in boundary.Sides())
-                    PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, _height, in _color);
-
+                    PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, in _color);
                 var center = boundary.Center();
                 string indexStr = _drawIndex ? index.ToString() : null;
                 if (index != PathFindExt.EmptyIndex)
-                    PathFindDraw.Text(center.x, center.y, _gridSize, _minBoundary, _height, in _color, _drawPoint, indexStr);
+                    PathFindDraw.Text(center.x, center.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
                 else if (_drawTerrain)
                     foreach (var point in boundary.Girds())
-                        PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, _height, in _color, _drawPoint, indexStr);
+                        PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
             }
         }
     }

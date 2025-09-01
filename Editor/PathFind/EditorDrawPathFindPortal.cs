@@ -14,7 +14,6 @@ namespace EeveeEditor.PathFind
         [Header("渲染参数")] [SerializeField] private Color _startColor = Color.gray;
         [SerializeField] private Color _lineColor = Color.gray.RGBScale(0.5F);
         [SerializeField] private Color _endColor = Color.gray.RGBScale(0.8F);
-        [SerializeField] private float _height;
 
         private PathFindComponent _component;
         private Vector2 _minBoundary;
@@ -45,12 +44,12 @@ namespace EeveeEditor.PathFind
                 var end = portal.Point.End;
                 string indexStr = _drawIndex ? portal.Index.ToString() : null;
 
-                PathFindDraw.Grid(start.X, start.Y, _gridSize, _minBoundary, _height, in _startColor);
-                PathFindDraw.Text(start.X, start.Y, _gridSize, _minBoundary, _height, in _startColor, _drawPoint, indexStr);
+                PathFindDraw.Grid(start.X, start.Y, _gridSize, _minBoundary, in _startColor);
+                PathFindDraw.Text(start.X, start.Y, _gridSize, _minBoundary, in _startColor, _drawPoint, indexStr);
                 if (_drawLine)
-                    PathFindDraw.Line(start.X, start.Y, end.X, end.Y, _gridSize, _minBoundary, _height, in _lineColor);
-                PathFindDraw.Grid(end.X, end.Y, _gridSize, _minBoundary, _height, in _endColor);
-                PathFindDraw.Text(end.X, end.Y, _gridSize, _minBoundary, _height, in _endColor, _drawPoint, indexStr);
+                    PathFindDraw.Line(start.X, start.Y, end.X, end.Y, _gridSize, _minBoundary, in _lineColor);
+                PathFindDraw.Grid(end.X, end.Y, _gridSize, _minBoundary, in _endColor);
+                PathFindDraw.Text(end.X, end.Y, _gridSize, _minBoundary, in _endColor, _drawPoint, indexStr);
             }
         }
     }
