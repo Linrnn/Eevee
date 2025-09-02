@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace EeveeEditor.PathFind
 {
+    [DisallowMultipleComponent]
     [AddComponentMenu("Eevee Editor/Path Find/Editor Draw Path Find Diagnosis")]
     internal sealed class EditorDrawPathFindDiagnosis : MonoBehaviour
     {

@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace EeveeEditor.QuadTree
 {
+    [DisallowMultipleComponent]
     [AddComponentMenu("Eevee Editor/Quad Tree/Editor Draw Quad Tree Diagnosis")]
     internal sealed class EditorDrawQuadTreeDiagnosis : MonoBehaviour
     {

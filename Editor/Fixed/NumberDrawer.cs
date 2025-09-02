@@ -9,15 +9,16 @@ namespace EeveeEditor.Fixed
     {
         internal static void OnGUI(in Rect position, SerializedProperty property, GUIContent label, string displayName)
         {
-            float width = position.width / 3;
-            var rawValuePosition = new Rect(position.x, position.y, width * 2, position.height);
-            var displayPosition = new Rect(position.x + width * 2, position.y, width, position.height);
+            var size = new Vector2(position.width / 3, position.height);
+            var rawValuePosition = new Rect(position.x, position.y, size.x * 2, size.y);
+            var displayPosition = new Rect(position.x + size.x * 2, position.y, size.x, size.y);
 
             var rawValueProperty = property.FindPropertyRelative(nameof(Fixed64.RawValue));
-            rawValueProperty.longValue = EditorGUI.LongField(rawValuePosition, displayName, rawValueProperty.longValue);
+            long rawValue = EditorGUI.LongField(rawValuePosition, displayName, rawValueProperty.longValue);
+            rawValueProperty.longValue = rawValue;
 
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUI.TextField(displayPosition, label, new Fixed64(rawValueProperty.longValue).ToString());
+            EditorGUI.TextField(displayPosition, new Fixed64(rawValue).ToString());
             EditorGUI.EndDisabledGroup();
 
             rawValueProperty.Dispose();

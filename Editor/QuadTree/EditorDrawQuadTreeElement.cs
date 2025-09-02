@@ -100,13 +100,11 @@ namespace EeveeEditor.QuadTree
                     var treeIdProperty = property.FindPropertyRelative(nameof(TreeId));
                     var shapeProperty = property.FindPropertyRelative(nameof(Shape));
 
-                    EditorGUILayout.BeginHorizontal();
                     EditorGUI.BeginDisabledGroup(true);
                     EditorGUI.PropertyField(indexPosition, indexProperty);
                     EditorGUI.PropertyField(treeIdPosition, treeIdProperty);
                     EditorGUI.PropertyField(shapePosition, shapeProperty);
                     EditorGUI.EndDisabledGroup();
-                    EditorGUILayout.EndHorizontal();
 
                     indexProperty.Dispose();
                     treeIdProperty.Dispose();

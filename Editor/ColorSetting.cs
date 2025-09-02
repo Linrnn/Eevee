@@ -30,12 +30,10 @@ namespace EeveeEditor
             var showProperty = property.FindPropertyRelative(nameof(ColorSetting.Show));
             var colorProperty = property.FindPropertyRelative(nameof(ColorSetting.Color));
 
-            EditorGUILayout.BeginHorizontal();
             showProperty.boolValue = EditorGUI.Toggle(showPosition, label, showProperty.boolValue);
             ++EditorGUI.indentLevel;
             EditorGUI.PropertyField(colorPosition, colorProperty);
             --EditorGUI.indentLevel;
-            EditorGUILayout.EndHorizontal();
 
             showProperty.Dispose();
             colorProperty.Dispose();
