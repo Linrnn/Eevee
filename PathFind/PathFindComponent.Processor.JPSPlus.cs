@@ -384,8 +384,10 @@ namespace Eevee.PathFind
             }
             public void Release(IPathFindObjectPoolGetter getter)
             {
-                getter.Release(StraightDirections);
-                getter.Release(ObliqueDirections);
+                if (StraightDirections is { } straightDirections)
+                    getter.Release(straightDirections);
+                if (ObliqueDirections is { } obliqueDirections)
+                    getter.Release(obliqueDirections);
             }
         }
         #endregion

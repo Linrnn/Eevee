@@ -8,7 +8,7 @@ namespace Eevee.PathFind
 {
     public sealed partial class PathFindComponent
     {
-        internal Vector2DInt16 GetSize() => _size;
+        public Vector2DInt16 GetSize() => _size;
         internal PathFindObstacle[,] GetObstacleNodes() => _obstacleNodes;
         internal void GetPortals(ICollection<PathFindPortal> portals)
         {

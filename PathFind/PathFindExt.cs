@@ -7,12 +7,12 @@ using Fix64 = Eevee.Fixed.Fixed64;
 
 namespace Eevee.PathFind
 {
-    internal readonly struct PathFindExt
+    public readonly struct PathFindExt
     {
         #region 配置
         internal const short CantStand = -1; // 无法站立的areaId
         internal const short UnDisposed = 0; // 未处理的areaId
-        internal const int EmptyIndex = 0; // 空对象index
+        public const int EmptyIndex = 0; // 空对象index
         internal const short InvalidDistance = -1; // 无效距离
         internal const short JumpPointDistance = 0; // 自身是跳点
         internal const int DirIndexLeft = 0;
