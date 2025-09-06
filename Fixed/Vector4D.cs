@@ -175,22 +175,22 @@ namespace Eevee.Fixed
         /// <summary>
         /// 较小值
         /// </summary>
-        public static Vector4D Min(in Vector4D lsh, in Vector4D rsh) => new()
+        public static Vector4D Min(in Vector4D lhs, in Vector4D rhs) => new()
         {
-            X = Fixed64.Min(lsh.X, rsh.X),
-            Y = Fixed64.Min(lsh.Y, rsh.Y),
-            Z = Fixed64.Min(lsh.Z, rsh.Z),
-            W = Fixed64.Min(lsh.W, rsh.W),
+            X = Fixed64.Min(lhs.X, rhs.X),
+            Y = Fixed64.Min(lhs.Y, rhs.Y),
+            Z = Fixed64.Min(lhs.Z, rhs.Z),
+            W = Fixed64.Min(lhs.W, rhs.W),
         };
         /// <summary>
         /// 较大值
         /// </summary>
-        public static Vector4D Max(in Vector4D lsh, in Vector4D rsh) => new()
+        public static Vector4D Max(in Vector4D lhs, in Vector4D rhs) => new()
         {
-            X = Fixed64.Max(lsh.X, rsh.X),
-            Y = Fixed64.Max(lsh.Y, rsh.Y),
-            Z = Fixed64.Max(lsh.Z, rsh.Z),
-            W = Fixed64.Max(lsh.W, rsh.W),
+            X = Fixed64.Max(lhs.X, rhs.X),
+            Y = Fixed64.Max(lhs.Y, rhs.Y),
+            Z = Fixed64.Max(lhs.Z, rhs.Z),
+            W = Fixed64.Max(lhs.W, rhs.W),
         };
         #endregion
 

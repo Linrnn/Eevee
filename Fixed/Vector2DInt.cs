@@ -125,18 +125,18 @@ namespace Eevee.Fixed
         /// <summary>
         /// 较小值
         /// </summary>
-        public static Vector2DInt Min(Vector2DInt lsh, Vector2DInt rsh) => new()
+        public static Vector2DInt Min(Vector2DInt lhs, Vector2DInt rhs) => new()
         {
-            X = Math.Min(lsh.X, rsh.X),
-            Y = Math.Min(lsh.Y, rsh.Y),
+            X = Math.Min(lhs.X, rhs.X),
+            Y = Math.Min(lhs.Y, rhs.Y),
         };
         /// <summary>
         /// 较大值
         /// </summary>
-        public static Vector2DInt Max(Vector2DInt lsh, Vector2DInt rsh) => new()
+        public static Vector2DInt Max(Vector2DInt lhs, Vector2DInt rhs) => new()
         {
-            X = Math.Max(lsh.X, rsh.X),
-            Y = Math.Max(lsh.Y, rsh.Y),
+            X = Math.Max(lhs.X, rhs.X),
+            Y = Math.Max(lhs.Y, rhs.Y),
         };
         #endregion
 

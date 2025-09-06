@@ -165,18 +165,18 @@ namespace Eevee.Fixed
         /// <summary>
         /// 较小值
         /// </summary>
-        public static Vector2D Min(in Vector2D lsh, in Vector2D rsh) => new()
+        public static Vector2D Min(in Vector2D lhs, in Vector2D rhs) => new()
         {
-            X = Fixed64.Min(lsh.X, rsh.X),
-            Y = Fixed64.Min(lsh.Y, rsh.Y),
+            X = Fixed64.Min(lhs.X, rhs.X),
+            Y = Fixed64.Min(lhs.Y, rhs.Y),
         };
         /// <summary>
         /// 较大值
         /// </summary>
-        public static Vector2D Max(in Vector2D lsh, in Vector2D rsh) => new()
+        public static Vector2D Max(in Vector2D lhs, in Vector2D rhs) => new()
         {
-            X = Fixed64.Max(lsh.X, rsh.X),
-            Y = Fixed64.Max(lsh.Y, rsh.Y),
+            X = Fixed64.Max(lhs.X, rhs.X),
+            Y = Fixed64.Max(lhs.Y, rhs.Y),
         };
         #endregion
 

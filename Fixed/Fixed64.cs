@@ -150,7 +150,7 @@ namespace Eevee.Fixed
         /// 较小值
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Fixed64 Min(Fixed64 a, Fixed64 rsh) => a < rsh ? a : rsh;
+        public static Fixed64 Min(Fixed64 a, Fixed64 rhs) => a < rhs ? a : rhs;
         /// <summary>
         /// 较小值
         /// </summary>
@@ -175,7 +175,7 @@ namespace Eevee.Fixed
         /// 较大值
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Fixed64 Max(Fixed64 a, Fixed64 rsh) => a > rsh ? a : rsh;
+        public static Fixed64 Max(Fixed64 a, Fixed64 rhs) => a > rhs ? a : rhs;
         /// <summary>
         /// 较大值
         /// </summary>

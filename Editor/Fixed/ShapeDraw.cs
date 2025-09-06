@@ -128,10 +128,10 @@ namespace EeveeEditor.Fixed
             }
         }
 
-        private static void Line(Vector2DInt p0, Vector2DInt p1, in DrawData draw)
+        private static void Line(Vector2DInt lhs, Vector2DInt rhs, in DrawData draw)
         {
-            var v0 = AsVector3(p0, in draw);
-            var v1 = AsVector3(p1, in draw);
+            var v0 = AsVector3(lhs, in draw);
+            var v1 = AsVector3(rhs, in draw);
             Handles.DrawLine(v0, v1);
         }
         private static Vector3 AsVector3(Vector2DInt vector, in DrawData draw) => new(vector.X * draw.Scale + draw.OffsetX, draw.Height, vector.Y * draw.Scale + draw.OffsetY);

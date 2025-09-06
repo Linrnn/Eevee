@@ -90,7 +90,7 @@ namespace Eevee.Fixed
         /// <summary>
         /// 两个点是否处于平面的相同侧
         /// </summary>
-        public readonly bool SameSide(in Vector3D lsh, in Vector3D rhs) => GetSide(in lsh) == GetSide(in rhs);
+        public readonly bool SameSide(in Vector3D lhs, in Vector3D rhs) => GetSide(in lhs) == GetSide(in rhs);
 
         /// <summary>
         /// 射线与平面的交点
