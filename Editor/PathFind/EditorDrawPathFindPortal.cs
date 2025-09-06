@@ -16,16 +16,12 @@ namespace EeveeEditor.PathFind
         [SerializeField] private Color _endColor = Color.gray.RGBScale(0.8F);
 
         private PathFindComponent _component;
-        private Vector2 _minBoundary;
-        private float _gridSize;
         private readonly List<PathFindPortal> _portals = new();
 
         private void OnEnable()
         {
             var proxy = PathFindGetter.Proxy;
             _component = proxy.Component;
-            _minBoundary = proxy.MinBoundary;
-            _gridSize = proxy.GridSize;
         }
         private void OnDrawGizmos()
         {
@@ -44,12 +40,12 @@ namespace EeveeEditor.PathFind
                 var end = portal.Point.End;
                 string indexStr = _drawIndex ? portal.Index.ToString() : null;
 
-                PathFindDraw.Grid(start.X, start.Y, _gridSize, _minBoundary, in _startColor);
-                PathFindDraw.Label(start.X, start.Y, _gridSize, _minBoundary, in _startColor, _drawPoint, indexStr);
+                PathFindDraw.Grid(start, in _startColor);
+                PathFindDraw.Label(start, in _startColor, _drawPoint, indexStr);
                 if (_drawLine)
-                    PathFindDraw.Line(start.X, start.Y, end.X, end.Y, _gridSize, _minBoundary, in _lineColor);
-                PathFindDraw.Grid(end.X, end.Y, _gridSize, _minBoundary, in _endColor);
-                PathFindDraw.Label(end.X, end.Y, _gridSize, _minBoundary, in _endColor, _drawPoint, indexStr);
+                    PathFindDraw.Line(start, end, in _lineColor);
+                PathFindDraw.Grid(end, in _endColor);
+                PathFindDraw.Label(end, in _endColor, _drawPoint, indexStr);
             }
         }
     }

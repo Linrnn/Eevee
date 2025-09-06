@@ -117,17 +117,9 @@ namespace EeveeEditor.PathFind
         [Header("渲染参数")] [SerializeField] private Color _color = Color.white;
         [SerializeField] private float _decrease = 0.2F;
 
-        private Vector2 _minBoundary;
-        private float _gridSize;
         private readonly List<Vector2DInt16> _points = new();
         private readonly Dictionary<Vector2DInt16, int> _pointDrawTimes = new();
 
-        private void OnEnable()
-        {
-            var proxy = PathFindGetter.Proxy;
-            _minBoundary = proxy.MinBoundary;
-            _gridSize = proxy.GridSize;
-        }
         private void OnDrawGizmos()
         {
             DrawRepeated();
@@ -182,7 +174,7 @@ namespace EeveeEditor.PathFind
                 var point = _points[i];
                 int count = _pointDrawTimes.GetValueOrDefault(point);
                 _pointDrawTimes[point] = count + 1;
-                PathFindDraw.Grid(point.X, point.Y, _gridSize, _gridSize * (1 - count * _decrease), _minBoundary, in _color);
+                PathFindDraw.Grid(point, 1 - count * _decrease, in _color);
             }
         }
     }

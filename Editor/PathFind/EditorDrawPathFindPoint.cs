@@ -10,15 +10,6 @@ namespace EeveeEditor.PathFind
         [SerializeField] private bool _drawPoint = true;
         [SerializeField] private Color _color = Color.gray;
 
-        private Vector2 _minBoundary;
-        private float _gridSize;
-
-        private void OnEnable()
-        {
-            var proxy = PathFindGetter.Proxy;
-            _minBoundary = proxy.MinBoundary;
-            _gridSize = proxy.GridSize;
-        }
         private void OnDrawGizmos()
         {
             if (!enabled)
@@ -34,8 +25,8 @@ namespace EeveeEditor.PathFind
 
             foreach (var point in points)
             {
-                PathFindDraw.Grid(point.x, point.y, _gridSize, _minBoundary, in _color);
-                PathFindDraw.Label(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint);
+                PathFindDraw.Grid(point, in _color);
+                PathFindDraw.Label(point, in _color, _drawPoint);
             }
         }
     }

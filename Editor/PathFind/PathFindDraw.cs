@@ -8,64 +8,67 @@ namespace EeveeEditor.PathFind
     {
         internal static float Height;
         private static readonly Vector2 _extents = new(0.5F, 0.5F);
+
         private static IPathFindDrawProxy Proxy => PathFindGetter.Proxy;
-        private static float Offset => Proxy.GridOffset;
+        private static Vector2 MinBoundary => Proxy.MinBoundary;
+        private static float GridSize => Proxy.GridSize;
+        private static float GridOffset => Proxy.GridOffset;
 
-        internal static void Label(float x, float y, float scale, Vector2 offset, in Color color, bool drawPoint, string ext = null)
+        internal static void Label(Vector2 point, in Color color, bool drawPoint, string ext = null)
         {
-            var position = new Vector2(x, y);
-            var data = new DrawData(offset, scale / 2, scale, Height);
+            var data = new DrawData(MinBoundary, GridSize / 2, GridSize, Height);
             if (drawPoint && !string.IsNullOrWhiteSpace(ext))
-                ShapeDraw.Label(position, in data, $"({x}, {y})\nIndex:{ext}", in color);
+                ShapeDraw.Label(point, in data, $"{point}\nIndex:{ext}", in color);
             else if (drawPoint)
-                ShapeDraw.Label(position, in data, $"({x}, {y})", in color);
+                ShapeDraw.Label(point, in data, point.ToString(), in color);
             else if (!string.IsNullOrWhiteSpace(ext))
-                ShapeDraw.Label(position, in data, ext, in color);
+                ShapeDraw.Label(point, in data, ext, in color);
         }
-
-        internal static void Grid(float x, float y, float scale, Vector2 offset, in Color color)
+        internal static void Line(Vector2 lhs, Vector2 rhs, in Color color)
         {
-            var data = new DrawData(offset, Offset * scale, scale, Height);
-            ShapeDraw.AABB(new Vector2(x, y), _extents, in data, in color);
-        }
-        internal static void Grid(float x, float y, float pointScale, float sizeScale, Vector2 offset, in Color color)
-        {
-            var data = new DrawData(offset, Offset * pointScale, pointScale, Height);
-            ShapeDraw.AABB(new Vector2(x, y), sizeScale / pointScale * _extents, in data, in color);
-        }
-
-        internal static void Side(float x, float y, Vector2 dir, float scale, Vector2 offset, in Color color)
-        {
-            var lhs = new Vector2(x, y) + new Vector2(dir.x + dir.y, dir.y + dir.x) / 2;
-            var rhs = new Vector2(x, y) + new Vector2(dir.x - dir.y, dir.y - dir.x) / 2;
-            var data = new DrawData(offset, Offset * scale, scale, Height);
+            var data = new DrawData(MinBoundary, GridOffset * GridSize, GridSize, Height);
             ShapeDraw.Line(lhs, rhs, in data, in color);
         }
-        internal static void Arrow(float x, float y, Vector2 dir, float scale, Vector2 offset, in Color color)
+        internal static void Grid(Vector2 point, in Color color)
         {
-            var length = 0.75F * dir;
-            var width = 0.25F * dir;
-            var lhs = new Vector2(x - length.x + width.y, y - length.y - width.x);
-            var rhs = new Vector2(x - length.x - width.y, y - length.y + width.x);
-            var data = new DrawData(offset, Offset * scale, scale, Height);
-            ShapeDraw.Line(new Vector2(x, y), lhs, in data, in color);
-            ShapeDraw.Line(new Vector2(x, y), rhs, in data, in color);
+            var data = new DrawData(MinBoundary, GridOffset * GridSize, GridSize, Height);
+            ShapeDraw.AABB(point, _extents, in data, in color);
         }
-        internal static void ObliqueArrow(float x, float y, Vector2 dir, float scale, Vector2 offset, in Color color)
+        internal static void Grid(Vector2 point, float decrease, in Color color)
+        {
+            var data = new DrawData(MinBoundary, GridOffset * GridSize, GridSize, Height);
+            ShapeDraw.AABB(point, decrease * _extents, in data, in color);
+        }
+        internal static void Side(Vector2 point, Vector2 dir, in Color color)
+        {
+            const int scale = 2;
+            var side = point + dir / scale;
+            var sub = new Vector2(dir.y, dir.x) / scale;
+            var lhs = side + sub;
+            var rhs = side - sub;
+            var data = new DrawData(MinBoundary, GridOffset * GridSize, GridSize, Height);
+            ShapeDraw.Line(lhs, rhs, in data, in color);
+        }
+        internal static void Arrow(Vector2 point, Vector2 dir, in Color color)
+        {
+            var length = point - 0.75F * dir;
+            var width = 0.25F * dir;
+            var lhs = new Vector2(length.x + width.y, length.y - width.x);
+            var rhs = new Vector2(length.x - width.y, length.y + width.x);
+            var data = new DrawData(MinBoundary, GridOffset * GridSize, GridSize, Height);
+            ShapeDraw.Line(point, lhs, in data, in color);
+            ShapeDraw.Line(point, rhs, in data, in color);
+        }
+        internal static void ObliqueArrow(Vector2 point, Vector2 dir, in Color color)
         {
             const float sideScale = 5F / 8;
             var halfDir = 3F / 8 * dir;
-            var mhs = new Vector2(x + halfDir.x, y + halfDir.y);
-            var lhs = new Vector2(x - halfDir.x * sideScale, y - halfDir.y);
-            var rhs = new Vector2(x - halfDir.x, y - halfDir.y * sideScale);
-            var data = new DrawData(offset, Offset * scale, scale, Height);
+            var mhs = point + halfDir;
+            var lhs = new Vector2(point.x - halfDir.x * sideScale, point.y - halfDir.y);
+            var rhs = new Vector2(point.x - halfDir.x, point.y - halfDir.y * sideScale);
+            var data = new DrawData(MinBoundary, GridOffset * GridSize, GridSize, Height);
             ShapeDraw.Line(mhs, lhs, in data, in color);
             ShapeDraw.Line(mhs, rhs, in data, in color);
-        }
-        internal static void Line(float sx, float sy, float ex, float ey, float scale, Vector2 offset, in Color color)
-        {
-            var data = new DrawData(offset, Offset * scale, scale, Height);
-            ShapeDraw.Line(new Vector2(sx, sy), new Vector2(ex, ey), in data, in color);
         }
 
         internal static PropertyHandle EnumGroupType(this PropertyHandle handle, string path, bool disabled = false)

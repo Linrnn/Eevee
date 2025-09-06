@@ -20,16 +20,12 @@ namespace EeveeEditor.PathFind
         [SerializeField] private Color _nextColor = Color.cyan.RGBScale(0.8F);
 
         private IPathFindDrawProxy _proxy;
-        private Vector2 _minBoundary;
-        private float _gridSize;
         private readonly List<Vector2DInt16> _points = new();
 
         private void OnEnable()
         {
             var proxy = PathFindGetter.Proxy;
             _proxy = proxy;
-            _minBoundary = proxy.MinBoundary;
-            _gridSize = proxy.GridSize;
         }
         private void OnDrawGizmos()
         {
@@ -51,30 +47,29 @@ namespace EeveeEditor.PathFind
                     continue;
 
                 var start = _points[0];
-                PathFindDraw.Grid(start.X, start.Y, _gridSize, _minBoundary, in _startColor);
-                PathFindDraw.Label(start.X, start.Y, _gridSize, _minBoundary, in _startColor, _drawPoint);
+                PathFindDraw.Grid(start, in _startColor);
+                PathFindDraw.Label(start, in _startColor, _drawPoint);
 
                 for (int count = _points.Count - 1, i = 1; i < count; ++i)
                 {
                     var point = _points[i];
-                    PathFindDraw.Grid(point.X, point.Y, _gridSize, _minBoundary, in _lineColor);
-                    PathFindDraw.Label(point.X, point.Y, _gridSize, _minBoundary, in _lineColor, _drawPoint);
+                    PathFindDraw.Grid(point, in _lineColor);
+                    PathFindDraw.Label(point, in _lineColor, _drawPoint);
                 }
 
                 var end = _points[^1];
-                PathFindDraw.Grid(end.X, end.Y, _gridSize, _minBoundary, in _endColor);
-                PathFindDraw.Label(end.X, end.Y, _gridSize, _minBoundary, in _endColor, _drawPoint);
-                PathFindDraw.Arrow(end.X, end.Y, ((Vector2)(end - _points[^2])).normalized, _gridSize, _minBoundary, in _endColor);
+                PathFindDraw.Grid(end, in _endColor);
+                PathFindDraw.Label(end, in _endColor, _drawPoint);
+                PathFindDraw.Arrow(end, ((Vector2)(end - _points[^2])).normalized, in _endColor);
 
                 for (int i = 1; i < _points.Count; ++i)
-                    if (_points[i - 1] is { } p0 && _points[i] is { } p1)
-                        PathFindDraw.Line(p0.X, p0.Y, p1.X, p1.Y, _gridSize, _minBoundary, in _lineColor);
+                    PathFindDraw.Line(_points[i - 1], _points[i], in _lineColor);
 
                 if (_drawNext && _proxy.GetCurrentPoint(index) is { } curPoint && PathFindDiagnosis.GetNextPoint(_findFunc, index) is { } nextPoint)
                 {
-                    PathFindDraw.Grid(curPoint.x, curPoint.y, _gridSize, _minBoundary, in _nextColor);
-                    PathFindDraw.Line(curPoint.x, curPoint.y, nextPoint.X, nextPoint.Y, _gridSize, _minBoundary, in _nextColor);
-                    PathFindDraw.Arrow(nextPoint.X, nextPoint.Y, ((Vector2)(nextPoint - curPoint)).normalized, _gridSize, _minBoundary, in _nextColor);
+                    PathFindDraw.Grid(curPoint, in _nextColor);
+                    PathFindDraw.Line(curPoint, nextPoint, in _nextColor);
+                    PathFindDraw.Arrow(nextPoint, ((Vector2)(nextPoint - curPoint)).normalized, in _nextColor);
                 }
             }
         }

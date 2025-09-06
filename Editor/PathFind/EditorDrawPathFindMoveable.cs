@@ -59,8 +59,6 @@ namespace EeveeEditor.PathFind
 
         private IPathFindDrawProxy _proxy;
         private PathFindComponent _component;
-        private Vector2 _minBoundary;
-        private float _gridSize;
         private readonly PathFindBoundaryProcessor<int, int> _moveableProcessor = new(node => node != PathFindExt.EmptyIndex, node => node);
 
         private void OnEnable()
@@ -68,8 +66,6 @@ namespace EeveeEditor.PathFind
             var proxy = PathFindGetter.Proxy;
             _proxy = proxy;
             _component = proxy.Component;
-            _minBoundary = proxy.MinBoundary;
-            _gridSize = proxy.GridSize;
         }
         private void OnDrawGizmos()
         {
@@ -93,12 +89,12 @@ namespace EeveeEditor.PathFind
                 if (!_indexes.IsNullOrEmpty() && !_indexes.Has(index))
                     continue;
                 foreach (var side in boundary.Sides())
-                    PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, in _color);
+                    PathFindDraw.Side((Vector2Int)side, PathFindExt.StraightDirections[side.z], in _color);
                 var center = boundary.Center();
                 string indexStr = _drawIndex ? index.ToString() : null;
-                PathFindDraw.Label(center.x, center.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
+                PathFindDraw.Label(center, in _color, _drawPoint, indexStr);
                 if (_drawDir && _proxy.GetMoveDirection(index) is { normalized: var moveDir })
-                    PathFindDraw.Arrow(center.x + moveDir.x, center.y + moveDir.y, moveDir, _gridSize, _minBoundary, in _dirColor);
+                    PathFindDraw.Arrow(center + moveDir, moveDir, in _dirColor);
             }
         }
     }

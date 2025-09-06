@@ -52,16 +52,12 @@ namespace EeveeEditor.PathFind
         [SerializeField] private Color _color = Color.red;
 
         private PathFindComponent _component;
-        private Vector2 _minBoundary;
-        private float _gridSize;
         private readonly PathFindBoundaryProcessor<int, short> _areaProcessor = new(areaId => areaId != PathFindExt.CantStand, areaId => areaId);
 
         private void OnEnable()
         {
             var proxy = PathFindGetter.Proxy;
             _component = proxy.Component;
-            _minBoundary = proxy.MinBoundary;
-            _gridSize = proxy.GridSize;
         }
         private void OnDrawGizmos()
         {
@@ -84,9 +80,9 @@ namespace EeveeEditor.PathFind
             foreach ((int areaId, var boundary) in _areaProcessor)
             {
                 foreach (var side in boundary.Sides())
-                    PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, in _color);
+                    PathFindDraw.Side((Vector2Int)side, PathFindExt.StraightDirections[side.z], in _color);
                 foreach (var point in boundary.Girds())
-                    PathFindDraw.Label(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint, areaId.ToString());
+                    PathFindDraw.Label(point, in _color, _drawPoint, areaId.ToString());
             }
         }
     }

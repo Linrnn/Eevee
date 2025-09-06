@@ -67,8 +67,6 @@ namespace EeveeEditor.PathFind
         [SerializeField] private Color _nextColor = Color.yellow.RGBScale(0.5F);
 
         private PathFindComponent _component;
-        private Vector2 _minBoundary;
-        private float _gridSize;
         private readonly HashSet<Vector2DInt16> _points = new();
         private readonly List<(int sx, int sy, int ex, int ey)> _lines = new();
 
@@ -76,8 +74,6 @@ namespace EeveeEditor.PathFind
         {
             var proxy = PathFindGetter.Proxy;
             _component = proxy.Component;
-            _minBoundary = proxy.MinBoundary;
-            _gridSize = proxy.GridSize;
         }
         private void OnDrawGizmos()
         {
@@ -126,14 +122,14 @@ namespace EeveeEditor.PathFind
                     foreach (var jumpPoint in handles)
                     {
                         var prevPoint = jumpPoint.PrevPoint;
-                        PathFindDraw.ObliqueArrow(prevPoint.X, prevPoint.Y, jumpPoint.Direction, _gridSize, _minBoundary, in _prevColor);
+                        PathFindDraw.ObliqueArrow(prevPoint, jumpPoint.Direction, in _prevColor);
                         if (_points.Add(prevPoint))
-                            PathFindDraw.Grid(prevPoint.X, prevPoint.Y, _gridSize, _minBoundary, in _prevColor);
+                            PathFindDraw.Grid(prevPoint, in _prevColor);
                     }
                 }
 
-                PathFindDraw.Grid(point.X, point.Y, _gridSize, _minBoundary, in _color);
-                PathFindDraw.Label(point.X, point.Y, _gridSize, _minBoundary, in _color, _drawPoint);
+                PathFindDraw.Grid(point, in _color);
+                PathFindDraw.Label(point, in _color, _drawPoint);
             }
 
             if (_drawNext)
@@ -143,11 +139,11 @@ namespace EeveeEditor.PathFind
                 {
                     var dir = new Vector2DInt16(line.ex - line.sx, line.ey - line.sy).Sign();
                     var ro = (Vector2)dir.Perpendicular() * -0.25F; // 直线靠右，所以“Perpendicular”乘以负数
-                    var offset = ro + (Vector2)dir * -0.5F;
-                    float ex = line.ex + offset.x;
-                    float ey = line.ey + offset.y;
-                    PathFindDraw.Line(line.sx + offset.x, line.sy + offset.y, ex, ey, _gridSize, _minBoundary, in _nextColor);
-                    PathFindDraw.Arrow(ex, ey, dir, _gridSize, _minBoundary, in _nextColor);
+                    var offset = ro - (Vector2)dir * 0.5F;
+                    var sp = new Vector2(line.sx + offset.x, line.sy + offset.y);
+                    var ep = new Vector2(line.ex + offset.x, line.ey + offset.y);
+                    PathFindDraw.Line(sp, ep, in _nextColor);
+                    PathFindDraw.Arrow(ep, dir, in _nextColor);
 
                     if (_intervalNext > 0)
                     {
@@ -157,8 +153,8 @@ namespace EeveeEditor.PathFind
                         while ((next - start).Sign() == dir)
                         {
                             if (_points.Add(next))
-                                PathFindDraw.Grid(next.X, next.Y, _gridSize, _minBoundary, in _nextColor);
-                            PathFindDraw.Label(next.X + ro.x, next.Y + ro.y, _gridSize, _minBoundary, in _nextColor, _drawPoint, dis.ToString());
+                                PathFindDraw.Grid(next, in _nextColor);
+                            PathFindDraw.Label(next + ro, in _nextColor, _drawPoint, dis.ToString());
                             next -= _intervalNext * dir;
                             dis += _intervalNext;
                         }
