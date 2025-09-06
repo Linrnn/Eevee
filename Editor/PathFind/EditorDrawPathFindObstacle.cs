@@ -96,10 +96,10 @@ namespace EeveeEditor.PathFind
                 var center = boundary.Center();
                 string indexStr = _drawIndex ? index.ToString() : null;
                 if (index != PathFindExt.EmptyIndex)
-                    PathFindDraw.Text(center.x, center.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
+                    PathFindDraw.Label(center.x, center.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
                 else if (_drawTerrain)
                     foreach (var point in boundary.Girds())
-                        PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
+                        PathFindDraw.Label(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
             }
         }
     }

@@ -45,11 +45,11 @@ namespace EeveeEditor.PathFind
                 string indexStr = _drawIndex ? portal.Index.ToString() : null;
 
                 PathFindDraw.Grid(start.X, start.Y, _gridSize, _minBoundary, in _startColor);
-                PathFindDraw.Text(start.X, start.Y, _gridSize, _minBoundary, in _startColor, _drawPoint, indexStr);
+                PathFindDraw.Label(start.X, start.Y, _gridSize, _minBoundary, in _startColor, _drawPoint, indexStr);
                 if (_drawLine)
                     PathFindDraw.Line(start.X, start.Y, end.X, end.Y, _gridSize, _minBoundary, in _lineColor);
                 PathFindDraw.Grid(end.X, end.Y, _gridSize, _minBoundary, in _endColor);
-                PathFindDraw.Text(end.X, end.Y, _gridSize, _minBoundary, in _endColor, _drawPoint, indexStr);
+                PathFindDraw.Label(end.X, end.Y, _gridSize, _minBoundary, in _endColor, _drawPoint, indexStr);
             }
         }
     }

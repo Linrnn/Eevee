@@ -86,7 +86,7 @@ namespace EeveeEditor.PathFind
                 foreach (var side in boundary.Sides())
                     PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, in _color);
                 foreach (var point in boundary.Girds())
-                    PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint, areaId.ToString());
+                    PathFindDraw.Label(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint, areaId.ToString());
             }
         }
     }

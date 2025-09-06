@@ -96,7 +96,7 @@ namespace EeveeEditor.PathFind
                     PathFindDraw.Side(side.x, side.y, PathFindExt.StraightDirections[side.z], _gridSize, _minBoundary, in _color);
                 var center = boundary.Center();
                 string indexStr = _drawIndex ? index.ToString() : null;
-                PathFindDraw.Text(center.x, center.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
+                PathFindDraw.Label(center.x, center.y, _gridSize, _minBoundary, in _color, _drawPoint, indexStr);
                 if (_drawDir && _proxy.GetMoveDirection(index) is { normalized: var moveDir })
                     PathFindDraw.Arrow(center.x + moveDir.x, center.y + moveDir.y, moveDir, _gridSize, _minBoundary, in _dirColor);
             }

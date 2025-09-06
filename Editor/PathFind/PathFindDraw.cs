@@ -1,5 +1,5 @@
 ﻿#if UNITY_EDITOR
-using UnityEditor;
+using EeveeEditor.Fixed;
 using UnityEngine;
 
 namespace EeveeEditor.PathFind
@@ -7,126 +7,78 @@ namespace EeveeEditor.PathFind
     internal static class PathFindDraw
     {
         internal static float Height;
+        private static readonly Vector2 _extents = new(0.5F, 0.5F);
+        private static IPathFindDrawProxy Proxy => PathFindGetter.Proxy;
+        private static float Offset => Proxy.GridOffset;
 
-        internal static void Text(float x, float y, float scale, Vector2 offset, in Color color, bool drawPoint, string ext = null)
+        internal static void Label(float x, float y, float scale, Vector2 offset, in Color color, bool drawPoint, string ext = null)
         {
-            Count(x, y, scale, offset, out var center);
-            var style = GUI.skin.label;
-            var oldColor = style.normal.textColor;
-            var oldAlignment = style.alignment;
-            style.normal.textColor = color;
-            style.alignment = TextAnchor.MiddleCenter;
-
+            var position = new Vector2(x, y);
+            var data = new DrawData(offset, scale / 2, scale, Height);
             if (drawPoint && !string.IsNullOrWhiteSpace(ext))
-                Handles.Label(center, $"({x}, {y})\n{ext}", style);
+                ShapeDraw.Label(position, in data, $"({x}, {y})\nIndex:{ext}", in color);
             else if (drawPoint)
-                Handles.Label(center, $"({x}, {y})", style);
+                ShapeDraw.Label(position, in data, $"({x}, {y})", in color);
             else if (!string.IsNullOrWhiteSpace(ext))
-                Handles.Label(center, ext, style);
-
-            style.normal.textColor = oldColor;
-            style.alignment = oldAlignment;
+                ShapeDraw.Label(position, in data, ext, in color);
         }
 
-        internal static void Grid(int x, int y, float scale, Vector2 offset, in Color color)
+        internal static void Grid(float x, float y, float scale, Vector2 offset, in Color color)
         {
-            Count(x, y, scale, scale, offset, out var center, out var size);
-            var oldColor = Handles.color;
-
-            Handles.color = color;
-            Handles.DrawWireCube(center, size);
-            Handles.color = oldColor;
+            var data = new DrawData(offset, Offset * scale, scale, Height);
+            ShapeDraw.AABB(new Vector2(x, y), _extents, in data, in color);
         }
-        internal static void Grid(float x, float y, float positionScale, float sizeScale, Vector2 offset, in Color color)
+        internal static void Grid(float x, float y, float pointScale, float sizeScale, Vector2 offset, in Color color)
         {
-            Count(x, y, positionScale, sizeScale, offset, out var center, out var size);
-            var oldColor = Handles.color;
-
-            Handles.color = color;
-            Handles.DrawWireCube(center, size);
-            Handles.color = oldColor;
+            var data = new DrawData(offset, Offset * pointScale, pointScale, Height);
+            ShapeDraw.AABB(new Vector2(x, y), sizeScale / pointScale * _extents, in data, in color);
         }
 
-        internal static void Side(int x, int y, Vector2 dir, float scale, Vector2 offset, in Color color)
+        internal static void Side(float x, float y, Vector2 dir, float scale, Vector2 offset, in Color color)
         {
-            Count(x, y, scale, offset, out var center);
-            float halfSize = scale * 0.5F;
-            var lhs = halfSize * new Vector3(dir.x + dir.y, 0, dir.y + dir.x);
-            var rhs = halfSize * new Vector3(dir.x - dir.y, 0, dir.y - dir.x);
-            var oldColor = Handles.color;
-
-            Handles.color = color;
-            Handles.DrawLine(center + lhs, center + rhs);
-            Handles.color = oldColor;
+            var lhs = new Vector2(x, y) + new Vector2(dir.x + dir.y, dir.y + dir.x) / 2;
+            var rhs = new Vector2(x, y) + new Vector2(dir.x - dir.y, dir.y - dir.x) / 2;
+            var data = new DrawData(offset, Offset * scale, scale, Height);
+            ShapeDraw.Line(lhs, rhs, in data, in color);
         }
         internal static void Arrow(float x, float y, Vector2 dir, float scale, Vector2 offset, in Color color)
         {
-            Count(x, y, scale, offset, out var center);
-            var length = 0.75F * scale * dir;
-            var width = 0.25F * scale * dir;
-            var oldColor = Handles.color;
-            var point0 = new Vector3(center.x - length.x - width.y, center.y, center.z - length.y + width.x);
-            var point1 = new Vector3(center.x - length.x + width.y, center.y, center.z - length.y - width.x);
-
-            Handles.color = color;
-            Handles.DrawLine(center, point0);
-            Handles.DrawLine(center, point1);
-            Handles.color = oldColor;
+            var length = 0.75F * dir;
+            var width = 0.25F * dir;
+            var lhs = new Vector2(x - length.x + width.y, y - length.y - width.x);
+            var rhs = new Vector2(x - length.x - width.y, y - length.y + width.x);
+            var data = new DrawData(offset, Offset * scale, scale, Height);
+            ShapeDraw.Line(new Vector2(x, y), lhs, in data, in color);
+            ShapeDraw.Line(new Vector2(x, y), rhs, in data, in color);
         }
         internal static void ObliqueArrow(float x, float y, Vector2 dir, float scale, Vector2 offset, in Color color)
         {
-            Count(x, y, scale, scale * 0.4F, offset, out var center, out var size);
-            var sideOffset = new Vector3(dir.x * size.x, size.y, dir.y * size.z);
-            var oldColor = Handles.color;
-            var point0 = center + sideOffset;
-            var point1 = center - sideOffset + new Vector3(dir.x * size.x * 0.5F, 0);
-            var point2 = center - sideOffset + new Vector3(0, dir.y * size.z * 0.5F);
-
-            Handles.color = color;
-            Handles.DrawLine(point0, point1);
-            Handles.DrawLine(point0, point2);
-            Handles.color = oldColor;
+            const float sideScale = 5F / 8;
+            var halfDir = 3F / 8 * dir;
+            var mhs = new Vector2(x + halfDir.x, y + halfDir.y);
+            var lhs = new Vector2(x - halfDir.x * sideScale, y - halfDir.y);
+            var rhs = new Vector2(x - halfDir.x, y - halfDir.y * sideScale);
+            var data = new DrawData(offset, Offset * scale, scale, Height);
+            ShapeDraw.Line(mhs, lhs, in data, in color);
+            ShapeDraw.Line(mhs, rhs, in data, in color);
         }
         internal static void Line(float sx, float sy, float ex, float ey, float scale, Vector2 offset, in Color color)
         {
-            Count(sx, sy, scale, offset, out var sc);
-            Count(ex, ey, scale, offset, out var ec);
-            var oldColor = Handles.color;
-
-            Handles.color = color;
-            Handles.DrawLine(sc, ec);
-            Handles.color = oldColor;
-        }
-
-        private static void Count(float x, float y, float scale, Vector2 offset, out Vector3 center)
-        {
-            float halfSize = scale * 0.5F;
-            float cx = x * scale + offset.x;
-            float cz = y * scale + offset.y;
-
-            center = new Vector3(cx + halfSize, Height, cz + halfSize);
-        }
-        private static void Count(float x, float y, float positionScale, float sizeScale, Vector2 offset, out Vector3 center, out Vector3 size)
-        {
-            float halfSize = positionScale * 0.5F;
-            float cx = x * positionScale + offset.x;
-            float cz = y * positionScale + offset.y;
-
-            center = new Vector3(cx + halfSize, Height, cz + halfSize);
-            size = new Vector3(sizeScale, 0, sizeScale);
+            var data = new DrawData(offset, Offset * scale, scale, Height);
+            ShapeDraw.Line(new Vector2(sx, sy), new Vector2(ex, ey), in data, in color);
         }
 
         internal static PropertyHandle EnumGroupType(this PropertyHandle handle, string path, bool disabled = false)
         {
-            return handle.DrawEnum(path, PathFindGetter.Proxy?.GroupTypeEnum, disabled);
+            return handle.DrawEnum(path, Proxy?.GroupTypeEnum, disabled);
         }
         internal static PropertyHandle EnumMoveType(this PropertyHandle handle, string path, bool disabled = false)
         {
-            return handle.DrawEnum(path, PathFindGetter.Proxy?.MoveTypeEnum, disabled);
+            return handle.DrawEnum(path, Proxy?.MoveTypeEnum, disabled);
         }
         internal static PropertyHandle EnumCollType(this PropertyHandle handle, string path, bool disabled = false)
         {
-            return handle.DrawEnum(path, PathFindGetter.Proxy?.CollTypeEnum, disabled);
+            return handle.DrawEnum(path, Proxy?.CollTypeEnum, disabled);
         }
     }
 }

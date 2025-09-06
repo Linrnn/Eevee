@@ -1,4 +1,6 @@
 ﻿#if UNITY_EDITOR
+using UnityEngine;
+
 namespace EeveeEditor
 {
     internal readonly struct DrawData
@@ -22,6 +24,23 @@ namespace EeveeEditor
             Scale = scale;
             Height = height;
         }
+        internal DrawData(Vector2 offset, float scale, float height)
+        {
+            OffsetX = offset.x;
+            OffsetY = offset.y;
+            Scale = scale;
+            Height = height;
+        }
+        internal DrawData(Vector2 leftBottom, float offset, float scale, float height)
+        {
+            OffsetX = leftBottom.x + offset;
+            OffsetY = leftBottom.y + offset;
+            Scale = scale;
+            Height = height;
+        }
+
+        internal Vector2 GetOffset() => new(OffsetX, OffsetY);
+        internal DrawData OnlyScale() => new(Scale, default);
     }
 }
 #endif

@@ -52,18 +52,18 @@ namespace EeveeEditor.PathFind
 
                 var start = _points[0];
                 PathFindDraw.Grid(start.X, start.Y, _gridSize, _minBoundary, in _startColor);
-                PathFindDraw.Text(start.X, start.Y, _gridSize, _minBoundary, in _startColor, _drawPoint);
+                PathFindDraw.Label(start.X, start.Y, _gridSize, _minBoundary, in _startColor, _drawPoint);
 
                 for (int count = _points.Count - 1, i = 1; i < count; ++i)
                 {
                     var point = _points[i];
                     PathFindDraw.Grid(point.X, point.Y, _gridSize, _minBoundary, in _lineColor);
-                    PathFindDraw.Text(point.X, point.Y, _gridSize, _minBoundary, in _lineColor, _drawPoint);
+                    PathFindDraw.Label(point.X, point.Y, _gridSize, _minBoundary, in _lineColor, _drawPoint);
                 }
 
                 var end = _points[^1];
                 PathFindDraw.Grid(end.X, end.Y, _gridSize, _minBoundary, in _endColor);
-                PathFindDraw.Text(end.X, end.Y, _gridSize, _minBoundary, in _endColor, _drawPoint);
+                PathFindDraw.Label(end.X, end.Y, _gridSize, _minBoundary, in _endColor, _drawPoint);
                 PathFindDraw.Arrow(end.X, end.Y, ((Vector2)(end - _points[^2])).normalized, _gridSize, _minBoundary, in _endColor);
 
                 for (int i = 1; i < _points.Count; ++i)

@@ -35,7 +35,7 @@ namespace EeveeEditor.PathFind
             foreach (var point in points)
             {
                 PathFindDraw.Grid(point.x, point.y, _gridSize, _minBoundary, in _color);
-                PathFindDraw.Text(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint);
+                PathFindDraw.Label(point.x, point.y, _gridSize, _minBoundary, in _color, _drawPoint);
             }
         }
     }

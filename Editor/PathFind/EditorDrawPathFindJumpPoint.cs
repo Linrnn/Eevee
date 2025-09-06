@@ -133,7 +133,7 @@ namespace EeveeEditor.PathFind
                 }
 
                 PathFindDraw.Grid(point.X, point.Y, _gridSize, _minBoundary, in _color);
-                PathFindDraw.Text(point.X, point.Y, _gridSize, _minBoundary, in _color, _drawPoint);
+                PathFindDraw.Label(point.X, point.Y, _gridSize, _minBoundary, in _color, _drawPoint);
             }
 
             if (_drawNext)
@@ -158,7 +158,7 @@ namespace EeveeEditor.PathFind
                         {
                             if (_points.Add(next))
                                 PathFindDraw.Grid(next.X, next.Y, _gridSize, _minBoundary, in _nextColor);
-                            PathFindDraw.Text(next.X + ro.x, next.Y + ro.y, _gridSize, _minBoundary, in _nextColor, _drawPoint, dis.ToString());
+                            PathFindDraw.Label(next.X + ro.x, next.Y + ro.y, _gridSize, _minBoundary, in _nextColor, _drawPoint, dis.ToString());
                             next -= _intervalNext * dir;
                             dis += _intervalNext;
                         }

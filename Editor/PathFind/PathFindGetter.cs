@@ -13,7 +13,8 @@ namespace EeveeEditor.PathFind
         Type CollTypeEnum { get; } // 碰撞体积的枚举类型，null代表int类型
         PathFindComponent Component { get; } // 获得寻路组件
         Vector2 MinBoundary { get; } // 左/下边界
-        float GridSize { get; } // 寻路尺寸：Unity尺寸
+        float GridSize { get; } // 格子尺寸：Unity尺寸
+        float GridOffset { get; } // 格子偏移量：Unity尺寸
 
         bool ValidColl(CollSize value);
         Vector2Int? GetCurrentPoint(int index);
