@@ -97,29 +97,29 @@ namespace EeveeEditor.QuadTree
                 var extents = extentsProperty.vector2IntValue;
                 float angle = angleProperty.floatValue;
                 var polygon = _polygon.Length == polygonProperty.arraySize ? _polygon : new Vector2Int[polygonProperty.arraySize];
-                float height = QuadTreeDraw.Height;
+                var drawData = new DrawData(_scale, QuadTreeDraw.Height);
 
                 switch (shape)
                 {
                     case QuadTreeShape.Point:
-                        ShapeDraw.Point(ref center, _scale, height);
+                        ShapeDraw.Point(ref center, in drawData);
                         centerProperty.vector2IntValue = center;
                         break;
 
                     case QuadTreeShape.Circle:
-                        ShapeDraw.Circle(ref center, ref radius, _scale, height);
+                        ShapeDraw.Circle(ref center, ref radius, in drawData);
                         centerProperty.vector2IntValue = center;
                         radiusProperty.intValue = radius;
                         break;
 
                     case QuadTreeShape.AABB:
-                        ShapeDraw.AABB(ref center, ref extents, _scale, height);
+                        ShapeDraw.AABB(ref center, ref extents, in drawData);
                         centerProperty.vector2IntValue = center;
                         extentsProperty.vector2IntValue = extents;
                         break;
 
                     case QuadTreeShape.OBB:
-                        ShapeDraw.OBB(ref center, ref extents, ref angle, _scale, height);
+                        ShapeDraw.OBB(ref center, ref extents, ref angle, in drawData);
                         centerProperty.vector2IntValue = center;
                         extentsProperty.vector2IntValue = extents;
                         angleProperty.floatValue = angle;
@@ -128,7 +128,7 @@ namespace EeveeEditor.QuadTree
                     case QuadTreeShape.Polygon:
                         for (int i = 0; i < polygon.Length; ++i)
                             polygon[i] = polygonProperty.GetArrayElementAtIndex(i).vector2IntValue;
-                        ShapeDraw.Polygon(ref polygon, _scale, height);
+                        ShapeDraw.Polygon(ref polygon, in drawData);
                         EditorUtils.SetArrayLength(polygonProperty, polygon.Length);
                         for (int i = 0; i < polygon.Length; ++i)
                             polygonProperty.GetArrayElementAtIndex(i).vector2IntValue = polygon[i];
@@ -244,14 +244,14 @@ namespace EeveeEditor.QuadTree
 
         private void DrawQueryShape()
         {
-            float height = QuadTreeDraw.Height;
+            var drawData = new DrawData(_scale, QuadTreeDraw.Height);
             switch (_shape)
             {
-                case QuadTreeShape.Point: ShapeDraw.Point(_center, _scale, height, in _queryColor); break;
-                case QuadTreeShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), _scale, height, in _queryColor); break;
-                case QuadTreeShape.AABB: ShapeDraw.AABB(new AABB2DInt(_center, _extents), _scale, height, in _queryColor); break;
-                case QuadTreeShape.OBB: ShapeDraw.OBB(new OBB2DInt(_center, _extents, _angle), _scale, height, in _queryColor); break;
-                case QuadTreeShape.Polygon: ShapeDraw.Polygon(_polygon, _scale, height, in _queryColor); break;
+                case QuadTreeShape.Point: ShapeDraw.Point(_center, in drawData, in _queryColor); break;
+                case QuadTreeShape.Circle: ShapeDraw.Circle(new CircleInt(_center, _radius), in drawData, in _queryColor); break;
+                case QuadTreeShape.AABB: ShapeDraw.AABB(new AABB2DInt(_center, _extents), in drawData, in _queryColor); break;
+                case QuadTreeShape.OBB: ShapeDraw.OBB(new OBB2DInt(_center, _extents, _angle), in drawData, in _queryColor); break;
+                case QuadTreeShape.Polygon: ShapeDraw.Polygon(_polygon, in drawData, in _queryColor); break;
                 default: Debug.LogError($"[Editor][Quad] Shape:{_shape}, not impl!"); break;
             }
         }

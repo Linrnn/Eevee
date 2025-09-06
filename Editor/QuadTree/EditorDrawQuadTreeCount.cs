@@ -22,7 +22,6 @@ namespace EeveeEditor.QuadTree
             #region Property Path
             private const string TreeIds = nameof(_treeIds);
             private const string LineBall = nameof(_lineBall);
-            private const string Height = nameof(_height);
             private const string DrawIndex = nameof(_drawIndex);
             private const string DepthCounts = nameof(_depthCounts);
             #endregion
@@ -43,7 +42,6 @@ namespace EeveeEditor.QuadTree
                 _propertyHandle.DrawScript();
                 _propertyHandle.EnumTreeFunc(TreeIds);
                 _propertyHandle.Draw(LineBall);
-                _propertyHandle.Draw(Height);
                 _propertyHandle.Draw(DrawIndex);
                 _propertyHandle.Draw(DepthCounts, true);
             }
@@ -108,7 +106,6 @@ namespace EeveeEditor.QuadTree
         #region 序列化字段
         [SerializeField] private int[] _treeIds;
         [SerializeField] private ColorSetting _lineBall = new(true, Color.magenta); // 压线的元素
-        [SerializeField] private float _height;
         [SerializeField] private bool _drawIndex = true;
         [SerializeField] private DepthCount[] _depthCounts = Array.Empty<DepthCount>();
         #endregion
@@ -208,19 +205,20 @@ namespace EeveeEditor.QuadTree
 
         private void DrawElements()
         {
+            var drawData = new DrawData(_scale, QuadTreeDraw.Height);
             if (_drawIndex)
             {
                 foreach (var element in _elements)
                 {
-                    ShapeDraw.Label(element.Shape.Center(), _scale, _height, element.Index.ToString(), in _lineBall.Color);
-                    ShapeDraw.AABB(in element.Shape, _scale, _height, in _lineBall.Color);
+                    ShapeDraw.Label(element.Shape.Center(), in drawData, element.Index.ToString(), in _lineBall.Color);
+                    ShapeDraw.AABB(in element.Shape, in drawData, in _lineBall.Color);
                 }
             }
             else
             {
                 foreach (var element in _elements)
                 {
-                    ShapeDraw.AABB(in element.Shape, _scale, _height, in _lineBall.Color);
+                    ShapeDraw.AABB(in element.Shape, in drawData, in _lineBall.Color);
                 }
             }
         }

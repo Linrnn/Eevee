@@ -22,17 +22,18 @@ namespace EeveeEditor.QuadTree
         }
         private static bool TryElement(QuadTreeShape shape, in QuadTreeElement element, float scale, bool drawIndex, in Color color)
         {
+            var drawData = new DrawData(scale, Height);
             if (drawIndex)
-                ShapeDraw.Label(element.Shape.Center(), scale, Height, element.Index.ToString(), in color);
+                ShapeDraw.Label(element.Shape.Center(), in drawData, element.Index.ToString(), in color);
 
             switch (shape)
             {
                 case QuadTreeShape.Circle:
-                    ShapeDraw.Circle(Converts.AsCircleInt(in element.Shape), scale, Height, in color);
+                    ShapeDraw.Circle(Converts.AsCircleInt(in element.Shape), in drawData, in color);
                     return true;
 
                 case QuadTreeShape.AABB:
-                    ShapeDraw.AABB(in element.Shape, scale, Height, in color);
+                    ShapeDraw.AABB(in element.Shape, in drawData, in color);
                     return true;
 
                 default: return false;

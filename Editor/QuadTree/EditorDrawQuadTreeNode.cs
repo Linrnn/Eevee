@@ -97,20 +97,20 @@ namespace EeveeEditor.QuadTree
 
         private void DrawTree(BasicQuadTree tree)
         {
-            float height = QuadTreeDraw.Height;
+            var drawData = new DrawData(_scale, QuadTreeDraw.Height);
 
             if (_emptyNode.Show)
                 foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count == 0)
-                        ShapeDraw.AABB(in node.Boundary, _scale, height, in _emptyNode.Color);
+                        ShapeDraw.AABB(in node.Boundary, in drawData, in _emptyNode.Color);
 
             if (_normalNode.Show)
                 foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count > 0)
-                        ShapeDraw.AABB(in node.Boundary, _scale, height, in _normalNode.Color);
+                        ShapeDraw.AABB(in node.Boundary, in drawData, in _normalNode.Color);
 
             if (_rootNode.Show)
-                ShapeDraw.AABB(tree.MaxBoundary, _scale, height, in _rootNode.Color);
+                ShapeDraw.AABB(tree.MaxBoundary, in drawData, in _rootNode.Color);
 
             if (_indexes.Length > 0)
                 foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
@@ -121,9 +121,9 @@ namespace EeveeEditor.QuadTree
         private void DrawNodeAndElement(QuadTreeNode node, in QuadTreeElement element)
         {
             var config = _manager.GetConfig(_treeId);
-            float height = QuadTreeDraw.Height;
-            ShapeDraw.AABB(in node.LooseBoundary, _scale, height, in _looseColor);
-            ShapeDraw.AABB(in node.Boundary, _scale, height, in _boundaryColor);
+            var drawData = new DrawData(_scale, QuadTreeDraw.Height);
+            ShapeDraw.AABB(in node.LooseBoundary, in drawData, in _looseColor);
+            ShapeDraw.AABB(in node.Boundary, in drawData, in _boundaryColor);
             QuadTreeDraw.Element(config.Shape, config.TreeId, in element, _scale, _drawIndex, in _shapeColor);
         }
     }
