@@ -8,13 +8,13 @@ using System.Diagnostics;
 
 namespace Eevee.PathFind
 {
-    internal enum PathFindFunc
+    public enum PathFindFunc
     {
         AStar,
         JPSPlus,
     }
 
-    internal readonly struct PathFindDiagnosis
+    public readonly struct PathFindDiagnosis
     {
         public static bool EnableNextPoint = false;
         public static bool EnablePath = false;
@@ -28,33 +28,33 @@ namespace Eevee.PathFind
 
         internal static Vector2DInt16? GetNextPoint(PathFindFunc func, int index)
         {
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             return _nextPoints.TryGetValue(key, out var nextPoint) ? nextPoint : null;
         }
         [Conditional(Macro.Editor)]
-        internal static void SetNextPoint(PathFindFunc func, int index, Vector2DInt16 nextPoint)
+        public static void SetNextPoint(PathFindFunc func, int index, Vector2DInt16 nextPoint)
         {
             if (!EnableNextPoint)
                 return;
             if (!CheckTargets(index))
                 return;
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             _nextPoints[key] = nextPoint;
         }
         [Conditional(Macro.Editor)]
-        internal static void RemoveNextPoint(PathFindFunc func, int index)
+        public static void RemoveNextPoint(PathFindFunc func, int index)
         {
             if (!EnableNextPoint)
                 return;
             if (!CheckTargets(index))
                 return;
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             _nextPoints.Remove(key);
         }
 
         internal static void GetPath(PathFindFunc func, int index, ICollection<Vector2DInt16> path)
         {
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             var cachePath = _paths.GetValueOrDefault(key);
             path.UpdateLowGC(cachePath);
         }
@@ -65,7 +65,7 @@ namespace Eevee.PathFind
                 return;
             if (!CheckTargets(index))
                 return;
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             if (PathFindExt.ValidPath(path))
             {
                 if (_paths.TryGetValue(key, out var points))
@@ -85,10 +85,20 @@ namespace Eevee.PathFind
                 _paths.Add(key, newPath);
             }
         }
+        [Conditional(Macro.Editor)]
+        public static void RemovePath(PathFindFunc func, int index)
+        {
+            if (!EnablePath)
+                return;
+            if (!CheckTargets(index))
+                return;
+            var key = GetKey(func, index);
+            _paths.Remove(key);
+        }
 
         internal static void GetProcess(PathFindFunc func, int index, ICollection<Vector2DInt16> processes)
         {
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             var cacheProcesses = _processes.GetValueOrDefault(key);
             processes.UpdateLowGC(cacheProcesses);
         }
@@ -99,7 +109,7 @@ namespace Eevee.PathFind
                 return;
             if (!CheckTargets(index))
                 return;
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             if (_processes.TryGetValue(key, out var points))
                 points.Add(point);
             else
@@ -115,7 +125,7 @@ namespace Eevee.PathFind
                 return;
             if (!CheckTargets(index))
                 return;
-            var key = new Vector2DInt16((int)func, index);
+            var key = GetKey(func, index);
             if (_processes.TryGetValue(key, out var points))
                 points.Clear();
         }
@@ -138,5 +148,6 @@ namespace Eevee.PathFind
             ICollection<int> targets = Indexes;
             return targets.IsNullOrEmpty() || targets.Contains(id);
         }
+        private static Vector2DInt16 GetKey(PathFindFunc func, int index) => new((int)func, index);
     }
 }

@@ -44,6 +44,10 @@ namespace EeveeEditor.PathFind
 
             private void DrawProperties()
             {
+                var stepProperty = _propertyHandle.Get(Step);
+                var processProperty = _propertyHandle.Get(Process);
+                var pauseProperty = _propertyHandle.Get(Pause);
+
                 _propertyHandle.DrawScript();
                 _propertyHandle.Draw(FindFunc);
                 _propertyHandle.Draw(Index);
@@ -55,48 +59,18 @@ namespace EeveeEditor.PathFind
                 _propertyHandle.Draw(Process);
                 EditorGUILayout.BeginHorizontal();
                 _propertyHandle.Draw(Pause);
-                if (GUILayout.Button("Prev"))
-                    ButtonPrev();
-                if (GUILayout.Button("Next"))
-                    ButtonNext();
+                if (pauseProperty.boolValue && GUILayout.Button("Prev"))
+                    processProperty.intValue -= stepProperty.intValue;
+                if (pauseProperty.boolValue && GUILayout.Button("Next"))
+                    processProperty.intValue += stepProperty.intValue;
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.BeginHorizontal();
                 _propertyHandle.Draw(Loop);
                 if (GUILayout.Button("Restart"))
-                    ButtonRestart();
+                    processProperty.intValue = 0;
                 EditorGUILayout.EndHorizontal();
                 _propertyHandle.Draw(Color);
                 _propertyHandle.Draw(Decrease);
-            }
-
-            private void ButtonPrev()
-            {
-                var stepProperty = _propertyHandle.Get(Step);
-                var processProperty = _propertyHandle.Get(Process);
-                var pauseProperty = _propertyHandle.Get(Pause);
-
-                if (pauseProperty.boolValue)
-                    processProperty.intValue = Math.Max(0, processProperty.intValue + stepProperty.intValue);
-            }
-            private void ButtonNext()
-            {
-                var stepProperty = _propertyHandle.Get(Step);
-                var processProperty = _propertyHandle.Get(Process);
-                var pauseProperty = _propertyHandle.Get(Pause);
-                var loopProperty = _propertyHandle.Get(Loop);
-                int pointCount = ((EditorDrawPathFindProcess)target)._points.Count;
-
-                if (!pauseProperty.boolValue)
-                    return;
-                if (loopProperty.boolValue && processProperty.intValue + 1 >= pointCount)
-                    processProperty.intValue = 0;
-                else
-                    processProperty.intValue = Math.Min(processProperty.intValue + stepProperty.intValue, pointCount);
-            }
-            private void ButtonRestart()
-            {
-                var processProperty = _propertyHandle.Get(Process);
-                processProperty.intValue = 0;
             }
         }
 
@@ -196,13 +170,14 @@ namespace EeveeEditor.PathFind
                 return;
 
             if (!_pause)
-                if (_loop && _process + 1 >= _points.Count)
-                    _process = 0;
-                else
-                    _process = Math.Min(_process + _step, _points.Count);
+                _process += _step;
+            if (_loop)
+                _process = (_process % _points.Count + _points.Count) % _points.Count;
+            else
+                _process = Math.Clamp(_process, 0, _points.Count - 1);
 
             _pointDrawTimes.Clear();
-            for (int i = 0; i < _process; ++i)
+            for (int i = 0; i <= _process; ++i)
             {
                 var point = _points[i];
                 int count = _pointDrawTimes.GetValueOrDefault(point);

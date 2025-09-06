@@ -46,7 +46,7 @@ namespace Eevee.PathFind
     public interface IPathFindObjectPoolGetter
     {
         List<T> ListAlloc<T>();
-        List<T> ListAlloc<T>(bool fromThread);
+        List<T> ListAlloc<T>(bool subThread);
         List<T> ListAlloc<T>(int capacity);
         void Alloc<T>(ref List<T> collection);
         void Release<T>(List<T> collection);
@@ -58,9 +58,9 @@ namespace Eevee.PathFind
         void Alloc<T>(ref HashSet<T> collection);
         void Release<T>(ref HashSet<T> collection); // TryReleaseAndSetNull
 
-        Dictionary<TKey, TValue> MapAlloc<TKey, TValue>(bool fromThread);
+        Dictionary<TKey, TValue> MapAlloc<TKey, TValue>(bool subThread);
         void Alloc<TKey, TValue>(ref Dictionary<TKey, TValue> collection);
-        void Release<TKey, TValue>(Dictionary<TKey, TValue> collection, bool fromThread);
+        void Release<TKey, TValue>(Dictionary<TKey, TValue> collection, bool subThread);
         void Release<TKey, TValue>(ref Dictionary<TKey, TValue> collection); // TryReleaseAndSetNull
     }
     #endregion

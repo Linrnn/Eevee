@@ -10,6 +10,7 @@ namespace Eevee.Pool
 
         #region Alloc
         public TCollection Alloc() => PrivateAlloc(_pool);
+        public static TCollection Alloc(CollectionPool collectionPool) => PrivateAlloc(collectionPool);
         internal static TCollection InternalAlloc() => PrivateAlloc(CollectionPool.Impl);
         private static TCollection PrivateAlloc(CollectionPool collectionPool)
         {
@@ -22,6 +23,7 @@ namespace Eevee.Pool
 
         #region Release
         public void Release(TCollection collection) => PrivateRelease(collection, ref _pool);
+        public static void Release(TCollection collection, ref CollectionPool collectionPool) => PrivateRelease(collection, ref collectionPool);
         internal static void InternalRelease(TCollection collection) => PrivateRelease(collection, ref CollectionPool.Impl);
         private static void PrivateRelease(TCollection collection, ref CollectionPool collectionPool)
         {

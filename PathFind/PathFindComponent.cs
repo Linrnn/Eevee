@@ -306,7 +306,7 @@ namespace Eevee.PathFind
                 for (int j = coll.Min.Y; j <= coll.Max.Y; ++j)
                 {
                     ref int moveableNode = ref moveableNodes[i, j];
-                    Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int, int, int, MoveFunc>, int>(moveableNode, index, nameof(moveableNode), "SetMoveable fail, X:{0}, Y:{1}, Index:{2}, MoveableNode:{3}, MoveType:{4}", new DiagnosisArgs<int, int, int, int, MoveFunc>(i, j, index, moveableNode, moveType));
+                    Assert.Equal<InvalidOperationException, DiagnosisArgs<int, int, int, int, MoveFunc>, int>(moveableNode, index, nameof(moveableNode), "ResetMoveable fail, X:{0}, Y:{1}, Index:{2}, MoveableNode:{3}, MoveType:{4}", new DiagnosisArgs<int, int, int, int, MoveFunc>(i, j, index, moveableNode, moveType));
                     moveableNode = PathFindExt.EmptyIndex;
                 }
             }
