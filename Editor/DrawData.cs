@@ -17,20 +17,6 @@ namespace EeveeEditor
             Scale = scale;
             Height = height;
         }
-        internal DrawData(float ox, float oy, float scale, float height)
-        {
-            OffsetX = ox;
-            OffsetY = oy;
-            Scale = scale;
-            Height = height;
-        }
-        internal DrawData(Vector2 offset, float scale, float height)
-        {
-            OffsetX = offset.x;
-            OffsetY = offset.y;
-            Scale = scale;
-            Height = height;
-        }
         internal DrawData(Vector2 leftBottom, float offset, float scale, float height)
         {
             OffsetX = leftBottom.x + offset;

@@ -1,7 +1,6 @@
 ﻿#if UNITY_EDITOR
 using Eevee.Collection;
 using Eevee.QuadTree;
-using EeveeEditor.Fixed;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -74,7 +73,6 @@ namespace EeveeEditor.QuadTree
 
         #region 运行时缓存
         private QuadTreeManager _manager;
-        private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly List<QuadTreeNode> _nodes = new(); // 临时缓存
         #endregion
@@ -83,7 +81,6 @@ namespace EeveeEditor.QuadTree
         {
             var manager = QuadTreeGetter.Proxy.Manager;
             _manager = manager;
-            _scale = 1F / manager.Scale;
             QuadTreeGetter.GetTrees(manager, _trees);
         }
         private void OnDrawGizmos()
@@ -97,20 +94,18 @@ namespace EeveeEditor.QuadTree
 
         private void DrawTree(BasicQuadTree tree)
         {
-            var drawData = new DrawData(_scale, QuadTreeDraw.Height);
-
             if (_emptyNode.Show)
                 foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count == 0)
-                        ShapeDraw.AABB(in node.Boundary, in drawData, in _emptyNode.Color);
+                        QuadTreeDraw.AABB(in node.Boundary, in _emptyNode.Color);
 
             if (_normalNode.Show)
                 foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
                     if (node.Elements.Count > 0)
-                        ShapeDraw.AABB(in node.Boundary, in drawData, in _normalNode.Color);
+                        QuadTreeDraw.AABB(in node.Boundary, in _normalNode.Color);
 
             if (_rootNode.Show)
-                ShapeDraw.AABB(tree.MaxBoundary, in drawData, in _rootNode.Color);
+                QuadTreeDraw.AABB(tree.MaxBoundary, in _rootNode.Color);
 
             if (_indexes.Length > 0)
                 foreach (var node in QuadTreeGetter.GetNodes(tree, _nodes))
@@ -121,10 +116,9 @@ namespace EeveeEditor.QuadTree
         private void DrawNodeAndElement(QuadTreeNode node, in QuadTreeElement element)
         {
             var config = _manager.GetConfig(_treeId);
-            var drawData = new DrawData(_scale, QuadTreeDraw.Height);
-            ShapeDraw.AABB(in node.LooseBoundary, in drawData, in _looseColor);
-            ShapeDraw.AABB(in node.Boundary, in drawData, in _boundaryColor);
-            QuadTreeDraw.Element(config.Shape, config.TreeId, in element, _scale, _drawIndex, in _shapeColor);
+            QuadTreeDraw.AABB(in node.LooseBoundary, in _looseColor);
+            QuadTreeDraw.AABB(in node.Boundary, in _boundaryColor);
+            QuadTreeDraw.Element(config.Shape, config.TreeId, in element, _drawIndex, in _shapeColor);
         }
     }
 }

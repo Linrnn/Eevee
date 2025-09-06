@@ -124,7 +124,6 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
-        private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly HashSet<int> _drawIndexes = new();
         private readonly List<DrawElement> _elements = new();
@@ -135,7 +134,6 @@ namespace EeveeEditor.QuadTree
         {
             var proxy = QuadTreeGetter.Proxy;
             var manager = proxy.Manager;
-            _scale = 1F / manager.Scale;
             QuadTreeGetter.GetTrees(manager, _trees);
         }
         private void Update()
@@ -193,7 +191,7 @@ namespace EeveeEditor.QuadTree
         {
             if (_draw)
                 foreach (var element in _elements)
-                    QuadTreeDraw.Element(element.Shape, element.TreeId, new QuadTreeElement(element.Index, in element.Content), _scale, _drawIndex, in _color);
+                    QuadTreeDraw.Element(element.Shape, element.TreeId, new QuadTreeElement(element.Index, in element.Content), _drawIndex, in _color);
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿#if UNITY_EDITOR
 using Eevee.Collection;
 using Eevee.QuadTree;
-using EeveeEditor.Fixed;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
@@ -111,7 +110,6 @@ namespace EeveeEditor.QuadTree
         #endregion
 
         #region 运行时缓存
-        private float _scale;
         private readonly Dictionary<int, BasicQuadTree> _trees = new();
         private readonly List<QuadTreeNode> _nodes = new(); // 临时缓存
         private readonly List<QuadTreeElement> _elements = new(); // 临时缓存
@@ -120,7 +118,6 @@ namespace EeveeEditor.QuadTree
         private void OnEnable()
         {
             var manager = QuadTreeGetter.Proxy.Manager;
-            _scale = 1F / manager.Scale;
             QuadTreeGetter.GetTrees(manager, _trees);
             ReadyTree();
         }
@@ -205,20 +202,19 @@ namespace EeveeEditor.QuadTree
 
         private void DrawElements()
         {
-            var drawData = new DrawData(_scale, QuadTreeDraw.Height);
             if (_drawIndex)
             {
                 foreach (var element in _elements)
                 {
-                    ShapeDraw.Label(element.Shape.Center(), in drawData, element.Index.ToString(), in _lineBall.Color);
-                    ShapeDraw.AABB(in element.Shape, in drawData, in _lineBall.Color);
+                    QuadTreeDraw.Label(element.Shape.Center(), element.Index.ToString(), in _lineBall.Color);
+                    QuadTreeDraw.AABB(in element.Shape, in _lineBall.Color);
                 }
             }
             else
             {
                 foreach (var element in _elements)
                 {
-                    ShapeDraw.AABB(in element.Shape, in drawData, in _lineBall.Color);
+                    QuadTreeDraw.AABB(in element.Shape, in _lineBall.Color);
                 }
             }
         }
