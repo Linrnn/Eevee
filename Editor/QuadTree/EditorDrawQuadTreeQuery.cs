@@ -130,7 +130,7 @@ namespace EeveeEditor.QuadTree
                         _polygon = polygon;
                         break;
 
-                    default: Debug.LogError($"[Editor][Quad] Shape:{shape}, not impl!"); break;
+                    default: Debug.LogError($"Shape:{shape}, not impl!"); break;
                 }
             }
             private void DrawUseButton(string text)
@@ -170,7 +170,7 @@ namespace EeveeEditor.QuadTree
                                 elementProperty.vector2IntValue = polygon[i];
                         break;
 
-                    default: Debug.LogError($"[Editor][Quad] Use cache fail. Shape:{quadShape}, Type:{shape?.GetType().FullName ?? "null"}, Context:{shape?.ToString() ?? "null"}, CacheIndex:{cacheIndex}."); break;
+                    default: Debug.LogError($"Use cache fail. Shape:{quadShape}, Type:{shape?.GetType().FullName ?? "null"}, Context:{shape?.ToString() ?? "null"}, CacheIndex:{cacheIndex}."); break;
                 }
             }
         }
@@ -231,7 +231,7 @@ namespace EeveeEditor.QuadTree
                 case QuadTreeShape.AABB: _manager.QueryAABB(_treeId, _center, _extents, true, _elements); break;
                 case QuadTreeShape.OBB: _manager.QueryOBB(_treeId, _center, _extents, _angle, true, _elements); break;
                 case QuadTreeShape.Polygon: _manager.QueryPolygon(_treeId, new ReadOnlyArray<Vector2DInt>(_polygonRuntime, Math.Max(_polygon.Length, PolygonSide)), true, _elements); break;
-                default: Debug.LogError($"[Editor][Quad] TreeId:{_treeId}, Shape:{_shape}, not impl!"); break;
+                default: Debug.LogError($"TreeId:{_treeId}, Shape:{_shape}, not impl!"); break;
             }
         }
 
@@ -244,7 +244,7 @@ namespace EeveeEditor.QuadTree
                 case QuadTreeShape.AABB: QuadTreeDraw.AABB(_center, _extents, in _queryColor); break;
                 case QuadTreeShape.OBB: QuadTreeDraw.OBB(_center, _extents, _angle, in _queryColor); break;
                 case QuadTreeShape.Polygon: QuadTreeDraw.Polygon(_polygon, in _queryColor); break;
-                default: Debug.LogError($"[Editor][Quad] Shape:{_shape}, not impl!"); break;
+                default: Debug.LogError($"Shape:{_shape}, not impl!"); break;
             }
         }
         private void DrawElements()

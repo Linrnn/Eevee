@@ -56,47 +56,19 @@ namespace EeveeEditor
         {
             var property = Get(path);
             EditorGUI.BeginDisabledGroup(disabled);
-
-            if (enumType is null)
-            {
+            if (enumType is null || !enumType.IsEnum)
                 EditorGUILayout.PropertyField(property);
-            }
             else if (property.isArray)
-            {
                 if (_reorderableLists.TryGetValue(path, out var reorderableList))
-                {
                     reorderableList.DoLayoutList();
-                }
-                else if (enumType.IsEnum)
-                {
-                    int[] enumValues = EnumHandle.GetEnumValues(enumType);
-                    string[] enumNames = EnumHandle.GetEnumNames(enumType);
+                else
                     _reorderableLists.Add(path, new ReorderableList(_serializedObject, property)
                     {
                         drawHeaderCallback = rect => EditorGUI.LabelField(rect, property.displayName),
-                        drawElementCallback = (rect, index, _, _) =>
-                        {
-                            var element = property.GetArrayElementAtIndex(index);
-                            int enumIndex = Array.IndexOf(enumValues, element.intValue);
-                            int newEnumIndex = EditorGUI.Popup(rect, element.displayName, enumIndex, enumNames);
-                            element.intValue = enumValues[newEnumIndex];
-                        },
+                        drawElementCallback = (rect, index, _, _) => EditorUtils.DrawEnum(property.GetArrayElementAtIndex(index), enumType, rect),
                     });
-                }
-                else
-                {
-                    EditorGUILayout.PropertyField(property);
-                }
-            }
             else
-            {
-                int[] enumValues = EnumHandle.GetEnumValues(enumType);
-                string[] enumNames = EnumHandle.GetEnumNames(enumType);
-                int enumIndex = Array.IndexOf(enumValues, property.intValue);
-                int newEnumIndex = EditorGUILayout.Popup(property.displayName, enumIndex, enumNames);
-                property.intValue = enumValues[newEnumIndex];
-            }
-
+                EditorUtils.DrawEnum(property, enumType);
             EditorGUI.EndDisabledGroup();
             return this;
         }

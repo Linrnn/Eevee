@@ -49,6 +49,21 @@ namespace EeveeEditor
             var size = EditorStyles.label.CalcSize(content);
             return size.x;
         }
+
+        internal static void DrawEnum(SerializedProperty property, Type enumType, Rect? position = null)
+        {
+            var oldEnum = (Enum)Enum.ToObject(enumType, property.intValue);
+            bool defined = enumType.IsDefined(typeof(FlagsAttribute), false);
+            var newEnum = DrawEnum(oldEnum, position, defined, property.displayName);
+            property.intValue = Convert.ToInt32(newEnum);
+        }
+        internal static Enum DrawEnum(Enum enumValue, Rect? position, bool defined, string displayName) => (position, defined) switch
+        {
+            (not null, true) => EditorGUI.EnumFlagsField(position.Value, displayName, enumValue),
+            (not null, false) => EditorGUI.EnumPopup(position.Value, displayName, enumValue),
+            (null, true) => EditorGUILayout.EnumFlagsField(displayName, enumValue),
+            (null, false) => EditorGUILayout.EnumPopup(displayName, enumValue),
+        };
     }
 }
 #endif

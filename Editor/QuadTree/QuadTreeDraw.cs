@@ -32,22 +32,21 @@ namespace EeveeEditor.QuadTree
         internal static void Element(QuadTreeShape shape, int treeId, in QuadTreeElement element, bool drawIndex, in Color color)
         {
             if (!TryElement(shape, in element, drawIndex, in color))
-                Debug.LogError($"[Editor][Quad] TreeId:{treeId}, Shape:{shape}, not impl!");
+                Debug.LogError($"TreeId:{treeId}, Shape:{shape}, not impl!");
         }
         private static bool TryElement(QuadTreeShape shape, in QuadTreeElement element, bool drawIndex, in Color color)
         {
-            var drawData = DrawData;
             if (drawIndex)
-                ShapeDraw.Label(element.Shape.Center(), in drawData, element.Index.ToString(), in color);
+                ShapeDraw.Label(element.Shape.Center(), DrawData, element.Index.ToString(), in color);
 
             switch (shape)
             {
                 case QuadTreeShape.Circle:
-                    ShapeDraw.Circle(Converts.AsCircleInt(in element.Shape), in drawData, in color);
+                    ShapeDraw.Circle(Converts.AsCircleInt(in element.Shape), DrawData, in color);
                     return true;
 
                 case QuadTreeShape.AABB:
-                    ShapeDraw.AABB(in element.Shape, in drawData, in color);
+                    ShapeDraw.AABB(in element.Shape, DrawData, in color);
                     return true;
 
                 default: return false;
