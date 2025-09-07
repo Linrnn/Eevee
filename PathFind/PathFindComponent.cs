@@ -524,16 +524,16 @@ namespace Eevee.PathFind
         private bool BoundsIsOutOf(PathFindPeek coll) => coll.Min.X < 0 || coll.Min.Y < 0 || coll.Max.X >= _size.X || coll.Max.Y >= _size.Y;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool ObstacleCanStand(int x, int y, MoveFunc moveType) => CheckStand(_obstacleNodes[x, y].GroupType, moveType);
+        private bool ObstacleCanStand(int x, int y, MoveFunc moveType) => PathFindExt.Stand(_obstacleNodes[x, y].GroupType, moveType);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool ObstacleCanStand(CollSize[,] passes, int x, int y, CollSize coll) => passes[x, y] >= coll;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool ObstacleCanStand(CollSize[,] passes, int x, int y, MoveFunc moveType, CollSize coll, int ignoreIndex)
         {
             var obstacleNode = _obstacleNodes[x, y];
-            if (ignoreIndex == PathFindExt.EmptyIndex && !CheckStand(obstacleNode.GroupType, moveType))
+            if (ignoreIndex == PathFindExt.EmptyIndex && !PathFindExt.Stand(obstacleNode.GroupType, moveType))
                 return false;
-            if (ignoreIndex != PathFindExt.EmptyIndex && obstacleNode.Index != ignoreIndex && !CheckStand(obstacleNode.GroupType, moveType))
+            if (ignoreIndex != PathFindExt.EmptyIndex && obstacleNode.Index != ignoreIndex && !PathFindExt.Stand(obstacleNode.GroupType, moveType))
                 return false;
             return passes[x, y] >= coll;
         }
@@ -567,8 +567,6 @@ namespace Eevee.PathFind
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool CheckStand(Ground groupType, MoveFunc moveType) => (groupType & moveType) == 0;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool CheckStand(PathFindPeek coll)
         {
             if (BoundsIsOutOf(coll))
@@ -590,7 +588,7 @@ namespace Eevee.PathFind
 
             foreach ((var point, Ground groupType) in nodes)
             {
-                if (CheckStand(groupType, moveType))
+                if (PathFindExt.Stand(groupType, moveType))
                     continue;
                 xMin = Math.Min(xMin, point.X);
                 yMin = Math.Min(yMin, point.Y);

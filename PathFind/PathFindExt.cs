@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using CollSize = System.SByte;
 using Fix64 = Eevee.Fixed.Fixed64;
+using Ground = System.Byte;
+using MoveFunc = System.Byte;
 
 namespace Eevee.PathFind
 {
@@ -38,6 +40,9 @@ namespace Eevee.PathFind
             -Vector2DInt16.One,
         };
         #endregion
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool Stand(Ground groupType, MoveFunc moveType) => (groupType & moveType) == 0;
 
         internal static bool ValidPath<T>(ICollection<T> path) => path is { Count: >= 2 };
 

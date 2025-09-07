@@ -176,6 +176,11 @@ namespace Eevee.PathFind
             Start = start;
             End = end;
         }
+        public PathFindPoint(int sx, int sy, int ex, int ey)
+        {
+            Start = new Vector2DInt16(sx, sy);
+            End = new Vector2DInt16(ex, ey);
+        }
 
         internal bool NeedFind() => Start != End;
         internal Vector2DInt16 Dir() => End - Start;

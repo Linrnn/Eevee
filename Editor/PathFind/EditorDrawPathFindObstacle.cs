@@ -59,7 +59,7 @@ namespace EeveeEditor.PathFind
 
         private void Awake()
         {
-            _obstacleProcessor = new PathFindBoundaryProcessor<int, PathFindObstacle>(node => (node.GroupType & (Ground)_obstacleType) != 0, node => node.Index);
+            _obstacleProcessor = new PathFindBoundaryProcessor<int, PathFindObstacle>(node => !PathFindExt.Stand(node.GroupType, _obstacleType), node => node.Index);
         }
         private void OnEnable()
         {
