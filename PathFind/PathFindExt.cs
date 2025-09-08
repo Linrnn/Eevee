@@ -42,7 +42,7 @@ namespace Eevee.PathFind
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static bool Stand(Ground groupType, MoveFunc moveType) => (groupType & moveType) == 0;
+        internal static bool Stand(Ground groupType, MoveFunc moveType) => (groupType & moveType) == moveType;
 
         internal static bool ValidPath<T>(ICollection<T> path) => path is { Count: >= 2 };
 
