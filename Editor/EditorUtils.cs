@@ -52,8 +52,8 @@ namespace EeveeEditor
 
         internal static void DrawEnum(SerializedProperty property, Type enumType, Rect? position = null)
         {
-            var oldEnum = (Enum)Enum.ToObject(enumType, property.intValue);
             bool defined = enumType.IsDefined(typeof(FlagsAttribute), false);
+            var oldEnum = (Enum)Enum.ToObject(enumType, property.intValue);
             var newEnum = DrawEnum(oldEnum, position, defined, property.displayName);
             property.intValue = Convert.ToInt32(newEnum);
         }

@@ -382,7 +382,12 @@ namespace Eevee.PathFind
         /// <summary>
         /// 可以放在格子里（检测障碍物）
         /// </summary>
-        public bool CanStand(Vector2DInt16 point, MoveFunc moveType) => ObstacleCanStand(point.X, point.Y, moveType);
+        public bool CanStand(Vector2DInt16 point, MoveFunc moveType)
+        {
+            if (BoundsIsOutOf(point.X, point.Y))
+                return false;
+            return ObstacleCanStand(point.X, point.Y, moveType);
+        }
 
         /// <summary>
         /// 可以放在格子里（检测障碍物 + 移动对象）
