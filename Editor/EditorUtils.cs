@@ -8,13 +8,8 @@ namespace EeveeEditor
     internal static class EditorUtils
     {
         internal const string Script = "m_Script";
-        internal const string X = "X";
-        internal const string Y = "Y";
         internal const float SpaceWidth = 6;
         internal const float PropertyHeight = 18;
-
-        internal static readonly GUIContent LabelX = new(X);
-        internal static readonly GUIContent LabelY = new(Y);
 
         internal static Color RGBScale(this Color color, float scale) => new(color.r * scale, color.g * scale, color.b * scale, color.a);
 

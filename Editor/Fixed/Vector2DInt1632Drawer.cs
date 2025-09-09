@@ -9,23 +9,32 @@ namespace EeveeEditor.Fixed
     [CustomPropertyDrawer(typeof(Vector2DInt))]
     internal sealed class Vector2DInt1632Drawer : PropertyDrawer
     {
+        private const string X = "X";
+        private const string Y = "Y";
+        private static readonly GUIContent _xLabel = new(X);
+        private static readonly GUIContent _yLabel = new(Y);
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             const int scale = 2;
-            const float spaceWidth = EditorUtils.SpaceWidth / 2;
+            const float spaceWidth = EditorUtils.SpaceWidth / scale;
+            const float propertyHeight = EditorUtils.PropertyHeight;
 
             var min = position.position;
             float labelWidth = EditorGUIUtility.labelWidth;
             float width = (position.size.x - labelWidth) / scale;
+            var propertyPosition = new Rect(min, new Vector2(labelWidth, propertyHeight));
+            var xPosition = new Rect(min.x + labelWidth + spaceWidth, min.y, width - spaceWidth, propertyHeight);
+            var yPosition = new Rect(min.x + labelWidth + width + spaceWidth, min.y, width - spaceWidth, propertyHeight);
 
-            var xProperty = property.FindPropertyRelative(EditorUtils.X);
-            var yProperty = property.FindPropertyRelative(EditorUtils.Y);
-            EditorGUI.LabelField(new Rect(min, new Vector2(labelWidth, EditorUtils.PropertyHeight)), label);
+            var xProperty = property.FindPropertyRelative(X);
+            var yProperty = property.FindPropertyRelative(Y);
 
-            EditorGUIUtility.labelWidth = EditorUtils.GetLabelWidth(EditorUtils.LabelX);
-            xProperty.intValue = EditorGUI.IntField(new Rect(min.x + labelWidth, min.y, width - spaceWidth, 18), xProperty.displayName, xProperty.intValue);
-            EditorGUIUtility.labelWidth = EditorUtils.GetLabelWidth(EditorUtils.LabelY);
-            yProperty.intValue = EditorGUI.IntField(new Rect(min.x + labelWidth + width + spaceWidth, min.y, width - spaceWidth, 18), yProperty.displayName, yProperty.intValue);
+            EditorGUI.LabelField(propertyPosition, label);
+            EditorGUIUtility.labelWidth = EditorUtils.GetLabelWidth(_xLabel) + spaceWidth;
+            xProperty.intValue = EditorGUI.IntField(xPosition, xProperty.displayName, xProperty.intValue);
+            EditorGUIUtility.labelWidth = EditorUtils.GetLabelWidth(_yLabel) + spaceWidth;
+            yProperty.intValue = EditorGUI.IntField(yPosition, yProperty.displayName, yProperty.intValue);
             EditorGUIUtility.labelWidth = labelWidth;
         }
     }

@@ -100,7 +100,7 @@ namespace Eevee.Collection
             return default;
         }
 
-        public static string JoinString<T>(this IEnumerable<T> source) => $"[{LogString(source)}]";
+        public static string JsonString<T>(this IEnumerable<T> source) => $"[{LogString(source)}]";
         public static string LogString<T>(this IEnumerable<T> source, char separator = ',') => string.Join(separator, source);
     }
 }

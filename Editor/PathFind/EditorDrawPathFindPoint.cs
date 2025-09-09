@@ -15,7 +15,7 @@ namespace EeveeEditor.PathFind
         [SerializeField] private bool _drawPoint = true;
         [SerializeField] private Color _color = Color.gray;
 
-        private void OnEnable()
+        private void Awake()
         {
             _instance = this;
         }
@@ -26,7 +26,7 @@ namespace EeveeEditor.PathFind
 
             DrawPoint();
         }
-        private void OnDisable()
+        private void OnDestroy()
         {
             _instance = null;
         }
