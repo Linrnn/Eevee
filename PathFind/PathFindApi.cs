@@ -88,6 +88,7 @@ namespace Eevee.PathFind
         internal readonly Dictionary<Vector2DInt16, List<PathFindJumpPointHandle>> JumpPoints; // Key：跳点
         internal readonly short[,,] NextJPs; // 距离下一个跳点的距离；第1层索引：x坐标，第2层索引：y坐标，第3层索引：方向索引（顺序按照“PathFindExt.StraightDirections”）
         internal readonly short[,] AreaIds; // 区域编号，第1层索引：x坐标，第2层索引：y坐标
+        internal readonly Dictionary<short, uint> AreaCount; // 区域编号，Key：区域编号，Value：区域数量
         internal short AreaIdAllocator;
 
         internal PathFindMtCs(Vector2DInt16 size)
@@ -95,6 +96,7 @@ namespace Eevee.PathFind
             JumpPoints = new Dictionary<Vector2DInt16, List<PathFindJumpPointHandle>>();
             NextJPs = new short[size.X, size.Y, PathFindExt.DirIndexCount];
             AreaIds = new short[size.X, size.Y];
+            AreaCount = new Dictionary<short, uint>();
             AreaIdAllocator = 1;
         }
     }

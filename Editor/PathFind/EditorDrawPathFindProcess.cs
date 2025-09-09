@@ -77,29 +77,58 @@ namespace EeveeEditor.PathFind
         [Serializable]
         private struct Repeated
         {
-            private static Comparison<Repeated> _comparison = (lhs, rhs) => lhs.Times.CompareTo(rhs.Times);
-            [SerializeField] [ReadOnly] internal int Times;
-            [SerializeField] [ReadOnly] internal int Count;
+            private static Comparison<Repeated> _comparison = (lhs, rhs) => lhs._times.CompareTo(rhs._times);
+            [SerializeField] private int _times;
+            [SerializeField] private int _count;
 
             private Repeated(int times, int count)
             {
-                Times = times;
-                Count = count;
+                _times = times;
+                _count = count;
             }
             internal static void Add(List<Repeated> repeatedDetail, int times)
             {
                 for (int i = 0; i < repeatedDetail.Count; ++i)
                 {
                     var repeated = repeatedDetail[i];
-                    if (repeated.Times != times)
+                    if (repeated._times != times)
                         continue;
 
-                    repeatedDetail[i] = new Repeated(times, repeated.Count + 1);
+                    repeatedDetail[i] = new Repeated(times, repeated._count + 1);
                     return;
                 }
 
                 repeatedDetail.Add(new Repeated(times, 1));
                 repeatedDetail.Sort(_comparison);
+            }
+
+            [CustomPropertyDrawer(typeof(Repeated))]
+            private sealed class RepeatedDrawer : PropertyDrawer
+            {
+                private static readonly GUIContent _timesLabel = new(nameof(_times));
+                private static readonly GUIContent _countLabel = new(nameof(_count));
+
+                public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+                {
+                    const int scale = 2;
+                    const float spaceWidth = EditorUtils.SpaceWidth / scale;
+                    const float propertyHeight = EditorUtils.PropertyHeight;
+
+                    var min = position.position;
+                    float labelWidth = EditorGUIUtility.labelWidth;
+                    float width = (position.size.x - spaceWidth) / scale;
+                    var timesPosition = new Rect(min.x, min.y, width - spaceWidth, propertyHeight);
+                    var countPosition = new Rect(min.x + width + spaceWidth, min.y, width - spaceWidth, propertyHeight);
+
+                    var timesProperty = property.FindPropertyRelative(nameof(_times));
+                    var countProperty = property.FindPropertyRelative(nameof(_count));
+
+                    EditorGUIUtility.labelWidth = EditorUtils.GetLabelWidth(_timesLabel) + spaceWidth;
+                    timesProperty.intValue = EditorGUI.IntField(timesPosition, timesProperty.displayName, timesProperty.intValue);
+                    EditorGUIUtility.labelWidth = EditorUtils.GetLabelWidth(_countLabel) + spaceWidth;
+                    countProperty.intValue = EditorGUI.IntField(countPosition, countProperty.displayName, countProperty.intValue);
+                    EditorGUIUtility.labelWidth = labelWidth;
+                }
             }
         }
         #endregion

@@ -360,7 +360,7 @@ namespace Eevee.PathFind
             #region 类型
             private struct StandPoint
             {
-                internal readonly short AreaId;
+                internal readonly short AreaId; // 缓存
                 internal readonly int StartIndex;
                 internal readonly Vector2DInt16 Start;
                 internal int EndIndex;
@@ -386,7 +386,7 @@ namespace Eevee.PathFind
                     Count = count;
                 }
 
-                internal readonly short GetAreaId(short[,] areaIds) => areaIds[Start.X, Start.Y];
+                internal readonly short GetAreaId(short[,] areaIds) => areaIds[Start.X, Start.Y]; // 最新值
                 internal void SetEnd(int index, Vector2DInt16 point)
                 {
                     EndIndex = index;
@@ -402,6 +402,7 @@ namespace Eevee.PathFind
             private readonly PathFindPeek _range;
             private readonly CollSize[,] _passes;
             private readonly short[,] _areaIds;
+            private readonly Dictionary<short, uint> _areaCount;
             #endregion
 
             #region 方法
@@ -413,6 +414,7 @@ namespace Eevee.PathFind
                 _range = range;
                 _passes = component._passes[moveTypeIndex];
                 _areaIds = moveColl.AreaIds;
+                _areaCount = moveColl.AreaCount;
             }
             internal AreaProcessor Remove()
             {
@@ -420,7 +422,11 @@ namespace Eevee.PathFind
                 int yMin = _range.Min.Y + 1;
                 for (int i = xMin; i < _range.Max.X; ++i)
                 for (int j = yMin; j < _range.Max.Y; ++j)
+                {
+                    short areaId = _areaIds[i, j];
                     _areaIds[i, j] = _component.ObstacleCanStand(_passes, i, j, _coll) ? PathFindExt.UnDisposed : PathFindExt.CantStand;
+                    AreaCountSub(areaId);
+                }
                 return this;
             }
             internal void Build(ref short areaIdAllocator, Vector2DInt16 size, Stack<Vector2DInt16> rangePoints)
@@ -431,6 +437,7 @@ namespace Eevee.PathFind
 
                 BuildBoundaryPoints(in boundaryPoints);
                 var sliceStandPoints = BuildStandPoints(boundaryPoints, in standPoints);
+                RemoveBoundaryPoints(in boundaryPoints);
                 SetAreaId(ref areaIdAllocator, boundaryPoints, in sliceStandPoints, rangePoints);
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -443,7 +450,7 @@ namespace Eevee.PathFind
                 {
                     if (_component.BoundsIsOutOf(point.X, point.Y))
                         continue;
-                    ref short areaId = ref _areaIds[point.X, point.Y];
+                    short areaId = _areaIds[point.X, point.Y];
                     if (areaId == PathFindExt.CantStand)
                         continue;
                     if (checkUnDisposed && areaId != PathFindExt.UnDisposed)
@@ -452,7 +459,11 @@ namespace Eevee.PathFind
                         continue;
 
                     bool stand = _component.ObstacleCanStand(_passes, point.X, point.Y, _coll);
-                    areaId = stand ? newAreaId : PathFindExt.CantStand;
+                    short finalAreaId = stand ? newAreaId : PathFindExt.CantStand;
+                    _areaIds[point.X, point.Y] = finalAreaId;
+                    AreaCountSub(areaId);
+                    AreaCountAdd(finalAreaId);
+
                     if (stand)
                         added = true;
                     else
@@ -487,6 +498,8 @@ namespace Eevee.PathFind
                 int standPointCount = 0;
                 bool start = false;
                 StandPoint standPoint = default;
+
+                #region 构建边界，单独的连通起点终点
                 for (int count = points.Length, i = 0; i < count; ++i)
                 {
                     var point = points[i];
@@ -533,21 +546,38 @@ namespace Eevee.PathFind
                         standPoints[0] = new StandPoint(_areaIds, points.IndexOf(last.Start), last.Start, points.IndexOf(first.End), first.End, first.Count + last.Count);
                     }
                 }
+                #endregion
 
                 var sliceStandPoints = standPoints[..standPointCount];
+
+                #region 排序（从大到小），权重优先级：区域数量，边界格子数量，区域id
                 for (int count = sliceStandPoints.Length, i = 0; i < count; ++i)
                 {
                     ref var max = ref sliceStandPoints[i];
+                    uint maxAreaCount = _areaCount[max.AreaId];
                     for (int j = i + 1; j < count; ++j)
                     {
                         ref var sp = ref sliceStandPoints[j];
-                        if (sp.Count > max.Count)
+                        uint spAreaCount = _areaCount[sp.AreaId];
+
+                        if (spAreaCount > maxAreaCount || spAreaCount == maxAreaCount && sp.Count > max.Count)
                             (sp, max) = (max, sp);
-                        else if (sp.Count == max.Count && sp.GetAreaId(_areaIds) < max.GetAreaId(_areaIds))
+                        else if (spAreaCount == maxAreaCount && sp.Count == max.Count && sp.AreaId < max.AreaId)
                             (max, sp) = (sp, max);
                     }
                 }
+                #endregion
+
                 return sliceStandPoints;
+            }
+            private void RemoveBoundaryPoints(in Span<Vector2DInt16> points)
+            {
+                foreach (var point in points)
+                {
+                    short areaId = _areaIds[point.X, point.Y];
+                    _areaIds[point.X, point.Y] = _component.ObstacleCanStand(_passes, point.X, point.Y, _coll) ? PathFindExt.UnDisposed : PathFindExt.CantStand;
+                    AreaCountSub(areaId);
+                }
             }
             private void SetAreaId(ref short areaIdAllocator, in ReadOnlySpan<Vector2DInt16> boundaryPoints, in ReadOnlySpan<StandPoint> standPoints, Stack<Vector2DInt16> rangePoints)
             {
@@ -557,48 +587,71 @@ namespace Eevee.PathFind
                     return;
                 }
 
-                if (count > 1)
+                short maxCountAreaId = standPoints[0].AreaId; // 经过排序之后，最合适当初始填充区域编号
+                if (count == 1)
                 {
-                    short maxAreaId = areaIdAllocator;
-                    for (int i = 0; i < count; ++i)
-                    {
-                        var standPoint = standPoints[i];
-                        if (standPoint.AreaId != standPoint.GetAreaId(_areaIds)) // 已经设置AreaId，跳过修改
-                            continue;
-
-                        short areaId = i == 0 ? standPoint.GetAreaId(_areaIds) : areaIdAllocator++;
-                        if (standPoint.StartIndex <= standPoint.EndIndex)
-                        {
-                            RangeDFS(standPoint.StartIndex, standPoint.EndIndex, areaId, in boundaryPoints, rangePoints);
-                        }
-                        else
-                        {
-                            RangeDFS(0, standPoint.EndIndex, areaId, in boundaryPoints, rangePoints);
-                            RangeDFS(standPoint.StartIndex, boundaryPoints.Length - 1, areaId, in boundaryPoints, rangePoints);
-                        }
-                    }
-
                     for (int i = _range.Min.X; i <= _range.Max.X; ++i)
                     for (int j = _range.Min.Y; j <= _range.Max.Y; ++j)
-                        if (_areaIds[i, j] < maxAreaId && DFS(true, areaIdAllocator, i, j, rangePoints))
-                            ++areaIdAllocator;
+                        DFS(false, maxCountAreaId, i, j, rangePoints);
                     return;
                 }
 
-                short firstAreaId = standPoints[0].GetAreaId(_areaIds);
+                short maxAreaId = areaIdAllocator;
+                for (int i = 0; i < count; ++i)
+                {
+                    var standPoint = standPoints[i];
+                    if (standPoint.GetAreaId(_areaIds) is var spAreaId && spAreaId != PathFindExt.UnDisposed && standPoint.AreaId != spAreaId) // 已经设置AreaId，跳过修改
+                        continue;
+
+                    short areaId = i == 0 ? maxCountAreaId : areaIdAllocator++;
+                    if (standPoint.StartIndex <= standPoint.EndIndex)
+                    {
+                        RangeDFS(standPoint.StartIndex, standPoint.EndIndex, areaId, in boundaryPoints, rangePoints);
+                    }
+                    else
+                    {
+                        RangeDFS(0, standPoint.EndIndex, areaId, in boundaryPoints, rangePoints);
+                        RangeDFS(standPoint.StartIndex, boundaryPoints.Length - 1, areaId, in boundaryPoints, rangePoints);
+                    }
+                }
+
                 for (int i = _range.Min.X; i <= _range.Max.X; ++i)
                 for (int j = _range.Min.Y; j <= _range.Max.Y; ++j)
-                    DFS(false, firstAreaId, i, j, rangePoints);
+                    if (_areaIds[i, j] is var areaId && areaId != maxCountAreaId && areaId < maxAreaId && DFS(true, areaIdAllocator, i, j, rangePoints))
+                        ++areaIdAllocator;
             }
-            private void RangeDFS(int startIndex, int endIndex, short areaId, in ReadOnlySpan<Vector2DInt16> boundaryPoints, Stack<Vector2DInt16> rangePoints)
+            private void RangeDFS(int startIndex, int endIndex, short newAreaId, in ReadOnlySpan<Vector2DInt16> boundaryPoints, Stack<Vector2DInt16> rangePoints)
             {
                 for (int i = startIndex; i <= endIndex; ++i)
                 {
                     var point = boundaryPoints[i];
+                    if (_areaIds[point.X, point.Y] != PathFindExt.UnDisposed)
+                        continue;
                     foreach (var dir in PathFindExt.StraightDirections)
                         rangePoints.Push(point + dir);
-                    DFS(false, areaId, point.X, point.Y, rangePoints);
+                    DFS(false, newAreaId, point.X, point.Y, rangePoints);
                 }
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void AreaCountAdd(short areaId)
+            {
+                if (areaId is PathFindExt.CantStand or PathFindExt.UnDisposed)
+                    return;
+                _areaCount[areaId] = _areaCount.GetValueOrDefault(areaId) + 1;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void AreaCountSub(short areaId)
+            {
+                if (areaId is PathFindExt.CantStand or PathFindExt.UnDisposed)
+                    return;
+                if (!_areaCount.TryGetValue(areaId, out uint count))
+                    return;
+                --count;
+                if (count == 0)
+                    _areaCount.Remove(areaId);
+                else
+                    _areaCount[areaId] = count;
             }
             #endregion
         }
