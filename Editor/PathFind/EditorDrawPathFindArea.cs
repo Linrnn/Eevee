@@ -2,7 +2,6 @@
 using Eevee.PathFind;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 using CollSize = System.SByte;
@@ -20,7 +19,6 @@ namespace EeveeEditor.PathFind
             #region Property Path
             private const string MoveType = nameof(_moveType);
             private const string CollType = nameof(_collType);
-            private const string Check = nameof(_check);
             private const string Counts = nameof(_counts);
             private const string IdAllocator = nameof(_idAllocator);
             private const string Draw = nameof(_draw);
@@ -44,12 +42,44 @@ namespace EeveeEditor.PathFind
                 _propertyHandle.DrawScript();
                 _propertyHandle.EnumMoveType(MoveType);
                 _propertyHandle.EnumCollType(CollType);
-                _propertyHandle.Draw(Check);
+                if (GUILayout.Button("检测 “AreaCount”"))
+                    Check();
                 _propertyHandle.Draw(Counts, true);
                 _propertyHandle.Draw(IdAllocator, true);
                 _propertyHandle.Draw(Draw);
                 _propertyHandle.Draw(DrawPoint);
                 _propertyHandle.Draw(Color);
+            }
+            private void Check()
+            {
+                var monoBehaviour = ((EditorDrawPathFindArea)target);
+                if (!monoBehaviour.enabled)
+                    return;
+
+                var moveTypeProperty = _propertyHandle.Get(MoveType);
+                var collTypeProperty = _propertyHandle.Get(CollType);
+                var data = monoBehaviour._counts;
+                var check = new Dictionary<short, uint>();
+                short[,] areaIds = monoBehaviour._component.GetAreaIdNodes((MoveFunc)moveTypeProperty.intValue, (CollSize)collTypeProperty.intValue);
+
+                foreach (short areaId in areaIds)
+                    if (areaId != PathFindExt.CantStand)
+                        check[areaId] = check.GetValueOrDefault(areaId) + 1;
+
+                if (check.TryGetValue(PathFindExt.UnDisposed, out uint unDisposedCount))
+                    Debug.LogError($"exist unDisposed, count:{unDisposedCount} > 0");
+
+                check.Remove(PathFindExt.UnDisposed); // 比较数量时，不需要此项
+                if (data.Count != check.Count)
+                    Debug.LogError($"total, data.count:{data.Count} != check.count:{check.Count}");
+
+                foreach (var areaCount in data)
+                    if (!check.TryGetValue((short)areaCount.Id, out uint count))
+                        Debug.LogError($"areaId:{areaCount.Id}, get areaId fail");
+                    else if (areaCount.Count != count)
+                        Debug.LogError($"areaId:{areaCount.Id}, data.count:{areaCount.Count} != check.count:{count}");
+
+                Debug.Log("完成 AreaCount 检测");
             }
         }
 
@@ -106,7 +136,6 @@ namespace EeveeEditor.PathFind
 
         [Header("输入参数")] [SerializeField] private MoveFunc _moveType;
         [SerializeField] private CollSize _collType;
-        [SerializeField] private bool _check = true; // 检测“AreaCount”
         [Header("只读参数")] [SerializeField] private List<AreaCount> _counts;
         [SerializeField] private int _idAllocator;
         [Header("绘制参数")] [SerializeField] private bool _draw = true;
@@ -115,8 +144,6 @@ namespace EeveeEditor.PathFind
 
         private PathFindComponent _component;
         private readonly PathFindBoundaryProcessor<int, short> _areaProcessor = new(areaId => areaId != PathFindExt.CantStand, areaId => areaId);
-        private readonly Dictionary<short, uint> _checkCount = new();
-        private readonly StringBuilder _checkStringBuilder = new();
 
         private void OnEnable()
         {
@@ -130,7 +157,6 @@ namespace EeveeEditor.PathFind
 
             ReadyArea();
             DrawArea();
-            Check();
         }
 
         private void ReadyArea()
@@ -153,32 +179,6 @@ namespace EeveeEditor.PathFind
                 foreach (var point in boundary.Girds())
                     PathFindDraw.Label(point, in _color, _drawPoint, areaId.ToString());
             }
-        }
-        private void Check()
-        {
-            if (!_draw)
-                return;
-            _checkCount.Clear();
-            _checkStringBuilder.Clear();
-
-            short[,] areaIds = _component.GetAreaIdNodes(_moveType, _collType);
-            foreach (short areaId in areaIds)
-                if (areaId != PathFindExt.CantStand)
-                    _checkCount[areaId] = _checkCount.GetValueOrDefault(areaId) + 1;
-
-            if (_checkCount.TryGetValue(PathFindExt.UnDisposed, out uint unDisposedCount))
-                _checkStringBuilder.AppendLine($"error# exist unDisposed, count:{unDisposedCount} > 0");
-            _checkCount.Remove(PathFindExt.UnDisposed);
-            if (_counts.Count != _checkCount.Count)
-                _checkStringBuilder.AppendLine($"error# total, data.count:{_counts.Count} != check.count:{_checkCount.Count}");
-            foreach (var areaCount in _counts)
-                if (!_checkCount.TryGetValue((short)areaCount.Id, out uint count))
-                    _checkStringBuilder.AppendLine($"error# areaId:{areaCount.Id}, get areaId fail");
-                else if (areaCount.Count != count)
-                    _checkStringBuilder.AppendLine($"error# areaId:{areaCount.Id}, data.count:{areaCount.Count} != check.count:{count}");
-
-            if (_checkStringBuilder.Length > 0)
-                Debug.LogError(_checkStringBuilder);
         }
     }
 }
