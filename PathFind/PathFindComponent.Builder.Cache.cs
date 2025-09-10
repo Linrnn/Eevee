@@ -33,8 +33,11 @@ namespace Eevee.PathFind
 
                 foreach ((MoveFunc moveType, var moveTypeInfo) in _component._moveTypeIndexes)
                 {
-                    int moveTypeIndex = moveTypeInfo.TypeIndex;
                     var obstaclesRange = _component.CountRange(obstacles, moveType);
+                    if (!obstaclesRange.IsValid())
+                        continue;
+
+                    int moveTypeIndex = moveTypeInfo.TypeIndex;
                     var mtRange = _component.CountRange(obstaclesRange, _component._maxColl);
                     new PassProcessor(_component, moveType, moveTypeIndex, mtRange).Build();
 
@@ -581,9 +584,14 @@ namespace Eevee.PathFind
             }
             private void SetAreaId(ref short areaIdAllocator, in ReadOnlySpan<Vector2DInt16> boundaryPoints, in ReadOnlySpan<StandPoint> standPoints, Stack<Vector2DInt16> rangePoints)
             {
+                short maxAreaId = areaIdAllocator;
                 int count = standPoints.Length;
                 if (count == 0)
                 {
+                    for (int i = _range.Min.X; i <= _range.Max.X; ++i)
+                    for (int j = _range.Min.Y; j <= _range.Max.Y; ++j)
+                        if (_areaIds[i, j] < maxAreaId && DFS(true, areaIdAllocator, i, j, rangePoints))
+                            ++areaIdAllocator;
                     return;
                 }
 
@@ -596,7 +604,6 @@ namespace Eevee.PathFind
                     return;
                 }
 
-                short maxAreaId = areaIdAllocator;
                 for (int i = 0; i < count; ++i)
                 {
                     var standPoint = standPoints[i];

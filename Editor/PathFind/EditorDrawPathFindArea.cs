@@ -98,6 +98,8 @@ namespace EeveeEditor.PathFind
             internal static void Set(List<AreaCount> output, Dictionary<short, uint> input)
             {
                 output.Clear();
+                if (input is null)
+                    return;
                 foreach ((short areaId, uint count) in input)
                     output.Add(new AreaCount(areaId, count));
                 output.Sort(_comparison);
