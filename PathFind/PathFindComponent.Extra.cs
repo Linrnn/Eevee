@@ -28,7 +28,7 @@ namespace Eevee.PathFind
                 return _passes[moveTypeInfo.TypeIndex];
             return null;
         }
-        internal Dictionary<short, uint> GetAreaCount(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).AreaCount;
+        internal Dictionary<short, uint> GetAreaCounts(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).AreaCounts;
         internal int GetAreaIdAllocator(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).AreaIdAllocator;
         internal short[,] GetAreaIdNodes(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).AreaIds;
         internal Dictionary<Vector2DInt16, List<PathFindJumpPointHandle>> GetJumpPoints(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).JumpPoints;

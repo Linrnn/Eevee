@@ -405,7 +405,7 @@ namespace Eevee.PathFind
             private readonly PathFindPeek _range;
             private readonly CollSize[,] _passes;
             private readonly short[,] _areaIds;
-            private readonly Dictionary<short, uint> _areaCount;
+            private readonly Dictionary<short, uint> _areaCounts;
             #endregion
 
             #region 方法
@@ -417,7 +417,7 @@ namespace Eevee.PathFind
                 _range = range;
                 _passes = component._passes[moveTypeIndex];
                 _areaIds = moveColl.AreaIds;
-                _areaCount = moveColl.AreaCount;
+                _areaCounts = moveColl.AreaCounts;
             }
             internal AreaProcessor Remove()
             {
@@ -557,11 +557,11 @@ namespace Eevee.PathFind
                 for (int count = sliceStandPoints.Length, i = 0; i < count; ++i)
                 {
                     ref var max = ref sliceStandPoints[i];
-                    uint maxAreaCount = _areaCount[max.AreaId];
+                    uint maxAreaCount = _areaCounts[max.AreaId];
                     for (int j = i + 1; j < count; ++j)
                     {
                         ref var sp = ref sliceStandPoints[j];
-                        uint spAreaCount = _areaCount[sp.AreaId];
+                        uint spAreaCount = _areaCounts[sp.AreaId];
 
                         if (spAreaCount > maxAreaCount || spAreaCount == maxAreaCount && sp.Count > max.Count)
                             (sp, max) = (max, sp);
@@ -645,20 +645,20 @@ namespace Eevee.PathFind
             {
                 if (areaId is PathFindExt.CantStand or PathFindExt.UnDisposed)
                     return;
-                _areaCount[areaId] = _areaCount.GetValueOrDefault(areaId) + 1;
+                _areaCounts[areaId] = _areaCounts.GetValueOrDefault(areaId) + 1;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void AreaCountSub(short areaId)
             {
                 if (areaId is PathFindExt.CantStand or PathFindExt.UnDisposed)
                     return;
-                if (!_areaCount.TryGetValue(areaId, out uint count))
+                if (!_areaCounts.TryGetValue(areaId, out uint count))
                     return;
                 --count;
                 if (count == 0)
-                    _areaCount.Remove(areaId);
+                    _areaCounts.Remove(areaId);
                 else
-                    _areaCount[areaId] = count;
+                    _areaCounts[areaId] = count;
             }
             #endregion
         }

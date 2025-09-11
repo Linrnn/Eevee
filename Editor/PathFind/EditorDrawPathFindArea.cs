@@ -59,22 +59,22 @@ namespace EeveeEditor.PathFind
                 var moveTypeProperty = _propertyHandle.Get(MoveType);
                 var collTypeProperty = _propertyHandle.Get(CollType);
                 var data = monoBehaviour._counts;
-                var check = new Dictionary<short, uint>();
+                var checkCounts = new Dictionary<short, uint>();
                 short[,] areaIds = monoBehaviour._component.GetAreaIdNodes((MoveFunc)moveTypeProperty.intValue, (CollSize)collTypeProperty.intValue);
 
                 foreach (short areaId in areaIds)
                     if (areaId != PathFindExt.CantStand)
-                        check[areaId] = check.GetValueOrDefault(areaId) + 1;
+                        checkCounts[areaId] = checkCounts.GetValueOrDefault(areaId) + 1;
 
-                if (check.TryGetValue(PathFindExt.UnDisposed, out uint unDisposedCount))
+                if (checkCounts.TryGetValue(PathFindExt.UnDisposed, out uint unDisposedCount))
                     Debug.LogError($"exist unDisposed, count:{unDisposedCount} > 0");
 
-                check.Remove(PathFindExt.UnDisposed); // 比较数量时，不需要此项
-                if (data.Count != check.Count)
-                    Debug.LogError($"total, data.count:{data.Count} != check.count:{check.Count}");
+                checkCounts.Remove(PathFindExt.UnDisposed); // 比较数量时，不需要此项
+                if (data.Count != checkCounts.Count)
+                    Debug.LogError($"total, data.count:{data.Count} != check.count:{checkCounts.Count}");
 
                 foreach (var areaCount in data)
-                    if (!check.TryGetValue((short)areaCount.Id, out uint count))
+                    if (!checkCounts.TryGetValue((short)areaCount.Id, out uint count))
                         Debug.LogError($"areaId:{areaCount.Id}, get areaId fail");
                     else if (areaCount.Count != count)
                         Debug.LogError($"areaId:{areaCount.Id}, data.count:{areaCount.Count} != check.count:{count}");
@@ -166,7 +166,7 @@ namespace EeveeEditor.PathFind
             short[,] areaIds = _component.GetAreaIdNodes(_moveType, _collType);
             var size = _component.GetSize();
             _areaProcessor.Build(areaIds, size);
-            AreaCount.Set(_counts, _component.GetAreaCount(_moveType, _collType));
+            AreaCount.Set(_counts, _component.GetAreaCounts(_moveType, _collType));
             _idAllocator = _component.GetAreaIdAllocator(_moveType, _collType);
         }
         private void DrawArea()
