@@ -24,8 +24,8 @@ namespace Eevee.PathFind
             internal ObstacleProcessor(PathFindComponent component)
             {
                 _component = component;
-                _collisionGetter = component._collisionGetter;
-                _objectPoolGetter = component._objectPoolGetter;
+                _collisionGetter = component._getters.Collision;
+                _objectPoolGetter = component._getters.ObjectPool;
             }
             internal void Build(Dictionary<Vector2DInt16, Ground> obstacles, bool allowBuild)
             {
@@ -64,7 +64,7 @@ namespace Eevee.PathFind
             private readonly PathFindComponent _component;
             private readonly MoveFunc _moveType;
             private readonly PathFindPeek _range;
-            private readonly IList<CollSize> _collisions;
+            private readonly IReadOnlyList<CollSize> _collisions;
             private readonly IPathFindCollisionGetter _collisionGetter;
             private readonly CollSize[,] _passes;
             #endregion
@@ -76,7 +76,7 @@ namespace Eevee.PathFind
                 _moveType = moveType;
                 _range = range;
                 _collisions = component._collisions;
-                _collisionGetter = component._collisionGetter;
+                _collisionGetter = component._getters.Collision;
                 _passes = component._passes[moveTypeIndex];
             }
             internal void Build()
@@ -131,8 +131,8 @@ namespace Eevee.PathFind
                 _size = component._size;
                 _coll = coll;
                 _range = range;
-                _collisionGetter = component._collisionGetter;
-                _objectPoolGetter = component._objectPoolGetter;
+                _collisionGetter = component._getters.Collision;
+                _objectPoolGetter = component._getters.ObjectPool;
                 _passes = component._passes[moveTypeIndex];
                 _jumpPoints = moveColl.JumpPoints;
                 _nextJPs = moveColl.NextJPs;

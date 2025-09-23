@@ -3,6 +3,7 @@ using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CollSize = System.SByte;
@@ -18,97 +19,92 @@ namespace Eevee.PathFind
     {
         #region 数据
         private bool _allowBuildCache;
-        private Vector2DInt16 _size; // 地图尺寸
-        private PathFindPeek _maxColl; // 最大的碰撞尺寸
-        private List<CollSize> _collisions; // 可通行的尺寸，等价CollType
-        private Dictionary<MoveFunc, PathFindMoveTypeInfo> _moveTypeIndexes; // key：moveType
-        private Dictionary<CollSize, int> _collisionIndexes; // key：coll；value：collIndex
-        private IPathFindTerrainGetter _terrainGetter;
-        private IPathFindCollisionGetter _collisionGetter;
-        private IPathFindObjectPoolGetter _objectPoolGetter;
+        private readonly Vector2DInt16 _size; // 地图尺寸
+        private readonly PathFindPeek _maxColl; // 最大的碰撞尺寸
+        private readonly CollSize[] _collisions; // 可通行的尺寸，等价CollType
+        private readonly Dictionary<MoveFunc, PathFindMoveTypeInfo> _moveTypeIndexes; // key：moveType
+        private readonly Dictionary<CollSize, int> _collisionIndexes; // key：coll；value：collIndex
+        private readonly PathFindGetters _getters;
 
-        private PathFindObstacle[,] _obstacleNodes; // 不可移动对象，障碍物
-        private int[][,] _moveableNodes; // 可移动对象，数组索引：moveGroupIndex，第2层索引：x坐标，第3层索引：y坐标
-        private CollSize[][,] _passes; // 最大可通行的尺寸；第1层索引：moveTypeIndex，第2层索引：x坐标，第3层索引：y坐标
-        private PathFindMtCs[,] _moveCollisions; // 俩个维度的缓存；第1层索引：moveTypeIndex，第2层索引：collIndex
+        private readonly PathFindObstacle[,] _obstacleNodes; // 不可移动对象，障碍物
+        private readonly int[][,] _moveableNodes; // 可移动对象，数组索引：moveGroupIndex，第2层索引：x坐标，第3层索引：y坐标
+        private readonly CollSize[][,] _passes; // 最大可通行的尺寸；第1层索引：moveTypeIndex，第2层索引：x坐标，第3层索引：y坐标
+        private readonly PathFindMtCs[,] _moveCollisions; // 两个维度的缓存；第1层索引：moveTypeIndex，第2层索引：collIndex
         private readonly Dictionary<Vector2DInt16, PathFindPortal> _portals = new(); // key：传送门index；value：传送区域；传送门一定是跳点
         #endregion
 
         #region 初始化
         public PathFindComponent(IReadOnlyList<IEnumerable<MoveFunc>> moveTypeGroups, IEnumerable<CollSize> collisions, in PathFindGetters getters)
         {
-            var terrainGetter = getters.Terrain;
-            var size = new Vector2DInt16(terrainGetter.Width, terrainGetter.Height);
-            var newCollisions = new List<CollSize>(collisions);
-            newCollisions.Sort();
-            InitData(size, getters.Collision.GetMax(newCollisions), moveTypeGroups, newCollisions, in getters);
-            InitNode(terrainGetter);
-        }
-        public void Initialize(bool allowBuild, bool buildPass, bool buildArea, bool buildJumpPoint)
-        {
-            var size = _size;
-            var collIndexes = _collisionIndexes;
-            var moveTypeIndexes = _moveTypeIndexes; // 依赖“InitData”
-
-            _allowBuildCache = allowBuild;
-            if (buildPass)
-                InitPass(size, moveTypeIndexes);
-            if (buildArea)
-                InitArea(size, moveTypeIndexes, collIndexes); // “InitArea”依赖“Pass”
-            if (buildJumpPoint)
-                InitJumpPoint(size, moveTypeIndexes, collIndexes); // “JumpPoint”依赖“Pass”
-        }
-
-        private void InitData(Vector2DInt16 size, CollSize maxColl, IReadOnlyList<IEnumerable<MoveFunc>> moveTypeGroups, List<CollSize> collisions, in PathFindGetters getters)
-        {
+            #region 配置
             int groupKind = moveTypeGroups.Count;
             var moveTypes = new List<(MoveFunc Type, int GroypIndex)>();
+
             for (int i = 0; i < groupKind; ++i)
                 if (moveTypeGroups[i] is var moveTypeGroup)
                     foreach (MoveFunc moveType in moveTypeGroup)
                         moveTypes.Add((moveType, i));
 
+            CollSize[] newCollisions = collisions.ToArray();
+            Array.Sort(newCollisions);
             int moveKind = moveTypes.Count;
-            int collKind = collisions.Count;
+            int collKind = newCollisions.Length;
             var moveTypeIndexes = new Dictionary<MoveFunc, PathFindMoveTypeInfo>(moveKind);
             var collisionsIndexes = new Dictionary<CollSize, int>(collKind);
-            int[][,] moveableNodes = new int[groupKind][,];
-            CollSize[][,] passes = new CollSize[moveKind][,];
-            var moveCollisions = new PathFindMtCs[moveKind, collKind];
 
             for (int i = 0; i < moveKind; ++i)
                 if (moveTypes[i] is var moveType)
                     moveTypeIndexes.Add(moveType.Type, new PathFindMoveTypeInfo(moveType.GroypIndex, i));
             for (int i = 0; i < collKind; ++i)
-                collisionsIndexes.Add(collisions[i], i);
+                collisionsIndexes.Add(newCollisions[i], i);
+            #endregion
+
+            #region 数据
+            var terrainGetter = getters.Terrain;
+            var collisionGetter = getters.Collision;
+            int width = terrainGetter.Width;
+            int height = terrainGetter.Height;
+            var size = new Vector2DInt16(width, height);
+            var obstacleNodes = new PathFindObstacle[width, height];
+            int[][,] moveableNodes = new int[groupKind][,];
+            CollSize[][,] passes = new CollSize[moveKind][,];
+            var moveCollisions = new PathFindMtCs[moveKind, collKind];
+
+            for (int i = 0; i < width; ++i)
+            for (int j = 0; j < height; ++j)
+                obstacleNodes[i, j] = new PathFindObstacle(terrainGetter.Get(i, j));
             for (int i = 0; i < groupKind; ++i)
-                moveableNodes[i] = new int[size.X, size.Y];
+                moveableNodes[i] = new int[width, height];
             for (int i = 0; i < moveKind; ++i)
-                passes[i] = new CollSize[size.X, size.Y];
+                passes[i] = new CollSize[width, height];
             for (int i = 0; i < moveKind; ++i)
             for (int j = 0; j < collKind; ++j)
                 moveCollisions[i, j] = new PathFindMtCs(size);
+            #endregion
 
+            #region 赋值
             _size = size;
-            _maxColl = PathFindExt.GetColl(getters.Collision, maxColl);
-            _collisions = collisions;
+            _maxColl = PathFindExt.GetColl(collisionGetter, collisionGetter.GetMax(newCollisions));
+            _collisions = newCollisions;
             _moveTypeIndexes = moveTypeIndexes;
             _collisionIndexes = collisionsIndexes;
-            _obstacleNodes = new PathFindObstacle[size.X, size.Y];
+            _obstacleNodes = obstacleNodes;
             _moveableNodes = moveableNodes;
             _passes = passes;
             _moveCollisions = moveCollisions;
-            _terrainGetter = getters.Terrain;
-            _collisionGetter = getters.Collision;
-            _objectPoolGetter = getters.ObjectPool;
+            _getters = getters;
+            #endregion
         }
-        private void InitNode(IPathFindTerrainGetter terrainGetter)
+        public void Initialize(bool allowBuild, bool buildPass, bool buildArea, bool buildJumpPoint)
         {
-            int width = terrainGetter.Width;
-            int height = terrainGetter.Height;
-            for (int i = 0; i < width; ++i)
-            for (int j = 0; j < height; ++j)
-                _obstacleNodes[i, j] = new PathFindObstacle(terrainGetter.Get(i, j));
+            // 依赖“InitData”
+            _allowBuildCache = allowBuild;
+            if (buildPass)
+                InitPass(_size, _moveTypeIndexes);
+            if (buildArea)
+                InitArea(_size, _moveTypeIndexes, _collisionIndexes); // “InitArea”依赖“Pass”
+            if (buildJumpPoint)
+                InitJumpPoint(_size, _moveTypeIndexes, _collisionIndexes); // “JumpPoint”依赖“Pass”
         }
 
         private void InitArea(Vector2DInt16 size, Dictionary<MoveFunc, PathFindMoveTypeInfo> moveTypeIndexes, Dictionary<CollSize, int> collIndexes)
@@ -256,7 +252,7 @@ namespace Eevee.PathFind
                 ref var obstacleNode = ref _obstacleNodes[point.X, point.Y];
                 if (obstacleNode.Index == index)
                 {
-                    obstacleNode.GroupType = _terrainGetter.Get(point.X, point.Y);
+                    obstacleNode.GroupType = _getters.Terrain.Get(point.X, point.Y);
                     obstacleNode.Index = PathFindExt.EmptyIndex;
                 }
                 else
@@ -385,7 +381,7 @@ namespace Eevee.PathFind
         /// </summary>
         public bool CanStand(Vector2DInt16 point, MoveFunc moveType, CollSize coll, bool checkMoveable = true)
         {
-            var collRange = PathFindExt.GetColl(_collisionGetter, point, coll);
+            var collRange = PathFindExt.GetColl(_getters.Collision, point, coll);
             if (BoundsIsOutOf(collRange))
                 return false;
             var moveTypeInfo = _moveTypeIndexes[moveType];
@@ -400,7 +396,7 @@ namespace Eevee.PathFind
         /// </summary>
         public bool CanStand(Vector2DInt16 point, MoveFunc moveType, CollSize coll, int ignoreIndex, bool checkMoveable = true)
         {
-            var collRange = PathFindExt.GetColl(_collisionGetter, point, coll);
+            var collRange = PathFindExt.GetColl(_getters.Collision, point, coll);
             if (BoundsIsOutOf(collRange))
                 return false;
             var moveTypeInfo = _moveTypeIndexes[moveType];
@@ -418,7 +414,7 @@ namespace Eevee.PathFind
         /// </summary>
         public bool CanStand(Vector2DInt16 point, MoveFunc moveType, CollSize coll, ICollection<int> ignoreIndexes, bool checkMoveable = true)
         {
-            var collRange = PathFindExt.GetColl(_collisionGetter, point, coll);
+            var collRange = PathFindExt.GetColl(_getters.Collision, point, coll);
             if (BoundsIsOutOf(collRange))
                 return false;
             var moveTypeInfo = _moveTypeIndexes[moveType];

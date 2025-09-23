@@ -34,7 +34,7 @@ namespace Eevee.PathFind
             {
                 _component = component;
                 _input = input;
-                _objectPoolGetter = component._objectPoolGetter;
+                _objectPoolGetter = component._getters.ObjectPool;
                 _passes = default;
                 _jumpPoints = default;
                 _nextJPs = default;

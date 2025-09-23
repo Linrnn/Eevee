@@ -47,7 +47,7 @@ namespace Eevee.PathFind
     public interface IPathFindCollisionGetter
     {
         CollSize GetNull();
-        CollSize GetMax(IList<CollSize> collisions);
+        CollSize GetMax(IReadOnlyList<CollSize> collisions);
         PathFindPeek Get(CollSize coll);
         PathFindPeek Get(int x, int y, CollSize coll);
     }

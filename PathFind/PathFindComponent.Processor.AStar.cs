@@ -27,8 +27,8 @@ namespace Eevee.PathFind
             {
                 _component = component;
                 _input = input;
-                _collisionGetter = component._collisionGetter;
-                _objectPoolGetter = component._objectPoolGetter;
+                _collisionGetter = component._getters.Collision;
+                _objectPoolGetter = component._getters.ObjectPool;
                 _moveableNodes = default;
                 _passes = default;
                 _output = default;
