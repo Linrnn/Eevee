@@ -25,14 +25,23 @@ namespace Eevee.PathFind
 
     public readonly struct PathFindGetters
     {
+        internal readonly IPathFindTerrainGetter Terrain;
         internal readonly IPathFindCollisionGetter Collision;
         internal readonly IPathFindObjectPoolGetter ObjectPool;
 
-        public PathFindGetters(IPathFindCollisionGetter collision, IPathFindObjectPoolGetter objectPool)
+        public PathFindGetters(IPathFindTerrainGetter terrain, IPathFindCollisionGetter collision, IPathFindObjectPoolGetter objectPool)
         {
+            Terrain = terrain;
             Collision = collision;
             ObjectPool = objectPool;
         }
+    }
+
+    public interface IPathFindTerrainGetter
+    {
+        int Width { get; }
+        int Height { get; }
+        Ground Get(int x, int y);
     }
 
     public interface IPathFindCollisionGetter
@@ -71,10 +80,10 @@ namespace Eevee.PathFind
         internal Ground GroupType; // 占用后的地表类型，即允许的移动类型
         internal int Index; // 当前格子占用的对象index
 
-        internal PathFindObstacle(Ground groupType, int index)
+        internal PathFindObstacle(Ground groupType)
         {
             GroupType = groupType;
-            Index = index;
+            Index = PathFindExt.EmptyIndex;
         }
     }
 

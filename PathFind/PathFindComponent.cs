@@ -23,10 +23,10 @@ namespace Eevee.PathFind
         private List<CollSize> _collisions; // 可通行的尺寸，等价CollType
         private Dictionary<MoveFunc, PathFindMoveTypeInfo> _moveTypeIndexes; // key：moveType
         private Dictionary<CollSize, int> _collisionIndexes; // key：coll；value：collIndex
+        private IPathFindTerrainGetter _terrainGetter;
         private IPathFindCollisionGetter _collisionGetter;
         private IPathFindObjectPoolGetter _objectPoolGetter;
 
-        private Ground[,] _terrainNodes; // 默认的地形
         private PathFindObstacle[,] _obstacleNodes; // 不可移动对象，障碍物
         private int[][,] _moveableNodes; // 可移动对象，数组索引：moveGroupIndex，第2层索引：x坐标，第3层索引：y坐标
         private CollSize[][,] _passes; // 最大可通行的尺寸；第1层索引：moveTypeIndex，第2层索引：x坐标，第3层索引：y坐标
@@ -35,13 +35,14 @@ namespace Eevee.PathFind
         #endregion
 
         #region 初始化
-        public PathFindComponent(Ground[,] terrains, IReadOnlyList<IEnumerable<MoveFunc>> moveTypeGroups, IEnumerable<CollSize> collisions, in PathFindGetters getters)
+        public PathFindComponent(IReadOnlyList<IEnumerable<MoveFunc>> moveTypeGroups, IEnumerable<CollSize> collisions, in PathFindGetters getters)
         {
-            var size = new Vector2DInt16(terrains.GetLength(0), terrains.GetLength(1));
+            var terrainGetter = getters.Terrain;
+            var size = new Vector2DInt16(terrainGetter.Width, terrainGetter.Height);
             var newCollisions = new List<CollSize>(collisions);
             newCollisions.Sort();
             InitData(size, getters.Collision.GetMax(newCollisions), moveTypeGroups, newCollisions, in getters);
-            InitNode(terrains);
+            InitNode(terrainGetter);
         }
         public void Initialize(bool allowBuild, bool buildPass, bool buildArea, bool buildJumpPoint)
         {
@@ -93,31 +94,21 @@ namespace Eevee.PathFind
             _collisions = collisions;
             _moveTypeIndexes = moveTypeIndexes;
             _collisionIndexes = collisionsIndexes;
+            _obstacleNodes = new PathFindObstacle[size.X, size.Y];
             _moveableNodes = moveableNodes;
             _passes = passes;
             _moveCollisions = moveCollisions;
+            _terrainGetter = getters.Terrain;
             _collisionGetter = getters.Collision;
             _objectPoolGetter = getters.ObjectPool;
         }
-        private void InitNode(Ground[,] terrains)
+        private void InitNode(IPathFindTerrainGetter terrainGetter)
         {
-            int width = terrains.GetLength(0);
-            int height = terrains.GetLength(1);
-            Ground[,] configs = new Ground[width, height];
-            var statics = new PathFindObstacle[width, height];
-
+            int width = terrainGetter.Width;
+            int height = terrainGetter.Height;
             for (int i = 0; i < width; ++i)
-            {
-                for (int j = 0; j < height; ++j)
-                {
-                    Ground groupType = terrains[i, j];
-                    configs[i, j] = groupType;
-                    statics[i, j] = new PathFindObstacle(groupType, PathFindExt.EmptyIndex);
-                }
-            }
-
-            _terrainNodes = configs;
-            _obstacleNodes = statics;
+            for (int j = 0; j < height; ++j)
+                _obstacleNodes[i, j] = new PathFindObstacle(terrainGetter.Get(i, j));
         }
 
         private void InitArea(Vector2DInt16 size, Dictionary<MoveFunc, PathFindMoveTypeInfo> moveTypeIndexes, Dictionary<CollSize, int> collIndexes)
@@ -265,7 +256,7 @@ namespace Eevee.PathFind
                 ref var obstacleNode = ref _obstacleNodes[point.X, point.Y];
                 if (obstacleNode.Index == index)
                 {
-                    obstacleNode.GroupType = _terrainNodes[point.X, point.Y];
+                    obstacleNode.GroupType = _terrainGetter.Get(point.X, point.Y);
                     obstacleNode.Index = PathFindExt.EmptyIndex;
                 }
                 else
@@ -344,7 +335,7 @@ namespace Eevee.PathFind
         }
         #endregion
 
-        #region 格子是否可站立
+        #region 是否可站立
         /// <summary>
         /// 可以放在格子里（检测障碍物）
         /// </summary>
