@@ -22,12 +22,11 @@ namespace Eevee.Pool
         #endregion
 
         #region Release
-        public void Release(TCollection collection) => PrivateRelease(collection, ref _pool);
-        public static void Release(TCollection collection, ref CollectionPool collectionPool) => PrivateRelease(collection, ref collectionPool);
-        internal static void InternalRelease(TCollection collection) => PrivateRelease(collection, ref CollectionPool.Impl);
-        private static void PrivateRelease(TCollection collection, ref CollectionPool collectionPool)
+        public void Release(TCollection collection) => PrivateRelease(collection, _pool ??= new CollectionPool());
+        public static void Release(TCollection collection, CollectionPool collectionPool) => PrivateRelease(collection, collectionPool);
+        internal static void InternalRelease(TCollection collection) => PrivateRelease(collection, CollectionPool.Impl ??= new CollectionPool());
+        private static void PrivateRelease(TCollection collection, CollectionPool collectionPool)
         {
-            collectionPool ??= new CollectionPool();
             var value = collectionPool.Value(typeof(TCollection));
             if (CollectionPool.ReleaseCheck && value?.GetPool<TCollection>() is { } pool && pool.Contains(collection))
                 throw new InvalidOperationException($"Pools is Contains, FullName:{collection.GetType().FullName}, HashCode:{collection.GetHashCode()}");
