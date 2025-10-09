@@ -14,6 +14,7 @@ namespace Eevee.PathFind
             private readonly PathFindComponent _component;
             // 只读缓存
             private readonly PathFindInput _input;
+            private readonly int _stepLimit;
             private readonly IPathFindCollisionGetter _collisionGetter;
             private readonly IPathFindObjectPoolGetter _objectPoolGetter;
             private int[,] _moveableNodes;
@@ -21,18 +22,21 @@ namespace Eevee.PathFind
             // 变动缓存
             private PathFindOutput _output;
             private AStarPlusCache _cache;
+            private int _stepCount;
             #endregion
 
-            internal AStarProcessor(PathFindComponent component, in PathFindInput input)
+            internal AStarProcessor(PathFindComponent component, in PathFindInput input, int stepLimit)
             {
                 _component = component;
                 _input = input;
+                _stepLimit = stepLimit;
                 _collisionGetter = component._getters.Collision;
                 _objectPoolGetter = component._getters.ObjectPool;
                 _moveableNodes = default;
                 _passes = default;
                 _output = default;
                 _cache = default;
+                _stepCount = default;
             }
             internal PathFindResult GetPath(ref PathFindOutput output)
             {
@@ -62,7 +66,7 @@ namespace Eevee.PathFind
                 var start = _input.Point.Start;
                 _cache.Opens.Add(_objectPoolGetter, start, new AStarOpenHandle(start, 0, PathFindExt.CountWeight(start, _input.Point.End)));
             }
-            private Vector2DInt16? CountEnd() // 计算终点的
+            private Vector2DInt16? CountEnd() // 计算终点
             {
                 ref var opens = ref _cache.Opens;
                 while (true)
@@ -70,11 +74,12 @@ namespace Eevee.PathFind
                     opens.Get(out int openIndex, out var openHandle);
                     opens.RemoveAt(openIndex);
                     _cache.Closes.Add(openHandle.Point);
+                    var endOpenHandle = StraightFind(in openHandle);
 
-                    StraightFind(in openHandle);
-
-                    if (opens.TryGetValue(_input.Point.End, out var endOpenHandle))
-                        return endOpenHandle.Point;
+                    if (endOpenHandle.HasValue)
+                        return endOpenHandle.Value.Point;
+                    if (_stepCount >= _stepLimit)
+                        break;
                     if (opens.IsEmpty())
                         break;
                 }
@@ -110,31 +115,39 @@ namespace Eevee.PathFind
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private readonly void StraightFind(in AStarOpenHandle openHandle)
+            private AStarOpenHandle? StraightFind(in AStarOpenHandle openHandle)
             {
+                var closes = _cache.Closes;
+                ref var opens = ref _cache.Opens;
+                var end = _input.Point.End;
+
                 foreach (var dir in PathFindExt.StraightDirections)
                 {
                     var next = openHandle.Point + dir;
+                    if (closes.Contains(next))
+                        continue;
+                    if (opens.Contains(next))
+                        continue;
                     if (_component.BoundsIsOutOf(next.X, next.Y, _input.Range))
                         continue;
-                    if (_cache.Closes.Contains(next))
-                        continue;
-                    if (_cache.Opens.Contains(next))
-                        continue;
-                    PathFindDiagnosis.AddProcess(FindFunc, _input.Index, next);
-                    if (!_component.ObstacleCanStand(_passes, next.X, next.Y, _input.MoveType, _input.Coll, _input.Target) && _cache.Closes.Add(next))
+                    if (!_component.ObstacleCanStand(_passes, next.X, next.Y, _input.MoveType, _input.Coll, _input.Target) && closes.Add(next))
                         continue;
                     var collRange = PathFindExt.GetColl(_collisionGetter, next, _input.Coll);
-                    if (!_component.MoveableCanStand(collRange, _moveableNodes, _cache.IgnoreIndexes) && _cache.Closes.Add(next))
+                    if (!_component.MoveableCanStand(collRange, _moveableNodes, _cache.IgnoreIndexes) && closes.Add(next))
                         continue;
 
                     int g = openHandle.G + PathFindExt.StraightWeight; // “StraightWeight”等价“CountWeight(openHandle.Point, next)”
-                    int h = PathFindExt.CountWeight(next, _input.Point.End);
-                    _cache.Opens.Add(_objectPoolGetter, next, new AStarOpenHandle(next, g, h));
+                    int h = PathFindExt.CountWeight(next, end);
+                    var nextOpenHandle = new AStarOpenHandle(next, g, h);
+                    opens.Add(_objectPoolGetter, next, nextOpenHandle);
                     _cache.Parents.Add(next, openHandle);
-                    if (next == _input.Point.End)
-                        break;
+                    ++_stepCount;
+                    PathFindDiagnosis.AddProcess(FindFunc, _input.Index, next);
+                    if (next == end)
+                        return nextOpenHandle;
                 }
+
+                return null;
             }
         }
 
