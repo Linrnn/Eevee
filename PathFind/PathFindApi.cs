@@ -282,6 +282,12 @@ namespace Eevee.PathFind
         internal readonly int H; // 节点 -> 终点，预估的权重
         internal readonly int F; // F = G + H
 
+        internal PathFindWeight(int g, int h)
+        {
+            G = g;
+            H = h;
+            F = g + h;
+        }
         internal PathFindWeight(int g, int h, int f)
         {
             G = g;

@@ -165,7 +165,7 @@ namespace Eevee.PathFind
             internal AStarOpenHandle(Vector2DInt16 point, int g, int h)
             {
                 Point = point;
-                _weight = new PathFindWeight(g, h, g + h);
+                _weight = new PathFindWeight(g, h);
             }
             public void Release(IPathFindObjectPoolGetter getter) { }
         }

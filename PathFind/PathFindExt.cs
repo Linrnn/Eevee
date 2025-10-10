@@ -71,17 +71,17 @@ namespace Eevee.PathFind
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static int CountWeight(Vector2DInt16 lhs, Vector2DInt16 rhs) // 计算地图权重
         {
+            // 避免开方计算，计算过程如下
+            // lhs
+            //     *
+            //       *
+            //         *
+            //           * +++++++++++++++++ rhs
+            // ***: Math.Min(xOffset, yOffset) * √2 ---> Math.Min(xOffset, yOffset) * 14
+            // +++: Math.Abs(xOffset - yOffset)     ---> Math.Abs(xOffset - yOffset) * 10
             int xOffset = Math.Abs(lhs.X - rhs.X);
             int yOffset = Math.Abs(lhs.Y - rhs.Y);
             return Math.Min(xOffset, yOffset) * ObliqueWeight + Math.Abs(xOffset - yOffset) * StraightWeight;
-            // 避免开方计算，计算结果如下图
-            // start
-            //       *
-            //         *
-            //           *
-            //             * ----------------------- end
-            // “*”：Math.Min(xOffset, yOffset) * √2 -> Math.Min(xOffset, yOffset) * 14
-            // “-”：Math.Abs(xOffset - yOffset) -> Math.Abs(xOffset - yOffset) * 10
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -154,8 +154,8 @@ namespace Eevee.PathFind
                     var newParam = new JPSPlusParam(findId, point);
                     var xDir = new Vector2DInt16(dir.X, default);
                     var yDir = new Vector2DInt16(default, dir.Y);
-                    int xDirIndex = xDir == Vector2DInt16.Right ? PathFindExt.DirIndexRight : PathFindExt.DirIndexLeft;
-                    int yDirIndex = yDir == Vector2DInt16.Up ? PathFindExt.DirIndexUp : PathFindExt.DirIndexDown;
+                    int xDirIndex = xDir.X == 1 ? PathFindExt.DirIndexRight : PathFindExt.DirIndexLeft;
+                    int yDirIndex = yDir.Y == 1 ? PathFindExt.DirIndexUp : PathFindExt.DirIndexDown;
                     FindIdBuild(param.FindId, findId, point);
 
                     for (var next = point + dir; step > 0; next += dir, --step)
@@ -380,7 +380,9 @@ namespace Eevee.PathFind
                 Point = point;
                 StraightDirections = straightDirections;
                 ObliqueDirections = obliqueDirections;
-                _weight = new PathFindWeight(g, h, g + h);
+                _weight = new PathFindWeight(g, h);
+                // 加大“h”权重，减少“opens”数量，但不是最优路径
+                //_weight = new PathFindWeight(g, h, g * 8 + h * 9);
             }
             public void Release(IPathFindObjectPoolGetter getter)
             {
