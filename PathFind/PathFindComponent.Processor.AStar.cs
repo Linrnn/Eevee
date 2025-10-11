@@ -14,7 +14,7 @@ namespace Eevee.PathFind
             private readonly PathFindComponent _component;
             // 只读缓存
             private readonly PathFindInput _input;
-            private readonly int _stepLimit;
+            private readonly PathFindShortInput _extra;
             private readonly IPathFindCollisionGetter _collisionGetter;
             private readonly IPathFindObjectPoolGetter _objectPoolGetter;
             private int[,] _moveableNodes;
@@ -25,11 +25,11 @@ namespace Eevee.PathFind
             private int _stepCount;
             #endregion
 
-            internal AStarProcessor(PathFindComponent component, in PathFindInput input, int stepLimit)
+            internal AStarProcessor(PathFindComponent component, in PathFindInput input, in PathFindShortInput extra)
             {
                 _component = component;
                 _input = input;
-                _stepLimit = stepLimit;
+                _extra = extra;
                 _collisionGetter = component._getters.Collision;
                 _objectPoolGetter = component._getters.ObjectPool;
                 _moveableNodes = default;
@@ -43,13 +43,18 @@ namespace Eevee.PathFind
                 _output = output;
 
                 Initialize();
-                var endPoint = CountEnd();
+                var endPoint = CountEnd() ?? MatchPoint();
                 if (endPoint.HasValue)
                     BuildPath(endPoint.Value);
 
                 output = _output;
                 _cache.Release(_objectPoolGetter);
-                return endPoint.HasValue ? PathFindResult.Success : PathFindResult.CantArrive;
+
+                if (!endPoint.HasValue)
+                    return PathFindResult.NoEnd;
+                if (!PathFindExt.ValidPath(output.Path))
+                    return PathFindResult.NoPath;
+                return PathFindResult.Success;
             }
 
             private void Initialize()
@@ -78,21 +83,56 @@ namespace Eevee.PathFind
 
                     if (endOpenHandle.HasValue)
                         return endOpenHandle.Value.Point;
-                    if (_stepCount >= _stepLimit)
+                    if (_stepCount >= _extra.StepLimit)
                         break;
                     if (opens.IsEmpty())
                         break;
                 }
 
+                return null;
+            }
+            private Vector2DInt16? MatchPoint() // 匹配落点
+            {
                 Vector2DInt16? endPoint = null;
-                int checkWeight = int.MaxValue;
-                foreach (var (point, handle) in _cache.Parents) // 找到离终点最近的点
+                int checkWeight;
+
+                switch (_extra.Func)
                 {
-                    int weight = handle.H;
-                    if (weight >= checkWeight)
-                        continue;
-                    endPoint = point;
-                    checkWeight = weight;
+                    case PathFindMatchFunc.FarStart:
+                        checkWeight = int.MinValue;
+                        foreach (var (point, handle) in _cache.Parents) // 找到离起点最远的点
+                        {
+                            int weight = handle.G;
+                            if (weight <= checkWeight)
+                                continue;
+                            endPoint = point;
+                            checkWeight = weight;
+                        }
+                        break;
+
+                    case PathFindMatchFunc.NearEnd:
+                        checkWeight = int.MaxValue;
+                        foreach (var (point, handle) in _cache.Parents) // 找到离终点最近的点
+                        {
+                            int weight = handle.H;
+                            if (weight >= checkWeight)
+                                continue;
+                            endPoint = point;
+                            checkWeight = weight;
+                        }
+                        break;
+
+                    case PathFindMatchFunc.NearPoint:
+                        checkWeight = int.MaxValue;
+                        foreach (var (point, handle) in _cache.Parents) // 找到离输入点最近的点
+                        {
+                            int weight = (handle.Current - _extra.Point).SqrMagnitude();
+                            if (weight >= checkWeight)
+                                continue;
+                            endPoint = point;
+                            checkWeight = weight;
+                        }
+                        break;
                 }
 
                 return endPoint;
@@ -101,16 +141,30 @@ namespace Eevee.PathFind
             {
                 var start = _input.Point.Start;
                 var path = _output.Path;
-                for (var point = end;;)
+                if (_input.MergePath)
                 {
-                    if (PathFindExt.ValidPath(path) && PathFindExt.SameDir(point - path[0], point - path[1]))
-                        path[0] = point; // 合并路径
-                    else
+                    for (var point = end;;)
+                    {
+                        if (PathFindExt.ValidPath(path) && PathFindExt.SameDir(point - path[0], point - path[1]))
+                            path[0] = point; // 合并路径
+                        else
+                            path.Insert(0, point);
+
+                        if (point == start)
+                            break;
+                        point = _cache.Parents[point].Point;
+                    }
+                }
+                else
+                {
+                    for (var point = end;;)
+                    {
                         path.Insert(0, point);
 
-                    if (point == start)
-                        break;
-                    point = _cache.Parents[point].Point;
+                        if (point == start)
+                            break;
+                        point = _cache.Parents[point].Point;
+                    }
                 }
             }
 

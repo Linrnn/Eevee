@@ -50,11 +50,12 @@ namespace Eevee.PathFind
                 Initialize();
                 int? endFindId = CountEnd();
                 if (endFindId.HasValue)
-                    BuildPath(endFindId.Value, _input.MergePath);
+                    BuildPath(endFindId.Value);
 
                 output = _output;
                 _cache.Release(_objectPoolGetter);
-                return endFindId.HasValue ? PathFindResult.Success : PathFindResult.CantArrive;
+
+                return endFindId.HasValue ? PathFindResult.Success : PathFindResult.NoEnd;
             }
 
             private void Initialize()
@@ -95,12 +96,12 @@ namespace Eevee.PathFind
                     return null;
                 }
             }
-            private readonly void BuildPath(int endFindId, bool merge) // 构建寻路路径
+            private readonly void BuildPath(int endFindId) // 构建寻路路径
             {
                 var start = _input.Point.Start;
                 var path = _output.Path;
                 var portals = _output.Portals;
-                if (merge)
+                if (_input.MergePath)
                 {
                     for (int findId = endFindId;;)
                     {

@@ -20,7 +20,18 @@ namespace Eevee.PathFind
     {
         Success, // 正常寻路
         CantArrive, // Area不可到达
-        InvalidEnd, // 无效的终点
+        NoPath, // 不存在路径
+        NoEnd, // 不存在终点
+    }
+
+    /// <summary>
+    /// 未找到终点时的处理方式
+    /// </summary>
+    public enum PathFindMatchFunc
+    {
+        FarStart, // 尽可能远离起点
+        NearEnd, // 尽可能靠近终点
+        NearPoint, // 尽可能靠近输入的点
     }
 
     public readonly struct PathFindGetters
@@ -166,6 +177,28 @@ namespace Eevee.PathFind
         {
             Path = path;
             Portals = portals;
+        }
+    }
+
+    public readonly struct PathFindShortInput
+    {
+        private const PathFindMatchFunc NearPoint = PathFindMatchFunc.NearPoint;
+        public readonly int StepLimit; // 步长限制
+        public readonly PathFindMatchFunc Func; // 未找到终点时的匹配方式
+        public readonly Vector2DInt16 Point; // 输入的点
+
+        public PathFindShortInput(int stepLimit, PathFindMatchFunc func)
+        {
+            StepLimit = stepLimit;
+            Func = func;
+            Point = default;
+            Assert.NotEqual<ArgumentException, DiagnosisArgs, int>((int)func, (int)NearPoint, nameof(func), "func is NearPoint");
+        }
+        public PathFindShortInput(int stepLimit, Vector2DInt16 point)
+        {
+            StepLimit = stepLimit;
+            Func = NearPoint;
+            Point = point;
         }
     }
     #endregion

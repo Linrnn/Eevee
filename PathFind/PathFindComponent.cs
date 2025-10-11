@@ -200,7 +200,7 @@ namespace Eevee.PathFind
         /// <summary>
         /// 短距离寻路（A*算法）
         /// </summary>
-        public PathFindResult GetShortPath(in PathFindInput input, int stepLimit, ref PathFindOutput output)
+        public PathFindResult GetShortPath(in PathFindInput input, in PathFindShortInput extra, ref PathFindOutput output)
         {
             PathFindDiagnosis.RemoveProcess(AStarProcessor.FindFunc, input.Index);
 
@@ -212,7 +212,7 @@ namespace Eevee.PathFind
                 return PathFindResult.Success;
             }
 
-            var processor = new AStarProcessor(this, in input, stepLimit);
+            var processor = new AStarProcessor(this, in input, in extra);
             var result = processor.GetPath(ref output);
             PathFindDiagnosis.Log(output.Path, input.Index, input.Point);
             PathFindDiagnosis.SetPath(AStarProcessor.FindFunc, input.Index, output.Path, input.Point);
