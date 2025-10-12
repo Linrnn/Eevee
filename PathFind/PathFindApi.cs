@@ -272,9 +272,6 @@ namespace Eevee.PathFind
             Max = max;
         }
 
-        public bool IsValid() => Max.X >= Min.X && Max.Y >= Min.Y;
-        public Vector2DInt16 Size() => new(Max.X - Min.X, Max.Y - Min.Y);
-        public bool Contain(Vector2DInt16 point) => point.X >= Min.X && point.Y >= Min.Y && point.X <= Max.X && point.Y <= Max.Y;
         public PathFindPeek CountRange(int change)
         {
             var range = new PathFindPeek(Min.X - change, Min.Y - change, Max.X + change, Max.Y + change);
@@ -291,6 +288,9 @@ namespace Eevee.PathFind
             var max = new Vector2DInt16(Math.Min(Max.X, limit.Max.X), Math.Min(Max.Y, limit.Max.Y));
             return new PathFindPeek(min, max);
         }
+        public Vector2DInt16 Size() => new(Max.X - Min.X, Max.Y - Min.Y);
+        public bool IsValid() => Max.X >= Min.X && Max.Y >= Min.Y;
+        public bool Contain(Vector2DInt16 point) => point.X >= Min.X && point.Y >= Min.Y && point.X <= Max.X && point.Y <= Max.Y;
         internal int GetMaxStep(Vector2DInt16 point, Vector2DInt16 direction, bool autoOffset = true) // 获取最大步数
         {
             int step = (direction.X, direction.Y) switch

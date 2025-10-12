@@ -3,7 +3,6 @@ using Eevee.Diagnosis;
 using Eevee.Fixed;
 using System;
 using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -29,10 +28,10 @@ namespace Eevee.QuadTree
             public Enumerator GetEnumerator() => new(_enumerator, _checkNull);
         }
 
-        internal struct Enumerator : IEnumerator<QuadTreeNode>
+        internal struct Enumerator
         {
             private readonly IReadOnlyList<QuadTreeNode> _enumerator;
-            private bool _checkNull;
+            private readonly bool _checkNull;
             private int _index;
             private QuadTreeNode _current;
 
@@ -44,17 +43,10 @@ namespace Eevee.QuadTree
                 _index = 0;
                 _current = null;
             }
-
-            #region IEnumerator`1
             public readonly QuadTreeNode Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)] get => _current;
             }
-            #endregion
-
-            #region IEnumerator
-            readonly object IEnumerator.Current => _current;
-
             public bool MoveNext()
             {
                 if (_enumerator is null)
@@ -74,19 +66,7 @@ namespace Eevee.QuadTree
 
                 return _checkNull ? MoveNextCanNull(count) : MoveNextNoNull();
             }
-            public void Reset() => Dispose();
-            #endregion
 
-            #region IDisposable
-            public void Dispose()
-            {
-                _checkNull = false;
-                _index = 0;
-                _current = null;
-            }
-            #endregion
-
-            #region Helper
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private bool MoveNextCanNull(int count)
             {
@@ -113,7 +93,6 @@ namespace Eevee.QuadTree
                 ++_index;
                 return true;
             }
-            #endregion
         }
         #endregion
 
