@@ -145,8 +145,8 @@ namespace Eevee.PathFind
                     unsafe
                     {
                         ref var moveColl = ref _moveCollisions[moveTypeIndex, collIndex];
-                        fixed (short* jpPtr = moveColl.NextJPs)
-                            new Span<short>(jpPtr, sizeCount).Fill(PathFindExt.InvalidDistance);
+                        fixed (short* npp = moveColl.NavPoints) // npp:NavPointPtr
+                            new Span<short>(npp, sizeCount).Fill(PathFindExt.InvalidDistance);
                     }
 
                     tasks.Add(new JumpPointProcessor(this, moveTypeIndex, coll, collIndex, range).AsyncBuild());

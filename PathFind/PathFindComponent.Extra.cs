@@ -32,7 +32,7 @@ namespace Eevee.PathFind
         internal int GetAreaIdAllocator(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).AreaIdAllocator;
         internal short[,] GetAreaIdNodes(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).AreaIds;
         internal Dictionary<Vector2DInt16, List<PathFindJumpPointHandle>> GetJumpPoints(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).JumpPoints;
-        internal short[,,] GetNextJPs(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).NextJPs;
+        internal short[,,] GetNavPoints(MoveFunc moveType, CollSize coll) => GetMoveColl(moveType, coll).NavPoints;
 
         private PathFindMtCs GetMoveColl(MoveFunc moveType, CollSize coll)
         {

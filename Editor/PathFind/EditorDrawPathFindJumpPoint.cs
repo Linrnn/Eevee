@@ -22,8 +22,8 @@ namespace EeveeEditor.PathFind
             private const string CollType = nameof(_collType);
             private const string DrawPoint = nameof(_drawPoint);
             private const string DrawPrev = nameof(_drawPrev);
-            private const string DrawNext = nameof(_drawNext);
-            private const string IntervalNext = nameof(_intervalNext);
+            private const string DrawNavPoint = nameof(_drawNavPoint);
+            private const string NavInterval = nameof(_navInterval);
             private const string Color = nameof(_color);
             private const string PrevColor = nameof(_prevColor);
             private const string NextColor = nameof(_nextColor);
@@ -47,8 +47,9 @@ namespace EeveeEditor.PathFind
                 _propertyHandle.EnumCollType(CollType);
                 _propertyHandle.Draw(DrawPoint);
                 _propertyHandle.Draw(DrawPrev);
-                _propertyHandle.Draw(DrawNext);
-                _propertyHandle.Draw(IntervalNext);
+                _propertyHandle.Draw(DrawNavPoint);
+                if (_propertyHandle.Get(DrawNavPoint).boolValue)
+                    _propertyHandle.Draw(NavInterval);
                 _propertyHandle.Draw(Color);
                 _propertyHandle.Draw(PrevColor);
                 _propertyHandle.Draw(NextColor);
@@ -60,8 +61,8 @@ namespace EeveeEditor.PathFind
         [SerializeField] private CollSize _collType;
         [SerializeField] private bool _drawPoint;
         [SerializeField] private bool _drawPrev;
-        [SerializeField] private bool _drawNext;
-        [SerializeField] private int _intervalNext = 5;
+        [SerializeField] private bool _drawNavPoint;
+        [SerializeField] private int _navInterval = 5;
         [Header("渲染参数")] [SerializeField] private Color _color = Color.yellow;
         [SerializeField] private Color _prevColor = Color.yellow.RGBScale(0.8F);
         [SerializeField] private Color _nextColor = Color.yellow.RGBScale(0.5F);
@@ -80,33 +81,33 @@ namespace EeveeEditor.PathFind
             if (!enabled)
                 return;
 
-            ReadyNextJPs();
+            ReadyNavPoints();
             DrawJumpPoint();
         }
 
-        private void ReadyNextJPs()
+        private void ReadyNavPoints()
         {
             _lines.Clear();
-            if (!_drawNext)
+            if (!_drawNavPoint)
                 return;
 
-            short[,,] nextJPs = _component.GetNextJPs(_moveType, _collType);
-            if (nextJPs is null)
+            short[,,] navPoints = _component.GetNavPoints(_moveType, _collType);
+            if (navPoints is null)
                 return;
 
             var size = _component.GetSize();
             for (int max = size.X - 1, j = 0; j < size.Y; ++j)
             for (int i = max; i >= 0; --i)
-                BuildNextJPsLine(nextJPs, ref i, ref j, PathFindExt.DirIndexLeft, -1);
+                BuildNavLine(navPoints, ref i, ref j, PathFindExt.DirIndexLeft, -1);
             for (int i = 0; i < size.X; ++i)
             for (int j = 0; j < size.Y; ++j)
-                BuildNextJPsLine(nextJPs, ref i, ref j, PathFindExt.DirIndexUp, size.Y);
+                BuildNavLine(navPoints, ref i, ref j, PathFindExt.DirIndexUp, size.Y);
             for (int j = 0; j < size.Y; ++j)
             for (int i = 0; i < size.X; ++i)
-                BuildNextJPsLine(nextJPs, ref i, ref j, PathFindExt.DirIndexRight, size.X);
+                BuildNavLine(navPoints, ref i, ref j, PathFindExt.DirIndexRight, size.X);
             for (int max = size.Y - 1, i = 0; i < size.X; ++i)
             for (int j = max; j >= 0; --j)
-                BuildNextJPsLine(nextJPs, ref i, ref j, PathFindExt.DirIndexDown, -1);
+                BuildNavLine(navPoints, ref i, ref j, PathFindExt.DirIndexDown, -1);
         }
         private void DrawJumpPoint()
         {
@@ -132,7 +133,7 @@ namespace EeveeEditor.PathFind
                 PathFindDraw.Label(point, in _color, _drawPoint);
             }
 
-            if (_drawNext)
+            if (_drawNavPoint)
             {
                 _points.Clear();
                 foreach (var line in _lines)
@@ -145,30 +146,30 @@ namespace EeveeEditor.PathFind
                     PathFindDraw.Line(sp, ep, in _nextColor);
                     PathFindDraw.Arrow(ep, dir, in _nextColor);
 
-                    if (_intervalNext > 0)
+                    if (_navInterval > 0)
                     {
                         var start = new Vector2DInt16(line.sx, line.sy);
-                        var next = new Vector2DInt16(line.ex, line.ey) - _intervalNext * dir;
-                        int dis = _intervalNext;
+                        var next = new Vector2DInt16(line.ex, line.ey) - _navInterval * dir;
+                        int distance = _navInterval;
                         while ((next - start).Sign() == dir)
                         {
                             if (_points.Add(next))
                                 PathFindDraw.Grid(next, in _nextColor);
-                            PathFindDraw.Label(next + ro, in _nextColor, _drawPoint, dis.ToString());
-                            next -= _intervalNext * dir;
-                            dis += _intervalNext;
+                            PathFindDraw.Label(next + ro, in _nextColor, _drawPoint, distance.ToString());
+                            next -= _navInterval * dir;
+                            distance += _navInterval;
                         }
                     }
                 }
             }
         }
 
-        private void BuildNextJPsLine(short[,,] nextJPs, ref int i, ref int j, int dirIndex, int limit)
+        private void BuildNavLine(short[,,] navPoints, ref int i, ref int j, int dirIndex, int limit)
         {
             var dir = PathFindExt.StraightDirections[dirIndex];
-            for (int fi = i, fj = j, fn = nextJPs[i, j, dirIndex]; i != limit && j != limit; i += dir.X, j += dir.Y)
+            for (int fi = i, fj = j, fn = navPoints[i, j, dirIndex]; i != limit && j != limit; i += dir.X, j += dir.Y)
             {
-                int next = nextJPs[i, j, dirIndex];
+                int next = navPoints[i, j, dirIndex];
                 if (next == PathFindExt.CantStand)
                     break;
                 int diff = fn - next;

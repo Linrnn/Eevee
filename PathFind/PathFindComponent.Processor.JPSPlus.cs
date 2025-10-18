@@ -22,7 +22,7 @@ namespace Eevee.PathFind
             private readonly IPathFindObjectPoolGetter _objectPoolGetter;
             private CollSize[,] _passes;
             private Dictionary<Vector2DInt16, List<PathFindJumpPointHandle>> _jumpPoints;
-            private short[,,] _nextJPs;
+            private short[,,] _navPoints;
             private Dictionary<Vector2DInt16, PathFindPortal> _portals;
             // 变动缓存
             private PathFindOutput _output;
@@ -37,7 +37,7 @@ namespace Eevee.PathFind
                 _objectPoolGetter = component._getters.ObjectPool;
                 _passes = default;
                 _jumpPoints = default;
-                _nextJPs = default;
+                _navPoints = default;
                 _portals = default;
                 _output = default;
                 _cache = default;
@@ -67,7 +67,7 @@ namespace Eevee.PathFind
                 _cache.Alloc(_objectPoolGetter);
                 _passes = _component._passes[moveTypeIndex];
                 _jumpPoints = moveColl.JumpPoints;
-                _nextJPs = moveColl.NextJPs;
+                _navPoints = moveColl.NavPoints;
                 _portals = _component._portals;
 
                 // 将“Start”加入“Open”
@@ -182,8 +182,8 @@ namespace Eevee.PathFind
                 {
                     for (var next = point + dir;;)
                     {
-                        short nextJPs = _nextJPs[next.X, next.Y, dirIndex];
-                        int move = nextJPs == PathFindExt.InvalidDistance ? 1 : nextJPs; // 往终点方向搜索时，未找到跳点，尝试移动1格
+                        short npd = _navPoints[next.X, next.Y, dirIndex]; // npd:NavPointDistance
+                        int move = npd == PathFindExt.InvalidDistance ? 1 : npd; // 往终点方向搜索时，未找到跳点，尝试移动1格
                         var tp = next + dir * move;
                         PathFindDiagnosis.AddProcess(FindFunc, _input.Index, tp);
                         if ((end - tp).Sign() != peDir && FindEnd(newParam, end)) // “tp-point”的方向与“point-end”不一致，意味着错过了终点
@@ -203,10 +203,10 @@ namespace Eevee.PathFind
                 {
                     for (var next = point + dir;;)
                     {
-                        short move = _nextJPs[next.X, next.Y, dirIndex];
-                        if (move == PathFindExt.InvalidDistance)
+                        short npd = _navPoints[next.X, next.Y, dirIndex]; // npd:NavPointDistance
+                        if (npd == PathFindExt.InvalidDistance)
                             break;
-                        var tp = next + dir * move;
+                        var tp = next + dir * npd;
                         PathFindDiagnosis.AddProcess(FindFunc, _input.Index, tp);
                         if (_component.BoundsIsOutOf(tp.X, tp.Y, _input.Range))
                             break;

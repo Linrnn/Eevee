@@ -119,7 +119,7 @@ namespace Eevee.PathFind
             private readonly IPathFindObjectPoolGetter _objectPoolGetter;
             private readonly CollSize[,] _passes;
             private readonly Dictionary<Vector2DInt16, List<PathFindJumpPointHandle>> _jumpPoints;
-            private readonly short[,,] _nextJPs;
+            private readonly short[,,] _navPoints;
             private readonly bool _enableThread;
             #endregion
 
@@ -135,7 +135,7 @@ namespace Eevee.PathFind
                 _objectPoolGetter = component._getters.ObjectPool;
                 _passes = component._passes[moveTypeIndex];
                 _jumpPoints = moveColl.JumpPoints;
-                _nextJPs = moveColl.NextJPs;
+                _navPoints = moveColl.NavPoints;
                 _enableThread = false;
             }
             private JumpPointProcessor(in JumpPointProcessor other, bool enableThread = false)
@@ -145,16 +145,13 @@ namespace Eevee.PathFind
             }
             internal JumpPointProcessor Remove()
             {
-                var jumpPoints = _jumpPoints;
-                short[,,] nextJPs = _nextJPs;
-
                 for (int i = _range.Min.X; i <= _range.Max.X; ++i)
                 for (int j = _range.Min.Y; j <= _range.Max.Y; ++j)
                 {
-                    if (jumpPoints.Remove(new Vector2DInt16(i, j), out var handles))
+                    if (_jumpPoints.Remove(new Vector2DInt16(i, j), out var handles))
                         _objectPoolGetter.Release(handles);
                     for (int k = 0; k < PathFindExt.DirIndexCount; ++k)
-                        nextJPs[i, j, k] = PathFindExt.InvalidDistance;
+                        _navPoints[i, j, k] = PathFindExt.InvalidDistance;
                 }
 
                 int xMin = _range.Min.X - 1;
@@ -164,22 +161,22 @@ namespace Eevee.PathFind
 
                 for (int j = _range.Min.Y; j <= _range.Max.Y; ++j)
                 for (int i = xMax; i < _size.X; ++i)
-                    if (CleanNextJPs(i, j, PathFindExt.DirIndexLeft))
+                    if (CleanNavPoints(i, j, PathFindExt.DirIndexLeft))
                         break;
 
                 for (int j = _range.Min.Y; j <= _range.Max.Y; ++j)
                 for (int i = xMin; i >= 0; --i)
-                    if (CleanNextJPs(i, j, PathFindExt.DirIndexRight))
+                    if (CleanNavPoints(i, j, PathFindExt.DirIndexRight))
                         break;
 
                 for (int i = _range.Min.X; i <= _range.Max.X; ++i)
                 for (int j = yMax; j < _size.Y; ++j)
-                    if (CleanNextJPs(i, j, PathFindExt.DirIndexDown))
+                    if (CleanNavPoints(i, j, PathFindExt.DirIndexDown))
                         break;
 
                 for (int i = _range.Min.X; i <= _range.Max.X; ++i)
                 for (int j = yMin; j >= 0; --j)
-                    if (CleanNextJPs(i, j, PathFindExt.DirIndexUp))
+                    if (CleanNavPoints(i, j, PathFindExt.DirIndexUp))
                         break;
 
                 return this;
@@ -210,28 +207,28 @@ namespace Eevee.PathFind
                 {
                     if (dir.HasValue)
                     {
-                        CountNextJPs(point, -PathFindExt.StraightDirections[dir.Value], dir.Value);
+                        CountNavPoints(point, -PathFindExt.StraightDirections[dir.Value], dir.Value);
                     }
                     else
                     {
-                        CountNextJPs(point, Vector2DInt16.Down, PathFindExt.DirIndexUp);
-                        CountNextJPs(point, Vector2DInt16.Up, PathFindExt.DirIndexDown);
-                        CountNextJPs(point, Vector2DInt16.Left, PathFindExt.DirIndexRight);
-                        CountNextJPs(point, Vector2DInt16.Right, PathFindExt.DirIndexLeft);
+                        CountNavPoints(point, Vector2DInt16.Down, PathFindExt.DirIndexUp);
+                        CountNavPoints(point, Vector2DInt16.Up, PathFindExt.DirIndexDown);
+                        CountNavPoints(point, Vector2DInt16.Left, PathFindExt.DirIndexRight);
+                        CountNavPoints(point, Vector2DInt16.Right, PathFindExt.DirIndexLeft);
                     }
                 }
 
                 _objectPoolGetter.Release(rangeJumpPoints, _enableThread);
             }
 
-            private bool CleanNextJPs(int i, int j, int dirIndex)
+            private bool CleanNavPoints(int i, int j, int dirIndex)
             {
                 var point = new Vector2DInt16(i, j);
                 if (!_component.ObstacleCanStand(_passes, i, j, _coll))
                     return true;
                 if (_jumpPoints.ContainsKey(point))
                     return true;
-                _nextJPs[i, j, dirIndex] = PathFindExt.InvalidDistance;
+                _navPoints[i, j, dirIndex] = PathFindExt.InvalidDistance;
                 return false;
             }
             private void GetJumpPoints(IDictionary<Vector2DInt16, int?> jumpPoints)
@@ -277,10 +274,10 @@ namespace Eevee.PathFind
                 jumpPoints.Add(point, dirIndex);
                 return true;
             }
-            private void CountNextJPs(Vector2DInt16 point, Vector2DInt16 dir, int dirIndex)
+            private void CountNavPoints(Vector2DInt16 point, Vector2DInt16 dir, int dirIndex)
             {
                 for (int k = 0; k < PathFindExt.DirIndexCount; ++k)
-                    _nextJPs[point.X, point.Y, k] = PathFindExt.JumpPointDistance;
+                    _navPoints[point.X, point.Y, k] = PathFindExt.JumpPointDistance;
 
                 short distance = 0;
                 for (var next = point + dir;; next += dir)
@@ -293,12 +290,12 @@ namespace Eevee.PathFind
                     if (_jumpPoints.ContainsKey(next))
                     {
                         for (int k = 0; k < PathFindExt.DirIndexCount; ++k)
-                            _nextJPs[next.X, next.Y, k] = PathFindExt.JumpPointDistance;
+                            _navPoints[next.X, next.Y, k] = PathFindExt.JumpPointDistance;
                         break;
                     }
 
                     ++distance;
-                    _nextJPs[next.X, next.Y, dirIndex] = distance;
+                    _navPoints[next.X, next.Y, dirIndex] = distance;
                 }
             }
 
