@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 namespace Eevee.QuadTree
 {
     /// <summary>
-    /// 四叉树最下角：(0, 0)
+    /// 四叉树左下角：(0, 0)
     /// </summary>
     public sealed class QuadTreeManager
     {

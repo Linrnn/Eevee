@@ -493,7 +493,7 @@ namespace Eevee.PathFind
             {
                 // 遍历障碍物边缘的点，如果都可以Stand：区域连通
                 // 想象边缘的点是一个封闭的图案，不可Stand的点是缺口；如果有且只有一个连续缺口，区域连通
-                // 其他情况：区域不一定位连通
+                // 其他情况：区域不一定连通
 
                 int standPointCount = 0;
                 bool start = false;
