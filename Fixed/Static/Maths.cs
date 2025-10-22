@@ -13,6 +13,7 @@ namespace Eevee.Fixed
         #region 字段
         public static readonly Fixed64 Ln2 = new(Const.Ln2);
         public static readonly Fixed64 Lg2 = new(Const.Lg2);
+        public static readonly Fixed64 E = new(Const.E);
         public static readonly Fixed64 Pi = new(Const.Rad180);
         public static readonly Fixed64 Deg2Rad = new(Const.Deg2Rad);
         public static readonly Fixed64 Rad2Deg = new(Const.Rad2Deg);
@@ -630,6 +631,7 @@ namespace Eevee.Fixed
 
             return new Fixed64(y);
         }
+
         /// <summary>
         /// 返回自然对数（即以e为底的对数）
         /// </summary>
@@ -660,6 +662,10 @@ namespace Eevee.Fixed
         /// 返回以10为底的对数
         /// </summary>
         public static Fixed64 Lg(Fixed64 a) => Log2(a) * Lg2;
+        /// <summary>
+        /// 返回以b为底的对数
+        /// </summary>
+        public static Fixed64 Log(Fixed64 a, Fixed64 b) => Log2(a) / Log2(b);
 
         /// <summary>
         /// 是否是2的次幂
