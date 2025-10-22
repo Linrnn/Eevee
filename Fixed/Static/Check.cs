@@ -45,14 +45,14 @@ namespace Eevee.Fixed
         [Conditional(Macro.Assert)]
         internal static void Normal(in Vector2D dir)
         {
-            Assert.Equal<ArgumentException, DiagnosisArgs<Vector2D>, Vector2D>(dir, dir.Normalized(), nameof(dir), "dir:{0} isn't normal", new DiagnosisArgs<Vector2D>(dir));
+            Assert.Less<ArgumentException, DiagnosisArgs<Vector2D>, long>(Math.Abs(dir.SqrMagnitude().RawValue - Const.One), Const.Epsilon, nameof(dir), "dir:{0} isn't normal", new DiagnosisArgs<Vector2D>(dir));
         }
         [Conditional(Macro.Debug)]
         [Conditional(Macro.Editor)]
         [Conditional(Macro.Assert)]
         internal static void Normal(in Vector3D dir)
         {
-            Assert.Equal<ArgumentException, DiagnosisArgs<Vector3D>, Vector3D>(dir, dir.Normalized(), nameof(dir), "dir:{0} isn't normal", new DiagnosisArgs<Vector3D>(dir));
+            Assert.Less<ArgumentException, DiagnosisArgs<Vector3D>, long>(Math.Abs(dir.SqrMagnitude().RawValue - Const.One), Const.Epsilon, nameof(dir), "dir:{0} isn't normal", new DiagnosisArgs<Vector3D>(dir));
         }
 
         [Conditional(Macro.Debug)]

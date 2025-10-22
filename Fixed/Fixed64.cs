@@ -14,6 +14,16 @@ namespace Eevee.Fixed
     [Serializable]
     public struct Fixed64 : IEquatable<Fixed64>, IComparable<Fixed64>, IFormattable
     {
+        #region 类型
+        private enum ParseResult
+        {
+            Success,
+            Empty,
+            Space,
+            Illegal,
+        }
+        #endregion
+
         #region 字段/构造函数
         public static readonly Fixed64 Zero = default; // 数字：0
         public static readonly Fixed64 Half = new(Const.Half); // 数字：0.5
@@ -199,35 +209,67 @@ namespace Eevee.Fixed
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(string str, out Fixed64 result) => TryParse(str.AsSpan(), out result);
+        public static bool TryParse(string str, out Fixed64 result) => CheckParseResult(PrivateParse(str.AsSpan(), out result));
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(string str, int start, out Fixed64 result) => TryParse(str.AsSpan(start), out result);
+        public static bool TryParse(string str, int start, out Fixed64 result) => CheckParseResult(PrivateParse(str.AsSpan(start), out result));
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(string str, int start, int count, out Fixed64 result) => TryParse(str.AsSpan(start, count), out result);
+        public static bool TryParse(string str, int start, int count, out Fixed64 result) => CheckParseResult(PrivateParse(str.AsSpan(start, count), out result));
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(char[] str, out Fixed64 result) => TryParse(str.AsReadOnlySpan(), out result);
+        public static bool TryParse(char[] str, out Fixed64 result) => CheckParseResult(PrivateParse(str.AsReadOnlySpan(), out result));
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(char[] str, int start, out Fixed64 result) => TryParse(str.AsReadOnlySpan(start, str?.Length - start ?? 0), out result);
+        public static bool TryParse(char[] str, int start, out Fixed64 result) => CheckParseResult(PrivateParse(str.AsReadOnlySpan(start, str?.Length - start ?? 0), out result));
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(char[] str, int start, int count, out Fixed64 result) => TryParse(str.AsReadOnlySpan(start, count), out result);
+        public static bool TryParse(char[] str, int start, int count, out Fixed64 result) => CheckParseResult(PrivateParse(str.AsReadOnlySpan(start, count), out result));
         /// <summary>
         /// 尝试解析，将字符串转成Fixed64
         /// </summary>
-        public static bool TryParse(in ReadOnlySpan<char> str, out Fixed64 result)
+        public static bool TryParse(in ReadOnlySpan<char> str, out Fixed64 result) => CheckParseResult(PrivateParse(str, out result));
+
+        /// <summary>
+        /// 解析，将字符串转成Fixed64
+        /// </summary>
+        public static Fixed64 Parse(string str) => CheckParseResult(PrivateParse(str.AsSpan(), out var result), result);
+        /// <summary>
+        /// 解析，将字符串转成Fixed64
+        /// </summary>
+        public static Fixed64 Parse(string str, int start) => CheckParseResult(PrivateParse(str.AsSpan(start), out var result), result);
+        /// <summary>
+        /// 解析，将字符串转成Fixed64
+        /// </summary>
+        public static Fixed64 Parse(string str, int start, int count) => CheckParseResult(PrivateParse(str.AsSpan(start, count), out var result), result);
+        /// <summary>
+        /// 解析，将字符串转成Fixed64
+        /// </summary>
+        public static Fixed64 Parse(char[] str) => CheckParseResult(PrivateParse(str.AsReadOnlySpan(), out var result), result);
+        /// <summary>
+        /// 解析，将字符串转成Fixed64
+        /// </summary>
+        public static Fixed64 Parse(char[] str, int start) => CheckParseResult(PrivateParse(str.AsReadOnlySpan(start, str?.Length - start ?? 0), out var result), result);
+        /// <summary>
+        /// 解析，将字符串转成Fixed64
+        /// </summary>
+        public static Fixed64 Parse(char[] str, int start, int count) => CheckParseResult(PrivateParse(str.AsReadOnlySpan(start, count), out var result), result);
+        /// <summary>
+        /// 解析，将字符串转成Fixed64
+        /// </summary>
+        public static Fixed64 Parse(in ReadOnlySpan<char> str) => CheckParseResult(PrivateParse(str, out var result), result);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ParseResult PrivateParse(in ReadOnlySpan<char> str, out Fixed64 result)
         {
             result = default;
             if (str.IsEmpty)
-                return false;
+                return ParseResult.Empty;
 
             int length = str.Length;
             int start = 0;
@@ -237,7 +279,7 @@ namespace Eevee.Fixed
             while (end >= start && char.IsWhiteSpace(str[end])) // 跳过尾部空格
                 --end;
             if (start > end) // 如果全是空格，返回 false
-                return false;
+                return ParseResult.Space;
 
             int i = start;
             if (str[start] is '+' or '-') // 跳过正负号
@@ -269,7 +311,7 @@ namespace Eevee.Fixed
                 }
                 else
                 {
-                    return false; // 非法字符
+                    return ParseResult.Illegal; // 非法字符
                 }
             }
 
@@ -277,8 +319,12 @@ namespace Eevee.Fixed
                 result = -integerPart - (Fixed64)fractionalPart / fractionalDivisor;
             else
                 result = integerPart + (Fixed64)fractionalPart / fractionalDivisor;
-            return true;
+            return ParseResult.Success;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool CheckParseResult(ParseResult result) => result == ParseResult.Success;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Fixed64 CheckParseResult(ParseResult result, Fixed64 value) => result == ParseResult.Success ? value : throw new ArgumentException(result.ToString(), nameof(result));
 
         public readonly bool IsInfinity() => RawValue is Const.Infinitesimal or Const.Infinity;
         public readonly bool IsNaN() => RawValue == Const.MinPeak;

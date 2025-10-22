@@ -58,6 +58,10 @@
         /// </summary>
         public const long Zero = 0;
         /// <summary>
+        /// 无限接近于0（小于等于这个值，等价于0）
+        /// </summary>
+        public const long Epsilon = One / 1000;
+        /// <summary>
         /// 0.5
         /// </summary>
         public const long Half = One >> 1;
@@ -65,10 +69,6 @@
         /// 1
         /// </summary>
         public const long One = 1L << FractionalBits;
-        /// <summary>
-        /// 无限接近于0（小于等于这个值，等价于0）
-        /// </summary>
-        public const long Epsilon = One / 1000;
 
         /// <summary>
         /// 整数部分
@@ -222,6 +222,10 @@
         #endregion
 
         #region 对数
+        /// <summary>
+        /// 自然对数
+        /// </summary>
+        public const long E = 0x2B7E15162 >> OffsetBits;
         /// <summary>
         /// 2的自然对数（即e为底，2的对数）
         /// </summary>
