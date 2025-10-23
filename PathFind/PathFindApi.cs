@@ -53,6 +53,7 @@ namespace Eevee.PathFind
         int Width { get; }
         int Height { get; }
         Ground Get(int x, int y);
+        void Set(int x, int y, Ground groupType);
     }
 
     public interface IPathFindCollisionGetter
