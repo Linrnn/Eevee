@@ -33,7 +33,7 @@ namespace Eevee.PathFind
 
                 foreach ((MoveFunc moveType, var moveTypeInfo) in _component._moveTypeIndexes)
                 {
-                    var obstaclesRange = _component.CountRange(obstacles, moveType);
+                    var obstaclesRange = _component.CountRange(obstacles);
                     if (!obstaclesRange.IsValid())
                         continue;
 

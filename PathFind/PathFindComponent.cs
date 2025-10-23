@@ -222,6 +222,28 @@ namespace Eevee.PathFind
 
         #region 更新数据
         /// <summary>
+        /// 修改“地形”
+        /// </summary>
+        public void SetTerrain(Dictionary<Vector2DInt16, Ground> terrains)
+        {
+            var objectPoolGetter = _getters.ObjectPool;
+            var obstacles = objectPoolGetter.MapAlloc<Vector2DInt16, Ground>(false);
+
+            foreach ((var point, Ground groupType) in terrains)
+            {
+                _getters.Terrain.Set(point.X, point.Y, groupType);
+                ref var obstacleNode = ref _obstacleNodes[point.X, point.Y];
+                if (obstacleNode.Index != PathFindExt.EmptyIndex)
+                    continue;
+                obstacleNode.GroupType = groupType;
+                obstacles.Add(point, groupType);
+            }
+
+            new ObstacleProcessor(this).Build(obstacles, _allowBuildCache);
+            objectPoolGetter.ReleaseMap(obstacles, false);
+        }
+
+        /// <summary>
         /// 更新“不可移动对象”的网格占用
         /// </summary>
         public void SetObstacle(int index, Dictionary<Vector2DInt16, Ground> obstacles)
@@ -571,17 +593,15 @@ namespace Eevee.PathFind
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private PathFindPeek CountRange(Dictionary<Vector2DInt16, Ground> nodes, MoveFunc moveType)
+        private PathFindPeek CountRange(Dictionary<Vector2DInt16, Ground> nodes)
         {
             short xMin = short.MaxValue;
             short yMin = short.MaxValue;
             short xMax = short.MinValue;
             short yMax = short.MinValue;
 
-            foreach ((var point, Ground groupType) in nodes)
+            foreach (var (point, _) in nodes)
             {
-                if (PathFindExt.Stand(groupType, moveType))
-                    continue;
                 xMin = Math.Min(xMin, point.X);
                 yMin = Math.Min(yMin, point.Y);
                 xMax = Math.Max(xMax, point.X);
