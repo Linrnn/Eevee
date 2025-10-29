@@ -19,6 +19,7 @@ namespace Eevee.PathFind
             private readonly PathFindComponent _component;
             // 只读缓存
             private readonly PathFindInput _input;
+            private readonly PathFindLongInput _extra;
             private readonly IPathFindObjectPoolGetter _objectPoolGetter;
             private CollSize[,] _passes;
             private Dictionary<Vector2DInt16, List<PathFindJumpPointHandle>> _jumpPoints;
@@ -30,10 +31,11 @@ namespace Eevee.PathFind
             private int _findIdAllocator;
             #endregion
 
-            internal JPSPlusProcessor(PathFindComponent component, in PathFindInput input)
+            internal JPSPlusProcessor(PathFindComponent component, in PathFindInput input, in PathFindLongInput extra)
             {
                 _component = component;
                 _input = input;
+                _extra = extra;
                 _objectPoolGetter = component._getters.ObjectPool;
                 _passes = default;
                 _jumpPoints = default;
@@ -99,6 +101,7 @@ namespace Eevee.PathFind
             private readonly void BuildPath(int endFindId) // 构建寻路路径
             {
                 var start = _input.Point.Start;
+                var end = _input.Point.End;
                 var path = _output.Path;
                 var portals = _output.Portals;
                 if (_input.MergePath)
@@ -108,10 +111,10 @@ namespace Eevee.PathFind
                         var findIdHandle = _cache.Parents[findId];
                         var point = findIdHandle.Point;
 
-                        if (PathFindExt.ValidPath(path) && PathFindExt.SameDir(point - path[0], point - path[1]))
-                            path[0] = point; // 合并路径
-                        else
-                            path.Insert(0, point);
+                        if (!_extra.MergePath)
+                            PathFindExt.MergePath(path, point);
+                        else if (point == start || point == end || _jumpPoints.ContainsKey(point))
+                            PathFindExt.MergePath(path, point);
 
                         if (_portals.TryGetValue(point, out var portal))
                             portals.Add(portal.Index);
@@ -247,15 +250,15 @@ namespace Eevee.PathFind
                     return false;
 
                 int findId = ++_findIdAllocator;
-                FindIdBuild(param.FindId, findId, point);
                 PathFindExt.GetOctDirections(_objectPoolGetter, out var straightDirections, out var obliqueDirections);
                 var portalEnd = portal.Point.End;
                 var openHandle = OpenCreate(param.FindId, findId, param.Point, point, portalEnd, end, straightDirections, obliqueDirections);
                 cache.Opens.Add(_objectPoolGetter, portalEnd, openHandle);
+                FindIdBuild(param.FindId, findId, point);
                 return false;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private readonly bool FindJumpPoint(JPSPlusParam param, Vector2DInt16 point, Vector2DInt16 dir)
+            private bool FindJumpPoint(JPSPlusParam param, Vector2DInt16 point, Vector2DInt16 dir)
             {
                 if (!_jumpPoints.TryGetValue(point, out var jumpPoints))
                     return false;
@@ -279,9 +282,10 @@ namespace Eevee.PathFind
                     straightDirections.SetAdd(new Vector2DInt16(default, obliqueDir.Y));
                 }
 
-                int findId = _findIdAllocator;
+                int findId = ++_findIdAllocator;
                 var openHandle = OpenCreate(param.FindId, findId, param.Point, point, point, _input.Point.End, straightDirections, obliqueDirections);
                 _cache.Opens.Add(_objectPoolGetter, point, openHandle);
+                FindIdBuild(param.FindId, findId, point);
                 return true;
             }
             #endregion

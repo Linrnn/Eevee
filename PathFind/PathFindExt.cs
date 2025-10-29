@@ -47,6 +47,14 @@ namespace Eevee.PathFind
         internal static bool ValidPath<T>(ICollection<T> path) => path is { Count: >= 2 };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static void MergePath(IList<Vector2DInt16> path, Vector2DInt16 point)
+        {
+            if (ValidPath(path) && SameDir(point - path[0], point - path[1]))
+                path[0] = point; // 合并路径
+            else
+                path.Insert(0, point);
+        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool SameDir(Vector2DInt16 lhs, Vector2DInt16 rhs)
         {
             if (lhs.X == 0 && rhs.X == 0)

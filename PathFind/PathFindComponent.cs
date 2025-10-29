@@ -171,7 +171,7 @@ namespace Eevee.PathFind
         /// <summary>
         /// 长距离寻路（JPS+算法）
         /// </summary>
-        public PathFindResult GetLongPath(in PathFindInput input, ref PathFindOutput output)
+        public PathFindResult GetLongPath(in PathFindInput input, in PathFindLongInput extra, ref PathFindOutput output)
         {
             PathFindDiagnosis.RemoveProcess(JPSPlusProcessor.FindFunc, input.Index);
 
@@ -190,7 +190,7 @@ namespace Eevee.PathFind
                 return PathFindResult.Success;
             }
 
-            var processor = new JPSPlusProcessor(this, in input);
+            var processor = new JPSPlusProcessor(this, in input, in extra);
             var result = processor.GetPath(ref output);
             PathFindDiagnosis.Log(output.Path, input.Index, input.Point);
             PathFindDiagnosis.SetPath(JPSPlusProcessor.FindFunc, input.Index, output.Path, input.Point);
@@ -460,7 +460,15 @@ namespace Eevee.PathFind
             var moveTypeInfo = _moveTypeIndexes[moveType];
             int collIndex = _collisionIndexes[coll];
             ref var moveColl = ref _moveCollisions[moveTypeInfo.TypeIndex, collIndex];
-            return moveColl.AreaIds[lhs.X, lhs.Y] == moveColl.AreaIds[rhs.X, rhs.Y];
+            short lai = moveColl.AreaIds[lhs.X, lhs.Y];
+            if (lai == PathFindExt.CantStand)
+                return false;
+            short rai = moveColl.AreaIds[rhs.X, rhs.Y];
+            if (rai == PathFindExt.CantStand)
+                return false;
+            if (lai == rai)
+                return true;
+            return ArriveArea(moveType, coll, new PathFindPoint(lhs, rhs));
         }
 
         /// <summary>

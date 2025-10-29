@@ -145,10 +145,7 @@ namespace Eevee.PathFind
                 {
                     for (var point = end;;)
                     {
-                        if (PathFindExt.ValidPath(path) && PathFindExt.SameDir(point - path[0], point - path[1]))
-                            path[0] = point; // 合并路径
-                        else
-                            path.Insert(0, point);
+                        PathFindExt.MergePath(path, point);
 
                         if (point == start)
                             break;
