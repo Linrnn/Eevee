@@ -181,6 +181,16 @@ namespace Eevee.PathFind
         }
     }
 
+    public readonly struct PathFindLongInput
+    {
+        public readonly bool MergePath; // 只保留跳点
+
+        public PathFindLongInput(bool mergePath)
+        {
+            MergePath = mergePath;
+        }
+    }
+
     public readonly struct PathFindShortInput
     {
         private const PathFindMatchFunc NearPoint = PathFindMatchFunc.NearPoint;
