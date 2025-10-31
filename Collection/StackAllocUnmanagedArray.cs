@@ -7,7 +7,7 @@ namespace Eevee.Collection
     /// <summary>
     /// 内存在栈分配的数组
     /// </summary>
-    internal ref struct StackAllocUnmanagedArray<T> where T : unmanaged
+    internal ref struct StackAllocUnmanagedArray<T> where T : unmanaged, IEquatable<T>
     {
         private readonly Span<T> _span;
         internal int Count;
@@ -20,11 +20,20 @@ namespace Eevee.Collection
 
         internal readonly ref T this[int index]
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => ref _span[index];
+            [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref _span[index];
         }
         internal readonly ref T RefGet(int index) => ref _span[index];
         internal readonly T Get(int index) => _span[index];
+
+        internal readonly ReadOnlySpan<T> AsSpan() => _span[..Count];
+        internal readonly bool Contain(in T element)
+        {
+            if (Count == 0)
+                return false;
+            var span = _span[..Count];
+            int index = span.IndexOf(element);
+            return index >= 0;
+        }
 
         internal readonly void Set(int index, in T element)
         {

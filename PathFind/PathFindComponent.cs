@@ -455,7 +455,7 @@ namespace Eevee.PathFind
         /// <summary>
         /// 检测区域id是否一致
         /// </summary>
-        public bool CheckAreaIsSame(Vector2DInt16 lhs, Vector2DInt16 rhs, MoveFunc moveType, CollSize coll)
+        public bool CheckArea(Vector2DInt16 lhs, Vector2DInt16 rhs, MoveFunc moveType, CollSize coll)
         {
             var moveTypeInfo = _moveTypeIndexes[moveType];
             int collIndex = _collisionIndexes[coll];
@@ -474,7 +474,7 @@ namespace Eevee.PathFind
         /// <summary>
         /// 检测两个点是否可以直线到达
         /// </summary>
-        public bool CheckStraightArrive(Vector2DInt16 lhs, Vector2DInt16 rhs, MoveFunc moveType, CollSize coll)
+        public bool CheckStraight(Vector2DInt16 lhs, Vector2DInt16 rhs, MoveFunc moveType, CollSize coll)
         {
             var moveTypeInfo = _moveTypeIndexes[moveType];
             CollSize[,] passes = _passes[moveTypeInfo.TypeIndex];
@@ -503,8 +503,8 @@ namespace Eevee.PathFind
             if (_portals.IsEmpty())
                 return false;
 
-            int tpCount = 0;
-            var tpAreas = (Span<Vector2DInt16>)stackalloc Vector2DInt16[_portals.Count];
+            var tpAreas = new StackAllocUnmanagedArray<Vector2DInt16>(stackalloc Vector2DInt16[_portals.Count]);
+            var verifyAreas = new StackAllocUnmanagedArray<Vector2DInt16>(stackalloc Vector2DInt16[_portals.Count]);
             foreach (var (start, portal) in _portals)
             {
                 var end = portal.Point.End;
@@ -512,26 +512,31 @@ namespace Eevee.PathFind
                 short peAreaId = areas[end.X, end.Y];
                 if (psAreaId == peAreaId)
                     continue;
-
                 var tpArea = new Vector2DInt16(psAreaId, peAreaId);
-                if (tpAreas.IndexOf(tpArea) < 0)
-                    tpAreas[tpCount++] = tpArea;
+                if (tpAreas.Contain(tpArea))
+                    continue;
+                tpAreas.Add(tpArea);
             }
 
-            if (tpCount == 0)
+            if (tpAreas.Count == 0)
                 return false;
-            return ArriveArea(startAreaId, endAreaId, tpAreas[..tpCount]);
+            return ArriveArea(startAreaId, endAreaId, tpAreas.AsSpan(), ref verifyAreas);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool ArriveArea(short startAreaId, short endAreaId, ReadOnlySpan<Vector2DInt16> tpAreas)
+        private bool ArriveArea(short startAreaId, short endAreaId, in ReadOnlySpan<Vector2DInt16> tpAreas, ref StackAllocUnmanagedArray<Vector2DInt16> verifyAreas)
         {
+            var seTpArea = new Vector2DInt16(startAreaId, endAreaId);
+            if (verifyAreas.Contain(seTpArea))
+                return false;
+            verifyAreas.Add(seTpArea);
+
             foreach (var tpArea in tpAreas)
             {
                 if (startAreaId != tpArea.X)
                     continue;
                 if (endAreaId == tpArea.Y)
                     return true;
-                if (ArriveArea(tpArea.Y, endAreaId, tpAreas))
+                if (ArriveArea(tpArea.Y, endAreaId, in tpAreas, ref verifyAreas))
                     return true;
             }
 
