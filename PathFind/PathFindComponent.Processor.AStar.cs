@@ -141,15 +141,45 @@ namespace Eevee.PathFind
             {
                 var start = _input.Point.Start;
                 var path = _output.Path;
+                var parents = _cache.Parents;
                 if (_input.MergePath)
                 {
-                    for (var point = end;;)
+                    if (_extra.MergePath)
                     {
-                        PathFindExt.MergePath(path, point);
+                        for (var point = end;;)
+                        {
+                            if (PathFindExt.ValidPath(path))
+                            {
+                                const int step = 1;
+                                const int step2 = 2;
+                                var temp = path[0];
+                                var target = path[1];
+                                if ((temp - point).SqrMagnitude() == step && (target - temp).SqrMagnitude() == step && target - point is var dir & dir.SqrMagnitude() == step2)
+                                {
+                                    var check = temp - dir.Perpendicular();
+                                    var collRange = PathFindExt.GetColl(_collisionGetter, check, _input.Coll);
+                                    if (_component.MoveableCanStand(collRange, _moveableNodes, _cache.IgnoreIndexes))
+                                        path.RemoveAt(0);
+                                }
+                            }
 
-                        if (point == start)
-                            break;
-                        point = _cache.Parents[point].Point;
+                            PathFindExt.MergePath(path, point);
+
+                            if (point == start)
+                                break;
+                            point = parents[point].Point;
+                        }
+                    }
+                    else
+                    {
+                        for (var point = end;;)
+                        {
+                            PathFindExt.MergePath(path, point);
+
+                            if (point == start)
+                                break;
+                            point = parents[point].Point;
+                        }
                     }
                 }
                 else
@@ -160,7 +190,7 @@ namespace Eevee.PathFind
 
                         if (point == start)
                             break;
-                        point = _cache.Parents[point].Point;
+                        point = parents[point].Point;
                     }
                 }
             }

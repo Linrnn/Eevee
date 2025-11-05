@@ -183,7 +183,7 @@ namespace Eevee.PathFind
 
     public readonly struct PathFindLongInput
     {
-        public readonly bool MergePath; // 只保留跳点
+        public readonly bool MergePath; // 仅保留起点/终点/跳点
 
         public PathFindLongInput(bool mergePath)
         {
@@ -197,19 +197,22 @@ namespace Eevee.PathFind
         public readonly int StepLimit; // 步长限制
         public readonly PathFindMatchFunc Func; // 未找到终点时的匹配方式
         public readonly Vector2DInt16 Point; // 输入的点
+        public readonly bool MergePath; // 斜方向合并
 
-        public PathFindShortInput(int stepLimit, PathFindMatchFunc func)
+        public PathFindShortInput(int stepLimit, PathFindMatchFunc func, bool mergePath)
         {
             StepLimit = stepLimit;
             Func = func;
             Point = default;
+            MergePath = mergePath;
             Assert.NotEqual<ArgumentException, DiagnosisArgs, int>((int)func, (int)NearPoint, nameof(func), "func is NearPoint");
         }
-        public PathFindShortInput(int stepLimit, Vector2DInt16 point)
+        public PathFindShortInput(int stepLimit, Vector2DInt16 point, bool mergePath)
         {
             StepLimit = stepLimit;
             Func = NearPoint;
             Point = point;
+            MergePath = mergePath;
         }
     }
     #endregion

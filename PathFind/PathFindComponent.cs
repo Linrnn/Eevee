@@ -453,9 +453,9 @@ namespace Eevee.PathFind
 
         #region 检测接口
         /// <summary>
-        /// 检测区域id是否一致
+        /// 检测区域可达性
         /// </summary>
-        public bool CheckArea(Vector2DInt16 lhs, Vector2DInt16 rhs, MoveFunc moveType, CollSize coll)
+        public bool CheckArea(Vector2DInt16 lhs, Vector2DInt16 rhs, MoveFunc moveType, CollSize coll, bool checkPortal = true)
         {
             var moveTypeInfo = _moveTypeIndexes[moveType];
             int collIndex = _collisionIndexes[coll];
@@ -468,6 +468,8 @@ namespace Eevee.PathFind
                 return false;
             if (lai == rai)
                 return true;
+            if (!checkPortal)
+                return false;
             return ArriveArea(moveType, coll, new PathFindPoint(lhs, rhs));
         }
 

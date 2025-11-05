@@ -104,30 +104,46 @@ namespace Eevee.PathFind
                 var end = _input.Point.End;
                 var path = _output.Path;
                 var portals = _output.Portals;
+                var parents = _cache.Parents;
                 if (_input.MergePath)
                 {
-                    for (int findId = endFindId;;)
+                    if (_extra.MergePath)
                     {
-                        var findIdHandle = _cache.Parents[findId];
-                        var point = findIdHandle.Point;
+                        for (int findId = endFindId;;)
+                        {
+                            var findIdHandle = parents[findId];
+                            var point = findIdHandle.Point;
+                            if (point == start || point == end || _jumpPoints.ContainsKey(point))
+                                PathFindExt.MergePath(path, point);
 
-                        if (!_extra.MergePath)
-                            PathFindExt.MergePath(path, point);
-                        else if (point == start || point == end || _jumpPoints.ContainsKey(point))
+                            if (_portals.TryGetValue(point, out var portal))
+                                portals.Add(portal.Index);
+                            if (point == start)
+                                break;
+                            findId = findIdHandle.ParentId;
+                        }
+                    }
+                    else
+                    {
+                        for (int findId = endFindId;;)
+                        {
+                            var findIdHandle = parents[findId];
+                            var point = findIdHandle.Point;
                             PathFindExt.MergePath(path, point);
 
-                        if (_portals.TryGetValue(point, out var portal))
-                            portals.Add(portal.Index);
-                        if (point == start)
-                            break;
-                        findId = findIdHandle.ParentId;
+                            if (_portals.TryGetValue(point, out var portal))
+                                portals.Add(portal.Index);
+                            if (point == start)
+                                break;
+                            findId = findIdHandle.ParentId;
+                        }
                     }
                 }
                 else
                 {
                     for (int findId = endFindId;;)
                     {
-                        var findIdHandle = _cache.Parents[findId];
+                        var findIdHandle = parents[findId];
                         var point = findIdHandle.Point;
                         path.Insert(0, point);
 
