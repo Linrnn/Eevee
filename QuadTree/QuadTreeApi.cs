@@ -25,6 +25,15 @@ namespace Eevee.QuadTree
         void RemoveEmptyNode();
     }
 
+    public interface IQuadTreeObjectPoolGetter
+    {
+        QuadTreeElement[] AllocArray(int capacity);
+        void ReleaseArray(QuadTreeElement[] collection);
+
+        QuadTreeNode AllocElement();
+        void ReleaseElement(QuadTreeNode element);
+    }
+
     /// <summary>
     /// 四叉树形状
     /// </summary>
