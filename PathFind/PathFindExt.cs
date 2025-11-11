@@ -41,6 +41,7 @@ namespace Eevee.PathFind
         };
         #endregion
 
+        #region 方法
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool Stand(Ground groupType, MoveFunc moveType) => (groupType & moveType) == moveType;
 
@@ -105,5 +106,6 @@ namespace Eevee.PathFind
             var max = new Vector2DInt16(point.X + coll.Max.X, point.Y + coll.Max.Y);
             return new PathFindPeek(min, max);
         }
+        #endregion
     }
 }
