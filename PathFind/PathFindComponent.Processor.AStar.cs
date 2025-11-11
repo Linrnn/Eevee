@@ -148,21 +148,8 @@ namespace Eevee.PathFind
                     {
                         for (var point = end;;)
                         {
-                            if (PathFindExt.ValidPath(path))
-                            {
-                                const int step = 1;
-                                const int step2 = 2;
-                                var temp = path[0];
-                                var target = path[1];
-                                if ((temp - point).SqrMagnitude() == step && (target - temp).SqrMagnitude() == step && target - point is var dir & dir.SqrMagnitude() == step2)
-                                {
-                                    var check = temp - dir.Perpendicular();
-                                    var collRange = PathFindExt.GetColl(_collisionGetter, check, _input.Coll);
-                                    if (_component.MoveableCanStand(collRange, _moveableNodes, _cache.IgnoreIndexes))
-                                        path.RemoveAt(0);
-                                }
-                            }
-
+                            if (AllowExtraMerge(path, point))
+                                path.RemoveAt(0);
                             PathFindExt.MergePath(path, point);
 
                             if (point == start)
@@ -229,6 +216,28 @@ namespace Eevee.PathFind
                 }
 
                 return null;
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private readonly bool AllowExtraMerge(IList<Vector2DInt16> path, Vector2DInt16 point)
+            {
+                if (!PathFindExt.ValidPath(path))
+                    return false;
+                var prev = path[0];
+                if ((prev - point).SqrMagnitude() != 1)
+                    return false;
+                var target = path[1];
+                if ((target - prev).SqrMagnitude() != 1)
+                    return false;
+                var dir = target - point;
+                if (dir.SqrMagnitude() != 2)
+                    return false;
+                var check = prev + dir.Perpendicular();
+                if (!_component.ObstacleCanStand(_passes, check.X, check.Y, _input.Coll))
+                    return false;
+                var collRange = PathFindExt.GetColl(_collisionGetter, check, _input.Coll);
+                if (!_component.MoveableCanStand(collRange, _moveableNodes, _cache.IgnoreIndexes))
+                    return false;
+                return true;
             }
         }
 

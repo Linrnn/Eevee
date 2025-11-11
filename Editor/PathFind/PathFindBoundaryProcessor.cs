@@ -69,9 +69,9 @@ namespace EeveeEditor.PathFind
                     for (int k = 0; k < PathFindExt.DirIndexCount; ++k)
                         if (!(PathFindExt.StraightDirections[k] is var dir))
                             continue;
-                        else if (i + dir.X is { } px && (px < 0 || px >= size.X))
+                        else if (i + dir.X is var px && (px < 0 || px >= size.X))
                             continue;
-                        else if (j + dir.Y is { } py && (py < 0 || py >= size.Y))
+                        else if (j + dir.Y is var py && (py < 0 || py >= size.Y))
                             continue;
                         else if (elements[px, py] is { } pe && _checker(pe) && equatable.Equals(_getter(pe)))
                             continue;
