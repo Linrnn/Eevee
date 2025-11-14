@@ -148,7 +148,7 @@ namespace Eevee.PathFind
                     {
                         for (var point = end;;)
                         {
-                            if (AllowExtraMerge(path, point))
+                            if (AllowExtraMerge(point))
                                 path.RemoveAt(0);
                             PathFindExt.MergePath(path, point);
 
@@ -218,12 +218,14 @@ namespace Eevee.PathFind
                 return null;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private readonly bool AllowExtraMerge(IList<Vector2DInt16> path, Vector2DInt16 point)
+            private readonly bool AllowExtraMerge(Vector2DInt16 point)
             {
+                var path = _output.Path;
                 if (!PathFindExt.ValidPath(path))
                     return false;
                 var prev = path[0];
-                if ((prev - point).SqrMagnitude() != 1)
+                var ppDir = point - prev;
+                if (ppDir.SqrMagnitude() != 1)
                     return false;
                 var target = path[1];
                 if ((target - prev).SqrMagnitude() != 1)
@@ -231,7 +233,7 @@ namespace Eevee.PathFind
                 var dir = target - point;
                 if (dir.SqrMagnitude() != 2)
                     return false;
-                var check = prev + dir.Perpendicular();
+                var check = target + ppDir;
                 if (!_component.ObstacleCanStand(_passes, check.X, check.Y, _input.Coll))
                     return false;
                 var collRange = PathFindExt.GetColl(_collisionGetter, check, _input.Coll);
