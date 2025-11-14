@@ -504,7 +504,7 @@ namespace Eevee.PathFind
                 {
                     var point = points[i];
                     bool end = false;
-                    if (_component.ObstacleCanStand(_passes, point.X, point.Y, _coll))
+                    if (_component.ObstacleCanStand(_passes, point.X, point.Y, _coll) && _areaIds[point.X, point.Y] != PathFindExt.CantStand)
                     {
                         if (start)
                         {
