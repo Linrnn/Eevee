@@ -249,20 +249,16 @@ namespace Eevee.Diagnosis
             where TArgs : struct, IDiagnosisArgs
         {
             string message = args.BuildMessage(format);
-            var exception = BuildException(typeof(TException), paramName, message);
+            var builder = ExceptionProxy.Impl;
+            if (builder is null)
+            {
+                LogRelay.Error("[Diagnosis] ExceptionProxy.Impl is null, no Inject.");
+                throw new Exception(message);
+            }
+
+            var exception = builder.Build(typeof(TException), paramName, message);
             throw exception;
         }
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Exception BuildException(Type exception, string paramName, string message) => exception switch
-        {
-            _ when exception == typeof(ArgumentException) => new ArgumentException(message, paramName),
-            _ when exception == typeof(ArgumentNullException) => new ArgumentNullException(paramName, message),
-            _ when exception == typeof(ArgumentOutOfRangeException) => new ArgumentOutOfRangeException(paramName, message),
-            _ when exception == typeof(IndexOutOfRangeException) => new IndexOutOfRangeException(message),
-            _ when exception == typeof(InvalidOperationException) => new InvalidOperationException(message),
-            _ when exception == typeof(NullReferenceException) => new NullReferenceException(message),
-            _ => new Exception(message),
-        };
         #endregion
     }
 }

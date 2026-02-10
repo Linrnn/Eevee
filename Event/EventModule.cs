@@ -60,7 +60,7 @@ namespace Eevee.Event
 
             _validStart = waitWrapperCount; // “Dispatch”过程中可能会修改“_waitWrappers”，先记录有效的启示索引
             for (int i = 0; i < waitWrapperCount; ++i)
-                if (_waitWrappers[i] is { } invokeWrapper)
+                if (_waitWrappers[i] is var invokeWrapper)
                     Invokes(invokeWrapper.EventId, invokeWrapper.Context, true);
             _validStart = 0;
         }
